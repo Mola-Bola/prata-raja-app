@@ -1,0 +1,82 @@
+# CI for an app made from the Cell starter. The same checks as scripts/check.sh, on GitHub's runners.
+# Source of truth: ~/cell/starter/.github/workflows/check.yml (copied into each app).
+# Cost (private repo = 2,000 free Linux minutes a month; each job bills at least 1 min): measured on Kampong, quick job ~1 min, DB job ~1.5 min (only when supabase/** changed).
+# No "required check" setting: a personal account without Pro cannot enforce one, so a red run is a signal, not a gate.
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quick:
+    name: tsc, lint, vitest, guards
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      db: ${{ steps.f.outputs.db }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # assert-guard diffs against the base branch; gitleaks scans history
+      - name: did supabase/** change (decides the DB job)
+        id: f
+        run: |
+          # If the comparison itself fails (new branch, force-push, missing base), run the DB job rather than skip it.
+          db=true
+          case "${{ github.event_name }}" in
+            workflow_dispatch) ;;
+            pull_request) files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD") && { echo "$files" | grep -q '^supabase/' || db=false; } ;;
+            *) files=$(git diff --name-only "${{ github.event.before }}" HEAD) && { echo "$files" | grep -q '^supabase/' || db=false; } ;;
+          esac
+          echo "db=$db" >> "$GITHUB_OUTPUT"; echo "supabase changed (or unknown): $db"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: tsc
+        run: npx tsc --noEmit
+      - name: lint
+        run: npx expo lint src
+      - name: vitest
+        run: npx vitest run
+      - name: assert-guard (no weakened tests)
+        if: github.event_name == 'pull_request' && hashFiles('scripts/assert-guard.mjs') != ''
+        run: node scripts/assert-guard.mjs "origin/${{ github.base_ref }}"
+      - name: gitleaks (CLI; the action wants a licence key on orgs)
+        env:
+          GITLEAKS_VERSION: 8.28.0
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar -xz gitleaks
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            ./gitleaks git --redact --no-banner -v --log-opts="origin/${{ github.base_ref }}..HEAD"
+          else
+            ./gitleaks git --redact --no-banner -v
+          fi
+
+  db:
+    name: pgTAP (supabase test db)
+    needs: quick
+    if: always() && needs.quick.outputs.db == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1 # pinned: "latest" resolves via the GitHub API and hit its rate limit once
+      # Only the services the tests need (db + auth + storage); the rest of the images are never pulled.
+      - run: supabase start -x studio,mailpit,realtime,postgres-meta,edge-runtime,vector,logflare,imgproxy,supavisor,postgrest,kong
+      - run: supabase test db
+      - if: failure()
+        run: supabase status || true

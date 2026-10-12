@@ -1,0 +1,16 @@
+{
+  "name": "Prata Raja",
+  "id": "prata-raja",
+  "projectRef": "",
+  "envFile": ".env.cloud",
+  "targetVar": "PRATA_RAJA_TARGET",
+  "privacy": "normal",
+  "mainBranch": "main",
+  "playbook": "~/cell/runner/playbooks/prata-raja.md",
+  "checkCommand": "bash scripts/check.sh",
+  "maxApkMiB": 50,
+  "reviewPaths": [
+    "supabase/migrations/**",
+    "app.json"
+  ]
+}

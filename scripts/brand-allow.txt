@@ -1,0 +1,6 @@
+# Exceptions to the brand lint (scripts/brand-lint.mjs): places where a guarded name may be written as a literal.
+# One per line: <path relative to the app root, or a folder ending in /> [word]. No word = every guarded word in that path.
+# Keep this short: almost every name belongs in src/brand.ts. Say why on the line above each exception.
+# Example:
+#   # The privacy page quotes the legal name, which must not follow a rename.
+#   src/app/privacy.tsx Kampong

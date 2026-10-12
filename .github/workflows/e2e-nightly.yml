@@ -1,0 +1,76 @@
+# Nightly web end-to-end run (Playwright) against a throwaway local Supabase. Also runnable by hand (Actions > Run workflow).
+# Source of truth: ~/cell/starter/.github/workflows/e2e-nightly.yml (copied into each app).
+# Cost: ~5 min per run (measured on Kampong), once a night, skipped when main has had no commits in 25 h.
+name: e2e-nightly
+
+on:
+  schedule:
+    - cron: '17 18 * * *' # 18:17 UTC, 04:17 Sydney
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-nightly
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TZ: Australia/Sydney # specs assume the owner's clock (a runner defaults to UTC); mailpit is kept: auth specs read the confirmation/reset mails from it
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: local main ref (scripts/assert-guard.mjs main)
+        run: git fetch origin main:refs/heads/main || true
+      - name: skip when main is idle
+        id: idle
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ -z "$(git log --since='25 hours ago' --format=%h -1)" ]; then echo "skip=true" >> "$GITHUB_OUTPUT"; echo "no commits in 25 h, skipping"; else echo "skip=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/setup-node@v4
+        if: steps.idle.outputs.skip != 'true'
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.idle.outputs.skip != 'true'
+        run: npm ci --no-audit --no-fund
+      - uses: supabase/setup-cli@v1
+        if: steps.idle.outputs.skip != 'true'
+        with:
+          version: 2.109.1 # pinned: "latest" resolves via the GitHub API and hit its rate limit once
+      - name: supabase start and .env
+        if: steps.idle.outputs.skip != 'true'
+        run: |
+          supabase start -x studio,vector,logflare,imgproxy,supavisor
+          supabase status -o env > "$RUNNER_TEMP/sb.env"
+          # shellcheck disable=SC1091
+          . "$RUNNER_TEMP/sb.env"
+          {
+            echo "EXPO_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${PUBLISHABLE_KEY:-$ANON_KEY}"
+            echo "EXPO_PUBLIC_WEB_URL=http://127.0.0.1:8181"
+          } > .env
+      - name: playwright browsers
+        if: steps.idle.outputs.skip != 'true'
+        run: npx playwright install --with-deps chromium
+      - name: check.sh --web (tsc, lint, vitest, pgTAP, web build, Playwright)
+        if: steps.idle.outputs.skip != 'true'
+        env:
+          LOGS: ${{ runner.temp }}/check
+        run: bash scripts/check.sh --web
+      - name: failed specs (check.sh prints only part of them)
+        if: failure()
+        run: grep -hE "^\s+[0-9]+\) |^\s+(Error|Expected|Received)" "${{ runner.temp }}/check/e2e.log" | head -80 || true
+      - name: upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: |
+            ${{ runner.temp }}/check/*.log
+            ${{ runner.temp }}/check/playwright
+          retention-days: 7

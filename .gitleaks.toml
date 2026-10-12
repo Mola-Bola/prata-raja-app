@@ -1,0 +1,12 @@
+# gitleaks config (CI runs the CLI; local: `gitleaks git --redact`).
+[extend]
+useDefault = true
+
+# Supabase publishable keys are public by design (they ship in every app bundle; row-level security is the
+# protection). Only the generic-api-key rule is relaxed, and only when the match is that variable itself,
+# so a GitHub/AWS/Stripe token or a service-role key on the same line is still caught.
+[[allowlists]]
+description = "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY values"
+targetRules = ["generic-api-key"]
+regexTarget = "match"
+regexes = ['''^EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY["']?\s*[:=]\s*["']?sb_publishable_[A-Za-z0-9_-]{20,}["']?$''']
