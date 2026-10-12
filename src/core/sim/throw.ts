@@ -9,8 +9,6 @@ const FAN = 12 * RAD;
 const THROW_ANIM = 0.18;
 /** Orbit rings circle this field point in front of Kannan. */
 const ORBIT_Y = 90;
-/** Extra seconds a straight shot lives beyond range / speed. */
-const TTL_SLACK = 0.25;
 
 function base(c: Ctx, def: BreadDef, st: BreadStats, motion: BreadMotion): Projectile {
   return {
@@ -109,7 +107,7 @@ function spawnStraight(c: Ctx, def: BreadDef, st: BreadStats, motion: 'straight'
   if (motion === 'straight') {
     s.pierceLeft = st.pierce;
     s.hopsLeft = st.hops;
-    s.ttl = range / speed + TTL_SLACK;
+    s.ttl = range / speed; // exactly the range: shots.ts clips the last bit of travel, so nothing lands beyond it
   } else {
     s.ty = range; // boomerang: how far out it flies before turning
     s.ttl = (2 * range) / speed + 3;
@@ -117,12 +115,14 @@ function spawnStraight(c: Ctx, def: BreadDef, st: BreadStats, motion: 'straight'
   c.w.projectiles.push(s);
 }
 
-/** Thosai: a bar that rolls up the street. radius = half its width (extra projectiles widen it instead of multiplying it). */
+/** Thosai: a bar that rolls up the street. radius = half its width (extra projectiles widen it instead of multiplying it),
+ *  ty = how far up it rolls (its range). */
 function spawnWave(c: Ctx, def: BreadDef, st: BreadStats, speed: number, range: number): void {
   const s = base(c, def, st, 'wave');
   s.vy = speed;
   s.radius = (st.width * (1 + c.p.stats.sizePct) * (1 + 0.25 * c.p.stats.extraProjectiles)) / 2;
-  s.ttl = range / speed + 0.05;
+  s.ty = range;
+  s.ttl = range / speed;
   c.w.projectiles.push(s);
 }
 
@@ -221,7 +221,7 @@ export function placeOrb(c: Ctx, s: Projectile): void {
 }
 
 /** Keep exactly count + extraProjectiles orbs alive for an orbit bread; rebuild them when its level or size changes.
- *  Orb fields: targetUid = index on the ring, pierceLeft = bread level when built, hopsLeft = current hit window. */
+ *  Orb fields: targetUid = index on the ring, pierceLeft = bread level when built, hit = [uid, last bite time, ...] (shots.ts). */
 function syncOrbs(c: Ctx, b: OwnedBread, def: BreadDef, st: BreadStats): void {
   const n = Math.max(1, st.count + c.p.stats.extraProjectiles);
   const radius = st.radius * (1 + c.p.stats.sizePct);
@@ -238,7 +238,6 @@ function syncOrbs(c: Ctx, b: OwnedBread, def: BreadDef, st: BreadStats): void {
     const s = base(c, def, st, 'orbit');
     s.radius = radius;
     s.pierceLeft = b.level;
-    s.hopsLeft = -1;
     s.targetUid = i;
     s.ttl = 1e9;
     placeOrb(c, s);
@@ -260,6 +259,11 @@ export function updateThrowing(c: Ctx): void {
       continue;
     }
     if (b.volleyLeft > 0) continueVolley(c, b, def, st);
+    if (b.volleyLeft > 0) {
+      // a new throw waits for the unfinished volley; the cooldown that ran out meanwhile is not banked
+      b.cd = Math.max(0, b.cd - c.dt * rate);
+      continue;
+    }
     b.cd -= c.dt * rate;
     if (b.cd > 0 || rate <= 0) continue;
     if (tryFire(c, b, def, st)) {

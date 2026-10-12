@@ -30,6 +30,8 @@ export const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo
 export const hyp = (x: number, y: number): number => Math.sqrt(x * x + y * y);
 export const dist = (ax: number, ay: number, bx: number, by: number): number => hyp(ax - bx, ay - by);
 export const alive = (e: Enemy): boolean => e.state !== 'dead';
+/** Alive and not already lethally damaged: the only enemies a side effect (chain, blast) may still hurt. */
+export const hurtable = (e: Enemy): boolean => e.state !== 'dead' && e.hp > 0;
 /** Scratch numbers in Enemy.cooldowns default to 0. */
 export const cdGet = (e: Enemy, key: string): number => e.cooldowns[key] ?? 0;
 

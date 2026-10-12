@@ -7,6 +7,8 @@ import { DOT_BURN, DOT_SUGAR, dotDamage, flushDot, killEnemy } from './hit';
 import { spawnEnemy } from './spawn';
 
 const KNOCK_SPEED = 600;
+/** Slack for "at the counter" (the walk clamps enemies to reachY; a shove moves them well off it). */
+const AT_COUNTER = 0.5;
 const CONTACT_EVERY = 0.5;
 const PI2 = Math.PI * 2;
 
@@ -45,7 +47,7 @@ export function flushContact(c: Ctx, force = false): void {
 /** Plain walk toward the counter (walker, tank, splitter, shielded, runner, flyer, swarm and the walking half of the rest). */
 function walk(c: Ctx, e: Enemy): void {
   if (e.state === 'attack') {
-    if (e.y <= FIELD.reachY + 0.5) {
+    if (e.y <= FIELD.reachY + AT_COUNTER) {
       contact(c, e);
       return;
     }
@@ -141,7 +143,8 @@ function updateExploder(c: Ctx, e: Enemy): void {
     e.t -= c.dt;
     if (e.t <= 0) {
       emit(c, { t: 'blast', x: e.x, y: e.y, radius: x.radius, color: null });
-      hurtPlayer(c, x.dmg, 'explode');
+      // it only hurts Kannan if it is still at the counter and he stands inside the blast
+      if (e.y <= FIELD.reachY + AT_COUNTER && Math.abs(c.p.x - e.x) <= x.radius) hurtPlayer(c, x.dmg, 'explode');
       e.state = 'dead'; // blows up without a kill: no xp, no gold
     }
     return;

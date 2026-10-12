@@ -5,7 +5,7 @@ import { autoInput, autoPick, simulateRun } from '../autoplay';
 import { chooseCard, createRun, drainEvents, reroll, step } from '../sim';
 import type {
   BossAttack, BossDef, BreadDef, BreadId, BreadMotion, BreadStats, BreadTarget, Content, DipDef, DipId, Enemy, EnemyDef, EnemyKind,
-  GameEvent, OwnedDip, PassiveDef, PassiveId, PlayerStats, RunInput, RunPhase, WaveDef, World,
+  GameEvent, OwnedDip, PassiveDef, PassiveId, PlayerStats, Projectile, RunInput, RunPhase, WaveDef, World,
 } from '../types';
 
 // ── Fixtures: a tiny hand-made Content so these tests do not move when the real numbers are tuned ─────────────────
@@ -107,6 +107,27 @@ function play(w: World, seconds: number, input: RunInput = STILL): GameEvent[] {
 type Of<T extends GameEvent['t']> = Extract<GameEvent, { t: T }>;
 const of = <T extends GameEvent['t']>(ev: GameEvent[], t: T): Of<T>[] => ev.filter((e): e is Of<T> => e.t === t);
 const BIG = mkEnemy('wall', 'tank', { hp: 1e6, contactDps: 0 });
+
+/** Run `seconds` at an explicit step size; returns every event. */
+function playAt(w: World, seconds: number, dt: number, input: RunInput = STILL): GameEvent[] {
+  const out: GameEvent[] = [];
+  for (let i = 0, n = Math.round(seconds / dt); i < n; i++) {
+    step(w, dt, input);
+    out.push(...drainEvents(w));
+  }
+  return out;
+}
+
+/** A player projectile placed by hand (the bread's L1 stats), so a test controls exactly where it is. */
+function proj(w: World, bread: BreadDef, over: Partial<Projectile>): Projectile {
+  const st = bread.levels[0];
+  const p: Projectile = {
+    uid: w.nextUid++, owner: 'player', sprite: bread.sprite, breadId: bread.id, motion: bread.motion, x: 0, y: 0, vx: 0, vy: 0, z: 0, t: 0, ttl: 10,
+    dmg: st.dmg, radius: st.radius, pierceLeft: 0, hopsLeft: 0, hit: [], returning: false, targetUid: null, tx: 0, ty: 0, stats: st, spin: 0, ...over,
+  };
+  w.projectiles.push(p);
+  return p;
+}
 
 // ── Throwing ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -1112,6 +1133,299 @@ describe('fuzz', () => {
       expect(most).toBeGreaterThan(90);
     }
   }, 120_000);
+});
+
+// ── Regressions for the Codex review of the sim (docs/reviews/codex-sim-1.md) ──────────────────────────────────────
+
+describe('review fixes', () => {
+  const stand = (bread: BreadDef, extra: Partial<Record<BreadId, BreadDef>> = {}): Content => makeContent({ breads: { [bread.id]: bread, ...extra } });
+
+  it('#1 no throws while still sliding to targetX, even after the finger lifts', () => {
+    const w = mkWorld(makeContent());
+    addEnemy(w, BIG, 0, 500);
+    w.player.breads[0].cd = 0; // ready to throw the moment he may
+    const ev: GameEvent[] = [];
+    step(w, DT, { targetX: 200, moving: true });
+    ev.push(...drainEvents(w));
+    let slid = 0;
+    while (w.player.x < 199 && slid < 200) {
+      step(w, DT, STILL); // finger up: no targetX, moving false
+      ev.push(...drainEvents(w));
+      expect(w.player.moving).toBe(true);
+      slid++;
+    }
+    expect(slid).toBeGreaterThan(10);
+    expect(of(ev, 'throw')).toHaveLength(0);
+    expect(w.projectiles).toHaveLength(0);
+    ev.push(...play(w, 0.3));
+    expect(w.player.moving).toBe(false);
+    expect(of(ev, 'throw').length).toBeGreaterThan(0);
+  });
+
+  it('#2 armourPierce: that share of a shielded hit bypasses the shield to hp', () => {
+    const beetle = mkEnemy('beetle', 'shielded', { hp: 30, shield: 25 });
+    const withAp = (ap: number): Content => stand(mkBread('kosong', 'straight', 'nearest', { ...STRAIGHT, armourPierce: ap }), {});
+    const first = (ap: number, hp = 30): { ev: GameEvent[]; e: Enemy } => {
+      const w = mkWorld(makeContent({ enemies: [{ ...beetle, hp }], breads: { kosong: withAp(ap).breads.kosong } }));
+      const e = addEnemy(w, { ...beetle, hp }, 0, 300);
+      w.player.breads[0].cd = 0;
+      return { ev: play(w, 0.7), e }; // one throw
+    };
+    const a = first(0.4);
+    expect(of(a.ev, 'shieldHit')).toHaveLength(1);
+    expect(a.e.shield).toBeCloseTo(25 - 6);
+    expect(a.e.hp).toBeCloseTo(30 - 4);
+    expect(of(a.ev, 'hit').map((h) => h.dmg)).toEqual([expect.closeTo(4)]);
+    expect(a.ev.some((x) => x.t === 'status')).toBe(false); // still no dips on a shield hit
+    const all = first(1);
+    expect(all.e.shield).toBe(25);
+    expect(all.e.hp).toBeCloseTo(20);
+    const none = first(0);
+    expect(none.e.hp).toBe(30);
+    expect(of(none.ev, 'hit')).toHaveLength(0);
+    const kill = first(0.5, 4); // 5 of the hit goes to hp, enough to finish it
+    expect(kill.e.state).toBe('dead');
+    expect(of(kill.ev, 'kill')).toHaveLength(1);
+  });
+
+  it('#3 an exploder only hurts Kannan inside its radius, and only while it is still at the counter', () => {
+    const bomb = mkEnemy('bomb', 'exploder', { hp: 22, speed: 100, explode: { fuse: 1, dmg: 30, radius: 90 } });
+    const blow = (playerX: number, bombY = 30): { hp: number; blasts: number } => {
+      const w = mkWorld(makeContent({ enemies: [bomb] }));
+      w.player.breads = [];
+      w.player.x = w.player.targetX = playerX;
+      addEnemy(w, bomb, 0, bombY, { state: 'fuse', t: 0.05 });
+      const ev = play(w, 0.2);
+      return { hp: w.player.hp, blasts: of(ev, 'blast').length };
+    };
+    expect(blow(0)).toEqual({ hp: 70, blasts: 1 });
+    expect(blow(90)).toEqual({ hp: 70, blasts: 1 }); // right on the edge
+    expect(blow(91)).toEqual({ hp: 100, blasts: 1 });
+    expect(blow(-230)).toEqual({ hp: 100, blasts: 1 });
+    expect(blow(0, 300)).toEqual({ hp: 100, blasts: 1 }); // shoved up the street before it went off
+  });
+
+  it('#4 an orb bites an enemy at most once per orbitHitGap, whatever the clock does; each orb keeps its own', () => {
+    // The orb crosses (0, 230) at 0.5 s, right on the old global 0.5 s window edge.
+    const w = mkWorld(makeContent(), { breads: ['vadai'] });
+    const e = addEnemy(w, BIG, 0, 230);
+    const ev = play(w, 1.2);
+    expect(of(ev, 'hit').filter((h) => h.uid === e.uid)).toHaveLength(1);
+
+    // An enemy the orb never leaves: one bite per 0.5 s, spaced at least the gap apart.
+    const huge = mkEnemy('huge', 'tank', { hp: 1e9, radius: 400, contactDps: 0 });
+    const bites = (extra: number): number[] => {
+      const w2 = mkWorld(makeContent(), { breads: ['vadai'], stats: { extraProjectiles: extra } });
+      addEnemy(w2, huge, 0, 90);
+      const times: number[] = [];
+      for (let i = 0; i < 60 * 3.2; i++) {
+        step(w2, DT, STILL);
+        for (const h of drainEvents(w2)) if (h.t === 'hit') times.push(w2.time);
+      }
+      return times;
+    };
+    const one = bites(0);
+    expect(one.length).toBeGreaterThanOrEqual(6);
+    expect(one.length).toBeLessThanOrEqual(7);
+    for (let i = 1; i < one.length; i++) expect(one[i] - one[i - 1]).toBeGreaterThanOrEqual(0.5 - 1e-6);
+    const two = bites(1);
+    expect(two.length).toBeGreaterThanOrEqual(2 * one.length - 2);
+    expect(two.length).toBeLessThanOrEqual(2 * one.length);
+  });
+
+  it('#5 the enemy a shot touches first is hit first, not the one whose centre is nearest the path', () => {
+    const content = makeContent();
+    const small = mkEnemy('small', 'tank', { hp: 1e6, contactDps: 0, radius: 5 });
+    const large = mkEnemy('large', 'tank', { hp: 1e6, contactDps: 0, radius: 40 });
+    const run = (pierce: number): { order: number[]; uids: Record<string, number> } => {
+      const w = mkWorld(content);
+      w.player.breads = [];
+      const s = addEnemy(w, small, 0, 140); // listed first, so a tie would pick it
+      const l = addEnemy(w, large, 0, 160);
+      proj(w, content.breads.kosong, { x: 0, y: 100, vy: 900, radius: 10, pierceLeft: pierce });
+      step(w, 1 / 30, STILL); // one 30 u step covers both contacts: the large one from y 110, the small one from y 125
+      return { order: of(drainEvents(w), 'hit').map((h) => h.uid), uids: { small: s.uid, large: l.uid } };
+    };
+    const single = run(0);
+    expect(single.order).toEqual([single.uids.large]);
+    const both = run(1);
+    expect(both.order).toEqual([both.uids.large, both.uids.small]);
+  });
+
+  it('#6 a wave bar that jumps past a small enemy in one step still hits it, at any step size', () => {
+    const fast = mkBread('thosai', 'wave', 'none', { dmg: 11, cooldown: 99, speed: 6000, radius: 20, range: 900, width: 200 });
+    const tiny = mkEnemy('tiny', 'tank', { hp: 1e6, contactDps: 0, radius: 5 });
+    for (const dt of [1 / 30, 1 / 60, 1 / 120]) {
+      const w = mkWorld(stand(fast), { breads: ['thosai'] });
+      addEnemy(w, tiny, 0, 100);
+      const hits = of(playAt(w, 0.8, dt), 'hit');
+      expect(hits).toHaveLength(1);
+    }
+  });
+
+  it('#7 a boomerang resolves its last outgoing hits before it turns, so the return pass hits again', () => {
+    const content = makeContent();
+    const w = mkWorld(content);
+    w.player.breads = [];
+    const e = addEnemy(w, BIG, 0, 556); // reach 522..590: the turn-frame segment (580..600) clips its edge
+    proj(w, content.breads.chapati, { x: 0, y: 580, vy: 800, t: 580 / 800, ty: 600, hit: [e.uid] });
+    step(w, 1 / 30, STILL);
+    expect(of(drainEvents(w), 'hit')).toHaveLength(0); // already hit on the way out: not again at the turn
+    expect(w.projectiles[0].returning).toBe(true);
+    expect(of(play(w, 0.3), 'hit').filter((h) => h.uid === e.uid)).toHaveLength(1); // the return pass
+  });
+
+  it('#8 a boomerang reaching the catch point still hits what its last return segment crosses', () => {
+    const content = makeContent();
+    const w = mkWorld(content);
+    w.player.breads = [];
+    const e = addEnemy(w, BIG, 0, 30);
+    proj(w, content.breads.chapati, { x: 0, y: 60, vy: -3000, returning: true, ty: 600, t: 0.3 });
+    step(w, 1 / 30, STILL); // 100 u of travel, 30 u to the catch point
+    expect(of(drainEvents(w), 'hit').filter((h) => h.uid === e.uid)).toHaveLength(1);
+    expect(w.projectiles.filter((p) => p.motion === 'boomerang')).toHaveLength(0);
+  });
+
+  it('#9 a new throw waits for the unfinished volley', () => {
+    // 3 shots 0.2 s apart (0.4 s) but a 0.3 s cooldown: the next throw used to overwrite the volley.
+    const burst = mkBread('kosong', 'straight', 'nearest', { ...STRAIGHT, dmg: 1, cooldown: 0.3, count: 3, volleyGap: 0.2 });
+    const w = mkWorld(stand(burst));
+    addEnemy(w, BIG, 0, 700);
+    let made = 0;
+    let throws = 0;
+    for (let i = 0; i < 60 * 3; i++) {
+      const before = w.nextUid;
+      step(w, DT, STILL);
+      made += w.nextUid - before;
+      if (of(drainEvents(w), 'throw').length) {
+        throws++;
+        expect((made - 1) % 3).toBe(0); // beyond this throw's own first shot, only whole earlier volleys were fired
+      }
+    }
+    expect(throws).toBeGreaterThanOrEqual(3);
+  });
+
+  it('#10 shots and waves do nothing beyond their range', () => {
+    const lance = mkBread('kosong', 'straight', 'nearest', { ...STRAIGHT, dmg: 5, speed: 600, radius: 10, pierce: 2, range: 300 });
+    const w = mkWorld(stand(lance));
+    const a = addEnemy(w, BIG, 0, 250);
+    const b = addEnemy(w, BIG, 0, 400); // out of range, in the line of fire
+    play(w, 1.1); // one throw
+    expect(a.hp).toBe(1e6 - 5);
+    expect(b.hp).toBe(1e6);
+
+    const bar = mkBread('thosai', 'wave', 'none', { dmg: 11, cooldown: 99, speed: 700, radius: 20, range: 400, width: 200 });
+    const w2 = mkWorld(stand(bar), { breads: ['thosai'] });
+    const near = addEnemy(w2, BIG, 0, 100);
+    const far = addEnemy(w2, BIG, 0, 455); // its reach window (417..493) starts above the bar's last y = 400
+    play(w2, 1.3);
+    expect(near.hp).toBe(1e6 - 11);
+    expect(far.hp).toBe(1e6);
+  });
+
+  it('#11 fragments fly exactly the time left after the hit, whatever the step size', () => {
+    const egg = mkBread('egg-telur', 'straight', 'nearest', { ...STRAIGHT, dmg: 9, speed: 700, radius: 12, fragments: 8, fragmentDmg: 4 });
+    const content = stand(egg);
+    for (const dt of [1 / 30, 1 / 60, 1 / 120]) {
+      const w = mkWorld(content);
+      w.player.breads = [];
+      const e = addEnemy(w, BIG, 0, 100);
+      proj(w, egg, { x: 0, y: 60, vy: 900, radius: 12 }); // touches the enemy (reach 30) at y 70, i.e. 1/90 s in
+      playAt(w, 4 / 60, dt);
+      const frags = w.projectiles.filter((p) => p.stats?.fragments === 0);
+      expect(frags).toHaveLength(8);
+      for (const f of frags) expect(Math.hypot(f.x - e.x, f.y - e.y)).toBeCloseTo(600 * (4 / 60 - 1 / 90), 3);
+    }
+  });
+
+  it('#12 a cascade never hits a lethally damaged enemy again, and a dead one gets no more effects', () => {
+    const sambal = { ...mkDip('sambal', Array(5).fill({ type: 'deathBlast', dmg: 8, radius: 60 })), color: '#AA0000' };
+    const content = makeContent({ dips: { sambal } });
+    const w = mkWorld(content, { dips: [['masala', 1], ['fish-curry', 1], ['sambal', 1]] });
+    const a = addEnemy(w, mkEnemy('a', 'walker', { hp: 5 }), 0, 300);
+    const n = addEnemy(w, mkEnemy('n', 'walker', { hp: 2 }), 60, 300, { statuses: [{ id: 'burn', time: 3, stacks: 1, dps: 1, amount: 0 }] });
+    const c = addEnemy(w, BIG, 120, 300);
+    w.player.breads[0].cd = 0;
+    const ev = play(w, 0.6);
+    const kills = of(ev, 'kill');
+    expect(kills.filter((k) => k.uid === a.uid)).toHaveLength(1);
+    expect(kills.filter((k) => k.uid === n.uid)).toHaveLength(1);
+    // N's blast must pass A by (it is already dead on its feet) but still reach C
+    expect(of(ev, 'hit').filter((h) => h.color === '#AA0000' && h.uid === a.uid)).toHaveLength(0);
+    expect(of(ev, 'hit').filter((h) => h.color === '#AA0000' && h.uid === c.uid).length).toBeGreaterThan(0);
+    // A's own dips (burn) land before it dies, never on the corpse
+    const killA = ev.findIndex((x) => x.t === 'kill' && x.uid === a.uid);
+    const lateStatus = ev.findIndex((x, i) => i > killA && x.t === 'status' && x.uid === a.uid);
+    expect(lateStatus).toBe(-1);
+    expect(w.kills).toBe(2);
+  });
+
+  it('hits do not depend on the step size: the same scenarios at 1/30, 1/60 and 1/120 give the same hits', () => {
+    /** [enemy index, damage] per hit, in event order. */
+    const hitsOf = (w: World, ev: GameEvent[]): string[] => of(ev, 'hit').map((h) => `${w.enemies.findIndex((e) => e.uid === h.uid)}:${h.dmg.toFixed(4)}`);
+    const column = (ys: number[], radius = 18): ((w: World) => void) => (w) => {
+      const def = mkEnemy('post', 'tank', { hp: 1e6, contactDps: 0, radius });
+      ys.forEach((y, i) => addEnemy(w, def, i % 2 ? 6 : -6, y));
+    };
+    const scenarios: { name: string; bread: BreadDef; seconds: number; fill: (w: World) => void; ordered: boolean }[] = [
+      {
+        name: 'pierce through a column, range ends before the last',
+        bread: mkBread('kosong', 'straight', 'nearest', { ...STRAIGHT, dmg: 5, cooldown: 99, speed: 1000, radius: 10, pierce: 2, range: 600 }),
+        seconds: 1.5, ordered: true, fill: column([200, 290, 380, 650]),
+      },
+      {
+        name: 'appam hops down an uneven row',
+        bread: mkBread('kosong', 'straight', 'nearest', { ...STRAIGHT, dmg: 8, cooldown: 99, speed: 800, hops: 3, hopRange: 220, hopFalloff: 0.15 }),
+        seconds: 2, ordered: true,
+        fill: (w) => {
+          const def = mkEnemy('post', 'tank', { hp: 1e6, contactDps: 0 });
+          [[0, 300], [120, 330], [230, 380], [110, 450], [-60, 520]].forEach(([x, y]) => addEnemy(w, def, x, y));
+        },
+      },
+      {
+        name: 'egg fragments into a ring of neighbours',
+        bread: mkBread('kosong', 'straight', 'nearest', { ...STRAIGHT, dmg: 9, cooldown: 99, speed: 700, radius: 12, fragments: 8, fragmentDmg: 4 }),
+        seconds: 1.5, ordered: false,
+        fill: (w) => {
+          const def = mkEnemy('post', 'tank', { hp: 1e6, contactDps: 0 });
+          addEnemy(w, def, 0, 300); // the nearest: the egg bursts here
+          for (const a of [-90, -60, -30, 0, 30, 60, 90]) addEnemy(w, def, 60 * Math.sin((a * Math.PI) / 180), 300 + 60 * Math.cos((a * Math.PI) / 180));
+        },
+      },
+      {
+        name: 'a fast wave across enemies of different sizes',
+        bread: mkBread('thosai', 'wave', 'none', { dmg: 11, cooldown: 99, speed: 3000, radius: 20, range: 600, width: 220 }),
+        seconds: 1, ordered: true,
+        fill: (w) => {
+          [[-80, 150, 5], [0, 220, 30], [90, 230, 8], [10, 400, 5], [0, 700, 5], [150, 300, 5]].forEach(([x, y, r]) => addEnemy(w, mkEnemy('r' + r, 'tank', { hp: 1e6, contactDps: 0, radius: r }), x, y));
+        },
+      },
+      {
+        name: 'a boomerang out and back',
+        bread: mkBread('chapati', 'boomerang', 'nearest', { dmg: 7, cooldown: 99, speed: 800, radius: 16, range: 600 }),
+        seconds: 3, ordered: true, fill: column([150, 400, 560, 585]),
+      },
+      {
+        name: 'an orb sweeping a stationary enemy',
+        bread: mkBread('vadai', 'orbit', 'none', { dmg: 3, speed: 180, radius: 16, count: 1, orbitRadius: 140, orbitHitGap: 0.5 }),
+        seconds: 4.5, ordered: false,
+        fill: (w) => {
+          addEnemy(w, BIG, 99, 189); // 45 degrees on the ring: crossed mid-window at 0.25 s, 2.25 s, 4.25 s
+        },
+      },
+    ];
+    for (const sc of scenarios) {
+      const runs = [1 / 30, 1 / 60, 1 / 120].map((dt) => {
+        const w = mkWorld(stand(sc.bread), { breads: [sc.bread.id] });
+        sc.fill(w);
+        const out = hitsOf(w, playAt(w, sc.seconds, dt));
+        return sc.ordered ? out : out.sort();
+      });
+      expect(runs[0].length, sc.name).toBeGreaterThan(0);
+      expect(runs[1], sc.name).toEqual(runs[0]);
+      expect(runs[2], sc.name).toEqual(runs[0]);
+    }
+  });
 });
 
 // ── Determinism and the real content ──────────────────────────────────────────────────────────────────────────────

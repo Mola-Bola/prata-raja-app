@@ -3,11 +3,12 @@
 // Everything random comes from world.rngState (rebuilt each step, written back at the end), so a run replays from its seed + inputs.
 //
 // What the renderer can rely on (Projectile fields are reused per motion; no contract change):
-//  - straight: radius = hit radius, ttl = range / speed. boomerang: returning = on its way back, ty = turn distance.
-//  - lob: radius = blast radius, (tx, ty) = landing point, z = arc height 0..1 while t runs to ttl. wave: radius = HALF the bar width.
-//  - orbit: persistent, targetUid = index on the ring; the orbs are rebuilt when the bread's level or Kannan's size changes.
+//  - straight: radius = hit radius, ttl = range / speed (the path is clipped there). boomerang: returning = on its way back, ty = turn distance.
+//  - lob: radius = blast radius, (tx, ty) = landing point, z = arc height 0..1 while t runs to ttl. wave: radius = HALF the bar width, ty = range.
+//  - orbit: persistent, targetUid = index on the ring, hit = [uid, time of its last bite, ...]; rebuilt when the bread's level or Kannan's size changes.
 //  - enemy shots: motion 'enemy', tx = landing x on the counter, hopsLeft = 1 for boss attacks. Enemy.cooldowns holds sim scratch (keys with _).
 //  - fragments are straight projectiles with a stats copy (fragments 0). Zones use sprite 'fx/smoke'.
+//  - Kannan.moving is true while he still slides toward targetX (|x - targetX| > 1) as well as while input.moving is set; he throws in neither.
 //  - after chooseCard / revive / step the phase is one of intro | wave | levelup | won | lost; events never repeat once drained.
 import { applyCard, drawOffer } from './cards';
 import { makeRng } from './rng';
@@ -122,8 +123,8 @@ function stepOnce(w: World, dt: number, input: RunInput): void {
 function movePlayer(c: Ctx, input: RunInput): void {
   const { p, dt } = c;
   if (input.targetX !== null) p.targetX = clamp(input.targetX, -FIELD.kannanMaxX, FIELD.kannanMaxX);
-  p.moving = input.moving;
   const dx = p.targetX - p.x;
+  p.moving = input.moving || Math.abs(dx) > 1; // still sliding to targetX counts as moving, finger down or not
   const reach = p.stats.moveSpeed * dt;
   p.x = Math.abs(dx) <= reach ? p.targetX : p.x + Math.sign(dx) * reach;
   if (p.stats.regen > 0 && p.hp > 0) p.hp = Math.min(p.stats.maxHp, p.hp + p.stats.regen * dt);

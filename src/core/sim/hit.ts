@@ -2,7 +2,7 @@
 import { rollHit, xpToNext } from '../stats';
 import { applyHitEffect, dmgTakenMul, hasStatus, onBreadHit } from '../status';
 import type { BreadStats, Enemy, HitEffect } from '../types';
-import { alive, cdGet, dirtyMods, dist, emit, HIT_FLASH, mods, type Ctx } from './ctx';
+import { cdGet, clamp, dirtyMods, dist, emit, HIT_FLASH, hurtable, mods, type Ctx } from './ctx';
 import { spawnEnemy } from './spawn';
 
 /** Where a DoT number comes from (picks its colour). */
@@ -22,16 +22,24 @@ function stun(c: Ctx, e: Enemy, time: number): void {
 }
 
 /** A bread hit lands on e. `shieldable` = a straight/boomerang shot without pierce left: a front shield eats the hit
- *  (no dips, no crit) and the caller must stop the projectile. Returns true when the shield blocked.
+ *  (no dips, no crit) and the caller must stop the projectile. The bread's armourPierce share of that hit skips the
+ *  shield and goes to hp. Returns true when the shield blocked.
  *  Otherwise: damage (crit roll), stun/knockback from the bread, every owned dip, Kannan's hit-buffs, kill check. */
 export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, shieldable: boolean): boolean {
   const { w, p } = c;
   if (shieldable && e.shield > 0) {
+    const ap = clamp(st ? st.armourPierce : 0, 0, 1);
     const d = rollHit(dmg, p.stats, mods(c), 1, c.rng, false).dmg;
-    e.shield = Math.max(0, e.shield - d);
+    e.shield = Math.max(0, e.shield - d * (1 - ap));
     e.flash = HIT_FLASH;
     emit(c, { t: 'shieldHit', uid: e.uid, x: e.x, y: e.y });
     if (e.shield <= 0) emit(c, { t: 'shieldBreak', uid: e.uid, x: e.x, y: e.y });
+    if (ap > 0) {
+      const through = d * ap * dmgTakenMul(e);
+      e.hp -= through;
+      emit(c, { t: 'hit', uid: e.uid, x: e.x, y: e.y, dmg: through, crit: false, color: null });
+      if (e.hp <= 0) killEnemy(c, e);
+    }
     return true;
   }
   const r = rollHit(dmg, p.stats, mods(c), dmgTakenMul(e), c.rng);
@@ -43,6 +51,7 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
     if (st.knockback > 0) e.knock += st.knockback * (e.def.knockbackTaken ?? 1) * (e.boss ? 0.1 : 1);
   }
   for (const d of p.dips) {
+    if (e.state === 'dead') break; // a cascade (chain -> sambal) already finished it: no effects on a corpse
     const def = w.content.dips[d.id];
     const fx = def.levels[d.level - 1];
     for (const ev of applyHitEffect(fx, e)) emit(c, ev);
@@ -65,7 +74,7 @@ function chain(c: Ctx, src: Enemy, fx: { dmg: number; jumps: number; range: numb
     let best: Enemy | null = null;
     let bd = fx.range * fx.range;
     for (const o of w.enemies) {
-      if (!alive(o) || o === src || hit.includes(o)) continue;
+      if (!hurtable(o) || o === src || hit.includes(o)) continue;
       const dx = o.x - cur.x;
       const dy = o.y - cur.y;
       const d = dx * dx + dy * dy;
@@ -95,7 +104,7 @@ function sambalBlast(c: Ctx, src: Enemy, fx: { dmg: number; radius: number }, co
   const burn: HitEffect = fish ? w.content.dips['fish-curry'].levels[fish.level - 1] : { type: 'burn', dps: 3, time: 2 };
   for (let i = 0; i < w.enemies.length; i++) {
     const o = w.enemies[i];
-    if (o === src || !alive(o) || dist(src.x, src.y, o.x, o.y) > fx.radius + o.def.radius) continue;
+    if (o === src || !hurtable(o) || dist(src.x, src.y, o.x, o.y) > fx.radius + o.def.radius) continue;
     const r = rollHit(fx.dmg, p.stats, mods(c), dmgTakenMul(o), c.rng, false);
     o.hp -= r.dmg;
     o.flash = HIT_FLASH;
