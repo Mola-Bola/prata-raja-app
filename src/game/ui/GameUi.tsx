@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 
+import { brandWords } from '@/brand';
 import { CONTENT } from '@/content';
 import type { SaveV1 } from '@/core/save';
 import { parseSave, recordRun, SAVE_KEY } from '@/core/save';
@@ -168,7 +169,7 @@ function Title({ best, onStart }: { best: number; onStart: () => void }) {
     <div className="gu-splash">
       <img className="gu-cover" src={art('scene/hero')} alt="" />
       <header className="gu-splash-top">
-        <img className="gu-logo" src={art('ui/logo')} alt="Prata Raja" />
+        <img className="gu-logo" src={art('ui/logo')} alt={brandWords.appName} />
         {best > 0 && <p className="gu-chip">Best: wave {best}</p>}
       </header>
       <footer className="gu-splash-foot">
