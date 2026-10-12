@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Buff, Content, DipId, Enemy, HitEffect, OwnedDip, Player, Status, StatusId } from '../types';
-import { applyHitEffect, dmgTakenMul, hasStatus, isDisabled, onBreadHit, speedMul, tickBuffs, tickStatuses } from '../status';
+import { applyCc, applyHitEffect, BOSS_CC_SLOW, CC_IMMUNITY, dmgTakenMul, ELITE_CC_SHARE, hasStatus, isDisabled, onBreadHit, speedMul, tickBuffs, tickStatuses } from '../status';
 
 // Minimal fixtures: only the fields status.ts reads. Cast, because the rest of Enemy/Player/Content is not needed here.
-function enemy(o: { statuses?: Status[]; boss?: boolean; knockbackTaken?: number } = {}): Enemy {
+function enemy(o: { statuses?: Status[]; boss?: boolean; elite?: boolean; knockbackTaken?: number } = {}): Enemy {
   return {
     uid: 7,
     def: { id: 'walker', knockbackTaken: o.knockbackTaken },
     boss: o.boss ?? false,
+    elite: o.elite ?? false,
     statuses: o.statuses ?? [],
     knock: 0,
   } as unknown as Enemy;
@@ -247,5 +248,120 @@ describe('tickBuffs', () => {
     expect(p.buffs[0].time).toBeCloseTo(0.2);
     tickBuffs(p, 0.3);
     expect(p.buffs[0]).toMatchObject({ time: 0, stacks: 0 });
+  });
+});
+
+describe('crowd control: bosses, elites and the immunity after it', () => {
+  const crash = (e: Enemy) => [1, 2, 3].flatMap(() => applyHitEffect(SUGAR, e)); // three hits: the third is the Sugar Crash
+  const chillOver = (e: Enemy) => [1, 2, 3].flatMap(() => applyHitEffect(CHILL, e)); // three hits: the third is the freeze
+
+  it('a boss is never stopped: a freeze or a Sugar Crash on it is a 40% slow for the same time, and still shows', () => {
+    const frozen = enemy({ boss: true });
+    expect(chillOver(frozen)).toContainEqual(evt('freeze')); // the renderer still gets its ice
+    expect(get(frozen, 'freeze')).toMatchObject({ time: 1.5 });
+    expect(isDisabled(frozen)).toBe(false);
+    expect(speedMul(frozen)).toBeCloseTo(1 - BOSS_CC_SLOW, 10);
+    const crashed = enemy({ boss: true });
+    expect(crash(crashed)).toContainEqual(evt('stun'));
+    expect(get(crashed, 'stun')).toMatchObject({ time: 1.5 });
+    expect(isDisabled(crashed)).toBe(false);
+    expect(speedMul(crashed)).toBeCloseTo((1 - 0.3) * (1 - BOSS_CC_SLOW), 10); // on top of the sugar slow it already had
+    expect(speedMul(enemy({ boss: true }))).toBe(1);
+  });
+
+  it('a bread stun is the same: a boss only slows, an ordinary enemy still stops', () => {
+    const boss = enemy({ boss: true });
+    expect(applyCc(boss, 'stun', 0.4)).toEqual({ event: 'stun', added: true });
+    expect(isDisabled(boss)).toBe(false);
+    expect(speedMul(boss)).toBeCloseTo(0.6, 10);
+    const plain = enemy();
+    applyCc(plain, 'stun', 0.4);
+    expect(isDisabled(plain)).toBe(true);
+    expect(speedMul(plain)).toBe(0);
+  });
+
+  it('an elite is held for half the time, by a freeze, a crash or a bread stun; a boss that is also elite gets the boss rule', () => {
+    const e = enemy({ elite: true });
+    chillOver(e);
+    expect(get(e, 'freeze')?.time).toBeCloseTo(1.5 * ELITE_CC_SHARE, 10);
+    expect(isDisabled(e)).toBe(true);
+    const c = enemy({ elite: true });
+    crash(c);
+    expect(get(c, 'stun')?.time).toBeCloseTo(1.5 * ELITE_CC_SHARE, 10);
+    const b = enemy({ elite: true });
+    applyCc(b, 'stun', 0.4);
+    expect(get(b, 'stun')?.time).toBeCloseTo(0.2, 10);
+    const eliteBoss = enemy({ elite: true, boss: true });
+    applyCc(eliteBoss, 'freeze', 2);
+    expect(get(eliteBoss, 'freeze')?.time).toBe(2);
+  });
+
+  it('when a freeze or stun ends, the enemy is immune to the next for 3 s, and not before it ends', () => {
+    const e = enemy({ statuses: [st('freeze', { time: 0.2 })] });
+    tickStatuses(e, 0.1, 0);
+    expect(hasStatus(e, 'ccImmune')).toBe(false); // still frozen: it can be refreshed, nothing is immune yet
+    tickStatuses(e, 0.2, 0);
+    expect(hasStatus(e, 'freeze')).toBe(false);
+    expect(get(e, 'ccImmune')?.time).toBeCloseTo(CC_IMMUNITY, 10);
+    tickStatuses(e, 2.9, 0);
+    expect(hasStatus(e, 'ccImmune')).toBe(true);
+    tickStatuses(e, 0.2, 0);
+    expect(hasStatus(e, 'ccImmune')).toBe(false);
+    const s = enemy({ statuses: [st('stun', { time: 0.1 })] });
+    tickStatuses(s, 0.2, 0);
+    expect(hasStatus(s, 'ccImmune')).toBe(true); // a stun does it too
+    expect(CC_IMMUNITY).toBe(3);
+  });
+
+  it('a freeze and a stun that end together start one immunity, and other statuses ending start none', () => {
+    const both = enemy({ statuses: [st('freeze', { time: 0.1 }), st('stun', { time: 0.1 })] });
+    tickStatuses(both, 0.2, 0);
+    expect(both.statuses.filter((x) => x.id === 'ccImmune')).toHaveLength(1);
+    const other = enemy({ statuses: [st('burn', { time: 0.1, dps: 3 }), st('sugarSlow', { time: 0.1 }), st('tender', { time: 0.1 }), st('chill', { time: 0.1 })] });
+    tickStatuses(other, 0.2, 0);
+    expect(other.statuses).toEqual([]);
+  });
+
+  it('a boss gets the immunity too, after its slow ends', () => {
+    const boss = enemy({ boss: true });
+    applyCc(boss, 'freeze', 1);
+    tickStatuses(boss, 1.1, 0);
+    expect(hasStatus(boss, 'freeze')).toBe(false);
+    expect(hasStatus(boss, 'ccImmune')).toBe(true);
+    expect(speedMul(boss)).toBe(1);
+  });
+
+  it('while immune nothing is frozen or stunned, but chill and sugar stacks still build, slow, and are spent at the threshold', () => {
+    const e = enemy({ statuses: [st('ccImmune', { time: 3 })] });
+    applyHitEffect(CHILL, e);
+    applyHitEffect(CHILL, e);
+    expect(get(e, 'chill')).toMatchObject({ stacks: 2 }); // building, and slowing as ever
+    expect(speedMul(e)).toBeCloseTo(0.8, 10);
+    expect(applyHitEffect(CHILL, e)).toEqual([evt('ccImmune')]); // the third would freeze: turned away, and said so
+    expect(hasStatus(e, 'freeze')).toBe(false);
+    expect(hasStatus(e, 'chill')).toBe(false); // spent, so the next cycle starts fresh
+    applyHitEffect(SUGAR, e);
+    applyHitEffect(SUGAR, e);
+    expect(get(e, 'sugar')).toMatchObject({ stacks: 2 });
+    expect(get(e, 'sugarSlow')).toMatchObject({ amount: 0.3 });
+    expect(applyHitEffect(SUGAR, e)).toEqual([evt('ccImmune')]);
+    expect(hasStatus(e, 'stun')).toBe(false);
+    expect(hasStatus(e, 'sugar')).toBe(false);
+    expect(isDisabled(e)).toBe(false);
+  });
+
+  it('once the immunity has run out, the same hits freeze it again', () => {
+    const e = enemy({ statuses: [st('ccImmune', { time: 0.5 })] });
+    tickStatuses(e, 0.6, 0);
+    expect(chillOver(e)).toContainEqual(evt('freeze'));
+    expect(isDisabled(e)).toBe(true);
+  });
+
+  it('a stun or freeze already running is refreshed as before (the immunity only starts when it ends)', () => {
+    const e = enemy({ statuses: [st('stun', { time: 0.4 })] });
+    expect(applyCc(e, 'stun', 1)).toEqual({ event: 'stun', added: false });
+    expect(get(e, 'stun')?.time).toBe(1);
+    expect(applyCc(e, 'stun', 0.2)).toEqual({ event: 'stun', added: false });
+    expect(get(e, 'stun')?.time).toBe(1); // a stun is never shortened by a weaker one
   });
 });

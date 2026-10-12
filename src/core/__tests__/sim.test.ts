@@ -984,7 +984,7 @@ describe('more rules', () => {
     expect(packB.every((e) => e.hp < 1e6)).toBe(true);
   });
 
-  it('a frozen boss does not run its attack timers', () => {
+  it('a frozen boss still fights: its attack timers run (a boss is only slowed, never stopped)', () => {
     const boss: BossDef = {
       ...mkEnemy('boss', 'tank', { hp: 1000, radius: 60 }), phases: [], phaseHaste: 0, holdY: 500,
       attacks: [{ kind: 'summon', id: 'm', name: 'M', tell: 0.2, cooldown: 1, enemy: 'ant', count: 1 }],
@@ -992,8 +992,47 @@ describe('more rules', () => {
     const w = mkWorld(makeContent({ bosses: [boss] }));
     w.player.breads = [];
     addEnemy(w, boss, 0, 500, { boss: true, state: 'hold', holdY: 500, cooldowns: { bx: 0, ph: 0, _mt: 0, m: 1 }, statuses: [{ id: 'freeze', time: 3, stacks: 1, dps: 0, amount: 0 }] });
-    expect(of(play(w, 2.5), 'bossTell')).toHaveLength(0);
-    expect(of(play(w, 1.5), 'bossTell').length).toBeGreaterThanOrEqual(1);
+    expect(of(play(w, 2.5), 'bossTell').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('a frozen or stunned boss keeps walking in, at 60% speed; an ordinary enemy stops dead', () => {
+    const boss: BossDef = { ...mkEnemy('boss', 'tank', { hp: 1e6, radius: 60, speed: 100, contactDps: 0 }), phases: [], phaseHaste: 0, holdY: 100, attacks: [] };
+    const walker = mkEnemy('walker', 'walker', { hp: 1e6, speed: 100, contactDps: 0 });
+    const frozen = (id: 'freeze' | 'stun') => [{ id, time: 5, stacks: 1, dps: 0, amount: 0 }];
+    const travelled = (def: EnemyDef | BossDef, boss: boolean, statuses: Enemy['statuses']): number => {
+      const w = mkWorld(makeContent({ bosses: boss ? [def as BossDef] : [], enemies: boss ? [] : [def] }));
+      w.player.breads = [];
+      const e = addEnemy(w, def, 0, 900, { boss, holdY: 100, statuses });
+      play(w, 2);
+      return 900 - e.y;
+    };
+    const free = travelled(boss, true, []);
+    expect(free).toBeCloseTo(200, 0);
+    expect(travelled(boss, true, frozen('freeze'))).toBeCloseTo(free * 0.6, 0);
+    expect(travelled(boss, true, frozen('stun'))).toBeCloseTo(free * 0.6, 0);
+    expect(travelled(walker, false, frozen('freeze'))).toBe(0);
+    expect(travelled(walker, false, frozen('stun'))).toBe(0);
+  });
+
+  it('freezes cannot chain: after one ends the enemy shrugs off the next for 3 s (chill still stacks), then it can be frozen again', () => {
+    const chill = { type: 'chill', slowPerStack: 0.1, time: 5, freezeAt: 2, freezeTime: 1 } as const;
+    const w = mkWorld(makeContent({ dips: { 'mint-chutney': mkDip('mint-chutney', Array(5).fill(chill)) } }), { dips: [['mint-chutney', 1]] });
+    const wall = addEnemy(w, WALL_TOUGH, 0, 400);
+    const events: GameEvent[] = [];
+    const freezes: number[] = [];
+    const turnedAway: number[] = [];
+    for (let i = 0; i < Math.round(20 / DT); i++) {
+      step(w, DT, STILL);
+      for (const ev of drainEvents(w)) {
+        events.push(ev);
+        if (ev.t === 'status' && ev.status === 'freeze') freezes.push(w.time);
+        if (ev.t === 'status' && ev.status === 'ccImmune') turnedAway.push(w.time);
+      }
+    }
+    expect(freezes.length).toBeGreaterThanOrEqual(3);
+    for (let i = 1; i < freezes.length; i++) expect(freezes[i] - freezes[i - 1], `freeze ${i}`).toBeGreaterThanOrEqual(1 + 3 - 0.05); // its 1 s, then 3 s of immunity
+    expect(wall.hp).toBeLessThan(wall.maxHp); // and it was being hit all along
+    expect(of(events, 'status').some((ev) => ev.status === 'ccImmune')).toBe(true); // 'ccImmune' says: the immunity just began, or turned a freeze away
   });
 
   it('keeps every number finite over a long messy fight', () => {
@@ -1429,6 +1468,99 @@ describe('review fixes', () => {
 });
 
 // ── Determinism and the real content ──────────────────────────────────────────────────────────────────────────────
+
+const WALL_TOUGH = mkEnemy('wall-tough', 'tank', { hp: 1e6, contactDps: 0 });
+
+describe('targeting', () => {
+  const WALL = mkEnemy('wall', 'tank', { hp: 1e6, contactDps: 0 }); // never moves, never dies, never hurts
+  const GUARD = { x: 0 }; // Kannan stands in the middle unless a test moves him
+
+  /** Step until the first player shot exists and return it: its targetUid says who was aimed at. */
+  function firstShot(w: World): Projectile {
+    for (let i = 0; i < 300; i++) {
+      step(w, DT, STILL);
+      drainEvents(w);
+      const s = w.projectiles.find((p) => p.owner === 'player');
+      if (s) return s;
+    }
+    throw new Error('Kannan never threw');
+  }
+  const attacker = (w: World, x: number): Enemy => addEnemy(w, WALL, x, 30, { state: 'attack' });
+
+  it('an attacker at the far left beats a closer enemy mid-street', () => {
+    const w = mkWorld(makeContent());
+    w.player.x = GUARD.x;
+    addEnemy(w, WALL, 0, 200); // 200 away, straight ahead: the old "nearest" pick
+    const hurting = attacker(w, -260); // 262 away, but chewing on him
+    expect(firstShot(w).targetUid).toBe(hurting.uid);
+  });
+
+  it('attackers come first even when Kannan stands under the other side of the counter', () => {
+    const w = mkWorld(makeContent());
+    w.player.x = 200;
+    addEnemy(w, WALL, 200, 120);
+    const hurting = attacker(w, -250);
+    expect(firstShot(w).targetUid).toBe(hurting.uid);
+  });
+
+  it('with several attackers, the one nearest his lane goes first', () => {
+    const w = mkWorld(makeContent());
+    attacker(w, -250);
+    const near = attacker(w, 90);
+    attacker(w, 230);
+    expect(firstShot(w).targetUid).toBe(near.uid);
+  });
+
+  it('with nobody at the counter, the enemy closest to it (lowest y) goes first, even if another is nearer by distance', () => {
+    const w = mkWorld(makeContent());
+    addEnemy(w, WALL, 0, 420); // 420 away
+    const lower = addEnemy(w, WALL, 250, 380); // 455 away, but 40 closer to the counter
+    expect(firstShot(w).targetUid).toBe(lower.uid);
+  });
+
+  it('equal y goes to the enemy nearest his lane, and a full tie keeps the first one found', () => {
+    const w = mkWorld(makeContent());
+    addEnemy(w, WALL, -200, 400);
+    const lane = addEnemy(w, WALL, 100, 400);
+    expect(firstShot(w).targetUid).toBe(lane.uid);
+    const tie = mkWorld(makeContent());
+    const first = addEnemy(tie, WALL, -100, 400);
+    addEnemy(tie, WALL, 100, 400);
+    expect(firstShot(tie).targetUid).toBe(first.uid);
+  });
+
+  it('the dead are never aimed at, and an attacker that was knocked away is an ordinary enemy again', () => {
+    const w = mkWorld(makeContent());
+    addEnemy(w, WALL, -250, 30, { state: 'dead' });
+    const live = addEnemy(w, WALL, 0, 300);
+    expect(firstShot(w).targetUid).toBe(live.uid);
+    const w2 = mkWorld(makeContent());
+    const pushed = addEnemy(w2, WALL, -250, 300); // walking again, not at the counter
+    const ahead = addEnemy(w2, WALL, 0, 200);
+    expect(firstShot(w2).targetUid).toBe(ahead.uid);
+    expect(pushed.state).toBe('walk');
+  });
+
+  it('a bomb goes for the cluster that has an attacker in it, over a bigger one up the street', () => {
+    const w = mkWorld(makeContent(), { breads: ['roti-bomb'] });
+    for (const [x, y] of [[0, 400], [30, 400], [0, 430], [30, 430]]) addEnemy(w, WALL, x, y); // four together, blast is 80
+    const hurting = attacker(w, -250);
+    const near = addEnemy(w, WALL, -230, 60); // a neighbour of the attacker: a pair beats a four with no attacker
+    const shot = firstShot(w);
+    expect([hurting.uid, near.uid]).toContain(shot.targetUid);
+  });
+
+  it('a bomb with no attackers about still takes the biggest cluster, then the one closest to the counter', () => {
+    const w = mkWorld(makeContent(), { breads: ['roti-bomb'] });
+    for (const [x, y] of [[0, 500], [30, 500], [0, 530]]) addEnemy(w, WALL, x, y); // three together
+    addEnemy(w, WALL, 200, 150); // a lone enemy much closer
+    expect(firstShot(w).tx).toBeLessThan(100); // the cluster's lane, not the lone enemy's (x 200)
+    const tie = mkWorld(makeContent(), { breads: ['roti-bomb'] });
+    const low = addEnemy(tie, WALL, 150, 200);
+    addEnemy(tie, WALL, -150, 400);
+    expect(firstShot(tie).targetUid).toBe(low.uid); // two lone enemies: the lower one
+  });
+});
 
 describe('determinism', () => {
   /** A scripted (not bot) input stream, so this checks the sim and not the bot. */

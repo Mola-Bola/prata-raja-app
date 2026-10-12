@@ -244,7 +244,8 @@ export type Content = {
 
 // ── Run state (src/core/sim.ts owns mutation) ───────────────────────────────
 
-export type StatusId = 'burn' | 'sugar' | 'sugarSlow' | 'chill' | 'freeze' | 'stun' | 'tender';
+/** 'ccImmune' is the 3 s after a freeze, stun or Sugar Crash ends in which none can land on that enemy again (status.ts). */
+export type StatusId = 'burn' | 'sugar' | 'sugarSlow' | 'chill' | 'freeze' | 'stun' | 'tender' | 'ccImmune';
 
 export type Status = {
   id: StatusId;

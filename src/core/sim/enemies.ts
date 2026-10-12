@@ -181,8 +181,11 @@ export function updateEnemies(c: Ctx): void {
     }
     if (e.statuses.length > 0 || cdGet(e, '_da') > 0) {
       const burning = e.statuses.some((s) => s.id === 'burn');
+      const immune = e.statuses.some((s) => s.id === 'ccImmune');
       const src = dotSource(e);
       const dot = tickStatuses(e, dt, c.p.stats.dotPct);
+      // A freeze or stun just ran out: the enemy shrugs off the next for a while (the renderer outlines it).
+      if (!immune && e.statuses.some((s) => s.id === 'ccImmune')) emit(c, { t: 'status', uid: e.uid, status: 'ccImmune' });
       if (dot > 0) dotDamage(e, dot, src);
       flushDot(c, e);
       if (e.hp <= 0) {
