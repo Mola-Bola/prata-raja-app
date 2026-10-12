@@ -2,36 +2,37 @@
 // after the canvas, in a positioned parent: it fills that parent (inset 0). Only its panels, buttons and the modal dims
 // take touches; the rest passes through to the canvas. It listens to the hub and calls hub.controls, so the renderer
 // never imports it. It is the only writer of SAVE_KEY (the payout on runEnd, and the Sound and Haptics toggles).
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 
 import { brandWords } from '@/brand';
 import { CONTENT } from '@/content';
-import type { SaveV1 } from '@/core/save';
-import { parseSave, recordRun, SAVE_KEY } from '@/core/save';
+import { SAVE_KEY } from '@/core/save';
+import { makeRng } from '@/core/rng';
+import { parseSaveV2 } from '@/meta/migrate';
+import { computeLoadout } from '@/meta/loadout';
+import { applyRunResult } from '@/meta/runRewards';
+import type { GearItem, SaveV2 } from '@/meta/types';
 import type { Card, RunResult } from '@/core/types';
 
 import { ASSET_URLS } from '../assets';
 import type { Bridge, HapticKind } from '../bridgeTypes';
 import type { Hub, HudState } from '../hub';
 import { cardView } from './cardText';
+import { StallHub } from './stall/StallHub';
+import { Rewards, type Payout } from './stall/Rewards';
 import './GameUi.css';
 
 type UiBridge = Pick<Bridge, 'haptic' | 'save' | 'load'>;
-type Screen = 'title' | 'run' | 'results';
+type Screen = 'title' | 'stall' | 'run' | 'results';
 type Offer = { n: number; cards: Card[]; rerolls: number; level: number };
-type Ended = { result: RunResult; line: string; tip: string; newBest: boolean };
+type Ended = { result: RunResult; line: string; tip: string; newBest: boolean; before: SaveV2; payout: Payout };
 type Banner = { n: number; text: string; boss: boolean };
 type Toggle = 'sfx' | 'haptics';
 
 const art = (key: string): string => ASSET_URLS[key];
 const pick = <T,>(xs: readonly T[]): T => xs[Math.floor(Math.random() * xs.length)];
 const clamp01 = (x: number): number => (Number.isFinite(x) ? Math.min(1, Math.max(0, x)) : 0);
-
-/** A failed write is logged, not thrown: the next write carries the whole save again. */
-function writeSave(bridge: UiBridge, save: SaveV1): void {
-  bridge.save(SAVE_KEY, JSON.stringify(save)).catch((e: unknown) => console.warn('[ui] save failed', e));
-}
 
 /** Haptics follow the Haptics setting. A device without a vibrator just ignores the call. */
 function buzz(bridge: UiBridge, on: boolean, kind: HapticKind): void {
@@ -40,15 +41,32 @@ function buzz(bridge: UiBridge, on: boolean, kind: HapticKind): void {
 
 export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
   const [screen, setScreen] = useState<Screen>('title');
-  const [save, setSave] = useState<SaveV1 | null>(null);
+  const [save, setSave] = useState<SaveV2 | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [loadError, setLoadError] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  // shortcut: reveals last for this session; persist the queue when SaveV2 supports pending chests.
+  const [pending, setPending] = useState<GearItem[]>([]);
   const [runId, setRunId] = useState(0);
   const [offer, setOffer] = useState<Offer | null>(null);
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState<Ended | null>(null);
   // The listeners are registered once, so they read the latest save and bridge through refs. Saves are written from
   // the ref, never from state, so two writes in a row cannot race each other.
-  const saveRef = useRef<SaveV1 | null>(null);
+  const saveRef = useRef<SaveV2 | null>(null);
   const bridgeRef = useRef(bridge);
+  const run = useRef<{ seed: number; paid: boolean } | null>(null);
+  const writes = useRef(Promise.resolve());
+
+  const updateSave = useCallback((next: SaveV2) => {
+    saveRef.current = next;
+    setSave(next);
+    // Bridge writes may finish out of order; keep the latest full save last.
+    writes.current = writes.current.then(async () => {
+      await bridgeRef.current.save(SAVE_KEY, JSON.stringify(next));
+      setSaveError(false);
+    }).catch((e: unknown) => { setSaveError(true); console.warn('[ui] save failed', e); });
+  }, []);
 
   useEffect(() => {
     bridgeRef.current = bridge;
@@ -57,21 +75,35 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
   useEffect(() => {
     let live = true;
     bridgeRef.current.load(SAVE_KEY).then(
-      (json) => {
+      (json: string | null) => {
         if (!live || saveRef.current) return; // a write may have landed first; it wins
-        saveRef.current = parseSave(json);
+        saveRef.current = parseSaveV2(json);
         setSave(saveRef.current);
       },
-      () => {}, // no stored save: the game runs on a fresh one
+      () => { if (live) setLoadError(true); },
     );
     return () => {
       live = false;
     };
-  }, []);
+  }, [loadAttempt]);
+
+  useEffect(() => {
+    if (!save || screen !== 'title') return;
+    const enter = () => {
+      if (!hub.controls) return false;
+      if (save.runs === 0) hub.controls.start(Math.floor(Math.random() * 0x100000000), computeLoadout(save, CONTENT));
+      else setScreen('stall');
+      return true;
+    };
+    if (enter()) return;
+    const timer = window.setInterval(() => { if (enter()) window.clearInterval(timer); }, 100);
+    return () => window.clearInterval(timer);
+  }, [save, screen, hub]);
 
   useEffect(() => {
     const offs = [
-      hub.on('runStart', () => {
+      hub.on('runStart', ({ seed }) => {
+        run.current = { seed, paid: false };
         setScreen('run');
         setOffer(null);
         setPaused(false);
@@ -84,36 +116,39 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
         setOffer((prev) => ({ n: (prev?.n ?? 0) + 1, cards, rerolls, level })),
       ),
       hub.on('runEnd', (result) => {
-        const before = saveRef.current ?? parseSave(null);
-        const next = recordRun(before, result, new Date());
+        if (!run.current || run.current.paid || !saveRef.current) return;
+        run.current.paid = true;
+        const before = saveRef.current;
+        const payout = applyRunResult(before, result, makeRng(run.current.seed), new Date());
+        const next = payout.save;
         setEnded({
           result,
           line: pick(result.won ? CONTENT.lines.win : CONTENT.lines.wake),
           tip: pick(CONTENT.lines.tips),
           newBest: result.wave > before.bestWave,
+          before, payout,
         });
         setScreen('results');
         setOffer(null);
         setPaused(false);
-        saveRef.current = next;
-        setSave(next);
-        writeSave(bridgeRef.current, next);
+        updateSave(next);
+        setPending(items => [...items, payout.rewards.chest]);
         buzz(bridgeRef.current, next.settings.haptics, result.won ? 'success' : 'heavy');
       }),
     ];
     return () => offs.forEach((off) => off());
-  }, [hub]);
+  }, [hub, updateSave]);
 
   const toggle = (key: Toggle) => {
     const cur = saveRef.current;
     if (!cur) return;
-    const next: SaveV1 = { ...cur, settings: { ...cur.settings, [key]: !cur.settings[key] } };
-    saveRef.current = next;
-    setSave(next);
-    writeSave(bridgeRef.current, next);
+    updateSave({ ...cur, settings: { ...cur.settings, [key]: !cur.settings[key] } });
   };
 
-  const start = () => hub.controls?.start();
+  const start = () => {
+    const current = saveRef.current;
+    if (current) hub.controls?.start(Math.floor(Math.random() * 0x100000000), computeLoadout(current, CONTENT));
+  };
   const pause = () => {
     setPaused(true);
     hub.controls?.pause();
@@ -124,11 +159,12 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
   };
   const restart = () => {
     setPaused(false);
-    hub.controls?.start();
+    start();
   };
   const quit = () => {
     setPaused(false);
-    setScreen('title');
+    run.current = null;
+    setScreen('stall');
     hub.controls?.quit();
   };
   const pickCard = (i: number) => {
@@ -136,15 +172,17 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
     buzz(bridgeRef.current, saveRef.current?.settings.haptics ?? true, 'light');
     hub.controls?.choose(i);
   };
-  const toTitle = () => {
+  const toStall = () => {
     setEnded(null);
-    setScreen('title');
+    setScreen('stall');
     hub.controls?.quit();
   };
 
   return (
     <div className="gu-root" data-testid="game-ui">
-      {screen === 'title' && <Title best={save?.bestWave ?? 0} onStart={start} />}
+      {saveError && <div className="sh-save-error" role="alert"><span>Progress needs saving.</span><button type="button" className="gu-btn" onClick={() => { if (saveRef.current) updateSave(saveRef.current); }}>Retry save</button></div>}
+      {screen === 'title' && <Title best={save?.bestWave ?? 0} loading={!loadError} onStart={() => { setLoadError(false); setLoadAttempt(n => n + 1); }} />}
+      {screen === 'stall' && save && <StallHub save={save} onChange={updateSave} onStart={start} art={art} pending={pending.filter(item => save.inventory.some(i => i.uid === item.uid))} onReveal={uid => setPending(items => items.filter(i => i.uid !== uid))} />}
       {screen === 'run' && (
         <Hud key={runId} hub={hub} firstRun={save?.runs === 0} modal={!!offer || paused} onPause={pause} />
       )}
@@ -161,12 +199,12 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
           onToggle={toggle}
         />
       )}
-      {screen === 'results' && ended && <Results ended={ended} onAgain={start} onTitle={toTitle} />}
+      {screen === 'results' && ended && <Results ended={ended} onAgain={start} onTitle={toStall} />}
     </div>
   );
 }
 
-function Title({ best, onStart }: { best: number; onStart: () => void }) {
+function Title({ best, loading, onStart }: { best: number; loading: boolean; onStart: () => void }) {
   return (
     <div className="gu-splash">
       <img className="gu-cover" src={art('scene/hero')} alt="" />
@@ -176,9 +214,9 @@ function Title({ best, onStart }: { best: number; onStart: () => void }) {
       </header>
       <footer className="gu-splash-foot">
         <p className="gu-chip">Kannan zones out over the tawa…</p>
-        <button type="button" className="gu-start" aria-label="Start daydream" data-testid="ui-start" onClick={onStart}>
+        <button type="button" className="gu-start" disabled={loading} aria-label={loading ? 'Opening stall' : 'Retry loading save'} data-testid="ui-start" onClick={onStart}>
           <img src={art('ui/btn-orange')} alt="" />
-          <span>Start daydream</span>
+          <span>{loading ? 'Warming the tawa…' : 'Retry loading save'}</span>
         </button>
       </footer>
     </div>
@@ -345,7 +383,7 @@ function Pause({
           Restart run
         </button>
         <button type="button" className="gu-btn gu-btn--wide" data-testid="ui-quit" onClick={onQuit}>
-          Quit to title
+          Back to stall
         </button>
         <div className="gu-switches">
           <Switch label="Sound" on={sound} onClick={() => onToggle('sfx')} />
@@ -370,7 +408,8 @@ function Results({ ended, onAgain, onTitle }: { ended: Ended; onAgain: () => voi
   return (
     <div className="gu-results">
       <img className="gu-results-art" src={art('scene/wake')} alt="" />
-      <section className="gu-panel gu-results-panel">
+      <section className="gu-panel gu-results-panel sh-result-panel">
+        <div className="sh-result-body">
         <h2 className="gu-wake">{ended.line}</h2>
         {ended.newBest && <span className="gu-newbest">New best!</span>}
         <dl className="gu-stats">
@@ -387,19 +426,23 @@ function Results({ ended, onAgain, onTitle }: { ended: Ended; onAgain: () => voi
             <dd>{r.level}</dd>
           </div>
           <div>
-            <dt>Gold</dt>
-            <dd>+{r.gold}</dd>
+            <dt>Coins</dt>
+            <dd>+{ended.payout.rewards.gold}</dd>
           </div>
         </dl>
+        <Rewards before={ended.before} payout={ended.payout} art={art} />
         <p className="gu-tip">
           <b>Tip:</b> {ended.tip}
         </p>
+        </div>
+        <div className="sh-result-actions">
         <button type="button" className="gu-btn gu-btn--primary gu-btn--wide" data-testid="ui-again" autoFocus onClick={onAgain}>
           Daydream again
         </button>
         <button type="button" className="gu-btn gu-btn--wide" data-testid="ui-title" onClick={onTitle}>
-          Title
+          Back to stall
         </button>
+        </div>
       </section>
     </div>
   );
