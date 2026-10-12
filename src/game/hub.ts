@@ -1,6 +1,6 @@
 // The one seam between the Phaser renderer (src/game/phaser/*) and the React DOM overlays (src/game/ui/*).
 // The renderer owns the World and publishes; the UI listens and calls GameControls. Neither imports the other.
-import type { BreadId, Card, DipId, RunResult } from '@/core/types';
+import type { BreadId, Card, DipId, Loadout, RunResult } from '@/core/types';
 
 export type HudState = {
   wave: number;
@@ -32,8 +32,8 @@ export type HubEvents = {
 };
 
 export type GameControls = {
-  /** Start a fresh run (seed defaults to a random one). */
-  start(seed?: number): void;
+  /** Start a fresh run (seed defaults to a random one; loadout = stall gear + training bonuses, S2). */
+  start(seed?: number, loadout?: Loadout): void;
   choose(index: number): void;
   reroll(): void;
   pause(): void;
