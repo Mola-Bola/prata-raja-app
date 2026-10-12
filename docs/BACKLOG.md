@@ -21,3 +21,6 @@ Owner notes are intent, not spec. Each line says where it lands.
 
 ## Later: real places (owner, 12 Oct)
 Chapters become recognisable Singapore food spots with living ambient detail (swaying lanterns, ceiling fans, steam, birds, a crowd that moves): e.g. Kopitiam Street → Newton Food Centre at night → Tekka Centre → Lau Pa Sat's satay street → Gluttons Bay finale. Stylised and respectful; no real stall names or logos.
+
+## Owner ideas (loose; fold in where they fit)
+- **Tawa Heat (12 Oct):** an endurance/rage meter that rises the longer you hold the stall — the tawa burns hotter and hotter and boosts damage. Sketch: hits/kills add heat; getting hit or sliding sheds it (rewards the stop-to-throw rhythm); tiers add damage and throw speed; full heat triggers a short "Tawa Blaze" burst, then settles back to half. Shown on the tawa itself (glow, steam → flames, Kannan sweating), not as a bar. Fits the feel pass or S3; tune with the bot.
