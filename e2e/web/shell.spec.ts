@@ -1,4 +1,4 @@
-// The signed-in shell with every network call mocked (no database): sign in, land on Home, see the "Tell Prata Raja" tab,
+// The signed-in shell with every network call mocked (no database): sign in, land on Home, see the "Tell Kannan" tab,
 // open Me and My notes. Needs only the web build (bash scripts/check.sh --web).
 import { expect, type Page, test } from '@playwright/test';
 

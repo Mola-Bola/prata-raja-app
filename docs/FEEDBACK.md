@@ -1,6 +1,6 @@
 # Working the feedback inbox (playbook for Claude sessions)
 
-Notes written in the app ("Tell Prata Raja": the labelled tab on the right edge of every signed-in screen) land in the `feedback` table of this app's Supabase project. `scripts/feedback.mjs` wraps `akit feedback` (`~/cell/akit/feedback.mjs`), reads `akit.json` here and the service-role key in `.env.cloud`, and works on the cloud by default; `--local` (or `PRATA_RAJA_TARGET=local`) uses the Mac's test database. The Cell runner works the inbox on its own after 30 quiet minutes; this page is what it (and you) follow. Cell's runner playbook for this app is `~/cell/runner/playbooks/prata-raja.md`; steering is `DIRECTION.md`.
+Notes written in the app ("Tell Kannan": the labelled tab on the right edge of every signed-in screen) land in the `feedback` table of this app's Supabase project. `scripts/feedback.mjs` wraps `akit feedback` (`~/cell/akit/feedback.mjs`), reads `akit.json` here and the service-role key in `.env.cloud`, and works on the cloud by default; `--local` (or `PRATA_RAJA_TARGET=local`) uses the Mac's test database. The Cell runner works the inbox on its own after 30 quiet minutes; this page is what it (and you) follow. Cell's runner playbook for this app is `~/cell/runner/playbooks/prata-raja.md`; steering is `DIRECTION.md`.
 
 ## Commands (run from this folder)
 ```bash

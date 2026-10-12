@@ -13,7 +13,7 @@ The owner directs changes at a high level ("make the cards rounder", "rename Hom
 | Screens outside the tabs | A file in `src/app/(app)/` plus a `<Stack.Screen>` line in `src/app/(app)/_layout.tsx` |
 | Sign in, sign up, forgot password, Google | `src/app/sign-in.tsx`, `welcome.tsx`, `reset-password.tsx`, `auth-callback.tsx`; the logic is `src/data/auth.tsx` |
 | Links that open the app while it starts, password email, return-after-sign-in | `src/features/links/*`; the pure rules are in `src/domain/links.ts` (+ tests) |
-| The "Tell Prata Raja" tab (big coral and labelled until first use, then a 52 × 52 icon; docked on the right edge, draggable; testID `feedback-button`), the note sheet, voice, update banner | `src/features/feedback/*` (mounted once in `src/app/_layout.tsx`) |
+| The "Tell Kannan" tab (big coral and labelled until first use, then a 52 × 52 icon; docked on the right edge, draggable; testID `feedback-button`), the note sheet, voice, update banner | `src/features/feedback/*` (mounted once in `src/app/_layout.tsx`) |
 | Talking instead of typing | `src/features/feedback/dictation.ts`, `speechText.ts` (pure, + tests), `webSpeech.ts`. Rule for any note box: typing, touching or clearing stops listening first, spoken words go in at the cursor you had when you started, and the text state lives in the same component as the text box |
 | What a feedback note's status reads as (Received · Planned · Building · Shipped · Done · Not now) and its plan line | `src/features/feedback/labels.ts` **and** `public.feedback_stage()`; the plan is `feedback.plan`, set by `scripts/feedback.mjs plan` |
 | My notes, a note's page, What's new | `src/app/(app)/feedback/index.tsx`, `[id].tsx`, `whats-new.tsx`; the Me tab links to them |

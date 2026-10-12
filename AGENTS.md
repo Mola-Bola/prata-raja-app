@@ -40,13 +40,13 @@ CI: `.github/workflows/check.yml` runs the same checks on every PR (tsc, lint, v
 
 ## Design baseline
 
-Oleh's round-5 "Sunday market" look is the baseline for every app: Fredoka headings, Nunito body, the chunky lipped `BigButton` (one `go` per screen or sheet footer, `ghost` for the partner action), `ChoiceCards` for pick-one choices, `ChoiceChip` for filters, rounded sheets, a big labelled coral "Tell Prata Raja" tab docked on the right edge. This app tunes it through `src/ui/brand.ts` (preset: oleh). The primitives are listed in `docs/CONTRACTS.md` ("UI primitives"); use them instead of Paper's own Button, Chip and Dialog.
+Oleh's round-5 "Sunday market" look is the baseline for every app: Fredoka headings, Nunito body, the chunky lipped `BigButton` (one `go` per screen or sheet footer, `ghost` for the partner action), `ChoiceCards` for pick-one choices, `ChoiceChip` for filters, rounded sheets, a big labelled coral "Tell Kannan" tab docked on the right edge. This app tunes it through `src/ui/brand.ts` (preset: oleh). The primitives are listed in `docs/CONTRACTS.md` ("UI primitives"); use them instead of Paper's own Button, Chip and Dialog.
 
 ## Working with Cell
 
 Cell (`~/cell`) is the engine: `akit` (shared feedback CLI and ship gate), the runner (works this app's feedback inbox headlessly, 30 min after the last note), skills and playbooks. Studio is the single front door for notes. Skills (`~/.claude/skills`): `app-round` (a build round), `app-inbox` (work the notes now), `app-ship`, `codex-review`, `cell-note` (file a loose owner note), `round-handoff`.
 
 - Read `DIRECTION.md` first in every round or inbox run: it is the owner's standing steering and overrides defaults here.
-- Notes come in through the in-app "Tell Prata Raja" tab (table `feedback`). `node scripts/feedback.mjs digest` shows what is open; `plan`, `reply`, `status` move a note on (it wraps `akit feedback`).
+- Notes come in through the in-app "Tell Kannan" tab (table `feedback`). `node scripts/feedback.mjs digest` shows what is open; `plan`, `reply`, `status` move a note on (it wraps `akit feedback`).
 - Short sessions: one round per session, handed over through `round-handoff`. Screenshots are expensive: only changed screens, shrunk with `sips -Z 900`; prefer Playwright testID assertions.
 - Models: Opus plans, merges and judges; Sonnet subagents implement; Codex (`~/cell/runner/bin/codex-run.sh review <brief>`) reviews.

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Claude's side of "Tell Prata Raja": a thin wrapper over the shared `akit feedback` (~/cell/akit/feedback.mjs), which
+// Claude's side of "Tell Kannan": a thin wrapper over the shared `akit feedback` (~/cell/akit/feedback.mjs), which
 // reads akit.json in this folder and talks to this app's cloud project (or the Mac's test database with --local).
 //   node scripts/feedback.mjs digest | list | show <id> | plan <id> "…" | reply <id> "…" | status <id> <status> | record-release …
 // Full usage: ~/cell/akit/feedback.mjs (header). Override the kit's folder with CELL_KIT.
