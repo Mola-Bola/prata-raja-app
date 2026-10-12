@@ -14,14 +14,14 @@ export const brandWords = {
   /** Where space is tight (home-screen label on the web, the manifest's short_name). 12 characters or fewer. */
   shortName: 'Prata Raja',
   /** One line under the wordmark on Welcome. */
-  tagline: 'Say what your app is for in one line.',
+  tagline: 'Flip, throw, daydream.',
   /** One sentence for the web manifest, store text and link previews. */
-  description: 'Prata Raja: say what it does in one line.',
+  description: "Flip, throw, daydream: a prata man's roguelite.",
 
   /** Feature words. Change the word here and every screen follows. */
   words: {
     /** The feedback button and sheet. */
-    tell: 'Tell Prata Raja',
+    tell: 'Tell Kannan',
     /** Who answers notes, as family see it ("the … team" / "The … team"). */
     team: 'Prata Raja team',
     /** The group of people an extension is shared with (extension audience "circle"). */

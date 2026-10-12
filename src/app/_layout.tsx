@@ -12,6 +12,7 @@ import { AuthProvider, QueryProvider, useAppConfig, useAuth } from '@/data';
 import { APP_NAME, AppRoot, buildTheme, ConfirmProvider, EmptyState, LARGE_TEXT, navTheme, setInputFontSize, StartupScreen, stackScreenOptions, TAB_LABELS, ToastProvider, useAppFonts, useAppTheme, useDocumentTitle, webHeaderBack } from '@/ui';
 import { useLargeText } from '@/features/settings/largeText';
 import { FeedbackHost } from '@/features/feedback/FeedbackHost';
+import { useLaunchIntoGame } from '@/features/links/useLaunchIntoGame';
 import { useOpenPasswordReset } from '@/features/links/useOpenPasswordReset';
 import { useReturnAfterSignIn } from '@/features/links/useReturnAfterSignIn';
 import { useStartupLink } from '@/features/links/useStartupLink';
@@ -73,6 +74,7 @@ function RootStack() {
   const tooOld = !!min && olderThan(mine, min);
   // Before useStartupLink, which forgets the link Android opened the app with once it has used it.
   useReturnAfterSignIn(!loading && !tooOld, !!session);
+  useLaunchIntoGame(!loading && !tooOld); // opens the game from the bare start page (signed in or not)
   useDocumentTitle();
   useStartupLink(!loading && !tooOld);
   useOpenPasswordReset(!loading && !tooOld, !!session);

@@ -33,7 +33,7 @@ page.on('pageerror', (e) => consoleErrors.push(`pageerror: ${e.message.slice(0, 
 try {
   let signedIn = false;
   if (who !== 'none' && existsSync(statePath)) {
-    await page.goto(`${BASE}/`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE}/me`, { waitUntil: 'networkidle' }); // ("/" opens the game for everyone)
     signedIn = !page.url().includes('/welcome') && !page.url().includes('/sign-in');
   }
   if (who !== 'none' && !signedIn) {
