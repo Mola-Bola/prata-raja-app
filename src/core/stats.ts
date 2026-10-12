@@ -36,6 +36,7 @@ export function computeStats(passives: OwnedPassive[], content: Content, loadout
 export function buffMods(buffs: Buff[], dips: OwnedDip[], content: Content): BuffMods {
   const mods: BuffMods = { throwSpeedPct: 0, projSpeedPct: 0, critMultAdd: 0, dmgPct: 0, critChance: 0 };
   for (const buff of buffs) {
+    if (buff.time <= 0) continue; // untriggered (haste before its Nth hit) or expired
     const owned = dips.find((d) => d.id === BUFF_DIP[buff.id]);
     if (!owned) continue;
     const fx = content.dips[owned.id].levels[owned.level - 1];
@@ -74,5 +75,6 @@ export function waveHpScale(chapter: ChapterDef, wave: number): number {
 
 /** Seconds between throws: cooldown / (1 + stats.throwSpeedPct + mods.throwSpeedPct), never below 0.08. */
 export function effectiveCooldown(cooldown: number, stats: PlayerStats, mods: BuffMods): number {
-  return Math.max(0.08, cooldown / (1 + stats.throwSpeedPct + mods.throwSpeedPct));
+  // A big enough slow could push the rate to zero or below; clamp so the cooldown stays finite.
+  return Math.max(0.08, cooldown / Math.max(0.1, 1 + stats.throwSpeedPct + mods.throwSpeedPct));
 }

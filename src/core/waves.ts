@@ -14,8 +14,6 @@ const SPACING = 40;
 const CLOUD_SPREAD = 50;
 /** The spent share of the budget follows (waveTime / duration)^PACE. */
 const PACE = 0.85;
-// ponytail: last spawn x is kept beside World (types.ts is frozen); a save/reload mid-wave forgets it once. Move it onto World when types.ts opens.
-const lastSpawnX = new WeakMap<World, number>();
 
 const waveDef = (world: World) => world.chapter.waves[world.wave - 1];
 const kindOf = (world: World, id: string): EnemyKind => world.content.enemies[id].kind;
@@ -33,7 +31,7 @@ export function startWave(world: World, wave: number): { events: GameEvent[]; sp
   const spawns: SpawnRequest[] = [];
   if (def.boss) {
     spawns.push({ enemyId: def.boss, elite: false, x: 0, boss: true });
-    lastSpawnX.set(world, 0);
+    world.lastSpawnX = 0;
   }
   return { events: [{ t: 'waveStart', wave, total: world.chapter.waves.length }], spawns };
 }
@@ -51,7 +49,7 @@ export function spawnTick(world: World, dt: number, rng: Rng): SpawnRequest[] {
   const out: SpawnRequest[] = [];
   // Spawn while the spent share is behind the curve. Only picks that fit the budget left, so nothing overshoots.
   while (def.budget - world.budgetLeft < due) {
-    const fits = Object.keys(def.mix).filter((id) => costOf(world, id) <= world.budgetLeft);
+    const fits = Object.keys(def.mix).filter((id) => def.mix[id] > 0 && costOf(world, id) <= world.budgetLeft).sort();
     if (fits.length === 0) break;
     const id = rng.weighted(fits, (k) => def.mix[k]);
     const kind = kindOf(world, id);
@@ -61,12 +59,12 @@ export function spawnTick(world: World, dt: number, rng: Rng): SpawnRequest[] {
       const cx = rng.range(-(SPAWN_X - CLOUD_SPREAD), SPAWN_X - CLOUD_SPREAD);
       const n = world.content.enemies[id].cloud ?? 6;
       for (let i = 0; i < n; i++) out.push({ enemyId: id, elite: false, x: cx + rng.range(-CLOUD_SPREAD, CLOUD_SPREAD), boss: false });
-      lastSpawnX.set(world, cx);
+      world.lastSpawnX = cx;
     } else {
       let x = rng.range(-SPAWN_X, SPAWN_X);
-      const prev = lastSpawnX.get(world);
+      const prev = world.lastSpawnX;
       while (prev !== undefined && Math.abs(x - prev) < SPACING) x = rng.range(-SPAWN_X, SPAWN_X);
-      lastSpawnX.set(world, x);
+      world.lastSpawnX = x;
       out.push({ enemyId: id, elite: rng.chance(def.eliteChance), x, boss: false });
     }
   }
@@ -79,7 +77,7 @@ export function waveDone(world: World): boolean {
   if (world.enemies.some((e) => e.boss && isLiving(e))) return false;
   const def = waveDef(world);
   if (world.waveTime > def.duration + 15) return true;
-  const cheapest = Math.min(...Object.keys(def.mix).map((id) => costOf(world, id)));
+  const cheapest = Math.min(...Object.keys(def.mix).filter((id) => def.mix[id] > 0).map((id) => costOf(world, id)));
   const living = world.enemies.filter((e) => !e.boss && isLiving(e)).length;
   return world.budgetLeft < cheapest && living <= 2;
 }

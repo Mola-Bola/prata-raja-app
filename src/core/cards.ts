@@ -22,8 +22,8 @@ export function drawOffer(
   opts?: { n?: number; breadPool?: BreadId[]; dipPool?: DipId[] },
 ): Card[] {
   const n = opts?.n ?? 3;
-  const breadPool = opts?.breadPool ?? Object.values(content.breads).filter((b) => b.unlock === 'starter').map((b) => b.id);
-  const dipPool = opts?.dipPool ?? Object.values(content.dips).filter((d) => d.unlock === 'starter').map((d) => d.id);
+  const breadPool = opts?.breadPool ?? Object.values(content.breads).filter((b) => b.unlock === 'starter').map((b) => b.id).sort();
+  const dipPool = opts?.dipPool ?? Object.values(content.dips).filter((d) => d.unlock === 'starter').map((d) => d.id).sort();
 
   const cands: Candidate[] = [];
   for (const b of player.breads) {
@@ -42,7 +42,7 @@ export function drawOffer(
       if (!player.dips.some((d) => d.id === id)) cands.push({ card: { kind: 'dip', id, level: 1 }, weight: 0.8 });
     }
   }
-  for (const p of Object.values(content.passives)) {
+  for (const p of Object.values(content.passives).sort((a, b) => (a.id < b.id ? -1 : 1))) {
     const level = player.passives.find((o) => o.id === p.id)?.level ?? 0;
     if (level < p.maxLevel) cands.push({ card: { kind: 'passive', id: p.id, level: level + 1 }, weight: 0.7 });
   }

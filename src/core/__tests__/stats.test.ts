@@ -178,3 +178,21 @@ describe('effectiveCooldown', () => {
     expect(effectiveCooldown(0.02, BASE_STATS, NONE)).toBe(0.08);
   });
 });
+
+describe('review fixes (codex-core-1)', () => {
+  it('effectiveCooldown stays finite when throw speed is wiped out', () => {
+    const stats = { ...BASE_STATS, throwSpeedPct: -1 };
+    const zero = { throwSpeedPct: 0, projSpeedPct: 0, critMultAdd: 0, dmgPct: 0, critChance: 0 };
+    expect(Number.isFinite(effectiveCooldown(1, stats, zero))).toBe(true);
+    expect(effectiveCooldown(0, stats, zero)).toBe(0.08);
+  });
+});
+
+describe('buffMods ignores untriggered and expired buffs (codex-core-1)', () => {
+  const content = { dips: { 'teh-tarik': { levels: [{ type: 'haste', everyHits: 5, throwSpeedPct: 0.2, time: 3 }] } } } as unknown as Content;
+  const dips: OwnedDip[] = [{ id: 'teh-tarik', level: 1 }];
+  it('counts haste only while its timer runs', () => {
+    expect(buffMods([{ id: 'haste', time: 0, stacks: 0, hitCount: 2 }], dips, content).throwSpeedPct).toBe(0);
+    expect(buffMods([{ id: 'haste', time: 1.5, stacks: 0, hitCount: 0 }], dips, content).throwSpeedPct).toBeCloseTo(0.2);
+  });
+});
