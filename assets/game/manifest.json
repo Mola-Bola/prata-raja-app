@@ -486,5 +486,89 @@
   "ui/ribbon": {
     "h": 229,
     "w": 512
+  },
+  "evolutions/golden-ghee-chakra": {
+    "w": 256,
+    "h": 244
+  },
+  "evolutions/tarik-lance": {
+    "w": 172,
+    "h": 256
+  },
+  "evolutions/inferno-bomb": {
+    "w": 197,
+    "h": 256
+  },
+  "evolutions/half-boiled-halo": {
+    "w": 241,
+    "h": 256
+  },
+  "evolutions/thosai-typhoon": {
+    "w": 219,
+    "h": 256
+  },
+  "evolutions/tandoor-meteor": {
+    "w": 224,
+    "h": 256
+  },
+  "evolutions/garlic-thunder-zone": {
+    "w": 223,
+    "h": 256
+  },
+  "evolutions/crusher-murtabak": {
+    "w": 231,
+    "h": 256
+  },
+  "enemies/sugarcane-walker": {
+    "w": 203,
+    "h": 256
+  },
+  "enemies/tray-rat": {
+    "w": 245,
+    "h": 256
+  },
+  "enemies/neon-moth": {
+    "w": 256,
+    "h": 163
+  },
+  "enemies/fishball": {
+    "w": 186,
+    "h": 256
+  },
+  "enemies/ice-golem": {
+    "w": 256,
+    "h": 214
+  },
+  "enemies/satay-archer": {
+    "w": 235,
+    "h": 256
+  },
+  "enemies/kway-teow-blob": {
+    "w": 256,
+    "h": 199
+  },
+  "enemies/noodle-bit": {
+    "w": 220,
+    "h": 256
+  },
+  "enemies/drumstick-knight": {
+    "w": 254,
+    "h": 256
+  },
+  "enemies/kopi-ghost": {
+    "w": 175,
+    "h": 256
+  },
+  "enemies/chope-spirit": {
+    "w": 246,
+    "h": 256
+  },
+  "enemies/rojak-bomb": {
+    "w": 224,
+    "h": 256
+  },
+  "scene/background2": {
+    "w": 1080,
+    "h": 1919
   }
 }

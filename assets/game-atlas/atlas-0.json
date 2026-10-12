@@ -2,8 +2,8 @@
   "frames": {
     "breads/appam": {
       "frame": {
-        "x": 438,
-        "y": 964,
+        "x": 1329,
+        "y": 2,
         "w": 234,
         "h": 220
       },
@@ -22,8 +22,8 @@
     },
     "breads/chapati": {
       "frame": {
-        "x": 811,
-        "y": 2,
+        "x": 1018,
+        "y": 958,
         "w": 234,
         "h": 215
       },
@@ -42,8 +42,8 @@
     },
     "breads/egg-telur": {
       "frame": {
-        "x": 680,
-        "y": 1163,
+        "x": 645,
+        "y": 1666,
         "w": 238,
         "h": 207
       },
@@ -62,8 +62,8 @@
     },
     "breads/garlic-naan": {
       "frame": {
-        "x": 443,
-        "y": 242,
+        "x": 613,
+        "y": 1204,
         "w": 213,
         "h": 234
       },
@@ -82,8 +82,8 @@
     },
     "breads/idli": {
       "frame": {
-        "x": 463,
-        "y": 722,
+        "x": 407,
+        "y": 1684,
         "w": 234,
         "h": 220
       },
@@ -102,8 +102,8 @@
     },
     "breads/kosong": {
       "frame": {
-        "x": 704,
-        "y": 460,
+        "x": 1567,
+        "y": 2,
         "w": 238,
         "h": 211
       },
@@ -122,8 +122,8 @@
     },
     "breads/murtabak": {
       "frame": {
-        "x": 660,
-        "y": 240,
+        "x": 830,
+        "y": 1200,
         "w": 238,
         "h": 216
       },
@@ -142,8 +142,8 @@
     },
     "breads/naan": {
       "frame": {
-        "x": 2,
-        "y": 244,
+        "x": 206,
+        "y": 1696,
         "w": 197,
         "h": 238
       },
@@ -162,8 +162,8 @@
     },
     "breads/roti-bomb": {
       "frame": {
-        "x": 701,
-        "y": 704,
+        "x": 1542,
+        "y": 226,
         "w": 238,
         "h": 212
       },
@@ -182,8 +182,8 @@
     },
     "breads/thosai": {
       "frame": {
-        "x": 203,
-        "y": 244,
+        "x": 233,
+        "y": 486,
         "w": 236,
         "h": 236
       },
@@ -202,8 +202,8 @@
     },
     "breads/tissue": {
       "frame": {
-        "x": 450,
-        "y": 2,
+        "x": 899,
+        "y": 720,
         "w": 196,
         "h": 234
       },
@@ -222,8 +222,8 @@
     },
     "breads/vadai": {
       "frame": {
-        "x": 466,
-        "y": 480,
+        "x": 617,
+        "y": 1442,
         "w": 234,
         "h": 220
       },
@@ -242,8 +242,8 @@
     },
     "dips/chicken-curry": {
       "frame": {
-        "x": 724,
-        "y": 1617,
+        "x": 887,
+        "y": 1825,
         "w": 238,
         "h": 190
       },
@@ -262,8 +262,8 @@
     },
     "dips/coin": {
       "frame": {
-        "x": 206,
-        "y": 1206,
+        "x": 667,
+        "y": 724,
         "w": 228,
         "h": 234
       },
@@ -282,8 +282,8 @@
     },
     "dips/condensed-milk": {
       "frame": {
-        "x": 914,
-        "y": 920,
+        "x": 855,
+        "y": 1420,
         "w": 238,
         "h": 206
       },
@@ -302,8 +302,8 @@
     },
     "dips/dhal": {
       "frame": {
-        "x": 946,
-        "y": 436,
+        "x": 1341,
+        "y": 671,
         "w": 238,
         "h": 193
       },
@@ -322,8 +322,8 @@
     },
     "dips/fish-curry": {
       "frame": {
-        "x": 922,
-        "y": 1130,
+        "x": 1500,
+        "y": 868,
         "w": 238,
         "h": 183
       },
@@ -342,8 +342,8 @@
     },
     "dips/ghee": {
       "frame": {
-        "x": 244,
-        "y": 484,
+        "x": 395,
+        "y": 1446,
         "w": 218,
         "h": 234
       },
@@ -362,8 +362,8 @@
     },
     "dips/masala": {
       "frame": {
-        "x": 482,
-        "y": 1894,
+        "x": 1335,
+        "y": 1297,
         "w": 236,
         "h": 147
       },
@@ -382,8 +382,8 @@
     },
     "dips/mint-chutney": {
       "frame": {
-        "x": 962,
-        "y": 1811,
+        "x": 1125,
+        "y": 1571,
         "w": 234,
         "h": 187
       },
@@ -402,8 +402,8 @@
     },
     "dips/mutton-curry": {
       "frame": {
-        "x": 1143,
-        "y": 217,
+        "x": 1544,
+        "y": 442,
         "w": 236,
         "h": 191
       },
@@ -422,8 +422,8 @@
     },
     "dips/sambal": {
       "frame": {
-        "x": 1156,
-        "y": 872,
+        "x": 1742,
+        "y": 996,
         "w": 234,
         "h": 153
       },
@@ -443,7 +443,7 @@
     "dips/teh-tarik": {
       "frame": {
         "x": 2,
-        "y": 2,
+        "y": 1212,
         "w": 204,
         "h": 238
       },
@@ -462,8 +462,8 @@
     },
     "dips/xp-orb": {
       "frame": {
-        "x": 1049,
-        "y": 2,
+        "x": 1784,
+        "y": 217,
         "w": 234,
         "h": 211
       },
@@ -482,8 +482,8 @@
     },
     "enemies/boba-blob": {
       "frame": {
-        "x": 889,
-        "y": 1374,
+        "x": 1314,
+        "y": 1109,
         "w": 238,
         "h": 184
       },
@@ -502,8 +502,8 @@
     },
     "enemies/boba-pearl": {
       "frame": {
-        "x": 943,
-        "y": 675,
+        "x": 1256,
+        "y": 912,
         "w": 240,
         "h": 193
       },
@@ -522,8 +522,8 @@
     },
     "enemies/burger-brute": {
       "frame": {
-        "x": 902,
-        "y": 221,
+        "x": 1809,
+        "y": 2,
         "w": 237,
         "h": 211
       },
@@ -542,8 +542,8 @@
     },
     "enemies/chilli-imp": {
       "frame": {
-        "x": 2,
-        "y": 1206,
+        "x": 473,
+        "y": 484,
         "w": 200,
         "h": 236
       },
@@ -560,10 +560,50 @@
         "h": 256
       }
     },
-    "enemies/durian-bomb": {
+    "enemies/chope-spirit": {
       "frame": {
         "x": 2,
-        "y": 966,
+        "y": 244,
+        "w": 228,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 228,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 246,
+        "h": 256
+      }
+    },
+    "enemies/drumstick-knight": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 234,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 234,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 254,
+        "h": 256
+      }
+    },
+    "enemies/durian-bomb": {
+      "frame": {
+        "x": 461,
+        "y": 726,
         "w": 202,
         "h": 236
       },
@@ -580,10 +620,50 @@
         "h": 256
       }
     },
+    "enemies/fishball": {
+      "frame": {
+        "x": 692,
+        "y": 2,
+        "w": 164,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 9,
+        "w": 164,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 186,
+        "h": 256
+      }
+    },
+    "enemies/ice-golem": {
+      "frame": {
+        "x": 1072,
+        "y": 1177,
+        "w": 238,
+        "h": 196
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 196
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 214
+      }
+    },
     "enemies/ice-kacang-sprite": {
       "frame": {
-        "x": 2,
-        "y": 1686,
+        "x": 371,
+        "y": 1208,
         "w": 238,
         "h": 234
       },
@@ -602,8 +682,8 @@
     },
     "enemies/kettle-spirit": {
       "frame": {
-        "x": 2,
-        "y": 486,
+        "x": 219,
+        "y": 728,
         "w": 238,
         "h": 236
       },
@@ -620,10 +700,50 @@
         "h": 254
       }
     },
+    "enemies/kopi-ghost": {
+      "frame": {
+        "x": 210,
+        "y": 1212,
+        "w": 157,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 157,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 175,
+        "h": 256
+      }
+    },
+    "enemies/kway-teow-blob": {
+      "frame": {
+        "x": 1583,
+        "y": 644,
+        "w": 236,
+        "h": 181
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 9,
+        "w": 236,
+        "h": 181
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 199
+      }
+    },
     "enemies/mosquito": {
       "frame": {
-        "x": 179,
-        "y": 1446,
+        "x": 577,
+        "y": 966,
         "w": 230,
         "h": 234
       },
@@ -640,10 +760,50 @@
         "h": 256
       }
     },
+    "enemies/neon-moth": {
+      "frame": {
+        "x": 1129,
+        "y": 1762,
+        "w": 238,
+        "h": 145
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 145
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 163
+      }
+    },
+    "enemies/noodle-bit": {
+      "frame": {
+        "x": 2,
+        "y": 1454,
+        "w": 202,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 202,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 220,
+        "h": 256
+      }
+    },
     "enemies/pigeon": {
       "frame": {
-        "x": 966,
-        "y": 1562,
+        "x": 645,
+        "y": 1877,
         "w": 234,
         "h": 167
       },
@@ -662,8 +822,8 @@
     },
     "enemies/roach": {
       "frame": {
-        "x": 413,
-        "y": 1444,
+        "x": 1068,
+        "y": 469,
         "w": 234,
         "h": 222
       },
@@ -680,10 +840,50 @@
         "h": 244
       }
     },
+    "enemies/rojak-bomb": {
+      "frame": {
+        "x": 369,
+        "y": 968,
+        "w": 204,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 204,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 224,
+        "h": 256
+      }
+    },
+    "enemies/satay-archer": {
+      "frame": {
+        "x": 473,
+        "y": 2,
+        "w": 215,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 215,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 235,
+        "h": 256
+      }
+    },
     "enemies/sugar-ant": {
       "frame": {
-        "x": 651,
-        "y": 1405,
+        "x": 1784,
+        "y": 432,
         "w": 234,
         "h": 208
       },
@@ -700,10 +900,30 @@
         "h": 230
       }
     },
+    "enemies/sugarcane-walker": {
+      "frame": {
+        "x": 208,
+        "y": 1454,
+        "w": 183,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 9,
+        "w": 183,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 203,
+        "h": 256
+      }
+    },
     "enemies/tiffin-beetle": {
       "frame": {
-        "x": 2,
-        "y": 1446,
+        "x": 657,
+        "y": 242,
         "w": 173,
         "h": 236
       },
@@ -720,10 +940,190 @@
         "h": 256
       }
     },
+    "enemies/tray-rat": {
+      "frame": {
+        "x": 2,
+        "y": 486,
+        "w": 227,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 227,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 245,
+        "h": 256
+      }
+    },
+    "evolutions/crusher-murtabak": {
+      "frame": {
+        "x": 2,
+        "y": 728,
+        "w": 213,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 213,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 231,
+        "h": 256
+      }
+    },
+    "evolutions/garlic-thunder-zone": {
+      "frame": {
+        "x": 811,
+        "y": 962,
+        "w": 203,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 11,
+        "w": 203,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 223,
+        "h": 256
+      }
+    },
+    "evolutions/golden-ghee-chakra": {
+      "frame": {
+        "x": 1087,
+        "y": 2,
+        "w": 238,
+        "h": 224
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 224
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 244
+      }
+    },
+    "evolutions/half-boiled-halo": {
+      "frame": {
+        "x": 860,
+        "y": 2,
+        "w": 223,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 11,
+        "w": 223,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 241,
+        "h": 256
+      }
+    },
+    "evolutions/inferno-bomb": {
+      "frame": {
+        "x": 474,
+        "y": 242,
+        "w": 179,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 179,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 197,
+        "h": 256
+      }
+    },
+    "evolutions/tandoor-meteor": {
+      "frame": {
+        "x": 2,
+        "y": 970,
+        "w": 206,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 206,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 224,
+        "h": 256
+      }
+    },
+    "evolutions/tarik-lance": {
+      "frame": {
+        "x": 212,
+        "y": 970,
+        "w": 153,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 10,
+        "y": 9,
+        "w": 153,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 172,
+        "h": 256
+      }
+    },
+    "evolutions/thosai-typhoon": {
+      "frame": {
+        "x": 2,
+        "y": 1696,
+        "w": 200,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 10,
+        "y": 9,
+        "w": 200,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 219,
+        "h": 256
+      }
+    },
     "fx/curry-splash": {
       "frame": {
-        "x": 438,
-        "y": 1188,
+        "x": 1099,
+        "y": 695,
         "w": 238,
         "h": 213
       },
@@ -742,8 +1142,8 @@
     },
     "fx/explosion": {
       "frame": {
-        "x": 482,
-        "y": 1670,
+        "x": 1300,
+        "y": 230,
         "w": 238,
         "h": 220
       },
@@ -762,8 +1162,8 @@
     },
     "fx/flame": {
       "frame": {
-        "x": 650,
-        "y": 2,
+        "x": 907,
+        "y": 480,
         "w": 157,
         "h": 234
       },
@@ -782,8 +1182,8 @@
     },
     "fx/flour-puff": {
       "frame": {
-        "x": 1287,
-        "y": 2,
+        "x": 887,
+        "y": 1630,
         "w": 234,
         "h": 191
       },
@@ -802,8 +1202,8 @@
     },
     "fx/heal": {
       "frame": {
-        "x": 235,
-        "y": 726,
+        "x": 834,
+        "y": 242,
         "w": 224,
         "h": 234
       },
@@ -822,8 +1222,8 @@
     },
     "fx/ice": {
       "frame": {
-        "x": 208,
-        "y": 966,
+        "x": 677,
+        "y": 482,
         "w": 226,
         "h": 234
       },
@@ -842,8 +1242,8 @@
     },
     "fx/impact": {
       "frame": {
-        "x": 244,
-        "y": 1684,
+        "x": 1062,
+        "y": 240,
         "w": 234,
         "h": 225
       },
@@ -862,8 +1262,8 @@
     },
     "fx/levelup-ring": {
       "frame": {
-        "x": 724,
-        "y": 1811,
+        "x": 1097,
+        "y": 1377,
         "w": 234,
         "h": 190
       },
@@ -882,8 +1282,8 @@
     },
     "fx/smoke": {
       "frame": {
-        "x": 676,
-        "y": 946,
+        "x": 1306,
+        "y": 454,
         "w": 234,
         "h": 213
       },
@@ -902,8 +1302,8 @@
     },
     "fx/spark": {
       "frame": {
-        "x": 2,
-        "y": 726,
+        "x": 240,
+        "y": 2,
         "w": 229,
         "h": 236
       },
@@ -922,8 +1322,8 @@
     },
     "fx/sugar-sparkle": {
       "frame": {
-        "x": 210,
-        "y": 2,
+        "x": 234,
+        "y": 244,
         "w": 236,
         "h": 236
       },
@@ -942,8 +1342,8 @@
     },
     "fx/swoosh": {
       "frame": {
-        "x": 1131,
-        "y": 1317,
+        "x": 1742,
+        "y": 829,
         "w": 238,
         "h": 163
       },

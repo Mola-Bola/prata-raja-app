@@ -31,7 +31,7 @@ M = 2              # px from a frame edge to its slot edge: EXTRUDE plus 1 px tr
 
 # Groups (the part of a name before the slash) drawn together during a run, in page order. Not listed here = UI-only, packed last.
 PLANS = [
-    ('enemies', 'fx', 'breads', 'dips'),  # the swarm, its effects, the shots and the bowls: on screen together all the time
+    ('enemies', 'fx', 'breads', 'dips', 'evolutions'),  # the swarm, its effects, the shots, the bowls and the evolved shots: on screen together all the time
     ('kannan', 'bosses'),                 # Kannan's poses and the boss
 ]
 
