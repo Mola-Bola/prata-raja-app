@@ -6,7 +6,7 @@ export const CHAPTERS: ChapterDef[] = [
     id: 'kopitiam-street',
     name: 'Kopitiam Street',
     background: 'scene/background',
-    hpPerWave: 0.2,
+    hpPerWave: 0.27,
     waves: [
       { budget: 10, duration: 22, mix: { 'sugar-ant': 1 }, eliteChance: 0 },
       { budget: 14, duration: 24, mix: { 'sugar-ant': 3, roach: 2 }, eliteChance: 0 },

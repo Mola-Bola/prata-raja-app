@@ -6,8 +6,12 @@ import { KANNAN_W, LANE } from './look';
 
 /** scene/background.webp is 1080 x 1919; the street's vanishing point is at (vx, vy) as shares of it. */
 export const ART_BG = { w: 1080, h: 1919, vx: 0.54, vy: 0.4 };
-/** scene/counter.webp, a strip that sits on the bottom edge. */
-export const ART_COUNTER = { w: 1080, h: 245 };
+/** scene/counter.webp: the steel counter seen from behind, its far edge at the top, tawa in the middle, plate at the right. */
+export const ART_COUNTER = { w: 1080, h: 527 };
+/** The bottom rows of the art (the dark front panel) are stretched down to the screen's bottom edge where the art ends above it. */
+export const COUNTER_LIP_ROWS = 12;
+/** The counter art is this much wider than the screen (1 = exactly as wide; more crops its left and right steel). */
+export const COUNTER_K = 1;
 /** Every kannan/* pose shares this canvas. */
 export const ART_KANNAN = { w: 512, h: 480 };
 
@@ -24,20 +28,23 @@ export type Layout = {
   /** Slack past every edge that the camera shake can reveal. */
   margin: number;
   bg: { x: number; y: number; scale: number };
-  counter: { scale: number; bottom: number; top: number; h: number };
+  /** The counter's top edge is the counter line. `ext` is how far the art's front panel is stretched down to reach the screen's
+   *  bottom (0 when the art already does); counterAt() maps a point of the art to the screen. */
+  counter: { scale: number; left: number; top: number; w: number; h: number; ext: number };
   kannan: { scale: number; bottom: number; w: number; h: number; minX: number; maxX: number };
 };
 
 export function makeLayout(w: number, h: number): Layout {
   const u = w / 390;
   const margin = 14 * u;
-  // The counter is a strip along the bottom edge, as wide as the screen. Its top (the far steel edge) is the counter line:
-  // the feet of every enemy that reaches Kannan stand there, with the lip hiding a few px of them.
-  const cs = (w / ART_COUNTER.w) * 1.02;
+  // The counter fills the bottom of the screen from the counter line (its far steel edge) down. Its art is scaled to the screen
+  // width; if it ends above the bottom edge, the art's front panel is stretched down to fill the rest (`ext`).
+  const cs = (w / ART_COUNTER.w) * COUNTER_K;
+  const counterW = ART_COUNTER.w * cs;
   const counterH = ART_COUNTER.h * cs;
-  const counterBottom = h + margin;
-  const counterTop = counterBottom - counterH;
-  const view = { ...makeView(w, h), horizonY: h * LANE.horizon, counterY: counterTop + 3 * u };
+  const counterTop = h * LANE.counter;
+  // Enemies stand on the counter line, with the far lip of the counter hiding a few px of their feet.
+  const view = { ...makeView(w, h), horizonY: h * LANE.horizon, counterY: counterTop + 6 * u };
   // The background is placed so the street's vanishing point sits on the field's horizon: enemies then walk down the
   // road instead of through the sky. It is zoomed (never squeezed) until it covers the canvas plus the shake margin.
   const k = Math.max((w + 2 * margin) / ART_BG.w, (h - view.horizonY + margin) / ((1 - ART_BG.vy) * ART_BG.h));
@@ -55,10 +62,16 @@ export function makeLayout(w: number, h: number): Layout {
     hudBand: Math.max(0.1 * h, 72 * u),
     margin,
     bg: { x: bgX, y: bgY, scale: k },
-    counter: { scale: cs, bottom: counterBottom, top: counterTop, h: counterH },
+    counter: { scale: cs, left: (w - counterW) / 2, top: counterTop, w: counterW, h: counterH, ext: Math.max(0, h + margin - (counterTop + counterH)) },
     // He is as wide as KANNAN_W of the screen and slides with the finger, but never out of sight: his sprite stays inside.
     kannan: { scale: ks, bottom: h + margin + 6 * u, w: kw, h: ART_KANNAN.h * ks, minX: kw / 2, maxX: w - kw / 2 },
   };
+}
+
+/** A point of the counter art (shares of its width and height) on the screen. */
+export function counterAt(l: Layout, fx: number, fy: number, out: { x: number; y: number }): void {
+  out.x = l.counter.left + fx * l.counter.w;
+  out.y = l.counter.top + fy * l.counter.h;
 }
 
 /** Field to screen without allocating: call at(), then read sx, sy and s before the next call. The same pinhole as project()

@@ -28,7 +28,7 @@ Kannan flips prata at a kopitiam stall. Stare too long at a spinning prata and h
 
 **Combat:** each bread has its own timer and targeting (nearest / densest cluster / straight up the street). Hits roll crit; every owned dip applies its effect on every bread hit, so AoE breads spread statuses widely. Statuses: burn (DoT), sugar ("diabetes": slow + stacking DoT, 5 stacks = Sugar Crash stun), chill (3 stacks = freeze), tender (knockback + damage taken), stun. Shielded enemies block plain throws until broken; pierce, lobs and waves go around.
 
-**Waves:** chapter 1 "Kopitiam Street" = 10 waves, budgets 10→44 threat points over 22–30 s each, new enemy types introduced one wave at a time, elites from wave 4, King Cockroach on wave 10 (volley, lane charge, brood call; enrages at 50%). HP scales +12% per wave.
+**Waves:** chapter 1 "Kopitiam Street" = 10 waves, budgets 10→44 threat points over 22–30 s each, new enemy types introduced one wave at a time, elites from wave 4, King Cockroach on wave 10 (volley, lane charge, brood call; enrages at 50%). HP scales +27% per wave (hpPerWave in src/content/chapters.ts, set by the bot balance sim).
 
 **Growth inside a run:** kills give XP (auto-collected, flying to the counter). About 9 level-ups per chapter. Each offers 3 cards: new bread (max 4), new dip (max 4), upgrade (L1→L5) or a passive; 1 free reroll; the first offer guarantees a dip so the counter fills early. Evolutions (bread L5 + partner L5) arrive in S3.
 

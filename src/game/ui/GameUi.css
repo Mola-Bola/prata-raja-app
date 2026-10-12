@@ -1,7 +1,7 @@
 /* Prata Raja overlay (GameUi.tsx). Paper and brown tokens are on .gu-root. Text is ink (#3B2414) on cream or orange
    (about 13:1 and 5.9:1); text on the red ribbon art is cream on a darkened copy of the art, because the red itself
    is only 3.7:1 with cream. Red and orange are for fills and borders only. */
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap');
+/* Fredoka and Nunito are bundled (src/game/fonts.ts adds their @font-face rules): no network is needed. */
 
 .gu-root {
   --cream: #FFF4E0;

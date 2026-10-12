@@ -78,6 +78,8 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
         setEnded(null);
         setRunId((n) => n + 1);
       }),
+      // The renderer held the run on its own (the app went to the background): show the pause sheet.
+      hub.on('paused', () => setPaused(true)),
       hub.on('levelUp', ({ offer: cards, rerolls, level }) =>
         setOffer((prev) => ({ n: (prev?.n ?? 0) + 1, cards, rerolls, level })),
       ),
