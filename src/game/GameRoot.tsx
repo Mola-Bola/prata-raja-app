@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 
 import type { Bridge } from './bridgeTypes';
 import { GAME_BG } from './config';
+import { installFonts } from './fonts';
 import { createHub, type Hub } from './hub';
 import { BootScene } from './phaser/BootScene';
 import { RunScene } from './phaser/RunScene';
@@ -33,6 +34,8 @@ declare global {
     __hub?: Hub;
   }
 }
+
+installFonts();
 
 /** The overlay reads --gu-safe-* (see GameUi.css): the app's measured inset, but never less than what the browser reports. */
 const safe = (side: keyof Insets, insets?: Insets) => `max(env(safe-area-inset-${side}, 0px), ${insets?.[side] ?? 0}px)`;

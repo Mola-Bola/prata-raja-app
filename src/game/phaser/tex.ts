@@ -67,3 +67,11 @@ export function setImage(img: Phaser.GameObjects.Image, name: string): Phaser.Ga
   const t = resolve(img.scene, name);
   return img.setTexture(t.key, t.frame);
 }
+
+/** An image showing only a rectangle of a loose texture (scene art): its frame is made the first time it is asked for. */
+export function addCrop(scene: Phaser.Scene, name: string, id: string, x: number, y: number, w: number, h: number): Phaser.GameObjects.Image {
+  const t = resolve(scene, name);
+  const texture = scene.textures.get(t.key);
+  if (!texture.has(id)) texture.add(id, 0, x, y, w, h);
+  return scene.add.image(0, 0, t.key, id);
+}

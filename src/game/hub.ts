@@ -29,6 +29,9 @@ export type HubEvents = {
   runEnd: RunResult;
   /** The UI asked for a run and the scene is ready (hides the title screen). */
   runStart: { seed: number };
+  /** The renderer held the run by itself because the page went hidden (the app was sent to the background, or the tab was
+   *  switched away). The sim is already stopped: the UI opens its pause sheet, and Resume calls controls.resume(). */
+  paused: { reason: 'hidden' };
 };
 
 export type GameControls = {

@@ -30,7 +30,7 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'straight',
     target: 'nearest',
     unlock: 'starter',
-    levels: ladder({ dmg: 10, cooldown: 0.8, speed: 900, radius: 14, range: 950 }, [
+    levels: ladder({ dmg: 10, cooldown: 0.8, speed: 900, radius: 18.2, range: 950 }, [
       { dmg: 12, cooldown: 0.72 },
       { hops: 1, hopRange: 260, cooldown: 0.68 },
       { hops: 2, cooldown: 0.64 },
@@ -45,7 +45,7 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'straight',
     target: 'nearest',
     unlock: 'starter',
-    levels: ladder({ dmg: 4.8, cooldown: 0.9, speed: 1000, radius: 10, range: 950, pierce: 3 }, [
+    levels: ladder({ dmg: 4.8, cooldown: 0.9, speed: 1000, radius: 13, range: 950, pierce: 3 }, [
       { pierce: 4 },
       { dmg: 6 },
       { pierce: 5 },
@@ -77,7 +77,7 @@ export const BREADS: Record<BreadId, BreadDef> = {
     target: 'nearest',
     unlock: 'rc-egg-telur',
     // ponytail: L5 "fragments split once" has no BreadStats field yet; approximated as 8 fragments (2 each).
-    levels: ladder({ dmg: 5.4, cooldown: 1.1, speed: 700, radius: 12, range: 950, fragments: 3, fragmentDmg: 2.4 }, [
+    levels: ladder({ dmg: 5.4, cooldown: 1.1, speed: 700, radius: 15.6, range: 950, fragments: 3, fragmentDmg: 2.4 }, [
       { fragments: 4 },
       { homing: 0.3 },
       { dmg: 6.6 },
@@ -92,7 +92,7 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'wave',
     target: 'none',
     unlock: 'starter',
-    levels: ladder({ dmg: 6.6, cooldown: 1.2, speed: 700, radius: 20, range: 900, width: 200 }, [
+    levels: ladder({ dmg: 6.6, cooldown: 1.2, speed: 700, radius: 26, range: 900, width: 200 }, [
       { width: 240 },
       { dmg: 8.4 },
       { dmg: 9.6, width: 270 },
@@ -107,7 +107,7 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'boomerang',
     target: 'nearest',
     unlock: 'starter',
-    levels: ladder({ dmg: 4.2, cooldown: 1.2, speed: 800, radius: 16, range: 600 }, [
+    levels: ladder({ dmg: 4.2, cooldown: 1.2, speed: 800, radius: 20.8, range: 600 }, [
       { dmg: 5.4 },
       { dmg: 6.6 },
       { range: 750 },
@@ -153,7 +153,7 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'straight',
     target: 'nearest',
     unlock: 'rc-murtabak',
-    levels: ladder({ dmg: 9.6, cooldown: 1.6, speed: 700, radius: 18, range: 950, knockback: 120, stun: 0.4 }, [
+    levels: ladder({ dmg: 9.6, cooldown: 1.6, speed: 700, radius: 23.4, range: 950, knockback: 120, stun: 0.4 }, [
       { dmg: 12 },
       { stun: 0.6 },
       { knockback: 160 },
@@ -168,7 +168,7 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'straight',
     target: 'nearest',
     unlock: 'starter-s2',
-    levels: ladder({ dmg: 4.8, cooldown: 1.0, speed: 800, radius: 14, range: 950, hops: 3, hopRange: 300, hopFalloff: 0.15 }, [
+    levels: ladder({ dmg: 4.8, cooldown: 1.0, speed: 800, radius: 18.2, range: 950, hops: 3, hopRange: 300, hopFalloff: 0.15 }, [
       { hops: 4 },
       { dmg: 6 },
       { hopFalloff: 0 },
@@ -183,7 +183,7 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'straight',
     target: 'nearest',
     unlock: 'starter-s2',
-    levels: ladder({ dmg: 1.8, cooldown: 1.0, speed: 950, radius: 8, range: 950, count: 4, spread: 6, volleyGap: 0.1 }, [
+    levels: ladder({ dmg: 1.8, cooldown: 1.0, speed: 950, radius: 10.4, range: 950, count: 4, spread: 6, volleyGap: 0.1 }, [
       { count: 5 },
       { dmg: 2.4 },
       { spread: 20 },
@@ -199,7 +199,7 @@ export const BREADS: Record<BreadId, BreadDef> = {
     target: 'none',
     unlock: 'rc-vadai',
     // orbit: speed is degrees per second (not u/s); no cooldown; range unused.
-    levels: ladder({ dmg: 1.8, cooldown: 0, speed: 180, radius: 16, count: 4, orbitRadius: 140, orbitHitGap: 0.5 }, [
+    levels: ladder({ dmg: 1.8, cooldown: 0, speed: 180, radius: 20.8, count: 4, orbitRadius: 140, orbitHitGap: 0.5 }, [
       { count: 5 },
       { orbitRadius: 170 },
       { dmg: 2.4 },

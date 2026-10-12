@@ -6,6 +6,12 @@ sampling never reads a neighbour), and 1 px of transparent padding goes outside 
 2 px of padding apart. Frames are placed with a best-short-side-fit MaxRects packer, first-fit over the atlases.
 Anything over 1024 px on a side is downscaled first; its frame gets "scale" and sourceSize keeps the original size.
 
+Which sprites share a page matters: the phone's WebView draws one texture per batch, so every page change in a run's draw order
+costs a draw call. PLANS lists the groups drawn together during a run (the swarm and its effects first, then Kannan and the
+boss); each plan starts on its own fresh page(s). Everything else (UI-only groups: passives, ui, gear, chests, materials, hub,
+and any group added later) goes last: it fills what is left of the final run page, then pages of its own, so the pages after
+the run pages hold UI-only frames and a loader can skip them in a run.
+
 Writes assets/game-atlas/atlas-<n>.webp (quality 90, alpha) and atlas-<n>.json (Phaser JSON Hash).
 Run: python3 scripts/pack_atlas.py
 """
@@ -21,6 +27,17 @@ SIZE = 2048        # atlas edge in px (power of two, so WebGL1 can mipmap it)
 MAX_SIDE = 1024    # larger sprites are downscaled to fit
 EXTRUDE = 1        # px of replicated edge around each frame
 M = 2              # px from a frame edge to its slot edge: EXTRUDE plus 1 px transparent padding
+
+
+# Groups (the part of a name before the slash) drawn together during a run, in page order. Not listed here = UI-only, packed last.
+PLANS = [
+    ('enemies', 'fx', 'breads', 'dips'),  # the swarm, its effects, the shots and the bowls: on screen together all the time
+    ('kannan', 'bosses'),                 # Kannan's poses and the boss
+]
+
+
+def group_of(name):
+    return name.split('/', 1)[0]
 
 
 class MaxRects:
@@ -89,20 +106,27 @@ def main():
     manifest = json.loads((GAME / 'manifest.json').read_text())
     sprites = [load(n) for n in sorted(manifest) if not n.startswith('scene/')]
 
-    # First fit over the pages; tallest sprites first so the big ones pack tightly.
+    # Each plan (then the UI-only rest) is packed on pages of its own: first fit, tallest sprites first so the big ones pack tight.
+    planned = {g for plan in PLANS for g in plan}
+    batches = [[s for s in sprites if group_of(s['name']) in plan] for plan in PLANS]
+    batches.append([s for s in sprites if group_of(s['name']) not in planned])
     pages = []  # [(MaxRects, [(sprite, slot_x, slot_y)])]
-    for s in sorted(sprites, key=lambda s: (-s['art'].height, -s['art'].width, s['name'])):
-        side = (s['art'].width + 2 * M, s['art'].height + 2 * M)
-        for rects, placed in pages:
-            pos = rects.insert(*side)
-            if pos:
-                break
-        else:
-            rects, placed = MaxRects(), []
-            pages.append((rects, placed))
-            pos = rects.insert(*side)
-        assert pos, f"{s['name']} does not fit an empty {SIZE} page"
-        placed.append((s, *pos))
+    for n, batch in enumerate(batches):
+        # The UI-only rest (last batch) first fills the free space on the final run page, which costs a run nothing: it never draws those frames.
+        mine = [pages[-1]] if n == len(PLANS) and pages else []  # this plan's own pages
+        for s in sorted(batch, key=lambda s: (-s['art'].height, -s['art'].width, s['name'])):
+            side = (s['art'].width + 2 * M, s['art'].height + 2 * M)
+            for rects, placed in mine:
+                pos = rects.insert(*side)
+                if pos:
+                    break
+            else:
+                rects, placed = MaxRects(), []
+                mine.append((rects, placed))
+                pages.append((rects, placed))
+                pos = rects.insert(*side)
+            assert pos, f"{s['name']} does not fit an empty {SIZE} page"
+            placed.append((s, *pos))
 
     OUT.mkdir(parents=True, exist_ok=True)
     for old in OUT.glob('atlas-*'):  # stale pages from an earlier, larger run
@@ -129,7 +153,8 @@ def main():
         data = {'frames': frames, 'meta': {'image': image, 'size': {'w': SIZE, 'h': SIZE}, 'scale': '1'}}
         (OUT / f'atlas-{n}.json').write_text(json.dumps(data, indent=2) + '\n')
         atlas_bytes += (OUT / image).stat().st_size
-        print(f'{image}: {len(frames)} frames, fill {100 * used / SIZE ** 2:.1f}%, {(OUT / image).stat().st_size / 1024:.0f} KB')
+        groups = sorted({group_of(name) for name in frames})
+        print(f'{image}: {len(frames)} frames, fill {100 * used / SIZE ** 2:.1f}%, {(OUT / image).stat().st_size / 1024:.0f} KB  {", ".join(groups)}')
 
     loose = sum((GAME / f"{s['name']}.webp").stat().st_size for s in sprites)
     print(f'{len(pages)} atlases, {atlas_bytes / 1024:.0f} KB (webp) vs {loose / 1024:.0f} KB loose (same frames)')

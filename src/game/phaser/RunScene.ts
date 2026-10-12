@@ -100,8 +100,12 @@ export class RunScene extends Phaser.Scene {
     this.input.on('pointerdown', unlockAudio);
     this.relayout();
     this.scale.on('resize', this.relayout, this);
+    // The page went hidden (the app was backgrounded, the tab switched): hold the run. Phaser raises this for the browser's
+    // visibilitychange and for the WebView's own pause event.
+    this.game.events.on(Phaser.Core.Events.HIDDEN, this.onHidden, this);
     this.events.once('shutdown', () => {
       this.scale.off('resize', this.relayout, this);
+      this.game.events.off(Phaser.Core.Events.HIDDEN, this.onHidden, this);
       this.input.off('pointerdown', unlockAudio);
       window.__world = null;
     });
@@ -109,11 +113,7 @@ export class RunScene extends Phaser.Scene {
       start: (seed, loadout) => this.start(seed, loadout),
       choose: (i) => this.choose(i),
       reroll: () => this.rerollOffer(),
-      pause: () => {
-        this.paused = true;
-        this.drag.release();
-        this.cameras.main.setScroll(0, 0);
-      },
+      pause: () => this.hold(),
       resume: () => {
         this.paused = false;
         this.applySettings();
@@ -158,6 +158,22 @@ export class RunScene extends Phaser.Scene {
     this.refreshDips();
     this.hub.emit('runStart', { seed: s });
     void this.bridge?.track('run_start', {}).catch(() => {});
+  }
+
+  /** Stop the run where it is (the sim does not step, the frame is left as drawn). */
+  private hold(): void {
+    this.paused = true;
+    this.drag.release();
+    this.cameras.main.setScroll(0, 0);
+  }
+
+  /** The page went hidden mid-run: hold it, and tell the overlay to show its pause sheet. A level-up already holds the sim
+   *  behind its own card sheet, and nothing is running before a start or after an end. */
+  private onHidden(): void {
+    const w = this.world;
+    if (!w || this.ended || this.paused || w.phase === 'levelup') return;
+    this.hold();
+    this.hub.emit('paused', { reason: 'hidden' });
   }
 
   /** "Quit to title". A live run ends the way a lost one does (Kannan wakes up early) so it pays out and the results

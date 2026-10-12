@@ -5,18 +5,19 @@ import * as Phaser from 'phaser';
 
 import type { OwnedBread, OwnedDip, Player, RunPhase } from '@/core/types';
 
-import type { Layout } from './layout';
+import { ART_COUNTER, COUNTER_LIP_ROWS, counterAt, type Layout } from './layout';
 import { D } from './look';
 import type { Img, ImagePool } from './pools';
-import { addImage, setImage } from './tex';
+import { addCrop, addImage, setImage } from './tex';
 
 type Slot = { img: Img; id: string; level: number; pop: number };
 
-/** Where the build sits on the counter: x as a share of the screen width, y in design px below the counter's far edge. The
- *  tawa fills the middle, so dips go left and right of it (first one just left of the tawa, the second just right, then the
- *  outer ones) and the owned breads pile up on the plate at the right. */
-const DIP_SPOTS: [number, number][] = [[0.195, 30], [0.81, 30], [0.075, 34], [0.925, 34]];
-const BREAD_SPOT: [number, number] = [0.865, 58];
+/** Where the build sits on the counter, as shares of the counter art's width and height. The plain steel at the left of the
+ *  tawa holds the dip bowls (two columns, staggered); the plain steel at the right, below the plate, the pile of owned breads. */
+const DIP_SPOTS: [number, number][] = [[0.062, 0.26], [0.168, 0.36], [0.062, 0.52], [0.168, 0.62]];
+const BREAD_SPOT: [number, number] = [0.875, 0.66];
+/** Each owned bread lies a little further up and to the side of the one before, so the whole pile reads (design px). */
+const BREAD_FAN: [number, number][] = [[-8, 6], [14, 0], [-12, -14], [10, -18]];
 const DIP_W = 0.118;
 const BREAD_W = 0.112;
 const MAX_BREADS = 4;
@@ -29,6 +30,8 @@ const pose = (n: string): string => `kannan/kannan-${n}`;
 export class Stall {
   readonly bg: Img;
   readonly counter: Img;
+  /** The counter art's front panel, stretched down to the screen's bottom edge when the art ends above it. */
+  readonly lip: Img;
   readonly kannan: Img;
   /** Kannan's screen position (feet centre), throwing hand and chest, for shots and sparkles. */
   kx = 0;
@@ -54,14 +57,19 @@ export class Stall {
     private imgs: ImagePool,
   ) {
     this.bg = addImage(scene, 'scene/background').setOrigin(0, 0).setDepth(D.bg);
-    this.counter = addImage(scene, 'scene/counter').setOrigin(0.5, 1).setDepth(D.counter);
+    this.counter = addImage(scene, 'scene/counter').setOrigin(0.5, 0).setDepth(D.counter);
+    this.lip = addCrop(scene, 'scene/counter', 'lip', 0, ART_COUNTER.h - COUNTER_LIP_ROWS, ART_COUNTER.w, COUNTER_LIP_ROWS)
+      .setOrigin(0.5, 0)
+      .setDepth(D.counter);
     this.kannan = addImage(scene, this.cur).setOrigin(0.5, 1).setDepth(D.kannan);
   }
 
   setLayout(l: Layout): void {
     this.l = l;
     this.bg.setPosition(l.bg.x, l.bg.y).setScale(l.bg.scale);
-    this.counter.setPosition(l.w / 2, l.counter.bottom).setScale(l.counter.scale);
+    const c = l.counter;
+    this.counter.setPosition(l.w / 2, c.top).setScale(c.scale);
+    this.lip.setVisible(c.ext > 0).setPosition(l.w / 2, c.top + c.h - 1).setScale(c.scale, (c.ext + 1) / COUNTER_LIP_ROWS);
     this.kannan.setScale(l.kannan.scale);
     this.place(this.dips, true);
     this.place(this.breads, false);
@@ -188,14 +196,15 @@ export class Stall {
     const l = this.l;
     const out = this.at;
     if (dips) {
-      const [fx, dy] = DIP_SPOTS[i] ?? DIP_SPOTS[0];
-      out.x = fx * l.w;
-      out.y = l.counter.top + dy * l.u;
+      const [fx, fy] = DIP_SPOTS[i] ?? DIP_SPOTS[0];
+      counterAt(l, fx, fy, out);
       out.rot = 0;
     } else {
-      const [fx, dy] = BREAD_SPOT;
-      out.x = fx * l.w + i * 0.006 * l.w;
-      out.y = l.counter.top + dy * l.u - i * 0.02 * l.w;
+      const [fx, fy] = BREAD_SPOT;
+      const [dx, dy] = BREAD_FAN[i] ?? BREAD_FAN[0];
+      counterAt(l, fx, fy, out);
+      out.x += dx * l.u;
+      out.y += dy * l.u;
       out.rot = (i % 2 === 0 ? -1 : 1) * 0.12 + i * 0.05;
     }
   }

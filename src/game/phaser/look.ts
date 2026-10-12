@@ -9,9 +9,9 @@ export const MAX_STEPS = 4;
 /** Seconds between 'hud' publications. */
 export const HUD_PERIOD = 0.1;
 
-/** Where the far end of the street sits on screen, as a share of the height (the street runs from here down to the counter's
- *  far steel edge, which is the top of the counter strip along the bottom edge: see layout.ts). */
-export const LANE = { horizon: 0.2 };
+/** Where the street sits on screen, as shares of the height: its far end (the horizon) and the counter line, the counter's far
+ *  steel edge, where enemies stand when they bite. The counter surface fills from there to the bottom of the screen. */
+export const LANE = { horizon: 0.2, counter: 0.7 };
 
 /** Phaser depths, back to front. Enemies and shots add their screen y so far ones draw first. */
 export const D = {
@@ -42,18 +42,22 @@ export const CURRY = 0xb5533c;
 export const WHITE = 0xffffff;
 
 // ── Sizes ──────────────────────────────────────────────────────────────────────────────────────────────────
+/** src/content radii are the hit circles, and were scaled up by this (enemies and bosses) so a bread that visibly touches an
+ *  enemy hits it. The art-direction sizes below were set against the radii from before that, so undo it here. */
+const HIT_SCALE = 1.6;
+
 /** An enemy sprite's size (its larger side) as a share of the screen width, at the counter line (depth scale 1), from its
- *  field radius. Art direction anchors: a roach (r 18) 22%, the burger brute (r 34) 32%, King Cockroach (r 70) 55%;
+ *  field radius. Art direction anchors: a roach (hit radius 28.8) 22%, the burger brute (54.4) 32%, King Cockroach (112) 55%;
  *  between them it is a power law. Depth scale then shrinks it down the street (a roach is ~12% of the width halfway). */
 export function enemyShare(radius: number): number {
-  const r = Math.max(radius, 6);
+  const r = Math.max(radius / HIT_SCALE, 6);
   return r <= 34 ? 0.22 * Math.pow(r / 18, 0.59) : 0.32 * Math.pow(r / 34, 0.75);
 }
 /** An elite is a bit bigger; a mosquito cloud member a bit smaller (there are six of them). */
 export const ELITE_SCALE = 1.15;
 export const SWARM_SCALE = 0.85;
-/** Thrown bread size = hit diameter x this. */
-export const SHOT_FIT = 2.1;
+/** Thrown bread size = hit diameter x this (bread hit radii were scaled up 1.3x in src/content; the look stays as it was). */
+export const SHOT_FIT = 2.1 / 1.3;
 export const SHOT_MIN_U = 24;
 /** Lob (roti bomb, naan) sprite diameter in field units; the blast radius is not a sprite size. */
 export const LOB_U = 74;

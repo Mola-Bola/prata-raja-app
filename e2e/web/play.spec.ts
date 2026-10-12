@@ -10,11 +10,10 @@ test.use({ viewport: { width: 390, height: 844 } });
 
 const tid = (page: Page, id: string) => page.locator(`[data-testid="${id}"]`).filter({ visible: true }).first();
 
-/** Collect console errors and page errors; the game must draw a whole run without one. (The overlay's Google Fonts stylesheet
- *  failing to load offline is not the game's error.) */
+/** Collect console errors and page errors; the game must draw a whole run without one. */
 function watch(page: Page): string[] {
   const errors: string[] = [];
-  page.on('console', (m) => m.type() === 'error' && !/fonts\.(googleapis|gstatic)\.com/.test(m.location().url) && errors.push(m.text()));
+  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   page.on('pageerror', (e) => errors.push(e.message));
   return errors;
 }
@@ -65,6 +64,39 @@ test('title, start, drag, pick a card, pause, quit', async ({ page }) => {
   await expect(tid(page, 'ui-again')).toBeVisible();
   await tid(page, 'ui-title').click();
   await expect(tid(page, 'ui-start')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('the page going hidden holds the run and opens the pause sheet; the fonts come with the game', async ({ page }) => {
+  test.setTimeout(150_000);
+  const errors = watch(page);
+  const fontServices: string[] = [];
+  page.on('request', (r) => /fonts\.(googleapis|gstatic)\.com/.test(r.url()) && fontServices.push(r.url()));
+  await page.goto('/play');
+  await tid(page, 'ui-start').click();
+  await page.waitForFunction(() => !!window.__world, null, { timeout: 60_000 });
+  // The overlay's typefaces are bundled: all five Fredoka and Nunito faces load from the app itself, nothing from a font service.
+  const faces = await page.evaluate(async () => {
+    await Promise.all(['600 16px Fredoka', '700 16px Fredoka', '600 16px Nunito', '700 16px Nunito', '800 16px Nunito'].map((f) => document.fonts.load(f)));
+    return Array.from(document.fonts).filter((x) => x.family === 'Fredoka' || x.family === 'Nunito').map((x) => `${x.family} ${x.weight} ${x.status}`);
+  });
+  expect(faces.sort()).toEqual(['Fredoka 600 loaded', 'Fredoka 700 loaded', 'Nunito 600 loaded', 'Nunito 700 loaded', 'Nunito 800 loaded']);
+  // visibilitychange to hidden (what the OS does when the app goes to the background).
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(tid(page, 'ui-resume')).toBeVisible();
+  const t0 = await page.evaluate(() => window.__world!.time);
+  await page.waitForTimeout(500);
+  expect(await page.evaluate(() => window.__world!.time)).toBe(t0);
+  await page.evaluate(() => {
+    delete (document as { hidden?: boolean }).hidden;
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await tid(page, 'ui-resume').click();
+  await page.waitForFunction((t) => window.__world!.time > t, t0);
+  expect(fontServices).toEqual([]);
   expect(errors).toEqual([]);
 });
 
