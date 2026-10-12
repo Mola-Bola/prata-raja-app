@@ -1,486 +1,490 @@
 {
-  "kannan/kannan-idle": {
-    "w": 512,
-    "h": 480
-  },
-  "kannan/kannan-windup": {
-    "w": 512,
-    "h": 480
-  },
-  "kannan/kannan-release": {
-    "w": 512,
-    "h": 480
-  },
-  "kannan/kannan-lean": {
-    "w": 512,
-    "h": 480
-  },
-  "kannan/kannan-hurt": {
-    "w": 512,
-    "h": 480
-  },
-  "kannan/kannan-cheer": {
-    "w": 512,
-    "h": 480
-  },
-  "breads/kosong": {
-    "w": 256,
-    "h": 229
-  },
-  "breads/tissue": {
-    "w": 214,
-    "h": 256
-  },
-  "breads/roti-bomb": {
-    "w": 256,
-    "h": 232
-  },
-  "breads/egg-telur": {
-    "w": 256,
-    "h": 225
-  },
-  "breads/thosai": {
-    "w": 256,
-    "h": 254
-  },
-  "breads/chapati": {
-    "w": 256,
-    "h": 237
-  },
-  "breads/naan": {
-    "w": 217,
-    "h": 256
-  },
-  "breads/garlic-naan": {
-    "w": 233,
-    "h": 256
-  },
-  "breads/murtabak": {
-    "w": 256,
-    "h": 234
-  },
-  "breads/appam": {
-    "w": 256,
-    "h": 240
-  },
-  "breads/idli": {
-    "w": 256,
-    "h": 241
-  },
-  "breads/vadai": {
-    "w": 256,
-    "h": 242
-  },
-  "dips/fish-curry": {
-    "w": 256,
-    "h": 203
-  },
-  "dips/condensed-milk": {
-    "w": 256,
-    "h": 224
-  },
-  "dips/mint-chutney": {
-    "w": 256,
-    "h": 209
-  },
-  "dips/masala": {
-    "w": 256,
-    "h": 167
-  },
-  "dips/mutton-curry": {
-    "w": 256,
-    "h": 209
-  },
-  "dips/chicken-curry": {
-    "w": 256,
-    "h": 208
-  },
-  "dips/sambal": {
-    "w": 256,
-    "h": 175
-  },
-  "dips/teh-tarik": {
-    "w": 222,
-    "h": 256
-  },
-  "dips/ghee": {
-    "w": 240,
-    "h": 256
-  },
-  "dips/dhal": {
-    "w": 256,
-    "h": 211
-  },
-  "dips/coin": {
-    "w": 250,
-    "h": 256
-  },
-  "dips/xp-orb": {
-    "w": 256,
-    "h": 233
-  },
-  "enemies/roach": {
-    "w": 256,
-    "h": 244
-  },
-  "enemies/sugar-ant": {
-    "w": 256,
-    "h": 230
-  },
-  "enemies/pigeon": {
-    "w": 256,
-    "h": 185
-  },
-  "enemies/mosquito": {
-    "w": 252,
-    "h": 256
-  },
-  "enemies/burger-brute": {
-    "w": 256,
-    "h": 229
-  },
-  "enemies/chilli-imp": {
-    "w": 222,
-    "h": 256
-  },
-  "enemies/boba-blob": {
-    "w": 256,
-    "h": 202
-  },
-  "enemies/boba-pearl": {
-    "w": 256,
-    "h": 209
-  },
-  "enemies/tiffin-beetle": {
-    "w": 195,
-    "h": 256
-  },
-  "enemies/ice-kacang-sprite": {
-    "w": 256,
-    "h": 254
-  },
-  "enemies/kettle-spirit": {
-    "w": 256,
-    "h": 254
-  },
-  "enemies/durian-bomb": {
-    "w": 220,
-    "h": 256
+  "bosses/burger-baron": {
+    "h": 466,
+    "w": 512
   },
   "bosses/king-cockroach": {
-    "w": 480,
-    "h": 512
+    "h": 512,
+    "w": 480
   },
-  "bosses/burger-baron": {
-    "w": 512,
-    "h": 466
+  "breads/appam": {
+    "h": 240,
+    "w": 256
   },
-  "fx/impact": {
-    "w": 256,
-    "h": 247
+  "breads/chapati": {
+    "h": 237,
+    "w": 256
   },
-  "fx/flour-puff": {
-    "w": 256,
-    "h": 213
+  "breads/egg-telur": {
+    "h": 225,
+    "w": 256
   },
-  "fx/curry-splash": {
-    "w": 256,
-    "h": 231
+  "breads/garlic-naan": {
+    "h": 256,
+    "w": 233
   },
-  "fx/explosion": {
-    "w": 256,
-    "h": 238
+  "breads/idli": {
+    "h": 241,
+    "w": 256
   },
-  "fx/flame": {
-    "w": 179,
-    "h": 256
+  "breads/kosong": {
+    "h": 229,
+    "w": 256
   },
-  "fx/ice": {
-    "w": 248,
-    "h": 256
+  "breads/murtabak": {
+    "h": 234,
+    "w": 256
   },
-  "fx/sugar-sparkle": {
-    "w": 254,
-    "h": 256
+  "breads/naan": {
+    "h": 256,
+    "w": 217
   },
-  "fx/spark": {
-    "w": 249,
-    "h": 256
+  "breads/roti-bomb": {
+    "h": 232,
+    "w": 256
   },
-  "fx/heal": {
-    "w": 246,
-    "h": 256
+  "breads/thosai": {
+    "h": 254,
+    "w": 256
   },
-  "fx/levelup-ring": {
-    "w": 256,
-    "h": 212
+  "breads/tissue": {
+    "h": 256,
+    "w": 214
   },
-  "fx/swoosh": {
-    "w": 256,
-    "h": 181
-  },
-  "fx/smoke": {
-    "w": 256,
-    "h": 233
-  },
-  "passives/strong-wrists": {
-    "w": 256,
-    "h": 255
-  },
-  "passives/fast-flip": {
-    "w": 256,
-    "h": 254
-  },
-  "passives/extra-dough": {
-    "w": 256,
-    "h": 254
-  },
-  "passives/big-dough": {
-    "w": 256,
-    "h": 254
-  },
-  "passives/hot-tawa": {
-    "w": 256,
-    "h": 254
-  },
-  "passives/lucky-towel": {
-    "w": 256,
-    "h": 253
-  },
-  "passives/thick-skin": {
-    "w": 256,
-    "h": 253
-  },
-  "passives/kopi-break": {
-    "w": 256,
-    "h": 254
-  },
-  "passives/sharp-eye": {
-    "w": 256,
-    "h": 254
-  },
-  "passives/bigger-tips": {
-    "w": 256,
-    "h": 254
-  },
-  "passives/multitasker": {
-    "w": 256,
-    "h": 254
-  },
-  "passives/second-helping": {
-    "w": 256,
-    "h": 254
-  },
-  "ui/card": {
-    "w": 410,
-    "h": 512
-  },
-  "ui/card-rare": {
-    "w": 378,
-    "h": 512
-  },
-  "ui/card-epic": {
-    "w": 417,
-    "h": 512
-  },
-  "ui/ribbon": {
-    "w": 512,
-    "h": 229
-  },
-  "ui/btn-orange": {
-    "w": 256,
-    "h": 256
-  },
-  "ui/btn-cream": {
-    "w": 255,
-    "h": 256
-  },
-  "ui/heart": {
-    "w": 256,
-    "h": 231
-  },
-  "ui/pause": {
-    "w": 252,
-    "h": 256
-  },
-  "ui/coins": {
-    "w": 256,
-    "h": 254
-  },
-  "ui/crown": {
-    "w": 256,
-    "h": 244
-  },
-  "ui/boss-badge": {
-    "w": 249,
-    "h": 256
-  },
-  "ui/lock": {
-    "w": 196,
-    "h": 256
-  },
-  "gear/faded-kopitiam-towel": {
-    "w": 256,
-    "h": 243
-  },
-  "gear/sweat-stained-towel": {
-    "w": 254,
-    "h": 256
-  },
-  "gear/lucky-red-towel": {
-    "w": 236,
-    "h": 256
-  },
-  "gear/plain-headband": {
-    "w": 256,
-    "h": 201
-  },
-  "gear/stall-bandana": {
-    "w": 256,
-    "h": 221
-  },
-  "gear/cooks-hairnet": {
-    "w": 256,
-    "h": 192
-  },
-  "gear/cotton-apron": {
-    "w": 248,
-    "h": 256
-  },
-  "gear/oil-splashed-apron": {
-    "w": 246,
-    "h": 256
-  },
-  "gear/denim-apron": {
-    "w": 242,
-    "h": 256
+  "breads/vadai": {
+    "h": 242,
+    "w": 256
   },
   "chests/chest-common": {
-    "w": 256,
-    "h": 214
-  },
-  "chests/chest-rare": {
-    "w": 256,
-    "h": 206
+    "h": 214,
+    "w": 256
   },
   "chests/chest-epic": {
-    "w": 232,
-    "h": 256
+    "h": 256,
+    "w": 232
   },
-  "gear/oven-gloves": {
-    "w": 256,
-    "h": 241
+  "chests/chest-rare": {
+    "h": 206,
+    "w": 256
   },
-  "gear/silicone-gloves": {
-    "w": 256,
-    "h": 233
+  "dips/chicken-curry": {
+    "h": 208,
+    "w": 256
+  },
+  "dips/coin": {
+    "h": 256,
+    "w": 250
+  },
+  "dips/condensed-milk": {
+    "h": 224,
+    "w": 256
+  },
+  "dips/dhal": {
+    "h": 211,
+    "w": 256
+  },
+  "dips/fish-curry": {
+    "h": 203,
+    "w": 256
+  },
+  "dips/ghee": {
+    "h": 256,
+    "w": 240
+  },
+  "dips/masala": {
+    "h": 167,
+    "w": 256
+  },
+  "dips/mint-chutney": {
+    "h": 209,
+    "w": 256
+  },
+  "dips/mutton-curry": {
+    "h": 209,
+    "w": 256
+  },
+  "dips/sambal": {
+    "h": 175,
+    "w": 256
+  },
+  "dips/teh-tarik": {
+    "h": 256,
+    "w": 222
+  },
+  "dips/xp-orb": {
+    "h": 233,
+    "w": 256
+  },
+  "enemies/boba-blob": {
+    "h": 202,
+    "w": 256
+  },
+  "enemies/boba-pearl": {
+    "h": 209,
+    "w": 256
+  },
+  "enemies/burger-brute": {
+    "h": 229,
+    "w": 256
+  },
+  "enemies/chilli-imp": {
+    "h": 256,
+    "w": 222
+  },
+  "enemies/durian-bomb": {
+    "h": 256,
+    "w": 220
+  },
+  "enemies/ice-kacang-sprite": {
+    "h": 254,
+    "w": 256
+  },
+  "enemies/kettle-spirit": {
+    "h": 254,
+    "w": 256
+  },
+  "enemies/mosquito": {
+    "h": 256,
+    "w": 252
+  },
+  "enemies/pigeon": {
+    "h": 185,
+    "w": 256
+  },
+  "enemies/roach": {
+    "h": 244,
+    "w": 256
+  },
+  "enemies/sugar-ant": {
+    "h": 230,
+    "w": 256
+  },
+  "enemies/tiffin-beetle": {
+    "h": 256,
+    "w": 195
+  },
+  "fx/curry-splash": {
+    "h": 231,
+    "w": 256
+  },
+  "fx/explosion": {
+    "h": 238,
+    "w": 256
+  },
+  "fx/flame": {
+    "h": 256,
+    "w": 179
+  },
+  "fx/flour-puff": {
+    "h": 213,
+    "w": 256
+  },
+  "fx/heal": {
+    "h": 256,
+    "w": 246
+  },
+  "fx/ice": {
+    "h": 256,
+    "w": 248
+  },
+  "fx/impact": {
+    "h": 247,
+    "w": 256
+  },
+  "fx/levelup-ring": {
+    "h": 212,
+    "w": 256
+  },
+  "fx/smoke": {
+    "h": 233,
+    "w": 256
+  },
+  "fx/spark": {
+    "h": 256,
+    "w": 249
+  },
+  "fx/sugar-sparkle": {
+    "h": 256,
+    "w": 254
+  },
+  "fx/swoosh": {
+    "h": 181,
+    "w": 256
   },
   "gear/chefs-gloves": {
-    "w": 256,
-    "h": 218
+    "h": 218,
+    "w": 256
   },
-  "gear/rubber-flip-flops": {
-    "w": 256,
-    "h": 244
+  "gear/cooks-hairnet": {
+    "h": 192,
+    "w": 256
+  },
+  "gear/cotton-apron": {
+    "h": 256,
+    "w": 248
+  },
+  "gear/denim-apron": {
+    "h": 256,
+    "w": 242
+  },
+  "gear/faded-kopitiam-towel": {
+    "h": 243,
+    "w": 256
   },
   "gear/kitchen-clogs": {
-    "w": 256,
-    "h": 188
+    "h": 188,
+    "w": 256
+  },
+  "gear/lucky-red-towel": {
+    "h": 256,
+    "w": 236
+  },
+  "gear/oil-splashed-apron": {
+    "h": 256,
+    "w": 246
   },
   "gear/old-house-slippers": {
-    "w": 256,
-    "h": 179
+    "h": 179,
+    "w": 256
   },
-  "materials/flour": {
-    "w": 256,
-    "h": 244
+  "gear/oven-gloves": {
+    "h": 241,
+    "w": 256
   },
-  "materials/ghee": {
-    "w": 244,
-    "h": 256
+  "gear/plain-headband": {
+    "h": 201,
+    "w": 256
   },
-  "materials/egg": {
-    "w": 256,
-    "h": 224
+  "gear/rubber-flip-flops": {
+    "h": 244,
+    "w": 256
   },
-  "materials/onion": {
-    "w": 211,
-    "h": 256
+  "gear/silicone-gloves": {
+    "h": 233,
+    "w": 256
   },
-  "materials/spice": {
-    "w": 220,
-    "h": 256
+  "gear/stall-bandana": {
+    "h": 221,
+    "w": 256
   },
-  "materials/sugar": {
-    "w": 228,
-    "h": 256
-  },
-  "materials/milk": {
-    "w": 146,
-    "h": 256
-  },
-  "hub/recipe-book": {
-    "w": 244,
-    "h": 256
-  },
-  "hub/training": {
-    "w": 245,
-    "h": 256
+  "gear/sweat-stained-towel": {
+    "h": 256,
+    "w": 254
   },
   "hub/calendar": {
-    "w": 226,
-    "h": 256
-  },
-  "hub/tip-jar": {
-    "w": 223,
-    "h": 256
-  },
-  "hub/stall-badge": {
-    "w": 233,
-    "h": 256
-  },
-  "hub/streak": {
-    "w": 205,
-    "h": 256
+    "h": 256,
+    "w": 226
   },
   "hub/chef-special": {
-    "w": 221,
-    "h": 256
-  },
-  "hub/gift": {
-    "w": 243,
-    "h": 256
-  },
-  "hub/star": {
-    "w": 256,
-    "h": 253
-  },
-  "hub/settings": {
-    "w": 242,
-    "h": 256
+    "h": 256,
+    "w": 221
   },
   "hub/feedback": {
-    "w": 256,
-    "h": 242
+    "h": 242,
+    "w": 256
   },
-  "ui/logo": {
-    "w": 1024,
-    "h": 820
+  "hub/gift": {
+    "h": 256,
+    "w": 243
   },
-  "scene/counter": {
-    "w": 1080,
-    "h": 245
+  "hub/recipe-book": {
+    "h": 256,
+    "w": 244
+  },
+  "hub/settings": {
+    "h": 256,
+    "w": 242
+  },
+  "hub/stall-badge": {
+    "h": 256,
+    "w": 233
+  },
+  "hub/star": {
+    "h": 253,
+    "w": 256
+  },
+  "hub/streak": {
+    "h": 256,
+    "w": 205
+  },
+  "hub/tip-jar": {
+    "h": 256,
+    "w": 223
+  },
+  "hub/training": {
+    "h": 256,
+    "w": 245
+  },
+  "kannan/kannan-cheer": {
+    "h": 480,
+    "w": 512
+  },
+  "kannan/kannan-hurt": {
+    "h": 480,
+    "w": 512
+  },
+  "kannan/kannan-idle": {
+    "h": 480,
+    "w": 512
+  },
+  "kannan/kannan-lean": {
+    "h": 480,
+    "w": 512
+  },
+  "kannan/kannan-release": {
+    "h": 480,
+    "w": 512
+  },
+  "kannan/kannan-windup": {
+    "h": 480,
+    "w": 512
+  },
+  "materials/egg": {
+    "h": 224,
+    "w": 256
+  },
+  "materials/flour": {
+    "h": 244,
+    "w": 256
+  },
+  "materials/ghee": {
+    "h": 256,
+    "w": 244
+  },
+  "materials/milk": {
+    "h": 256,
+    "w": 146
+  },
+  "materials/onion": {
+    "h": 256,
+    "w": 211
+  },
+  "materials/spice": {
+    "h": 256,
+    "w": 220
+  },
+  "materials/sugar": {
+    "h": 256,
+    "w": 228
+  },
+  "passives/big-dough": {
+    "h": 254,
+    "w": 256
+  },
+  "passives/bigger-tips": {
+    "h": 254,
+    "w": 256
+  },
+  "passives/extra-dough": {
+    "h": 254,
+    "w": 256
+  },
+  "passives/fast-flip": {
+    "h": 254,
+    "w": 256
+  },
+  "passives/hot-tawa": {
+    "h": 254,
+    "w": 256
+  },
+  "passives/kopi-break": {
+    "h": 254,
+    "w": 256
+  },
+  "passives/lucky-towel": {
+    "h": 253,
+    "w": 256
+  },
+  "passives/multitasker": {
+    "h": 254,
+    "w": 256
+  },
+  "passives/second-helping": {
+    "h": 254,
+    "w": 256
+  },
+  "passives/sharp-eye": {
+    "h": 254,
+    "w": 256
+  },
+  "passives/strong-wrists": {
+    "h": 255,
+    "w": 256
+  },
+  "passives/thick-skin": {
+    "h": 253,
+    "w": 256
   },
   "scene/background": {
-    "w": 1080,
-    "h": 1919
+    "h": 1919,
+    "w": 1080
+  },
+  "scene/counter": {
+    "h": 245,
+    "w": 1080
   },
   "scene/hero": {
-    "w": 1080,
-    "h": 1919
+    "h": 1919,
+    "w": 1080
+  },
+  "scene/hub": {
+    "h": 1919,
+    "w": 1080
   },
   "scene/wake": {
-    "w": 1080,
-    "h": 1919
+    "h": 1919,
+    "w": 1080
+  },
+  "ui/boss-badge": {
+    "h": 256,
+    "w": 249
+  },
+  "ui/btn-cream": {
+    "h": 256,
+    "w": 255
+  },
+  "ui/btn-orange": {
+    "h": 256,
+    "w": 256
+  },
+  "ui/card": {
+    "h": 512,
+    "w": 410
+  },
+  "ui/card-epic": {
+    "h": 512,
+    "w": 417
+  },
+  "ui/card-rare": {
+    "h": 512,
+    "w": 378
+  },
+  "ui/coins": {
+    "h": 254,
+    "w": 256
+  },
+  "ui/crown": {
+    "h": 244,
+    "w": 256
+  },
+  "ui/heart": {
+    "h": 231,
+    "w": 256
+  },
+  "ui/lock": {
+    "h": 256,
+    "w": 196
+  },
+  "ui/logo": {
+    "h": 820,
+    "w": 1024
+  },
+  "ui/pause": {
+    "h": 256,
+    "w": 252
+  },
+  "ui/ribbon": {
+    "h": 229,
+    "w": 512
   }
 }
