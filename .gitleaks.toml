@@ -2,11 +2,18 @@
 [extend]
 useDefault = true
 
-# Supabase publishable keys are public by design (they ship in every app bundle; row-level security is the
-# protection). Only the generic-api-key rule is relaxed, and only when the match is that variable itself,
+# Supabase publishable keys and the PostHog project key are public by design (they ship in every app bundle;
+# row-level security / ingest-only scope is the protection). Only the generic-api-key rule is relaxed, and only when the match is that variable itself,
 # so a GitHub/AWS/Stripe token or a service-role key on the same line is still caught.
-[[allowlists]]
-description = "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY values"
-targetRules = ["generic-api-key"]
+# A rule-level allowlist on the extended default rule: gitleaks 8.28 (CI) ignores a global [[allowlists]] that sets targetRules
+# when the rules come from useDefault, which left main red on eas.json.
+[[rules]]
+id = "generic-api-key"
+[[rules.allowlists]]
+description = "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY and EXPO_PUBLIC_POSTHOG_KEY values"
 regexTarget = "match"
-regexes = ['''^EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY["']?\s*[:=]\s*["']?sb_publishable_[A-Za-z0-9_-]{20,}["']?$''']
+# Leading quote optional: in eas.json the match starts at the opening quote of the JSON key.
+regexes = [
+  '''^["']?EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY["']?\s*[:=]\s*["']?sb_publishable_[A-Za-z0-9_-]{20,}["']?$''',
+  '''^["']?EXPO_PUBLIC_POSTHOG_KEY["']?\s*[:=]\s*["']?phc_[A-Za-z0-9_-]{20,}["']?$''',
+]

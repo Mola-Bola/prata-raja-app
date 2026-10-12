@@ -14,7 +14,9 @@ import type { Card, RunResult } from '@/core/types';
 import { ASSET_URLS } from '../assets';
 import type { Bridge, HapticKind } from '../bridgeTypes';
 import type { Hub, HudState } from '../hub';
+import { trackCardPick } from '../telemetry'; // [analytics hook] which card was picked (the hub does not say)
 import { cardView } from './cardText';
+import { AnalyticsSwitch, FeedbackLayer, TellButton } from './FeedbackSheet'; // [feedback hook] Tell Kannan sheet + its two buttons
 import './GameUi.css';
 
 type UiBridge = Pick<Bridge, 'haptic' | 'save' | 'load'>;
@@ -132,6 +134,7 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
     hub.controls?.quit();
   };
   const pickCard = (i: number) => {
+    trackCardPick(offer?.cards[i]); // [analytics hook]
     setOffer(null);
     buzz(bridgeRef.current, saveRef.current?.settings.haptics ?? true, 'light');
     hub.controls?.choose(i);
@@ -162,6 +165,8 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
         />
       )}
       {screen === 'results' && ended && <Results ended={ended} onAgain={start} onTitle={toTitle} />}
+      {/* [feedback hook] last, so the sheet draws above everything */}
+      <FeedbackLayer hub={hub} screen={screen} />
     </div>
   );
 }
@@ -347,9 +352,13 @@ function Pause({
         <button type="button" className="gu-btn gu-btn--wide" data-testid="ui-quit" onClick={onQuit}>
           Quit to title
         </button>
+        {/* [feedback hook] */}
+        <TellButton />
         <div className="gu-switches">
           <Switch label="Sound" on={sound} onClick={() => onToggle('sfx')} />
           <Switch label="Haptics" on={haptics} onClick={() => onToggle('haptics')} />
+          {/* [analytics hook] */}
+          <AnalyticsSwitch />
         </div>
       </section>
     </div>
@@ -400,6 +409,8 @@ function Results({ ended, onAgain, onTitle }: { ended: Ended; onAgain: () => voi
         <button type="button" className="gu-btn gu-btn--wide" data-testid="ui-title" onClick={onTitle}>
           Title
         </button>
+        {/* [feedback hook] */}
+        <TellButton />
       </section>
     </div>
   );
