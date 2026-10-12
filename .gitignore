@@ -51,3 +51,4 @@ supabase/.temp/
 
 # Throwaway tech-spike output (screenshots, scratch exports)
 .spike/
+.vitest/
