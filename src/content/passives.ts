@@ -16,7 +16,7 @@ export const PASSIVES: Record<PassiveId, PassiveDef> = {
     desc: '+0.3 HP/s regen; heal 5% max HP on level-up',
     maxLevel: 5,
     perLevel: { regen: 0.3, healOnLevelUpPct: 0.05 },
-    sprite: RING,
+    sprite: 'passives/kopi-break',
   },
   'sharp-eye': { id: 'sharp-eye', name: 'Sharp Eye', desc: '+8% range', maxLevel: 5, perLevel: { rangePct: 0.08 }, sprite: 'passives/sharp-eye' },
   'bigger-tips': {
@@ -25,7 +25,7 @@ export const PASSIVES: Record<PassiveId, PassiveDef> = {
     desc: '+15% XP (XP flies to the counter by itself)',
     maxLevel: 5,
     perLevel: { xpPct: 0.15 },
-    sprite: RING,
+    sprite: 'passives/bigger-tips',
   },
   multitasker: {
     id: 'multitasker',
@@ -33,7 +33,7 @@ export const PASSIVES: Record<PassiveId, PassiveDef> = {
     desc: 'Throw while moving at 25% rate, +25% per level',
     maxLevel: 3,
     perLevel: { throwWhileMoving: 0.25 },
-    sprite: RING,
+    sprite: 'passives/multitasker',
   },
   'second-helping': {
     id: 'second-helping',
@@ -41,6 +41,6 @@ export const PASSIVES: Record<PassiveId, PassiveDef> = {
     desc: '+1 revive per run; revive at 50% HP',
     maxLevel: 2,
     perLevel: { revives: 1 },
-    sprite: RING,
+    sprite: 'passives/second-helping',
   },
 };
