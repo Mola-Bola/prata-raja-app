@@ -46,6 +46,16 @@ describe('admitSfx throttle', () => {
     expect(admitSfx(h, 'uiTap', 1001)).not.toBeNull();
   });
 
+  it('plays the hurt sound at most every 450 ms, so a volley or several biters make one sound', () => {
+    let h = admitSfx(NO_SFX_HISTORY, 'playerHurt', 2000)!;
+    for (const at of [2040, 2100, 2300, 2449]) expect(admitSfx(h, 'playerHurt', at), `at ${at}`).toBeNull();
+    h = admitSfx(h, 'playerHurt', 2450)!;
+    expect(h).not.toBeNull();
+    expect(admitSfx(h, 'playerHurt', 2899)).toBeNull();
+    expect(admitSfx(h, 'playerHurt', 2900)).not.toBeNull(); // 450 ms after the one at 2450
+    expect(admitSfx(h, 'hit', 2451)).not.toBeNull(); // other sounds keep their own gap
+  });
+
   it('caps hit and throw together at 12 per rolling second', () => {
     let h = NO_SFX_HISTORY;
     for (let i = 0; i < 12; i++) {

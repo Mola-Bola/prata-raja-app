@@ -74,6 +74,8 @@ export const SFX_PARAMS: Record<SfxName, readonly number[]> = {
 
 // Same name at most once per 40 ms; hit and throw share at most 12 plays per rolling second.
 const SAME_GAP_MS = 40;
+/** Sounds that come in bursts (a volley landing, several biters at the counter) get a longer gap, so a burst is one sound. */
+const MIN_GAP_MS: Partial<Record<SfxName, number>> = { playerHurt: 450 };
 const BURST_SFX: ReadonlySet<SfxName> = new Set<SfxName>(['hit', 'throw']);
 const BURST_MAX = 12;
 const BURST_WINDOW_MS = 1000;
@@ -88,7 +90,7 @@ export const NO_SFX_HISTORY: SfxHistory = { last: {}, burst: [] };
 /** Returns the history after playing `name` at `now` (ms), or null when the throttle drops it. */
 export function admitSfx(h: SfxHistory, name: SfxName, now: number): SfxHistory | null {
   const prev = h.last[name];
-  if (prev !== undefined && now - prev < SAME_GAP_MS) return null;
+  if (prev !== undefined && now - prev < (MIN_GAP_MS[name] ?? SAME_GAP_MS)) return null;
   const burst = h.burst.filter((t) => now - t < BURST_WINDOW_MS);
   const grouped = BURST_SFX.has(name);
   if (grouped && burst.length >= BURST_MAX) return null;
