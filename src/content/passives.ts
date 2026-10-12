@@ -1,0 +1,47 @@
+import type { PassiveDef, PassiveId } from '../core/types';
+
+// Passives have no art yet, so every card uses the level-up ring. perLevel is added to PlayerStats once per level.
+const RING = 'fx/levelup-ring';
+
+export const PASSIVES: Record<PassiveId, PassiveDef> = {
+  'strong-wrists': { id: 'strong-wrists', name: 'Strong Wrists', desc: '+6% damage', maxLevel: 5, perLevel: { dmgPct: 0.06 }, sprite: RING },
+  'fast-flip': { id: 'fast-flip', name: 'Fast Flip', desc: '+5% throw speed', maxLevel: 5, perLevel: { throwSpeedPct: 0.05 }, sprite: RING },
+  'extra-dough': { id: 'extra-dough', name: 'Extra Dough', desc: '+1 projectile, 12° fan', maxLevel: 3, perLevel: { extraProjectiles: 1 }, sprite: RING },
+  'big-dough': { id: 'big-dough', name: 'Big Dough', desc: '+10% projectile size and AoE radius', maxLevel: 5, perLevel: { sizePct: 0.1 }, sprite: RING },
+  'hot-tawa': { id: 'hot-tawa', name: 'Hot Tawa', desc: '+10% DoT damage', maxLevel: 5, perLevel: { dotPct: 0.1 }, sprite: RING },
+  'lucky-towel': { id: 'lucky-towel', name: 'Lucky Towel', desc: '+2% crit chance', maxLevel: 5, perLevel: { critChance: 0.02 }, sprite: RING },
+  'thick-skin': { id: 'thick-skin', name: 'Thick Skin', desc: '+10 max HP', maxLevel: 5, perLevel: { maxHp: 10 }, sprite: RING },
+  'kopi-break': {
+    id: 'kopi-break',
+    name: 'Kopi Break',
+    desc: '+0.3 HP/s regen; heal 5% max HP on level-up',
+    maxLevel: 5,
+    perLevel: { regen: 0.3, healOnLevelUpPct: 0.05 },
+    sprite: RING,
+  },
+  'sharp-eye': { id: 'sharp-eye', name: 'Sharp Eye', desc: '+8% range', maxLevel: 5, perLevel: { rangePct: 0.08 }, sprite: RING },
+  'bigger-tips': {
+    id: 'bigger-tips',
+    name: 'Bigger Tips',
+    desc: '+15% XP (XP flies to the counter by itself)',
+    maxLevel: 5,
+    perLevel: { xpPct: 0.15 },
+    sprite: RING,
+  },
+  multitasker: {
+    id: 'multitasker',
+    name: 'Multitasker',
+    desc: 'Throw while moving at 25% rate, +25% per level',
+    maxLevel: 3,
+    perLevel: { throwWhileMoving: 0.25 },
+    sprite: RING,
+  },
+  'second-helping': {
+    id: 'second-helping',
+    name: 'Second Helping',
+    desc: '+1 revive per run; revive at 50% HP',
+    maxLevel: 2,
+    perLevel: { revives: 1 },
+    sprite: RING,
+  },
+};
