@@ -31,10 +31,10 @@ export const BREADS: Record<BreadId, BreadDef> = {
     target: 'nearest',
     unlock: 'starter',
     levels: ladder({ dmg: 10, cooldown: 0.8, speed: 900, radius: 14, range: 950 }, [
-      { dmg: 12 },
-      { hops: 1, hopRange: 260 },
-      { hops: 2 },
-      { dmg: 15 },
+      { dmg: 12, cooldown: 0.72 },
+      { hops: 1, hopRange: 260, cooldown: 0.68 },
+      { hops: 2, cooldown: 0.64 },
+      { dmg: 15, cooldown: 0.58 },
     ]),
   },
   tissue: {
@@ -45,9 +45,9 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'straight',
     target: 'nearest',
     unlock: 'starter',
-    levels: ladder({ dmg: 8, cooldown: 0.9, speed: 1000, radius: 10, range: 950, pierce: 3 }, [
+    levels: ladder({ dmg: 4.8, cooldown: 0.9, speed: 1000, radius: 10, range: 950, pierce: 3 }, [
       { pierce: 4 },
-      { dmg: 10 },
+      { dmg: 6 },
       { pierce: 5 },
       { armourPierce: 0.25 },
     ]),
@@ -60,11 +60,11 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'lob',
     target: 'cluster',
     unlock: 'starter',
-    // ponytail: scorch zoneDps 6 is a guess for the balance sim to tune.
-    levels: ladder({ dmg: 12, cooldown: 1.6, range: 850, blast: 80, lobTime: 0.9 }, [
-      { dmg: 15 },
+    // ponytail: scorch zoneDps 3.6 is a guess for the balance sim to tune.
+    levels: ladder({ dmg: 7.2, cooldown: 1.6, range: 850, blast: 80, lobTime: 0.9 }, [
+      { dmg: 9 },
       { blast: 100 },
-      { zoneTime: 2, zoneDps: 6 },
+      { zoneTime: 2, zoneDps: 3.6 },
       { count: 2, spread: 15 },
     ]),
   },
@@ -77,10 +77,10 @@ export const BREADS: Record<BreadId, BreadDef> = {
     target: 'nearest',
     unlock: 'rc-egg-telur',
     // ponytail: L5 "fragments split once" has no BreadStats field yet; approximated as 8 fragments (2 each).
-    levels: ladder({ dmg: 9, cooldown: 1.1, speed: 700, radius: 12, range: 950, fragments: 3, fragmentDmg: 4 }, [
+    levels: ladder({ dmg: 5.4, cooldown: 1.1, speed: 700, radius: 12, range: 950, fragments: 3, fragmentDmg: 2.4 }, [
       { fragments: 4 },
       { homing: 0.3 },
-      { dmg: 11 },
+      { dmg: 6.6 },
       { fragments: 8 },
     ]),
   },
@@ -92,10 +92,10 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'wave',
     target: 'none',
     unlock: 'starter',
-    levels: ladder({ dmg: 11, cooldown: 1.2, speed: 700, radius: 20, range: 900, width: 200 }, [
+    levels: ladder({ dmg: 6.6, cooldown: 1.2, speed: 700, radius: 20, range: 900, width: 200 }, [
       { width: 240 },
-      { dmg: 14 },
-      { dmg: 16, width: 270 },
+      { dmg: 8.4 },
+      { dmg: 9.6, width: 270 },
       { cooldown: 0.9 },
     ]),
   },
@@ -107,9 +107,9 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'boomerang',
     target: 'nearest',
     unlock: 'starter',
-    levels: ladder({ dmg: 7, cooldown: 1.2, speed: 800, radius: 16, range: 600 }, [
-      { dmg: 9 },
-      { dmg: 11 },
+    levels: ladder({ dmg: 4.2, cooldown: 1.2, speed: 800, radius: 16, range: 600 }, [
+      { dmg: 5.4 },
+      { dmg: 6.6 },
       { range: 750 },
       { cooldown: 1.0 },
     ]),
@@ -122,8 +122,8 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'lob',
     target: 'cluster',
     unlock: 'rc-naan',
-    levels: ladder({ dmg: 18, cooldown: 1.8, range: 850, blast: 110, lobTime: 1.2 }, [
-      { dmg: 22 },
+    levels: ladder({ dmg: 10.8, cooldown: 1.8, range: 850, blast: 110, lobTime: 1.2 }, [
+      { dmg: 13.2 },
       { blast: 130 },
       { stun: 0.3 },
       { cooldown: 1.5 },
@@ -138,10 +138,10 @@ export const BREADS: Record<BreadId, BreadDef> = {
     target: 'cluster',
     unlock: 'rc-garlic-naan',
     // blast doubles as the zone radius.
-    levels: ladder({ dmg: 6, cooldown: 2.4, range: 850, blast: 90, lobTime: 1.2, zoneTime: 3, zoneDps: 12 }, [
+    levels: ladder({ dmg: 3.6, cooldown: 2.4, range: 850, blast: 90, lobTime: 1.2, zoneTime: 3, zoneDps: 7.2 }, [
       { zoneTime: 4 },
-      { zoneDps: 16 },
-      { zoneDps: 20 },
+      { zoneDps: 9.6 },
+      { zoneDps: 12 },
       { blast: 120 },
     ]),
   },
@@ -153,8 +153,8 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'straight',
     target: 'nearest',
     unlock: 'rc-murtabak',
-    levels: ladder({ dmg: 16, cooldown: 1.6, speed: 700, radius: 18, range: 950, knockback: 120, stun: 0.4 }, [
-      { dmg: 20 },
+    levels: ladder({ dmg: 9.6, cooldown: 1.6, speed: 700, radius: 18, range: 950, knockback: 120, stun: 0.4 }, [
+      { dmg: 12 },
       { stun: 0.6 },
       { knockback: 160 },
       { cooldown: 1.3 },
@@ -168,11 +168,11 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'straight',
     target: 'nearest',
     unlock: 'starter-s2',
-    levels: ladder({ dmg: 8, cooldown: 1.0, speed: 800, radius: 14, range: 950, hops: 3, hopRange: 300, hopFalloff: 0.15 }, [
+    levels: ladder({ dmg: 4.8, cooldown: 1.0, speed: 800, radius: 14, range: 950, hops: 3, hopRange: 300, hopFalloff: 0.15 }, [
       { hops: 4 },
-      { dmg: 10 },
+      { dmg: 6 },
       { hopFalloff: 0 },
-      { dmg: 12 },
+      { dmg: 7.2 },
     ]),
   },
   idli: {
@@ -183,9 +183,9 @@ export const BREADS: Record<BreadId, BreadDef> = {
     motion: 'straight',
     target: 'nearest',
     unlock: 'starter-s2',
-    levels: ladder({ dmg: 3, cooldown: 1.0, speed: 950, radius: 8, range: 950, count: 4, spread: 6, volleyGap: 0.1 }, [
+    levels: ladder({ dmg: 1.8, cooldown: 1.0, speed: 950, radius: 8, range: 950, count: 4, spread: 6, volleyGap: 0.1 }, [
       { count: 5 },
-      { dmg: 4 },
+      { dmg: 2.4 },
       { spread: 20 },
       { cooldown: 0.8 },
     ]),
@@ -199,10 +199,10 @@ export const BREADS: Record<BreadId, BreadDef> = {
     target: 'none',
     unlock: 'rc-vadai',
     // orbit: speed is degrees per second (not u/s); no cooldown; range unused.
-    levels: ladder({ dmg: 3, cooldown: 0, speed: 180, radius: 16, count: 4, orbitRadius: 140, orbitHitGap: 0.5 }, [
+    levels: ladder({ dmg: 1.8, cooldown: 0, speed: 180, radius: 16, count: 4, orbitRadius: 140, orbitHitGap: 0.5 }, [
       { count: 5 },
       { orbitRadius: 170 },
-      { dmg: 4 },
+      { dmg: 2.4 },
       { knockback: 40 },
     ]),
   },
