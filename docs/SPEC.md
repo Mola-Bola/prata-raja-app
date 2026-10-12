@@ -38,11 +38,11 @@ Kannan flips prata at a kopitiam stall. Stare too long at a spinning prata and h
 
 ## 4. The stall (meta, S2+)
 
-Hub = the real stall in the morning (rendered scene, tappable spots). **Stall level** = account XP bar (the main progression bar) that unlocks features in order: gear (L2), training (L3), recipes (L4), daily special (L5). **Gear:** towel / headband / apron / gloves / slippers; rarity Common → Uncommon → Rare → Epic → Legendary → Raja; merge 3 identical into the next tier; upgrade with gold; affixes from Rare. **Recipes (crafting):** materials (flour, ghee, egg, onion, spice, sugar, milk) unlock breads and dips into the run pool — Roti Bomb and Condensed Milk are the first, cheapest. **Training:** 8 permanent stat ladders bought with gold. **Idle earnings:** the apprentice sells prata while you're away (capped 8 h).
+Hub = the real stall in the morning (rendered scene, tappable spots). **Every run pays** (coins = 20 + 12/wave + 60 boss; stall XP = 40 + 10/wave + 50 boss), shown on the wake-up screen with "next unlock in N". **Stall level** = account XP bar (levels 2–10 at 150 / 350 / 600 / 900 / 1300 / 1800 / 2400 / 3100 / 3900) with one named unlock per level: gear + towel (L2), training + headband (L3), 2nd reroll (L4), apron (L5), gloves + recipe book (L6), slippers (L7), Chef's Special (L8). **Gear:** towel / headband / apron / gloves / slippers; rarity Common → Uncommon → Rare → Epic → Legendary → Raja; merge 3 identical into the next tier up to Rare; Epic+ only from chests and bosses; chest pity (every 5th ≥ Rare, every 20th ≥ Epic); affixes from Rare. **Recipes (crafting, S3):** materials unlock breads and dips into the run pool — Roti Bomb and Condensed Milk are the first, cheapest. **Training:** 3 big ladders (wrist = damage, stamina = HP, flip = throw speed) × 5 steps (60–400 coins), free respec. **Idle earnings:** 20 coins/h (+2/h per stall level), capped at 12 h, no pushes before day 3. Code: `src/meta/` (107 tests). Rationale: `docs/research/engagement.md`.
 
 ## 5. Coming back daily (S2–S4)
 
-7-day login calendar (gentle: a missed day pauses, it doesn't wipe), Chef's Special (one seeded daily run with a modifier; best score; family leaderboard on Supabase), 3 daily quests, idle earnings, achievements and a Bread-dex. Ranked by leverage in `docs/research/engagement.md`.
+7-day login ladder (two rest days a week absorbed; a longer miss drops one day, never to zero), Chef's Special (one seeded daily run with a modifier; best score; family leaderboard on Supabase), 3 daily quests, idle earnings, achievements and a Bread-dex. Ranked by leverage in `docs/research/engagement.md`.
 
 ## 6. Look and sound
 
