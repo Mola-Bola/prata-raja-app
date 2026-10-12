@@ -1,16 +1,15 @@
 import type { PassiveDef, PassiveId } from '../core/types';
 
 // Passives have no art yet, so every card uses the level-up ring. perLevel is added to PlayerStats once per level.
-const RING = 'fx/levelup-ring';
 
 export const PASSIVES: Record<PassiveId, PassiveDef> = {
-  'strong-wrists': { id: 'strong-wrists', name: 'Strong Wrists', desc: '+6% damage', maxLevel: 5, perLevel: { dmgPct: 0.06 }, sprite: RING },
-  'fast-flip': { id: 'fast-flip', name: 'Fast Flip', desc: '+5% throw speed', maxLevel: 5, perLevel: { throwSpeedPct: 0.05 }, sprite: RING },
-  'extra-dough': { id: 'extra-dough', name: 'Extra Dough', desc: '+1 projectile, 12° fan', maxLevel: 3, perLevel: { extraProjectiles: 1 }, sprite: RING },
-  'big-dough': { id: 'big-dough', name: 'Big Dough', desc: '+10% projectile size and AoE radius', maxLevel: 5, perLevel: { sizePct: 0.1 }, sprite: RING },
-  'hot-tawa': { id: 'hot-tawa', name: 'Hot Tawa', desc: '+10% DoT damage', maxLevel: 5, perLevel: { dotPct: 0.1 }, sprite: RING },
-  'lucky-towel': { id: 'lucky-towel', name: 'Lucky Towel', desc: '+2% crit chance', maxLevel: 5, perLevel: { critChance: 0.02 }, sprite: RING },
-  'thick-skin': { id: 'thick-skin', name: 'Thick Skin', desc: '+10 max HP', maxLevel: 5, perLevel: { maxHp: 10 }, sprite: RING },
+  'strong-wrists': { id: 'strong-wrists', name: 'Strong Wrists', desc: '+6% damage', maxLevel: 5, perLevel: { dmgPct: 0.06 }, sprite: 'passives/strong-wrists' },
+  'fast-flip': { id: 'fast-flip', name: 'Fast Flip', desc: '+5% throw speed', maxLevel: 5, perLevel: { throwSpeedPct: 0.05 }, sprite: 'passives/fast-flip' },
+  'extra-dough': { id: 'extra-dough', name: 'Extra Dough', desc: '+1 projectile, 12° fan', maxLevel: 3, perLevel: { extraProjectiles: 1 }, sprite: 'passives/extra-dough' },
+  'big-dough': { id: 'big-dough', name: 'Big Dough', desc: '+10% projectile size and AoE radius', maxLevel: 5, perLevel: { sizePct: 0.1 }, sprite: 'passives/big-dough' },
+  'hot-tawa': { id: 'hot-tawa', name: 'Hot Tawa', desc: '+10% DoT damage', maxLevel: 5, perLevel: { dotPct: 0.1 }, sprite: 'passives/hot-tawa' },
+  'lucky-towel': { id: 'lucky-towel', name: 'Lucky Towel', desc: '+2% crit chance', maxLevel: 5, perLevel: { critChance: 0.02 }, sprite: 'passives/lucky-towel' },
+  'thick-skin': { id: 'thick-skin', name: 'Thick Skin', desc: '+10 max HP', maxLevel: 5, perLevel: { maxHp: 10 }, sprite: 'passives/thick-skin' },
   'kopi-break': {
     id: 'kopi-break',
     name: 'Kopi Break',
@@ -19,7 +18,7 @@ export const PASSIVES: Record<PassiveId, PassiveDef> = {
     perLevel: { regen: 0.3, healOnLevelUpPct: 0.05 },
     sprite: RING,
   },
-  'sharp-eye': { id: 'sharp-eye', name: 'Sharp Eye', desc: '+8% range', maxLevel: 5, perLevel: { rangePct: 0.08 }, sprite: RING },
+  'sharp-eye': { id: 'sharp-eye', name: 'Sharp Eye', desc: '+8% range', maxLevel: 5, perLevel: { rangePct: 0.08 }, sprite: 'passives/sharp-eye' },
   'bigger-tips': {
     id: 'bigger-tips',
     name: 'Bigger Tips',
