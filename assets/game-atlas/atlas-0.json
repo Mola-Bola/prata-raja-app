@@ -1,0 +1,592 @@
+{
+  "frames": {
+    "bosses/burger-baron": {
+      "frame": {
+        "x": 944,
+        "y": 1438,
+        "w": 466,
+        "h": 420
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 23,
+        "y": 23,
+        "w": 466,
+        "h": 420
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 466
+      }
+    },
+    "bosses/king-cockroach": {
+      "frame": {
+        "x": 2,
+        "y": 1438,
+        "w": 435,
+        "h": 468
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 23,
+        "y": 22,
+        "w": 435,
+        "h": 468
+      },
+      "sourceSize": {
+        "w": 480,
+        "h": 512
+      }
+    },
+    "dips/masala": {
+      "frame": {
+        "x": 679,
+        "y": 1892,
+        "w": 236,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 10,
+        "y": 10,
+        "w": 236,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 167
+      }
+    },
+    "dips/sambal": {
+      "frame": {
+        "x": 441,
+        "y": 1892,
+        "w": 234,
+        "h": 153
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 153
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 175
+      }
+    },
+    "enemies/boba-blob": {
+      "frame": {
+        "x": 944,
+        "y": 1862,
+        "w": 238,
+        "h": 184
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 184
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 202
+      }
+    },
+    "enemies/roach": {
+      "frame": {
+        "x": 2,
+        "y": 738,
+        "w": 234,
+        "h": 222
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 222
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 244
+      }
+    },
+    "enemies/tiffin-beetle": {
+      "frame": {
+        "x": 1871,
+        "y": 1438,
+        "w": 173,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 9,
+        "w": 173,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 195,
+        "h": 256
+      }
+    },
+    "fx/explosion": {
+      "frame": {
+        "x": 478,
+        "y": 738,
+        "w": 238,
+        "h": 220
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 220
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 238
+      }
+    },
+    "fx/flame": {
+      "frame": {
+        "x": 1874,
+        "y": 1678,
+        "w": 157,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 157,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 179,
+        "h": 256
+      }
+    },
+    "gear/denim-apron": {
+      "frame": {
+        "x": 1645,
+        "y": 1438,
+        "w": 222,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 9,
+        "w": 222,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 242,
+        "h": 256
+      }
+    },
+    "gear/oil-splashed-apron": {
+      "frame": {
+        "x": 974,
+        "y": 964,
+        "w": 228,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 228,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 246,
+        "h": 256
+      }
+    },
+    "gear/rubber-flip-flops": {
+      "frame": {
+        "x": 974,
+        "y": 1206,
+        "w": 238,
+        "h": 226
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 226
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 244
+      }
+    },
+    "hub/recipe-book": {
+      "frame": {
+        "x": 1414,
+        "y": 1680,
+        "w": 226,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 226,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 244,
+        "h": 256
+      }
+    },
+    "hub/streak": {
+      "frame": {
+        "x": 1856,
+        "y": 481,
+        "w": 183,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 183,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 205,
+        "h": 256
+      }
+    },
+    "hub/training": {
+      "frame": {
+        "x": 1414,
+        "y": 1438,
+        "w": 227,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 227,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 245,
+        "h": 256
+      }
+    },
+    "kannan/kannan-cheer": {
+      "frame": {
+        "x": 1387,
+        "y": 2,
+        "w": 476,
+        "h": 475
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 18,
+        "y": 5,
+        "w": 476,
+        "h": 475
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 480
+      }
+    },
+    "kannan/kannan-hurt": {
+      "frame": {
+        "x": 518,
+        "y": 964,
+        "w": 452,
+        "h": 448
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 30,
+        "y": 32,
+        "w": 452,
+        "h": 448
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 480
+      }
+    },
+    "kannan/kannan-idle": {
+      "frame": {
+        "x": 940,
+        "y": 2,
+        "w": 443,
+        "h": 480
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 34,
+        "y": 0,
+        "w": 443,
+        "h": 480
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 480
+      }
+    },
+    "kannan/kannan-lean": {
+      "frame": {
+        "x": 2,
+        "y": 964,
+        "w": 512,
+        "h": 459
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 21,
+        "w": 512,
+        "h": 459
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 480
+      }
+    },
+    "kannan/kannan-release": {
+      "frame": {
+        "x": 441,
+        "y": 1438,
+        "w": 499,
+        "h": 450
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 6,
+        "y": 30,
+        "w": 499,
+        "h": 450
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 480
+      }
+    },
+    "kannan/kannan-windup": {
+      "frame": {
+        "x": 1387,
+        "y": 481,
+        "w": 465,
+        "h": 475
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 23,
+        "y": 5,
+        "w": 465,
+        "h": 475
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 480
+      }
+    },
+    "materials/flour": {
+      "frame": {
+        "x": 240,
+        "y": 738,
+        "w": 234,
+        "h": 222
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 222
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 244
+      }
+    },
+    "materials/ghee": {
+      "frame": {
+        "x": 1644,
+        "y": 1680,
+        "w": 226,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 226,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 244,
+        "h": 256
+      }
+    },
+    "materials/onion": {
+      "frame": {
+        "x": 1856,
+        "y": 721,
+        "w": 189,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 189,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 211,
+        "h": 256
+      }
+    },
+    "ui/card": {
+      "frame": {
+        "x": 1323,
+        "y": 960,
+        "w": 372,
+        "h": 474
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 19,
+        "y": 19,
+        "w": 372,
+        "h": 474
+      },
+      "sourceSize": {
+        "w": 410,
+        "h": 512
+      }
+    },
+    "ui/card-epic": {
+      "frame": {
+        "x": 940,
+        "y": 486,
+        "w": 379,
+        "h": 474
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 19,
+        "y": 19,
+        "w": 379,
+        "h": 474
+      },
+      "sourceSize": {
+        "w": 417,
+        "h": 512
+      }
+    },
+    "ui/card-rare": {
+      "frame": {
+        "x": 1699,
+        "y": 960,
+        "w": 340,
+        "h": 474
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 19,
+        "y": 19,
+        "w": 340,
+        "h": 474
+      },
+      "sourceSize": {
+        "w": 378,
+        "h": 512
+      }
+    },
+    "ui/lock": {
+      "frame": {
+        "x": 1867,
+        "y": 2,
+        "w": 176,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 176,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 196,
+        "h": 256
+      }
+    },
+    "ui/logo": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 934,
+        "h": 732
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 46,
+        "y": 44,
+        "w": 934,
+        "h": 732
+      },
+      "sourceSize": {
+        "w": 1024,
+        "h": 820
+      }
+    }
+  },
+  "meta": {
+    "image": "atlas-0.webp",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1"
+  }
+}

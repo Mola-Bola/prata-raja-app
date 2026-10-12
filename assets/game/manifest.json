@@ -319,6 +319,150 @@
     "w": 196,
     "h": 256
   },
+  "gear/faded-kopitiam-towel": {
+    "w": 256,
+    "h": 243
+  },
+  "gear/sweat-stained-towel": {
+    "w": 254,
+    "h": 256
+  },
+  "gear/lucky-red-towel": {
+    "w": 236,
+    "h": 256
+  },
+  "gear/plain-headband": {
+    "w": 256,
+    "h": 201
+  },
+  "gear/stall-bandana": {
+    "w": 256,
+    "h": 221
+  },
+  "gear/cooks-hairnet": {
+    "w": 256,
+    "h": 192
+  },
+  "gear/cotton-apron": {
+    "w": 248,
+    "h": 256
+  },
+  "gear/oil-splashed-apron": {
+    "w": 246,
+    "h": 256
+  },
+  "gear/denim-apron": {
+    "w": 242,
+    "h": 256
+  },
+  "chests/chest-common": {
+    "w": 256,
+    "h": 214
+  },
+  "chests/chest-rare": {
+    "w": 256,
+    "h": 206
+  },
+  "chests/chest-epic": {
+    "w": 232,
+    "h": 256
+  },
+  "gear/oven-gloves": {
+    "w": 256,
+    "h": 241
+  },
+  "gear/silicone-gloves": {
+    "w": 256,
+    "h": 233
+  },
+  "gear/chefs-gloves": {
+    "w": 256,
+    "h": 218
+  },
+  "gear/rubber-flip-flops": {
+    "w": 256,
+    "h": 244
+  },
+  "gear/kitchen-clogs": {
+    "w": 256,
+    "h": 188
+  },
+  "gear/old-house-slippers": {
+    "w": 256,
+    "h": 179
+  },
+  "materials/flour": {
+    "w": 256,
+    "h": 244
+  },
+  "materials/ghee": {
+    "w": 244,
+    "h": 256
+  },
+  "materials/egg": {
+    "w": 256,
+    "h": 224
+  },
+  "materials/onion": {
+    "w": 211,
+    "h": 256
+  },
+  "materials/spice": {
+    "w": 220,
+    "h": 256
+  },
+  "materials/sugar": {
+    "w": 228,
+    "h": 256
+  },
+  "materials/milk": {
+    "w": 146,
+    "h": 256
+  },
+  "hub/recipe-book": {
+    "w": 244,
+    "h": 256
+  },
+  "hub/training": {
+    "w": 245,
+    "h": 256
+  },
+  "hub/calendar": {
+    "w": 226,
+    "h": 256
+  },
+  "hub/tip-jar": {
+    "w": 223,
+    "h": 256
+  },
+  "hub/stall-badge": {
+    "w": 233,
+    "h": 256
+  },
+  "hub/streak": {
+    "w": 205,
+    "h": 256
+  },
+  "hub/chef-special": {
+    "w": 221,
+    "h": 256
+  },
+  "hub/gift": {
+    "w": 243,
+    "h": 256
+  },
+  "hub/star": {
+    "w": 256,
+    "h": 253
+  },
+  "hub/settings": {
+    "w": 242,
+    "h": 256
+  },
+  "hub/feedback": {
+    "w": 256,
+    "h": 242
+  },
   "ui/logo": {
     "w": 1024,
     "h": 820
