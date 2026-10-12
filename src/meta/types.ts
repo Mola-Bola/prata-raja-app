@@ -1,5 +1,5 @@
 import type { SaveV1 } from '../core/save';
-import type { PlayerStats } from '../core/types';
+import type { BreadId, DipId, PlayerStats } from '../core/types';
 
 export const SLOTS = ['towel', 'headband', 'apron', 'gloves', 'slippers'] as const;
 export type Slot = typeof SLOTS[number];
@@ -29,6 +29,9 @@ export type StreakState = {
 export type SaveV2 = Omit<SaveV1, 'v'> & {
   v: 2;
   stallXp: number;
+  unlockedBreads: BreadId[];
+  unlockedDips: DipId[];
+  bossAttempts: Record<string, number>;
   inventory: GearItem[];
   equipped: Partial<Record<Slot, string>>;
   training: Record<TrainingId, number>;

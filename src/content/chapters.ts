@@ -48,3 +48,16 @@ export const CHAPTERS: ChapterDef[] = [
     ],
   },
 ];
+
+const nightIds: Record<string, string> = {
+  'sugar-ant': 'sugarcane-walker', roach: 'tray-rat', pigeon: 'neon-moth', mosquito: 'fishball',
+  'burger-brute': 'ice-golem', 'chilli-imp': 'satay-archer', 'boba-blob': 'kway-teow-blob',
+  'tiffin-beetle': 'drumstick-knight', 'ice-kacang-sprite': 'kopi-ghost', 'kettle-spirit': 'chope-spirit', 'durian-bomb': 'rojak-bomb',
+};
+CHAPTERS.push({
+  id: 'hawker-night', name: 'Hawker Centre Night', background: 'scene/background2', hpPerWave: .27,
+  waves: CHAPTERS[0].waves.map(wave => ({ ...wave,
+    mix: Object.fromEntries(Object.entries(wave.mix).map(([id, weight]) => [nightIds[id], weight])),
+    ...(wave.boss ? { boss: 'burger-baron' } : {}),
+  })),
+});

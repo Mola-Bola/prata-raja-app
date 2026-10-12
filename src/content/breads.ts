@@ -21,7 +21,9 @@ function ladder(
   return levels;
 }
 
-export const BREADS: Record<BreadId, BreadDef> = {
+type EvolutionId = 'golden-ghee-chakra' | 'tarik-lance' | 'inferno-bomb' | 'half-boiled-halo' | 'thosai-typhoon' | 'tandoor-meteor' | 'garlic-thunder-zone' | 'crusher-murtabak';
+
+const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   kosong: {
     id: 'kosong',
     name: 'Kosong',
@@ -206,4 +208,25 @@ export const BREADS: Record<BreadId, BreadDef> = {
       { knockback: 40 },
     ]),
   },
+};
+
+function evolution(id: EvolutionId, name: string, bread: keyof typeof BASE_BREADS,
+  partner: { kind: 'dip' | 'passive'; id: string },
+  stats: Partial<BreadStats>): BreadDef {
+  const base = BASE_BREADS[bread];
+  const level = { ...base.levels[4], ...stats };
+  return { ...base, id, name, sprite: `evolutions/${id}`, unlock: 'evolution',
+    evolvedFrom: { bread, partner }, levels: Array.from({ length: 5 }, () => ({ ...level })) };
+}
+
+export const BREADS: Record<BreadId, BreadDef> = {
+  ...BASE_BREADS,
+  'golden-ghee-chakra': evolution('golden-ghee-chakra', 'Golden Ghee Chakra', 'kosong', { kind: 'dip', id: 'ghee' }, { hops: 6, speed: 1170 }),
+  'tarik-lance': evolution('tarik-lance', 'Tarik Lance', 'tissue', { kind: 'dip', id: 'teh-tarik' }, { pierce: 1000, cooldown: .9 / 1.3 }),
+  'inferno-bomb': evolution('inferno-bomb', 'Inferno Bomb', 'roti-bomb', { kind: 'dip', id: 'sambal' }, { zoneTime: 3, zoneDps: 7, zoneEffect: { type: 'burn', dps: 7, time: 3 } }),
+  'half-boiled-halo': evolution('half-boiled-halo', 'Half-Boiled Halo', 'egg-telur', { kind: 'dip', id: 'dhal' }, { homing: 1, healOnHit: 1 }),
+  'thosai-typhoon': evolution('thosai-typhoon', 'Thosai Typhoon', 'thosai', { kind: 'passive', id: 'fast-flip' }, { width: 1080, cooldown: 2, pull: 120 }),
+  'tandoor-meteor': evolution('tandoor-meteor', 'Tandoor Meteor', 'naan', { kind: 'dip', id: 'mutton-curry' }, { knockback: 80, zoneTime: 4, zoneDps: 8, zoneEffect: { type: 'tender', knockback: 0, dmgTakenPct: .25, time: 4 } }),
+  'garlic-thunder-zone': evolution('garlic-thunder-zone', 'Garlic Thunder Zone', 'garlic-naan', { kind: 'dip', id: 'masala' }, { zoneEffect: { type: 'chain', dmg: 13, jumps: 3, range: 150 } }),
+  'crusher-murtabak': evolution('crusher-murtabak', 'Crusher Murtabak', 'murtabak', { kind: 'dip', id: 'chicken-curry' }, { stun: 1, critEvery: 5 }),
 };

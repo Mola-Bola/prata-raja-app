@@ -89,6 +89,8 @@ const PASSIVE_BONUS: Record<string, number> = {
 function cardValue(w: World, card: Card, maxBreads: number): number {
   const p = w.player;
   switch (card.kind) {
+    case 'evolve':
+      return 200;
     case 'bread':
       if (p.breads.some((b) => b.id === card.id)) return 100;
       return p.breads.length < maxBreads ? 95 : 0;
@@ -131,6 +133,7 @@ export function simulateRun(opts: BotOptions & { seed: number; content: Content;
   }
   const p = world.player;
   return world.result ?? {
+    chapterId: world.chapter.id, bossAttempted: world.bossAttempted ?? false,
     won: false, wave: world.wave, kills: world.kills, bossKills: world.bossKills, time: world.time, level: p.level, gold: Math.round(world.gold),
     breads: p.breads.map((b) => ({ ...b })), dips: p.dips.map((d) => ({ ...d })),
   };

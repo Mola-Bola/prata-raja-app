@@ -22,7 +22,9 @@ export const FIELD = {
 
 export type BreadId =
   | 'kosong' | 'tissue' | 'roti-bomb' | 'egg-telur' | 'thosai' | 'chapati'
-  | 'naan' | 'garlic-naan' | 'murtabak' | 'appam' | 'idli' | 'vadai';
+  | 'naan' | 'garlic-naan' | 'murtabak' | 'appam' | 'idli' | 'vadai'
+  | 'golden-ghee-chakra' | 'tarik-lance' | 'inferno-bomb' | 'half-boiled-halo'
+  | 'thosai-typhoon' | 'tandoor-meteor' | 'garlic-thunder-zone' | 'crusher-murtabak';
 export type DipId =
   | 'fish-curry' | 'condensed-milk' | 'mint-chutney' | 'masala' | 'mutton-curry'
   | 'chicken-curry' | 'sambal' | 'teh-tarik' | 'ghee' | 'dhal';
@@ -89,10 +91,18 @@ export type BreadStats = {
   armourPierce: number;
   /** Fragments/projectiles steer toward enemies (0 = no, 1 = strong). */
   homing: number;
+  healOnHit?: number;
+  /** Sideways pull toward the field centre, u per hit. */
+  pull?: number;
+  /** Every Nth successful throw guarantees critical hits. */
+  critEvery?: number;
+  /** Applied inside a zone once per second, first on landing. */
+  zoneEffect?: HitEffect;
 };
 
 export type BreadDef = {
   id: BreadId;
+  evolvedFrom?: { bread: BreadId; partner: { kind: 'dip' | 'passive'; id: string } };
   name: string;
   flavor: string;
   sprite: SpriteKey;
@@ -315,11 +325,12 @@ export type Projectile = {
   stats: BreadStats | null;
   /** Spin angle for the renderer (radians). */
   spin: number;
+  guaranteedCrit?: boolean;
 };
 
-export type Zone = { uid: number; x: number; y: number; radius: number; dps: number; time: number; sprite: SpriteKey };
+export type Zone = { uid: number; x: number; y: number; radius: number; dps: number; time: number; sprite: SpriteKey; effect?: HitEffect; effectT?: number };
 
-export type OwnedBread = { id: BreadId; level: number; cd: number; volleyLeft: number; volleyT: number };
+export type OwnedBread = { id: BreadId; level: number; cd: number; volleyLeft: number; volleyT: number; casts?: number };
 export type OwnedDip = { id: DipId; level: number };
 export type OwnedPassive = { id: PassiveId; level: number };
 
@@ -346,7 +357,7 @@ export type Player = {
 };
 
 export type Card = {
-  kind: 'bread' | 'dip' | 'passive' | 'heal' | 'gold';
+  kind: 'evolve' | 'bread' | 'dip' | 'passive' | 'heal' | 'gold';
   /** BreadId / DipId / PassiveId; '' for heal/gold. */
   id: string;
   /** The level the item becomes if picked (1 = new). */
@@ -381,6 +392,9 @@ export type GameEvent =
 export type RunPhase = 'intro' | 'wave' | 'levelup' | 'won' | 'lost';
 
 export type RunResult = {
+  /** Optional for older callers; all new simulation results supply these. */
+  chapterId?: string;
+  bossAttempted?: boolean;
   won: boolean;
   wave: number;
   kills: number;
@@ -393,7 +407,7 @@ export type RunResult = {
 };
 
 /** Permanent bonuses from the stall (gear, training) applied at run start. S1 passes {}. */
-export type Loadout = { stats?: Partial<PlayerStats>; startBread?: BreadId };
+export type Loadout = { stats?: Partial<PlayerStats>; startBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[] };
 
 export type World = {
   /** Field x of the wave director's last spawn (keeps spawn spacing replayable). */
@@ -418,6 +432,7 @@ export type World = {
   nextUid: number;
   kills: number;
   bossKills: number;
+  bossAttempted?: boolean;
   gold: number;
   /** Level-ups waiting for a card pick. */
   pendingLevelUps: number;

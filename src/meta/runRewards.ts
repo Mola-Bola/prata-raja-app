@@ -22,7 +22,11 @@ export function applyRunResult(save: SaveV2, result: RunResult, rng: Rng, now: D
   const inventoryMaterials = { ...save.materials };
   for (const type of MATERIALS) inventoryMaterials[type] += materials[type] ?? 0;
   const next: SaveV2 = {
-    ...save, gold: save.gold + gold, stallXp: save.stallXp + stallXp,
+    ...save, bossAttempts: { ...save.bossAttempts,
+      ...((result.bossAttempted ?? result.wave >= 10) ? {
+        [result.chapterId ?? 'kopitiam-street']: (save.bossAttempts[result.chapterId ?? 'kopitiam-street'] ?? 0) + 1,
+      } : {}),
+    }, gold: save.gold + gold, stallXp: save.stallXp + stallXp,
     bestWave: Math.max(save.bestWave, result.wave), runs: save.runs + 1,
     wins: save.wins + Number(result.won), totalKills: save.totalKills + result.kills,
     lastPlayed: now.toISOString(), inventory: [...save.inventory, item], materials: inventoryMaterials,

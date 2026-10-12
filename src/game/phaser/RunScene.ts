@@ -195,6 +195,8 @@ export class RunScene extends Phaser.Scene {
   private earlyResult(w: World): RunResult {
     const p = w.player;
     return {
+      chapterId: w.chapter.id,
+      bossAttempted: w.bossAttempted ?? false,
       won: false,
       wave: w.wave,
       kills: w.kills,

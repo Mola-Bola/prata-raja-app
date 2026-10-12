@@ -69,7 +69,7 @@ export function chooseCard(world: World, index: number): void {
   p.revivesLeft += Math.max(0, p.stats.revives - revives); // Second Helping: the new revive is usable at once
   world.pendingLevelUps = Math.max(0, world.pendingLevelUps - 1);
   if (world.pendingLevelUps > 0) {
-    world.offer = drawOffer(world.player, world.content, rng);
+    world.offer = drawOffer(world.player, world.content, rng, world.loadout);
   } else {
     world.offer = [];
     world.phase = world.wave === 0 ? 'intro' : 'wave';
@@ -80,7 +80,7 @@ export function chooseCard(world: World, index: number): void {
 export function reroll(world: World): boolean {
   if (world.phase !== 'levelup' || world.rerolls <= 0) return false;
   const rng = makeRng(world.rngState);
-  world.offer = drawOffer(world.player, world.content, rng);
+  world.offer = drawOffer(world.player, world.content, rng, world.loadout);
   world.rerolls--;
   world.rngState = rng.state;
   return true;
@@ -114,7 +114,7 @@ function stepOnce(w: World, dt: number, input: RunInput): void {
   sweepDead(w);
   if (w.pendingLevelUps > 0 && (w.phase === 'wave' || w.phase === 'intro')) {
     w.phase = 'levelup';
-    w.offer = drawOffer(w.player, w.content, rng);
+    w.offer = drawOffer(w.player, w.content, rng, w.loadout);
   }
   w.rngState = rng.state;
 }
@@ -141,6 +141,7 @@ function spawnRequest(c: Ctx, r: SpawnRequest): void {
   const def = r.boss ? content.bosses[r.enemyId] : content.enemies[r.enemyId];
   if (!def) return;
   spawnEnemy(c, def, r.x, { elite: r.elite, boss: r.boss });
+  if (r.boss) c.w.bossAttempted = true;
   if (r.boss) emit(c, { t: 'bossSpawn', bossId: def.id, name: def.name });
 }
 
@@ -181,6 +182,7 @@ function endRun(c: Ctx, won: boolean): void {
   w.phase = won ? 'won' : 'lost';
   const cleared = won ? w.chapter.waves.length : Math.max(0, w.wave - 1);
   w.result = {
+    chapterId: w.chapter.id, bossAttempted: w.bossAttempted ?? false,
     won, wave: w.wave, kills: w.kills, bossKills: w.bossKills, time: w.time, level: p.level,
     gold: Math.round(w.gold) + 5 * cleared + (won ? 50 : 0),
     breads: p.breads.map((b) => ({ ...b })), dips: p.dips.map((d) => ({ ...d })),

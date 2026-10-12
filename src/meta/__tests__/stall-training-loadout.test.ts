@@ -3,6 +3,7 @@ import { CONTENT } from '../../content';
 import { makeRng } from '../../core/rng';
 import { computeStats } from '../../core/stats';
 import { itemStats, rollItem } from '../gear';
+import { runPools } from '../recipes';
 import { computeLoadout } from '../loadout';
 import { freshSaveV2 } from '../migrate';
 import { LEVEL_THRESHOLDS, nextUnlock, runXp, stallLevel, UNLOCK_TABLE, unlocksForXp } from '../stall';
@@ -71,7 +72,7 @@ describe('training', () => {
 });
 describe('loadout', () => {
   it('returns zero additive bonuses for a fresh save and the existing starter bread', () => {
-    expect(computeLoadout(freshSaveV2(), CONTENT)).toEqual({ stats: {}, startBread: 'kosong' });
+    expect(computeLoadout(freshSaveV2(), CONTENT)).toEqual({ stats: {}, startBread: 'kosong', ...runPools(freshSaveV2(), CONTENT) });
   });
   it('adds equipped gear and training once, and feeds existing computeStats', () => {
     const save = freshSaveV2(); save.stallXp = 3900; save.unlocks = unlocksForXp(save.stallXp);

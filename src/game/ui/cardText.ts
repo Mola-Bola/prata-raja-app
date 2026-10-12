@@ -3,7 +3,7 @@
 import { CONTENT } from '@/content';
 import type { BreadId, Card, DipId, PassiveId } from '@/core/types';
 
-const BREAD_LINES: Record<BreadId, string> = {
+const BREAD_LINES: Partial<Record<BreadId, string>> = {
   kosong: 'Spinning prata, ricochets at L3',
   tissue: 'Pierces through a line of pests',
   'roti-bomb': 'Lobbed bomb, splash damage',
@@ -68,9 +68,10 @@ function item(name: string, line: string, sprite: string, frame: CardFrame, leve
 
 export function cardView(card: Card): CardView {
   switch (card.kind) {
+    case 'evolve':
     case 'bread': {
       const d = CONTENT.breads[card.id as BreadId];
-      return item(d.name, BREAD_LINES[d.id], d.sprite, 'ui/card-rare', card.level, d.levels.length);
+      return item(d.name, BREAD_LINES[d.id] ?? 'Evolved bread, stronger special effects', d.sprite, card.kind === 'evolve' ? 'ui/card-epic' : 'ui/card-rare', card.level, d.evolvedFrom ? 1 : d.levels.length);
     }
     case 'dip': {
       const d = CONTENT.dips[card.id as DipId];
