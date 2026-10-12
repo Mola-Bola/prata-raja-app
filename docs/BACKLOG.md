@@ -5,6 +5,7 @@ Owner notes are intent, not spec. Each line says where it lands.
 ## Owner playtest, 12 Oct (0.1.1 on APK + web)
 - **In 0.2.0:** counter attackers are target #1; breach warning (red pulse on the counter edge + "!" + HP flash); card text ≤ 8 words; title start button no longer covers the hero.
 - **In flight (s2/feedback):** "Tell Kannan" feedback inside the game → factory inbox; PostHog analytics + session replay (with canvas) + error tracking inside the game.
+- **Next, first in the S3 renderer pass (owner clips 19:53-19:55):** the fight happens too far away — pests stay tiny at the horizon, spawn in rows and die up there while mid-street stays empty. Fix: emerge from the street's far end with a short fade-in and wander into the road; flatter perspective (view.far ~0.42) so far pests read bigger; spawn depth nearer mid-street so most of the fight is visible; re-check balance with the bot.
 - **S3 fold-ins (renderer + art):**
   - Pests visibly attack at the counter (lunge / bite / swing with an impact on the steel), not just stand there.
   - Dip bowls and collected breads sit naturally on the counter: fixed slots in perspective, contact shadows, maybe a bowl tray and a bread basket rendered to match.
