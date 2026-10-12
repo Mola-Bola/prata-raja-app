@@ -1,16 +1,42 @@
 import type { applyRunResult } from '@/meta/runRewards';
 import type { SaveV2 } from '@/meta/types';
-import { newUnlocks, titleCase } from './helpers';
-import { StallProgress, type Art } from './StallHub';
+
+import { chestArt, newUnlocks, titleCase } from './helpers';
+import { StallProgress, type Art } from './StallProgress';
 
 export type Payout = ReturnType<typeof applyRunResult>;
+
+/** What a run paid, shown on the wake-up screen under the numbers (coins and XP sit in the stats row): the stall bar filling,
+ *  any new unlocks, the chest and the ingredients. It only draws the payout it is given; it never applies one. */
 export function Rewards({ before, payout, art }: { before: SaveV2; payout: Payout; art: Art }) {
+  const { rewards } = payout;
   const unlocks = newUnlocks(before, payout.save);
-  return <div className="sh-rewards">
-    <span>Stall XP +{payout.rewards.stallXp}</span>
-    <div className="sh-xp-fill"><StallProgress xp={payout.save.stallXp} art={art} /></div>
-    {unlocks.map(name => <span className="gu-newbest" role="status" key={name}>{name} unlocked!</span>)}
-    <span>Chest earned · {titleCase(payout.rewards.chest.rarity)}</span>
-    <div className="sh-materials">{Object.entries(payout.rewards.materials).map(([name, count]) => <span key={name}><img src={art(`materials/${name}`)} alt="" />{titleCase(name)} +{count}</span>)}</div>
-  </div>;
+  const materials = Object.entries(rewards.materials).filter(([, count]) => count > 0);
+  return (
+    <div className="sh-rewards" data-testid="results-rewards">
+      <StallProgress xp={payout.save.stallXp} from={before.stallXp} art={art} />
+      {unlocks.length > 0 && (
+        <p className="sh-unlocks" role="status" data-testid="results-unlocks">
+          {unlocks.map((name) => (
+            <span className="gu-newbest" key={name}>
+              {name} unlocked!
+            </span>
+          ))}
+        </p>
+      )}
+      <p className="sh-gains">
+        {rewards.chest && (
+          <span className="sh-gain" data-testid="results-chest">
+            <img src={art(chestArt(rewards.chest.rarity))} alt="" />
+            Chest earned · {titleCase(rewards.chest.rarity)}
+          </span>
+        )}
+        {materials.map(([name, count]) => (
+          <span className="sh-gain" key={name} role="img" aria-label={`${titleCase(name)} +${count}`} data-testid={`results-material-${name}`}>
+            <img src={art(`materials/${name}`)} alt="" />+{count}
+          </span>
+        ))}
+      </p>
+    </div>
+  );
 }

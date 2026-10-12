@@ -5,14 +5,17 @@ import * as Phaser from 'phaser';
 
 import { CONTENT } from '@/content';
 import { autoInput, autoPick } from '@/core/autoplay';
-import { parseSave, SAVE_KEY } from '@/core/save';
+import { SAVE_KEY } from '@/core/save';
 import { chooseCard, createRun, drainEvents, reroll, step } from '@/core/sim';
 import { FIELD, type GameEvent, type Loadout, type RunInput, type RunResult, type World } from '@/core/types';
+import { computeLoadout } from '@/meta/loadout';
+import { parseSaveV2 } from '@/meta/migrate';
 
 import { playSfx, setSfxEnabled, unlockAudio, type SfxName } from '../audio/sfx';
 import type { Bridge, HapticKind } from '../bridgeTypes';
 import type { Hub, HudState } from '../hub';
 import { Actors } from './actors';
+import { DangerCue } from './danger';
 import { Fx } from './fx';
 import { DragInput } from './input';
 import { makeLayout, Projector, type Layout } from './layout';
@@ -55,6 +58,7 @@ export class RunScene extends Phaser.Scene {
   private actors!: Actors;
   private fx!: Fx;
   private tele!: Telegraphs;
+  private danger!: DangerCue;
   private drag!: DragInput;
   private url = readUrl();
   private reduceMotion = false;
@@ -95,6 +99,7 @@ export class RunScene extends Phaser.Scene {
     this.actors = new Actors(this.proj, this.imgs, this.discs);
     this.fx = new Fx(this, this.imgs);
     this.tele = new Telegraphs(this, this.proj, (uid, out) => this.actors.locate(uid, out));
+    this.danger = new DangerCue(this, this.actors);
     this.drag = new DragInput(this, () => this.l);
     // Browsers only start sound from a tap: the first touch on the canvas unlocks it (the Start button's click does too).
     this.input.on('pointerdown', unlockAudio);
@@ -123,7 +128,16 @@ export class RunScene extends Phaser.Scene {
     this.applySettings();
     // Tests: ?bot=1 starts a self-playing run without anyone tapping the title screen.
     if (data?.pending) this.start(data.pending.seed, data.pending.loadout);
-    else if (this.url.bot) this.start();
+    else if (this.url.bot) this.startBot();
+  }
+
+  /** The bot starts a run the way the Start button does: with the gear and training its save holds (none if it cannot be read). */
+  private startBot(): void {
+    if (!this.bridge) return this.start();
+    this.bridge.load(SAVE_KEY).then(
+      (json) => this.start(undefined, computeLoadout(parseSaveV2(json), CONTENT)),
+      () => this.start(),
+    );
   }
 
   // ── Layout ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -134,6 +148,7 @@ export class RunScene extends Phaser.Scene {
     this.stall.setLayout(this.l);
     this.actors.setLayout(this.l);
     this.fx.u = this.l.u;
+    this.danger.setUnit(this.l.u);
   }
 
   // ── Controls (what the React overlay calls) ────────────────────────────────────────────────────────────────
@@ -158,6 +173,7 @@ export class RunScene extends Phaser.Scene {
     this.refreshDips();
     this.hub.emit('runStart', { seed: s });
     void this.bridge?.track('run_start', {}).catch(() => {});
+    this.wake();
   }
 
   /** Stop the run where it is (the sim does not step, the frame is left as drawn). */
@@ -216,6 +232,7 @@ export class RunScene extends Phaser.Scene {
     this.actors.clear();
     this.fx.clear();
     this.tele.clear();
+    this.danger.clear();
     this.stall.reset();
     this.drag.release();
     this.trauma = 0;
@@ -253,7 +270,8 @@ export class RunScene extends Phaser.Scene {
     this.bridge
       ?.load(SAVE_KEY)
       .then((json) => {
-        const s = parseSave(json).settings;
+        // The save is SaveV2 now (parseSave would read it as unknown and give back the default switches).
+        const s = parseSaveV2(json).settings;
         this.hapticsOn = s.haptics;
         setSfxEnabled(s.sfx);
       })
@@ -278,6 +296,18 @@ export class RunScene extends Phaser.Scene {
     } catch (e) {
       if (this.faults++ < 5) console.error('[run] frame failed', e);
     }
+    // No run on screen (the title, the stall, the wake-up screen: the overlay covers the canvas): stop drawing it. This frame
+    // still finishes and renders, so the last picture is there; start() wakes the loop.
+    if (!this.world || this.ended) this.game.loop.sleep();
+  }
+
+  /** Wake the loop for a run. It sleeps (see update) whenever none is live, so a start can find it stopped. */
+  private wake(): void {
+    const loop = this.game.loop;
+    if (loop.running) return;
+    // The window may have changed shape while the loop slept (rotation, split screen): look again before the first frame.
+    if (this.scale.getParentBounds()) this.scale.refresh();
+    loop.wake();
   }
 
   private frame(dt: number): void {
@@ -303,6 +333,7 @@ export class RunScene extends Phaser.Scene {
       this.publishHud(w, dt);
     }
     this.tele.draw(w ? w.time : 0, l.u);
+    if (w) this.danger.update(w, l, this.uiTime, this.reduceMotion);
     this.fx.update(dt);
     this.shake(dt);
   }
@@ -669,6 +700,9 @@ export class RunScene extends Phaser.Scene {
       // Sugar Crash: the fifth sugar stack tips it over.
       this.fx.spawn('fx/sugar-sparkle', v.sx, v.sy - v.bh * 0.6, D.fxTop, 0.5, 30 * u, v.bw * 1.5).fade(1, 0, 0.3).spin(0, 4);
       this.sfx('sugarCrash');
+    } else if (ev.status === 'ccImmune') {
+      // A freeze or stun just ended, or was turned away: for a few seconds it cannot be held again. A white outline says so.
+      this.actors.immune(ev.uid);
     }
   }
 

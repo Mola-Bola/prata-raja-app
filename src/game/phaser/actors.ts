@@ -31,6 +31,9 @@ export type EnemyView = {
   ice: Img | null;
   stunA: Img | null;
   stunB: Img | null;
+  /** The white outline of crowd-control immunity (a white copy of the body, a little larger, behind it) and the seconds it has left. */
+  outline: Img | null;
+  outlineT: number;
   /** Sprite size as a share of the screen width at depth scale 1, and the texture's own size. */
   share: number;
   tw: number;
@@ -89,6 +92,10 @@ type Corpse = { v: EnemyView; t: number; k: number };
 const CORPSE_LIFE = 0.24;
 /** Seconds a new enemy takes to fade in. */
 const FADE_IN = 0.35;
+/** The white outline shown when an enemy shrugs off crowd control: how long it takes to fade, and how much bigger than the body its
+ *  white copy is. */
+const OUTLINE_TIME = 0.7;
+const OUTLINE_GROW = 1.12;
 
 export class Actors {
   private l!: Layout;
@@ -125,6 +132,12 @@ export class Actors {
 
   viewOf(uid: number): EnemyView | undefined {
     return this.enemyMap.get(uid);
+  }
+
+  /** The enemy just became immune to freeze and stun, or turned one away: outline it in white for a moment. */
+  immune(uid: number): void {
+    const v = this.enemyMap.get(uid);
+    if (v) v.outlineT = OUTLINE_TIME;
   }
 
   /** Field position of a drawn enemy (for aim lines and tells). */
@@ -242,7 +255,7 @@ export class Actors {
     const share = enemyShare(e.def.radius) * (elite ? ELITE_SCALE : 1) * (e.def.kind === 'swarm' ? SWARM_SCALE : 1);
     const v: EnemyView = {
       uid: e.uid, stamp: 0, kind: e.def.kind, boss: e.boss, elite, body, shadow,
-      flame: null, sugar: null, ice: null, stunA: null, stunB: null,
+      flame: null, sugar: null, ice: null, stunA: null, stunB: null, outline: null, outlineT: 0,
       share, tw: body.width, th: body.height, texMax: Math.max(body.width, body.height),
       phase: (e.uid * 2.399963) % TAU,
       px: e.x, py: e.y, fx: e.x, fy: e.y, sx: 0, sy: 0, bw: 1, bh: 1, topY: 0,
@@ -298,7 +311,8 @@ export class Actors {
         }
       }
       v.sugarStacks = sugar;
-      const disabled = frozen || stunned;
+      // A boss is never stopped by cold or stars (the sim only slows it): it keeps moving and breathing, under its ice or its sparks.
+      const disabled = !v.boss && (frozen || stunned);
 
       // Animation clock: the sim's movement clock while walking (slows and stops with the enemy), its age otherwise.
       let clk: number;
@@ -433,6 +447,19 @@ export class Actors {
         .setScale(shw, shw * 0.62)
         .setAlpha(0.34 * (1 - 0.35 * hi) * born)
         .setDepth(D.shadow);
+      // Shrugged off a freeze or stun: a white copy of the body, a little larger and behind it, that fades.
+      if (v.outlineT > 0) {
+        v.outlineT = Math.max(0, v.outlineT - dt);
+        const o = (v.outline ??= this.imgs.get(e.def.sprite).setTint(WHITE).setTintMode(FILL));
+        o.setPosition(sx0 + shake, by - (bh * smy) / 2)
+          .setScale(k * smx * OUTLINE_GROW, k * smy * OUTLINE_GROW)
+          .setRotation(rot)
+          .setAlpha(born * 0.9 * (v.outlineT / OUTLINE_TIME))
+          .setDepth(D.enemy + sy0 - 0.25);
+      } else if (v.outline) {
+        this.imgs.put(v.outline);
+        v.outline = null;
+      }
       v.sx = sx0;
       v.sy = sy0;
       v.bw = bw;
@@ -492,7 +519,7 @@ export class Actors {
   }
 
   private dropOverlays(v: EnemyView): void {
-    for (const k of ['flame', 'sugar', 'ice', 'stunA', 'stunB'] as const) {
+    for (const k of ['flame', 'sugar', 'ice', 'stunA', 'stunB', 'outline'] as const) {
       const img = v[k];
       if (img) {
         this.imgs.put(img);
