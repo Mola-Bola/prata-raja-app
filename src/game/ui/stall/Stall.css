@@ -1,0 +1,57 @@
+.sh-hub { position: absolute; inset: 0; pointer-events: auto; background: var(--ink); }
+.sh-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 100%; }
+/* Preserve both edge pillars; the backdrop fills the extra floor on tall phones. */
+.sh-props { position: absolute; top: 0; left: 0; right: 0; height: min(100%, 177.685cqw); }
+.sh-scene { width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%; }
+.sh-top { position: absolute; z-index: 1; top: var(--safe-top); left: var(--safe-left); right: var(--safe-right); display: flex; align-items: center; gap: 8px; padding: 8px; }
+.sh-progress { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; padding: 5px 8px; border: 2px solid var(--edge); border-radius: 18px; background: var(--cream); font-size: 12px; font-weight: 800; }
+.sh-progress > div:last-child { flex: 1; min-width: 0; display: grid; gap: 5px; }
+.sh-progress .gu-bar { display: block; width: 100%; height: 10px; }
+.sh-level { position: relative; flex: none; width: 40px; height: 40px; display: grid; place-items: center; }
+.sh-level img { position: absolute; width: 100%; height: 100%; object-fit: contain; }
+.sh-level b { position: relative; padding: 1px 5px; border-radius: 8px; background: var(--cream); font: 700 18px Fredoka, sans-serif; }
+.sh-coins { display: flex; align-items: center; gap: 4px; padding: 5px 8px; border-radius: 14px; background: var(--cream); font-weight: 800; }
+.sh-coins img { width: 28px; height: 28px; object-fit: contain; }
+.sh-hotspot { position: absolute; transform: translate(-50%, -50%); min-width: 64px; min-height: 64px; max-width: 130px; display: flex; align-items: end; justify-content: center; padding: 4px; border: 0; background: none; cursor: pointer; touch-action: manipulation; }
+.sh-hotspot span { display: flex; gap: 4px; align-items: center; padding: 5px 8px; border: 2px solid var(--edge-deep); border-radius: 12px; background: var(--cream); color: var(--ink); font: 800 12px/1.2 Nunito, sans-serif; white-space: nowrap; box-shadow: 0 3px 0 var(--edge-deep); }
+.sh-hotspot img { width: 14px; height: 18px; object-fit: contain; }
+.sh-hotspot--calendar, .sh-hotspot--gear, .sh-hotspot--idle { transform: translate(-15%, -50%); }
+.sh-hotspot--training, .sh-hotspot--recipes, .sh-hotspot--chests { transform: translate(-85%, -50%); }
+.sh-hotspot--special span { filter: grayscale(1); }
+.sh-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 12px calc(var(--safe-right) + 18px) calc(var(--safe-bottom) + 22px) calc(var(--safe-left) + 18px); }
+.sh-dim { position: absolute; inset: 0; z-index: 2; display: flex; align-items: end; background: var(--ink); background: color-mix(in srgb, var(--ink) 65%, transparent); pointer-events: auto; }
+.sh-sheet { width: 100%; max-height: calc(90% - var(--safe-top)); overflow-y: auto; overscroll-behavior: contain; border-radius: 26px 26px 0 0; padding: 16px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 22px) calc(var(--safe-left) + 16px); animation: sh-slide 180ms ease-out; }
+.sh-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; position: sticky; top: -16px; z-index: 1; background: var(--cream); padding: 4px 0 10px; }
+.sh-sheet .gu-heading { font-size: 28px; text-align: left; }
+.sh-sheet p, .sh-sheet h3 { margin: 0; }
+.sh-sheet .gu-btn:disabled { cursor: default; box-shadow: none; border-style: dashed; background: var(--cream); }
+.sh-balance { font-size: 13px; font-weight: 800; }
+.sh-locked { display: grid; justify-items: center; gap: 12px; padding: 20px 0; font-weight: 800; }
+.sh-locked img { width: 60px; height: 70px; object-fit: contain; }
+.sh-feature-art { width: 90px; height: 90px; object-fit: contain; justify-self: center; }
+.sh-preview { filter: grayscale(1); }
+.sh-slots { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.sh-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0; min-height: 80px; padding: 8px 3px; border: 3px solid var(--edge); border-radius: 14px; background: var(--cream); color: var(--ink); font: 700 12px/1.2 Nunito, sans-serif; cursor: pointer; touch-action: manipulation; overflow-wrap: anywhere; }
+.sh-tile[aria-pressed='true'] { box-shadow: inset 0 0 0 2px var(--ink); }
+.sh-item-art { width: 48px; height: 48px; object-fit: contain; }
+.sh-slots .sh-item-art { width: 38px; height: 38px; }
+.sh-inventory { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.sh-detail { display: grid; gap: 8px; border: 2px solid var(--edge); border-radius: 18px; padding: 12px; }
+.sh-calendar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.sh-day { display: grid; gap: 3px; padding: 10px; border: 2px solid var(--edge); border-radius: 12px; }
+.sh-day--today { background: var(--orange); border-color: var(--orange-deep); }
+.sh-chest { gap: 12px; }
+.sh-chest img { width: 52px; height: 52px; object-fit: contain; }
+.sh-reveal { display: grid; justify-items: center; gap: 8px; padding: 18px; border: 3px solid var(--edge); border-radius: 18px; animation: gu-pop 450ms ease-out; }
+.sh-reveal .sh-item-art { width: 96px; height: 96px; }
+.sh-rewards { display: grid; gap: 8px; }
+.sh-result-panel { display: flex; flex-direction: column; overflow: hidden; pointer-events: auto; }
+.sh-result-body { display: grid; gap: 12px; min-height: 0; overflow-y: auto; }
+.sh-result-actions { display: grid; flex: none; gap: 12px; padding-top: 4px; }
+.sh-save-error { position: absolute; z-index: 3; top: calc(var(--safe-top) + 8px); left: 8px; right: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px; border-radius: 18px; background: var(--cream); pointer-events: auto; }
+.sh-materials { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.sh-materials span { display: flex; align-items: center; gap: 4px; }
+.sh-materials img { width: 28px; height: 28px; object-fit: contain; }
+.sh-xp-fill .gu-bar i { transform-origin: left; animation: sh-fill 700ms ease-out; }
+@keyframes sh-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes sh-slide { from { transform: translateY(40px); } to { transform: translateY(0); } }
