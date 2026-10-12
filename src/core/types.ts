@@ -396,6 +396,8 @@ export type RunResult = {
 export type Loadout = { stats?: Partial<PlayerStats>; startBread?: BreadId };
 
 export type World = {
+  /** Field x of the wave director's last spawn (keeps spawn spacing replayable). */
+  lastSpawnX?: number;
   seed: number;
   /** RNG state lives here so a world can be saved and replayed. */
   rngState: number;
@@ -424,6 +426,12 @@ export type World = {
   /** Events produced since the renderer last drained them. */
   events: GameEvent[];
   result: RunResult | null;
+  // Sim-owned extras (optional, so older worlds still load). Set by createRun.
+  /** The run's loadout, kept so chooseCard can recompute stats (cards.applyCard needs it). */
+  loadout?: Loadout;
+  /** Contact damage taken and seconds since the last aggregated 'playerHit' (contact) event. */
+  contactAcc?: number;
+  contactT?: number;
 };
 
 /** What the renderer sends each frame. targetX: field x under the finger while dragging, else null. */
