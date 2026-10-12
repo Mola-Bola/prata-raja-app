@@ -14,7 +14,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#F5F7FC",
+        "backgroundColor": "#C9492B",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -27,19 +27,16 @@
       "output": "single",
       "favicon": "./assets/images/favicon.png",
       "themeColor": "#CC4529",
-      "backgroundColor": "#F5F7FC"
+      "backgroundColor": "#F7EEDC"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F5F7FC",
+          "backgroundColor": "#F7EEDC",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 160,
-          "dark": {
-            "backgroundColor": "#121628"
-          }
+          "imageWidth": 288
         }
       ],
       "expo-sqlite",
@@ -73,10 +70,17 @@
     },
     "runtimeVersion": "1",
     "updates": {
-      "url": "https://__PROJECT_REF__.supabase.co/functions/v1/updates",
-      "enabled": false,
+      "url": "https://nzxgskzmofddxyjocduq.supabase.co/functions/v1/updates",
+      "enabled": true,
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d222731e-c4c1-47c6-a08c-425df1ad555e"
+      }
+    },
+    "owner": "uzzzy"
   }
 }

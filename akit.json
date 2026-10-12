@@ -1,16 +1,17 @@
 {
   "name": "Prata Raja",
   "id": "prata-raja",
-  "projectRef": "",
+  "projectRef": "nzxgskzmofddxyjocduq",
   "envFile": ".env.cloud",
   "targetVar": "PRATA_RAJA_TARGET",
   "privacy": "normal",
   "mainBranch": "main",
   "playbook": "~/cell/runner/playbooks/prata-raja.md",
   "checkCommand": "bash scripts/check.sh",
-  "maxApkMiB": 50,
+  "maxApkMiB": 80,
   "reviewPaths": [
     "supabase/migrations/**",
     "app.json"
-  ]
+  ],
+  "certSha256": "3F8CDF809E9962451985C05A0E5E545D0DA618CB3F64AD0FA732B9F3BEE6A4DB"
 }

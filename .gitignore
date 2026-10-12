@@ -43,3 +43,11 @@ yarn-error.*
 .cloud-staging/
 .akit/
 .cell-shots/
+
+# The public web build and its Pages checkout (scripts/publish-web.mjs); the Supabase CLI's link state
+.pages-build/
+.pages-repo/
+supabase/.temp/
+
+# Throwaway tech-spike output (screenshots, scratch exports)
+.spike/

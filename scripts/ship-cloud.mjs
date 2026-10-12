@@ -1,10 +1,12 @@
 #!/usr/bin/env node
-// Ship to PRODUCTION (cloud): phones anywhere get the update over the air. No hosted web app by default (nothing is published to GitHub).
-//   node scripts/ship-cloud.mjs --notes "What changed, in plain words" [--ids a,b] [--label 1.0.1] [--apk [--reuse-apk]]
+// Ship to PRODUCTION (cloud): phones anywhere get the update over the air; the web app on GitHub Pages is republished
+// (https://mola-bola.github.io/prata-raja/, built files only, see scripts/publish-web.mjs).
+//   node scripts/ship-cloud.mjs --notes "What changed, in plain words" [--ids a,b] [--label 1.0.1] [--apk [--cloud [--eas-build <id>]] [--reuse-apk]] [--no-web]
 // JS-only changes: default. Native changes (new native module/permission/plugin/icon): bump expo.runtimeVersion, then
-// ship with --apk (prebuilds, builds the signed APK, uploads it to the cloud 'updates' bucket + Drive; the app then says
-// "New Prata Raja version → Download"). Needs ~/prata-raja/.env.cloud (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY), .env.production
-// (baked into bundles) and the release key in ~/.prata-raja-secrets (see docs/UPDATES.md).
+// ship with --apk --cloud (the signed APK is built on EAS, uploaded to the cloud 'updates' bucket and Firebase App
+// Distribution; the app then says "New Prata Raja version → Download"). Needs ~/prata-raja/.env.cloud (SUPABASE_URL,
+// SUPABASE_SERVICE_ROLE_KEY), .env.production (baked into bundles) and the release key (EAS holds it; the local copy is in
+// ~/.prata-raja-secrets, see docs/UPDATES.md).
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -165,8 +167,12 @@ if (has('apk')) {
   }
 }
 
-// 4. Record the release and close the feedback items.
+// 4. Web (GitHub Pages).
+if (!has('no-web')) run('node', ['scripts/publish-web.mjs', '--label', label]);
+
+// 5. Record the release and close the feedback items.
 run('node', ['scripts/feedback.mjs', 'record-release', '--label', label, '--kind', kind, '--runtime', runtime, '--notes', notes, ...(ids.length ? ['--ids', ids.join(',')] : [])]);
 rmSync(out, { recursive: true, force: true });
 console.log(`\nShipped ${label} (${kind}, runtime ${runtime}) to production.`);
 console.log(`  phones: over the air on next launch/foreground${has('apk') && APK_DIR ? ` · APK copied to ${APK_DIR} as prata-raja-${label}.apk` : ''}`);
+if (!has('no-web')) console.log('  web:    https://mola-bola.github.io/prata-raja/');

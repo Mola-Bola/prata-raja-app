@@ -1,15 +1,21 @@
 #!/usr/bin/env node
-// Draws the app's placeholder icons (a coral disc with a white centre on the page colour) as PNGs, with no browser or
-// image library, in the colours of src/ui/brand.ts. Run it again after changing the brand, or replace the files with
-// real artwork (keep the names and sizes: app.json and public/manifest.webmanifest point at them).
+// Draws the app's icons as PNGs. With real artwork (assets/icon-source/prata-raja-icon.jpg, the owner-approved render) it
+// runs scripts/gen-icons.py, which makes every icon and the splash from it; without one it draws placeholders (a coral
+// disc with a white centre on the page colour, in the colours of src/ui/brand.ts) with no browser or image library. Keep
+// the file names and sizes: app.json and public/manifest.webmanifest point at them.
 //   node scripts/render-icons.mjs   → assets/images/*.png and public/icons/*.png
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { deflateSync, crc32 } from 'node:zlib';
 
 import { brand } from './brand-data.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
+if (existsSync(join(ROOT, 'assets/icon-source/prata-raja-icon.jpg'))) {
+  execFileSync('python3', [join(ROOT, 'scripts/gen-icons.py')], { stdio: 'inherit' }); // needs Pillow, numpy, scipy
+  process.exit(0);
+}
 const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 const BG = hex(brand.light.background);
 const CORAL = hex(brand.semantic.light.coral);
