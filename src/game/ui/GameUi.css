@@ -343,11 +343,12 @@
   width: 160px;
 }
 
-/* Left edge, just above the counter (bottom ~24%): out of the drag area in the middle of the screen. */
+/* On the counter's front edge, bottom-left, over the steel (the renderer draws the counter as a strip along the bottom edge:
+   src/game/phaser/layout.ts). The dip bowls sit above it, on the far half of the strip. */
 .gu-hp {
   position: absolute;
-  left: calc(var(--safe-left) + 12px);
-  bottom: calc(var(--safe-bottom) + 24%);
+  left: calc(var(--safe-left) + 10px);
+  bottom: calc(var(--safe-bottom) + 6px);
   display: flex;
   align-items: center;
   gap: 6px;

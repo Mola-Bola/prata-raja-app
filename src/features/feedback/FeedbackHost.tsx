@@ -54,8 +54,9 @@ export function FeedbackHost() {
     feedbackStore.open(shot, listen);
   };
 
-  // Everywhere you're signed in, forms included, except a note's own page: its reply box is the place to add to it.
-  const showHandle = enabled && !hidden && !/^\/feedback\/[^/]+/.test(route);
+  // Everywhere you're signed in, forms included, except a note's own page (its reply box is the place to add to it) and
+  // the game (/play: full screen, the tab would sit on the thumb's side of the screen).
+  const showHandle = enabled && !hidden && !/^\/(feedback\/[^/]+|play(\/|$))/.test(route);
   // Screens pad their right side on narrow phones so the tab never covers a button or field (the Handle says how wide it is).
   useEffect(() => {
     if (!showHandle) setRightEdgeTab(0);

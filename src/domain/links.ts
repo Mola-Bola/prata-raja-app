@@ -87,7 +87,7 @@ export function startupLinkPath(recorded: string | null | undefined, currentPath
 }
 
 /** Screens that work signed out (and the start page): never somewhere to come back to after signing in. */
-const SIGNED_OUT_ROUTE = /^\/(welcome|sign-in|reset-password|auth-callback)?(\/|$)/;
+const SIGNED_OUT_ROUTE = /^\/(welcome|sign-in|reset-password|auth-callback|play)?(\/|$)/;
 
 /**
  * The in-app page a link pointed at, to open once the person has signed in (the sign-in guard sends a signed-out

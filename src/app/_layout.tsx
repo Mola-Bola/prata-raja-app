@@ -108,6 +108,8 @@ function RootStack() {
         <Stack.Screen name="(app)" options={{ title: TAB_LABELS.home }} />
       </Stack.Protected>
       <Stack.Screen name="reset-password" options={{ headerShown: true, title: 'New password' }} />
+      {/* The game: full screen, and open to everyone (no account needed to play). Not inside either guard above. */}
+      <Stack.Screen name="play" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
     </Stack>
   );
 }

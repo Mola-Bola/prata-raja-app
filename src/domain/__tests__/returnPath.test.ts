@@ -31,6 +31,7 @@ describe('returnPathAfterSignIn (a link opened while signed out opens after sign
       'http://x/sign-in?mode=up',
       'http://x/reset-password',
       'http://x/auth-callback?code=1',
+      'http://x/play',
       `${SCHEME}://`,
       `${SCHEME}:///`,
     ]) {
@@ -47,5 +48,6 @@ describe('returnPathAfterSignIn (a link opened while signed out opens after sign
   it('keeps pages whose name only starts like a public one', () => {
     expect(returnPathAfterSignIn('http://x/log-in-later')).toBe('/log-in-later');
     expect(returnPathAfterSignIn('http://x/welcome-back')).toBe('/welcome-back');
+    expect(returnPathAfterSignIn('http://x/playlists')).toBe('/playlists');
   });
 });
