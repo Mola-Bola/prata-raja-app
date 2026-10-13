@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, cpSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, cpSync, rmSync, existsSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chooseLabel } from '../ship-label.mjs';
@@ -73,6 +73,13 @@ if [ "$1" = check ] && [ "$PIPELINE_AKIT_COMMIT" = 1 ]; then git commit --allow-
 if [ "$1" = check ] && [ "$PIPELINE_AKIT_FAIL" = 1 ]; then exit 1; fi
 `, { mode: 0o755 });
   writeFileSync(join(bin, 'gh'), `#!/bin/bash
+if [ "$1" = run ]; then
+  printf '%s\\n' "$@" > "$PIPELINE_CI_ARGS"
+  if [ "$PIPELINE_CI_UNAVAILABLE" = 1 ]; then echo 'CI unavailable' >&2; exit 1; fi
+  if [ "$PIPELINE_CI_MISSING" = 1 ]; then echo '[]'; exit 0; fi
+  node -e 'console.log(JSON.stringify([{headSha:process.env.PIPELINE_CI_STALE ? "stale" : require("child_process").execFileSync("git", ["rev-parse", "HEAD"], {encoding:"utf8"}).trim(), status:"completed", conclusion:process.env.PIPELINE_CI_SUCCESS ? "success" : "failure", startedAt:"2026-10-13T00:00:00Z", updatedAt:process.env.PIPELINE_CI_SLOW ? "2026-10-13T00:00:10Z" : "2026-10-13T00:00:09Z", url:"https://example.invalid/run/1"}]))'
+  exit 0
+fi
 if [ "$PIPELINE_PAGES_FAIL" = 1 ]; then echo 'Pages unavailable' >&2; exit 1; fi
 printf '{"commit":"%s","status":"built"}' "$(git -C .pages-repo rev-parse HEAD)"
 `, { mode: 0o755 });
@@ -84,14 +91,19 @@ globalThis.fetch = async () => ({ ok: true, text: async () => 'published\\n' });
   const env = { ...process.env, PATH: `${bin}:${process.env.PATH}`, NODE_OPTIONS: `--import=${join(base, 'fetch.mjs')}`, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1', GIT_AUTHOR_NAME: 'Test', GIT_COMMITTER_NAME: 'Test', GIT_AUTHOR_EMAIL: 'test@example.invalid', GIT_COMMITTER_EMAIL: 'test@example.invalid' };
   const git = (...args: string[]) => execFileSync('git', args, { cwd: root, env, encoding: 'utf8' }).trim();
   git('init', '-q', '-b', 'main'); git('add', '-A'); git('commit', '-qm', 'fixture');
+  const remote = join(base, 'origin.git');
+  git('init', '--bare', '-q', remote);
+  git('remote', 'add', 'origin', remote);
   const name = `test-${process.pid}-${Date.now()}`;
+  Object.assign(env, { PIPELINE_CI_ARGS: join(base, 'ci-args.txt') });
   const report = join(base, 'slices', name);
   writeFileSync(join(base, 'brief.md'), 'Implement change; write a report.');
   const call = (script: string, ...args: string[]) => spawnSync('bash', [`scripts/${script}.sh`, ...args], { cwd: root, env, encoding: 'utf8' });
   return { base, root, name, report, git, call, env, close: () => { rmSync(base, { recursive: true, force: true }); rmSync(report, { recursive: true, force: true }); } };
 }
 
-describe('pipeline', () => {
+// Git/process fixtures can exceed Vitest's default timeout on a loaded Mac.
+describe('pipeline', { timeout: 60_000 }, () => {
   it('shares ship label semantics and handles numeric ordering/minor bumps', () => {
     expect(chooseLabel('0.4.1', ['0.4.9', '0.4.10', 'junk'])).toBe('0.4.11');
     expect(chooseLabel('0.5.0', ['0.4.10'])).toBe('0.5.0');
@@ -105,6 +117,7 @@ describe('pipeline', () => {
       expect(f.call('release', 'Preview', '--branch', `sol/${f.name}`, '--minor', '--dry-run').status).toBe(0);
       expect(existsSync(f.report)).toBe(false);
       expect(f.git('branch', '--list')).toBe('* main');
+      expect(f.git('ls-remote', 'origin')).toBe('');
       const slice = f.call('slice', f.name, join(f.base, 'brief.md'));
       expect(slice.status, slice.stderr + slice.stdout + readFileSync(join(f.report, 'REPORT.md'), 'utf8')).toBe(0);
       const report = readFileSync(join(f.report, 'REPORT.md'), 'utf8');
@@ -112,6 +125,15 @@ describe('pipeline', () => {
       expect(report).toContain('Balance: ch1 60/45/20');
       expect(report).toContain('2 passed'); expect(report).toContain('3 passed');
       expect(report).toContain('no open P0/P1');
+      expect(report).toContain('CI refused by account billing');
+      expect(report).toContain('https://example.invalid/run/1');
+      expect(readFileSync(join(f.base, 'ci-args.txt'), 'utf8').trim().split('\n')).toEqual([
+        'run', 'list', '-R', 'Mola-Bola/prata-raja-app', '-b', `sol/${f.name}`, '-L', '1',
+        '--commit', f.git('rev-parse', `sol/${f.name}`),
+        '--json', 'headSha,status,conclusion,startedAt,updatedAt,url',
+      ]);
+      expect(f.git('rev-parse', `refs/remotes/origin/sol/${f.name}`)).toBe(f.git('rev-parse', `sol/${f.name}`));
+      expect(f.git('config', `branch.sol/${f.name}.remote`)).toBe('origin');
       const unrelated = join(f.base, `${f.name}-logs`);
       mkdirSync(unrelated);
       writeFileSync(join(unrelated, 'keep'), 'another task');
@@ -126,6 +148,14 @@ describe('pipeline', () => {
       expect(JSON.parse(readFileSync(join(f.root, 'package.json'), 'utf8')).version).toBe('0.4.2');
       expect(JSON.parse(readFileSync(join(f.root, 'package-lock.json'), 'utf8')).packages[''].version).toBe('0.4.2');
       expect(existsSync(join(f.root, '.akit/shipped'))).toBe(true);
+      expect(f.git('rev-parse', 'origin/main')).toBe(f.git('rev-parse', 'HEAD'));
+      expect(readFileSync(join(f.base, 'ci-args.txt'), 'utf8').trim().split('\n')).toEqual([
+        'run', 'list', '-R', 'Mola-Bola/prata-raja-app', '-b', 'main', '-L', '1',
+        '--commit', f.git('rev-parse', 'HEAD'),
+        '--json', 'headSha,status,conclusion,startedAt,updatedAt,url',
+      ]);
+      const releaseDir = readdirSync(join(f.base, 'slices')).find((name) => name.startsWith('release-'))!;
+      expect(readFileSync(join(f.base, 'slices', releaseDir, 'REPORT.md'), 'utf8')).toContain('CI refused by account billing');
       expect(existsSync(join(f.base, `prata-raja-${f.name}`))).toBe(false);
       expect(existsSync(join(f.report, 'REPORT.md'))).toBe(true);
       expect(existsSync(join(f.report, 'check.log'))).toBe(false);
@@ -309,6 +339,47 @@ git add ${file}
       expect(existsSync(join(f.report, 'check.log'))).toBe(true);
     } finally { f.close(); }
   });
+
+  it.each(['slice', 'release'])('fails %s when its push is rejected and preserves evidence', (phase) => {
+    const f = fixture();
+    try {
+      if (phase === 'release') expect(f.call('slice', f.name, join(f.base, 'brief.md')).status).toBe(0);
+      writeFileSync(join(f.base, 'origin.git/hooks/pre-receive'), '#!/bin/sh\necho "Push rejected" >&2\nexit 1\n', { mode: 0o755 });
+      const result = phase === 'slice'
+        ? f.call('slice', f.name, join(f.base, 'brief.md'))
+        : f.call('release', 'Test', '--branch', `sol/${f.name}`);
+      expect(result.status).toBe(1);
+      const dir = phase === 'slice' ? f.report : join(f.base, 'slices', readdirSync(join(f.base, 'slices')).find((name) => name.startsWith('release-'))!);
+      expect(readFileSync(join(dir, 'REPORT.md'), 'utf8')).toContain('Push rejected');
+      expect(existsSync(join(f.base, `prata-raja-${f.name}`))).toBe(true);
+      if (phase === 'slice') {
+        expect(JSON.parse(readFileSync(join(f.report, 'result.json'), 'utf8')).ok).toBe(false);
+        expect(f.git('ls-remote', 'origin')).toBe('');
+      } else {
+        expect(existsSync(join(f.root, '.akit/shipped'))).toBe(true);
+        expect(f.git('ls-remote', 'origin', 'main')).toBe('');
+      }
+    } finally { f.close(); }
+  });
+
+  it.each([
+    ['PIPELINE_CI_SUCCESS', 'completed / success'],
+    ['PIPELINE_CI_SLOW', 'completed / failure'],
+    ['PIPELINE_CI_STALE', 'no run for verified HEAD'],
+    ['PIPELINE_CI_MISSING', 'no run for verified HEAD'],
+    ['PIPELINE_CI_UNAVAILABLE', 'lookup unavailable'],
+  ])('reports %s without blocking a green slice', (flag, expected) => {
+    const f = fixture();
+    try {
+      Object.assign(f.env, { [flag]: '1' });
+      const slice = f.call('slice', f.name, join(f.base, 'brief.md'));
+      expect(slice.status, slice.stderr + slice.stdout).toBe(0);
+      const report = readFileSync(join(f.report, 'REPORT.md'), 'utf8');
+      expect(report).toContain(expected);
+      expect(report).not.toContain('CI refused by account billing');
+    } finally { f.close(); }
+  });
+
   it('stops after four capacity retries and writes a failed report', () => {
     const f = fixture();
     try {

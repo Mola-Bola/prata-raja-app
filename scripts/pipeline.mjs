@@ -1,6 +1,6 @@
 // The shell entry points share only command execution, slice metadata and check ownership.
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSync, symlinkSync, realpathSync, openSync, closeSync, lstatSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSync, symlinkSync, realpathSync, openSync, closeSync, lstatSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { createServer } from 'node:net';
@@ -68,6 +68,17 @@ function assertVersionBump(base, head, label) {
   }
 }
 const step = (text) => console.log(text);
+function ciStatus(branch, head, cwd = root) {
+  try {
+    const [latest] = JSON.parse(run('gh', ['run', 'list', '-R', 'Mola-Bola/prata-raja-app',
+      '-b', branch, '-L', '1', '--commit', head,
+      '--json', 'headSha,status,conclusion,startedAt,updatedAt,url'], cwd));
+    if (!latest || latest.headSha !== head) return 'no run for verified HEAD yet';
+    const seconds = (Date.parse(latest.updatedAt) - Date.parse(latest.startedAt)) / 1000;
+    const refused = latest.status === 'completed' && latest.conclusion === 'failure' && seconds >= 0 && seconds < 10;
+    return `${refused ? 'CI refused by account billing' : `${latest.status} / ${latest.conclusion || 'pending'}`} (${Number.isFinite(seconds) ? `${seconds}s` : 'duration unknown'}): ${latest.url}`;
+  } catch (error) { return `lookup unavailable: ${error.message.replace(/\s+/g, ' ').slice(0, 500)}`; }
+}
 async function freePort(port) {
   await new Promise((res, rej) => {
     const server = createServer();
@@ -139,13 +150,14 @@ async function slice() {
     `Codex build (git writable roots); capacity retry every 5 min, up to 4 retries; commit fallback`,
     `PORT=${port} SKIP_DB=1 check.sh --web → ${dir}/logs (owned server)`,
     'Read-only structured review of the full diff (including app.json and migrations); one fix + commit + recheck + re-review if needed',
+    `Push green branch with git push -u origin ${branch}; snapshot CI for its HEAD (nonblocking)`,
     `Write ≤15-line ${dir}/REPORT.md and commit-bound result.json; exit 0 only when green`]) step(s);
   if (dry) return;
   if (existsSync(dir) || existsSync(cwd)) throw new Error('Slice name/worktree already exists; use a new name');
   mkdirSync(store, { recursive: true });
   mkdirSync(dir); // Claim the name atomically when parallel slices start together.
   const state = { name, branch, cwd, base: git(['rev-parse', 'main']), head: null, ok: false, port, ownedDirectories: [dir] };
-  let green = false, initial = [], findings = [], fixed = false, issue = 'Incomplete';
+  let green = false, initial = [], findings = [], fixed = false, issue = 'Incomplete', ci = 'not queried (local result not green)';
   try {
     await freePort(port);
     git(['worktree', 'add', '-b', branch, cwd, state.base]);
@@ -181,6 +193,12 @@ async function slice() {
     assertHead(cwd, state.head);
     state.ok = green && !blocking(findings);
     issue = state.ok ? 'None blocking' : 'Checks failed or open P0/P1';
+    if (state.ok) {
+      state.ok = false; // A failed push must not leave a successful slice result.
+      git(['push', '-u', 'origin', branch], cwd);
+      ci = ciStatus(branch, state.head, cwd);
+      state.ok = true;
+    }
   } catch (error) { issue = error.message.replace(/\s+/g, ' ').slice(0, 500); }
   finally {
     if (state.head && existsSync(join(cwd, '.git'))) {
@@ -192,7 +210,7 @@ async function slice() {
     const reports = state.head ? git(['diff', '--name-only', `${state.base}..${state.head}`, '--', 'docs/reviews'], cwd).split('\n').filter(Boolean) : [];
     const balance = reports.flatMap((p) => read(join(cwd, p)).split('\n')).find((l) => /balance.*\d|ch[12].*\d.*\//i.test(l));
     writeFileSync(join(dir, 'REPORT.md'), [`# Slice ${name}`, `Branch: ${branch}`, `Commits: ${commits || 'none'}`, `HEAD: ${state.head ?? 'none'}`,
-      `Checks: ${summary || 'not completed'}`, `Initial review: ${initial.map((f) => `${f.priority} ${f.detail}`).join('; ') || 'none'}`,
+      `CI: ${ci}`, `Checks: ${summary || 'not completed'}`, `Initial review: ${initial.map((f) => `${f.priority} ${f.detail}`).join('; ') || 'none'}`,
       `Fix round: ${fixed ? 'completed; no open P0/P1 on re-review' : 'not cleared / not needed'}`,
       `Open review: ${findings.map((f) => `${f.priority} ${f.detail}`).join('; ') || 'none'}`,
       ...(balance ? [`Balance: ${balance.replace(/^\s*(?:[-*]\s*)?Balance:\s*/i, '')}`] : []), `Remaining issues: ${issue}`, `Result: ${state.ok ? 'PASS' : 'FAIL'}`].map((l) => l.replace(/[\r\n]+/g, ' ')).join('\n') + '\n');
@@ -214,6 +232,7 @@ async function release() {
     `Read ship-cloud --next-label${minor ? ' --minor' : ''}; set app.json/package.json; commit only version changes`,
     'Run merged checks + akit check; reject HEAD changes; stamp pinned HEAD',
     `akit ship -- node scripts/ship-cloud.mjs --label <selected-label> --notes ${JSON.stringify(notes)}`,
+    'Push main with git push origin main; retain REPORT.md with CI snapshot for shipped HEAD (nonblocking)',
     'Wait for Pages build at published SHA and matching live HTML; remove only merged clean slice worktrees and their logs']) step(s);
   if (dry) return;
   if (git(['branch', '--show-current']) !== 'main') throw new Error('Run release from main');
@@ -275,6 +294,17 @@ async function release() {
     writeFileSync(join(root, '.akit', `reviewed-${verifiedHead}`), `Merged ${base}..${mergedHead}; verified ${verifiedHead}\n${JSON.stringify(findings)}\n` + slices.map((s) => read(join(s.dir, 'REPORT.md'))).join('\n'));
     assertHead(root, verifiedHead);
     run(akit, ['ship', '--', 'node', 'scripts/ship-cloud.mjs', '--label', label, '--notes', notes], root, { stdio: 'inherit' });
+    assertHead(root, verifiedHead);
+    let ci;
+    try {
+      git(['push', 'origin', 'main']);
+      ci = ciStatus('main', verifiedHead);
+    } catch (error) {
+      ci = `push failed: ${error.message}`;
+      throw error;
+    } finally {
+      writeFileSync(join(releaseDir, 'REPORT.md'), `# Release ${label}\nBranch: main\nHEAD: ${verifiedHead}\nCI: ${ci.replace(/[\r\n]+/g, ' ')}\n`);
+    }
     const published = git(['rev-parse', 'HEAD'], join(root, '.pages-repo'));
     const expectedHtml = readFileSync(join(root, '.pages-repo/index.html'), 'utf8');
     let deployed = false;
@@ -301,8 +331,10 @@ async function release() {
         for (let i = 0; i <= 4; i++) rmSync(join(s.dir, `${file}-${i}.log`), { force: true });
       }
     }
-    rmSync(releaseDir, { recursive: true, force: true });
-    step(`Shipped ${label}; slice reports retained in ${store}.`);
+    for (const file of readdirSync(releaseDir)) {
+      if (file !== 'REPORT.md') rmSync(join(releaseDir, file), { recursive: true, force: true });
+    }
+    step(`Shipped ${label}; slice and release reports retained in ${store}.`);
   } finally { rmSync(lock, { recursive: true, force: true }); }
 }
 try {
