@@ -7,7 +7,7 @@ name: check
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, 'sol/**', 's*/**'] # worker/slice branches too: Codex and Claude push finished slices and read `gh run list`
   workflow_dispatch:
 
 concurrency:

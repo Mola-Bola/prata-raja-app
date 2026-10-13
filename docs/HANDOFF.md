@@ -47,6 +47,7 @@
 **Next, in order:** ship 0.2.0 → 0.2.1 (feedback + PostHog) → **feel pass** (throw motion, damage numbers, mob attack animations, spawns from the street's far end + flatter perspective, tawa steam, bowls/breads seated on the counter; see BACKLOG) → 0.3.0 (S3) → DEPTH design → story prologue + mynah/drain rat → S4 (Chef's Special + family leaderboard). Owner ideas parked in BACKLOG: Tawa Heat meter, hawker heroes roster, real Singapore places per chapter.
 
 ## How to ship
+**CI (13 Oct):** `.github/workflows/check.yml` (tsc, lint, vitest, guards, gitleaks; pgTAP when `supabase/**` changes) runs on pushes to `main` and slice branches (`sol/**`, `s*/**`); `e2e-nightly.yml` runs the web e2e nightly. **Every builder (Claude or Codex) pushes its finished branch and checks `gh run list -R Mola-Bola/prata-raja-app -L 3`; the lead pushes `main` after each merge/ship.** As of 13 Oct all Mola-Bola Actions jobs are refused by GitHub billing ("recent account payments have failed or your spending limit needs to be increased") — owner fixes in github.com/settings/billing; until then local `check.sh` stays the gate. Budget: 2,000 free Linux min/month shared by all private apps: keep full e2e nightly, not per push.
 ```
 SKIP_DB=1 ~/cell/akit/akit check                      # clean tree required; never write logs inside the repo
 echo "reviewed: <what>" > .akit/reviewed-$(git rev-parse HEAD)
