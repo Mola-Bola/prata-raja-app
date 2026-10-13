@@ -263,6 +263,11 @@
   padding: 12px calc(var(--safe-right) + 18px) calc(var(--safe-bottom) + 20px) calc(var(--safe-left) + 18px);
 }
 
+/* Hide immediately while the sheet fades in, keeping the footer space and focus return. */
+.sh-footer[inert] {
+  visibility: hidden;
+}
+
 .sh-start {
   min-height: 64px;
   font-size: 26px;

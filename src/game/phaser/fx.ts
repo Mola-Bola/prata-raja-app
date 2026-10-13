@@ -2,7 +2,7 @@
 // damage numbers and the chain-lightning lines. Nothing here touches the sim; the scene spawns them from events.
 import * as Phaser from 'phaser';
 
-import { D, MAX_NUMBERS, MAX_PARTICLES } from './look';
+import { D, MAX_NUMBERS, MAX_PARTICLES, NUMBER_COLOR, NUMBER_SCALE_FLOOR } from './look';
 import type { Img } from './pools';
 
 const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -88,6 +88,8 @@ type Num = {
   y: number;
   /** The enemy it floats over (merging hits on one enemy). */
   uid: number;
+  kind: 0 | 1 | 2;
+  perspective: number;
   value: number;
   pop: number;
   base: number;
@@ -96,10 +98,11 @@ type Num = {
 type Bolt = { pts: number[]; t: number; dur: number };
 
 /** Of the MAX_NUMBERS floating numbers, at most this many are damage-over-time ticks. */
-const MAX_DOT_NUMBERS = 12;
-const NUM_LIFE = 0.65;
+const MAX_DOT_NUMBERS = 8;
+const MAX_TARGET_NUMBERS = 3;
+const NUM_LIFE = 0.6;
 const NUM_RISE_T = 0.5;
-const NUM_FADE_FROM = 0.45;
+const NUM_FADE_FROM = 0.36;
 const NUM_MERGE = 0.3;
 const FONT = 'Fredoka, "Arial Rounded MT Bold", "Arial Black", Impact, sans-serif';
 
@@ -137,7 +140,7 @@ export class Fx {
         .text(0, 0, '', {
           fontFamily: FONT,
           fontStyle: 'bold',
-          fontSize: '18px',
+          fontSize: '24px',
           color: '#ffffff',
           stroke: '#2a1408',
           strokeThickness: 4,
@@ -145,7 +148,7 @@ export class Fx {
         .setOrigin(0.5, 1)
         .setDepth(D.number)
         .setVisible(false);
-      this.nums.push({ txt, on: false, color: '#ffffff', t: 0, x: 0, y: 0, uid: 0, value: 0, pop: 1, base: 1 });
+      this.nums.push({ txt, on: false, color: '#ffffff', t: 0, x: 0, y: 0, uid: 0, kind: 0, perspective: 1, value: 0, pop: 1, base: 1 });
     }
   }
 
@@ -157,7 +160,7 @@ export class Fx {
     if (v === this.design) return;
     this.design = v;
     for (const n of this.nums) {
-      n.txt.setFontSize(Math.round(18 * v));
+      n.txt.setFontSize(Math.round(24 * v));
       n.txt.setStroke('#2a1408', Math.max(2, Math.round(4 * v)));
     }
   }
@@ -232,52 +235,62 @@ export class Fx {
 
   // ── Damage numbers ─────────────────────────────────────────────────────────────────────────────────────────
 
-  /** A number floating up from (x, y). kind 0 normal (white), 1 crit (bigger, yellow), 2 coloured (damage over time).
+  /** A number floating up from (x, y). kind 0 hit, 1 crit, 2 damage over time.
    *  Hits on the same enemy within 300 ms merge into one number. */
-  number(uid: number, x: number, y: number, value: number, kind: 0 | 1 | 2, color = '#ffffff'): void {
-    if (kind !== 2) {
-      for (let i = 0; i < this.nums.length; i++) {
-        const n = this.nums[i];
-        if (n.on && n.uid === uid && n.t < NUM_MERGE && n.pop === (kind === 1 ? 1.4 : 1.15)) {
-          n.value += value;
-          this.setText(n, kind, color);
-          n.t = Math.min(n.t, 0.04);
-          return;
-        }
+  number(uid: number, x: number, y: number, value: number, kind: 0 | 1 | 2, perspective = 1): void {
+    for (let i = 0; i < this.nums.length; i++) {
+      const n = this.nums[i];
+      if (n.on && n.uid === uid && n.t < NUM_MERGE && n.kind === kind) {
+        n.value += value;
+        n.x = x;
+        n.y = y;
+        n.perspective = Math.max(NUMBER_SCALE_FLOOR, Math.min(1, perspective));
+        this.setText(n, kind);
+        n.t = Math.min(n.t, 0.04);
+        return;
       }
     }
     let slot: Num | null = null;
     let oldest: Num | null = null;
     let dots = 0;
+    let clustered = 0;
+    let targetOldest: Num | null = null;
     for (let i = 0; i < this.nums.length; i++) {
       const n = this.nums[i];
       if (!n.on) {
         slot ??= n;
         continue;
       }
-      if (n.uid === -1) dots++;
+      if (n.kind === 2) dots++;
+      if (n.uid === uid) {
+        clustered++;
+        if (!targetOldest || n.t > targetOldest.t) targetOldest = n;
+      }
       if (!oldest || n.t > oldest.t) oldest = n;
     }
     // Damage-over-time numbers never crowd out the hits: at most MAX_DOT_NUMBERS of them on screen.
     if (kind === 2 && dots >= MAX_DOT_NUMBERS) return;
     // Over the cap: DoT ticks are dropped, hits take the place of the oldest number.
-    const n = slot ?? (kind === 2 ? null : oldest);
+    const n = clustered >= MAX_TARGET_NUMBERS ? targetOldest : slot ?? (kind === 2 ? null : oldest);
     if (!n) return;
     if (!n.on) this.liveNums++;
     n.on = true;
     n.t = 0;
-    n.x = x;
-    n.y = y;
-    n.uid = kind === 2 ? -1 : uid;
+    n.x = x + ((clustered % 3) - 1) * 12 * this.u;
+    n.y = y - (clustered % 2) * 10 * this.u;
+    n.uid = uid;
+    n.kind = kind;
+    n.perspective = Math.max(NUMBER_SCALE_FLOOR, Math.min(1, perspective));
     n.value = value;
-    n.pop = kind === 1 ? 1.4 : kind === 2 ? 0.95 : 1.15;
-    n.base = kind === 1 ? 1.05 : kind === 2 ? 0.8 : 0.85;
-    this.setText(n, kind, color);
+    this.setText(n, kind);
     n.txt.setVisible(true);
   }
 
-  private setText(n: Num, kind: 0 | 1 | 2, color: string): void {
-    const c = kind === 1 ? '#ffd23f' : kind === 2 ? color : '#ffffff';
+  private setText(n: Num, kind: 0 | 1 | 2): void {
+    const big = kind === 1 || (kind === 0 && n.value >= 35);
+    const c = big ? NUMBER_COLOR.big : NUMBER_COLOR.chip;
+    n.pop = big ? 1.5 : 1.2;
+    n.base = (big ? 1.25 : kind === 2 ? 0.85 : 1) * n.perspective;
     // Every Text setter redraws its canvas, so set the colour only when it changes and the style never (see `u`).
     if (c !== n.color) {
       n.color = c;
@@ -291,7 +304,7 @@ export class Fx {
   }
 
   private updateNumbers(dt: number): void {
-    const rise = 22 * this.u;
+    const rise = 40 * this.u;
     for (let i = 0; i < this.nums.length; i++) {
       const n = this.nums[i];
       if (!n.on) continue;

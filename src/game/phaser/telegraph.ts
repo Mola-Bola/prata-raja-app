@@ -1,12 +1,10 @@
-// Warnings drawn on the street: a shooter's dashed aim line with a closing ring where its chilli will land, and a boss's
-// pulsing lane / counter marks. They run on sim time, so a pause or a hit-stop freezes them mid-pulse. These are the
-// only Graphics shapes in the game besides the chain bolt: telegraphs have to be exact and are allowed to be code-drawn.
-import * as Phaser from 'phaser';
-
+// Pooled atlas strips and landing rings: warnings follow sim time and the projected hazard width.
 import { FIELD, type BossAttack } from '@/core/types';
 
 import type { Projector } from './layout';
-import { D, HAZARD } from './look';
+import { D, HAZARD, WHITE } from './look';
+import { ImagePool, type Img } from './pools';
+import { setImage } from './tex';
 
 type Aim = { uid: number; fx: number; fy: number; tx: number; t0: number; until: number };
 type Tell = { kind: BossAttack['kind']; uid: number; xs: number[]; width: number; t0: number; until: number };
@@ -21,25 +19,25 @@ const DASH = 12;
 const GAP = 9;
 
 export class Telegraphs {
-  private g: Phaser.GameObjects.Graphics;
+  private marks: Img[] = [];
+  private used = 0;
   private aims: Aim[] = [];
   private tells: Tell[] = [];
   private at = { x: 0, y: 0 };
-  /** Frames to keep the warm-up speck on screen so it is really rendered once. */
-  private warm = 2;
 
   constructor(
-    scene: Phaser.Scene,
+    private imgs: ImagePool,
     private proj: Projector,
     private locate: Locator,
-  ) {
-    // The flat-shape shader compiles the first time Graphics is drawn, a visible hitch on a phone if that is the first
-    // warning mid-fight. Draw a nearly invisible speck now (while the title shows); the first draw() hides it.
-    this.g = scene.add.graphics().setDepth(D.tele);
-    this.g.fillStyle(0, 0.01);
-    this.g.fillTriangle(0, 0, 2, 0, 0, 2);
-    this.g.lineStyle(1, 0, 0.01);
-    this.g.lineBetween(0, 0, 2, 2);
+  ) {}
+
+  private mark(key: string, x: number, y: number, w: number, h: number, tint: number, alpha: number, rotation = 0): void {
+    const img = this.marks[this.used] ?? (this.marks[this.used] = this.imgs.get(key));
+    // Each slot can switch between a strip and a landing ring.
+    if (img.frame.name !== key) setImage(img, key);
+    img.setVisible(true).setPosition(x, y).setDisplaySize(w, h)
+      .setTint(tint).setAlpha(alpha).setRotation(rotation).setDepth(D.tele);
+    this.used++;
   }
 
   aim(uid: number, fx: number, fy: number, tx: number, now: number, time: number): void {
@@ -53,8 +51,8 @@ export class Telegraphs {
   clear(): void {
     this.aims.length = 0;
     this.tells.length = 0;
-    this.g.clear();
-    this.g.setVisible(false);
+    for (const img of this.marks) this.imgs.put(img);
+    this.marks.length = 0;
   }
 
   /** The seconds of warning still to run for a boss tell (0 when none), for the boss's own pulse. */
@@ -64,10 +62,6 @@ export class Telegraphs {
   }
 
   draw(now: number, u: number): void {
-    if (this.warm > 0) {
-      this.warm--;
-      return;
-    }
     // Expire first, so the last frame of a warning is not drawn after the shot has gone.
     let k = 0;
     for (let i = 0; i < this.aims.length; i++) if (this.aims[i].until > now) this.aims[k++] = this.aims[i];
@@ -75,21 +69,13 @@ export class Telegraphs {
     k = 0;
     for (let i = 0; i < this.tells.length; i++) if (this.tells[i].until > now) this.tells[k++] = this.tells[i];
     this.tells.length = k;
-    const g = this.g;
-    if (this.aims.length + this.tells.length === 0) {
-      if (g.visible) {
-        g.clear();
-        g.setVisible(false);
-      }
-      return;
-    }
-    g.setVisible(true);
-    g.clear();
-    for (const t of this.tells) this.drawTell(g, t, now, u);
-    for (const a of this.aims) this.drawAim(g, a, now, u);
+    this.used = 0;
+    for (const t of this.tells) this.drawTell(t, now, u);
+    for (const a of this.aims) this.drawAim(a, now, u);
+    for (let i = this.used; i < this.marks.length; i++) this.marks[i].setVisible(false);
   }
 
-  private drawAim(g: Phaser.GameObjects.Graphics, a: Aim, now: number, u: number): void {
+  private drawAim(a: Aim, now: number, u: number): void {
     const P = this.proj;
     const live = this.locate(a.uid, this.at);
     const fx = live ? this.at.x : a.fx;
@@ -99,23 +85,18 @@ export class Telegraphs {
     const ax = from.sx;
     const ay = from.sy - 14 * u * from.s;
     const to = P.at(a.tx, LANDING_Y);
-    this.dashed(g, ax, ay, to.sx, to.sy, u, 0.85);
-    this.reticle(g, to.sx, to.sy, (FIELD.kannanHitHalfWidth * 2 + 14) * P.ppu, p, u);
+    this.dashed(ax, ay, to.sx, to.sy, u, 0.85);
+    this.reticle(to.sx, to.sy, (FIELD.kannanHitHalfWidth * 2 + 14) * P.ppu, p);
   }
 
   /** A hazard ellipse on the counter with a ring that closes in on it as the shot nears. */
-  private reticle(g: Phaser.GameObjects.Graphics, x: number, y: number, w: number, p: number, u: number): void {
-    const h = w * 0.42;
-    g.fillStyle(HAZARD, 0.18 + 0.14 * p);
-    g.fillEllipse(x, y, w, h);
-    g.lineStyle(2.5 * u, HAZARD, 0.95);
-    g.strokeEllipse(x, y, w, h);
-    const r = 1 + 0.9 * (1 - p);
-    g.lineStyle(2 * u, 0xffffff, 0.8 * p + 0.2);
-    g.strokeEllipse(x, y, w * r, h * r);
+  private reticle(x: number, y: number, w: number, p: number): void {
+    const pulse = 1 + 0.1 * Math.sin(p * TAU * 3);
+    this.mark('fx/levelup-ring', x, y, w * pulse, w * 0.48 * pulse, HAZARD, 0.95);
+    this.mark('fx/levelup-ring', x, y, w * (1.1 + 0.5 * (1 - p)), w * 0.55 * (1.1 + 0.5 * (1 - p)), WHITE, 0.85);
   }
 
-  private dashed(g: Phaser.GameObjects.Graphics, x0: number, y0: number, x1: number, y1: number, u: number, a: number): void {
+  private dashed(x0: number, y0: number, x1: number, y1: number, u: number, a: number): void {
     const dx = x1 - x0;
     const dy = y1 - y0;
     const len = Math.sqrt(dx * dx + dy * dy);
@@ -124,58 +105,52 @@ export class Telegraphs {
     const uy = dy / len;
     const dash = DASH * u;
     const step = dash + GAP * u;
-    g.lineStyle(2.5 * u, HAZARD, a);
+
     for (let s = 0; s < len; s += step) {
       const e = Math.min(len, s + dash);
-      g.lineBetween(x0 + ux * s, y0 + uy * s, x0 + ux * e, y0 + uy * e);
+      this.mark('fx/swoosh', x0 + ux * (s + e) / 2, y0 + uy * (s + e) / 2, e - s, 7 * u, HAZARD, a, Math.atan2(dy, dx));
     }
   }
 
   /** The ground quad between field x0..x1 and y0..y1, projected. */
-  private band(g: Phaser.GameObjects.Graphics, x0: number, x1: number, y0: number, y1: number, fill: number, edge: number, u: number): void {
+  private band(x0: number, x1: number, y0: number, y1: number, fill: number, edge: number, u: number): void {
     const P = this.proj;
-    const a = P.at(x0, y0);
-    const ax = a.sx;
-    const ay = a.sy;
-    const b = P.at(x1, y0);
-    const bx = b.sx;
-    const by = b.sy;
-    const c = P.at(x1, y1);
-    const cx = c.sx;
-    const cy = c.sy;
-    const d = P.at(x0, y1);
-    const dx = d.sx;
-    const dy = d.sy;
-    g.fillStyle(HAZARD, fill);
-    g.fillTriangle(ax, ay, bx, by, cx, cy);
-    g.fillTriangle(ax, ay, cx, cy, dx, dy);
-    g.lineStyle(3 * u, HAZARD, edge);
-    g.lineBetween(ax, ay, dx, dy);
-    g.lineBetween(bx, by, cx, cy);
-    g.lineBetween(ax, ay, bx, by);
+    const slices = 12;
+    for (let i = 0; i < slices; i++) {
+      const y = y0 + (y1 - y0) * (i + 0.5) / slices;
+      const near = P.at(0, y0 + (y1 - y0) * i / slices).sy;
+      const far = P.at(0, y0 + (y1 - y0) * (i + 1) / slices).sy;
+      P.at((x0 + x1) / 2, y);
+      const w = (x1 - x0) * P.ppu * P.s * P.laneScale;
+      const x = P.sx;
+      const sy = P.sy;
+      this.mark('fx/swoosh', x, sy, w, Math.abs(near - far) + 2 * u, HAZARD, fill);
+      this.mark('fx/swoosh', x - w / 2, sy, 6 * u, Math.abs(near - far) + 2 * u, WHITE, edge);
+      this.mark('fx/swoosh', x + w / 2, sy, 6 * u, Math.abs(near - far) + 2 * u, HAZARD, edge);
+    }
   }
 
-  private drawTell(g: Phaser.GameObjects.Graphics, t: Tell, now: number, u: number): void {
+  private drawTell(t: Tell, now: number, u: number): void {
     const P = this.proj;
     const pulse = 0.5 + 0.5 * Math.sin(TAU * 3 * (now - t.t0));
-    // Never brighter than 0.35: the telegraph must not drown the enemies behind it.
-    const fill = 0.14 + 0.2 * pulse;
-    const edge = 0.55 + 0.4 * pulse;
+    // Keep the lane interior translucent; the thick edges carry the warning.
+    const fill = 0.28 + 0.12 * pulse;
+    const edge = 0.85 + 0.15 * pulse;
     const p = Math.min(1, (now - t.t0) / (t.until - t.t0));
     const half = t.width / 2;
     switch (t.kind) {
       case 'charge':
-        for (const x of t.xs) this.band(g, x - half, x + half, 0, FIELD.depth, fill, edge, u);
+        for (const x of t.xs) this.band(x - half, x + half, 0, FIELD.depth, fill, edge, u);
         break;
       case 'rain':
         for (const x of t.xs) {
-          this.band(g, x - half, x + half, 0, 90, fill + 0.08, edge, u);
+          this.band(x - half, x + half, 0, 90, fill + 0.08, edge, u);
           const c = P.at(x, 45);
-          this.reticle(g, c.sx, c.sy, half * 2 * P.ppu * c.s, p, u);
+          this.reticle(c.sx, c.sy, half * 2 * P.ppu * c.s, p);
         }
         break;
       case 'sweep':
-        for (const x of t.xs) this.band(g, x - half, x + half, 0, 150, fill, edge, u);
+        for (const x of t.xs) this.band(x - half, x + half, 0, 150, fill, edge, u);
         break;
       case 'volley': {
         const live = this.locate(t.uid, this.at);
@@ -184,8 +159,8 @@ export class Telegraphs {
         const ay = from.sy;
         for (const x of t.xs) {
           const to = P.at(x, LANDING_Y);
-          this.dashed(g, ax, ay, to.sx, to.sy, u, 0.8);
-          this.reticle(g, to.sx, to.sy, t.width * P.ppu, p, u);
+          this.dashed(ax, ay, to.sx, to.sy, u, 0.8);
+          this.reticle(to.sx, to.sy, t.width * P.ppu, p);
         }
         break;
       }
@@ -194,8 +169,7 @@ export class Telegraphs {
         if (!live) break;
         const c = P.at(this.at.x, this.at.y);
         const w = 150 * P.ppu * c.s * (1 + 0.15 * pulse);
-        g.lineStyle(3 * u, HAZARD, edge);
-        g.strokeEllipse(c.sx, c.sy - 20 * u * c.s, w, w * 0.4);
+        this.mark('fx/levelup-ring', c.sx, c.sy - 20 * u * c.s, w, w * 0.4, HAZARD, edge);
         break;
       }
     }

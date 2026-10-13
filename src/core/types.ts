@@ -409,7 +409,7 @@ export type World = {
   /** 1-based wave number; 0 before the first wave. */
   wave: number;
   waveTime: number;
-  /** Threat points left to spawn this wave and the spawn clock. */
+  /** Threat points left to spawn this wave and seconds since its last spawn. */
   budgetLeft: number;
   spawnClock: number;
   player: Player;
@@ -423,6 +423,8 @@ export type World = {
   /** Level-ups waiting for a card pick. */
   pendingLevelUps: number;
   offer: Card[];
+  /** Last two displayed offers, including rerolls (older worlds can omit it). */
+  recentOffers?: Card[][];
   rerolls: number;
   /** Events produced since the renderer last drained them. */
   events: GameEvent[];

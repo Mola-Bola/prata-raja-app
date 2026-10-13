@@ -142,7 +142,7 @@ export function updateBoss(c: Ctx, e: Enemy): void {
   if (st === 0) {
     if (e.y > e.holdY + 0.5) {
       e.state = 'walk';
-      e.y = Math.max(e.holdY, e.y - enemySpeed(e) * c.dt);
+      e.y = Math.max(e.holdY, e.y - enemySpeed(e) * 4 * c.dt);
       cd._mt = cdGet(e, '_mt') + c.dt * speedMul(e);
       return;
     }

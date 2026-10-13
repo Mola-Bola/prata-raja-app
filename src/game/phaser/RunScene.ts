@@ -98,7 +98,7 @@ export class RunScene extends Phaser.Scene {
     this.stall = new Stall(this, this.imgs);
     this.actors = new Actors(this.proj, this.imgs, this.discs);
     this.fx = new Fx(this, this.imgs);
-    this.tele = new Telegraphs(this, this.proj, (uid, out) => this.actors.locate(uid, out));
+    this.tele = new Telegraphs(this.imgs, this.proj, (uid, out) => this.actors.locate(uid, out));
     this.danger = new DangerCue(this, this.actors);
     this.drag = new DragInput(this, () => this.l);
     // Browsers only start sound from a tap: the first touch on the canvas unlocks it (the Start button's click does too).
@@ -445,6 +445,7 @@ export class RunScene extends Phaser.Scene {
       const ev = events[i];
       switch (ev.t) {
         case 'throw': {
+          this.stall.release();
           this.sfx('throw');
           // A puff of flour where the bread leaves his hand.
           const u = this.l.u;
@@ -593,7 +594,7 @@ export class RunScene extends Phaser.Scene {
     if (!ev.color && this.dipColors.length > 0 && ((this.hits++ & 1) === 0 || ev.crit)) {
       this.fx.spawn('fx/curry-splash', sx, cy, D.fx - 1, 0.3, 22 * u * s, 56 * u * s).tint(this.dipTint()).fade(0.9, 0, 0.2).spin(ev.uid * 2.1, 0);
     }
-    this.fx.number(ev.uid, sx, v ? v.topY : P.sy - 36 * u * P.s, ev.dmg, ev.crit ? 1 : ev.color ? 2 : 0, ev.color ?? '#ffffff');
+    this.fx.number(ev.uid, sx, v ? v.topY : P.sy - 36 * u * P.s, ev.dmg, ev.crit ? 1 : ev.color ? 2 : 0, P.s);
     if (ev.crit) this.critUid = ev.uid;
     if (v && (v.elite || v.boss)) this.addTrauma(v.boss ? 0.1 : 0.2);
     this.sfx(ev.crit ? 'crit' : 'hit');
@@ -603,7 +604,7 @@ export class RunScene extends Phaser.Scene {
     if (ev.dmg < 1) return;
     const P = this.proj.at(ev.x, ev.y);
     const v = this.actors.viewOf(ev.uid);
-    this.fx.number(ev.uid, P.sx, v ? v.topY : P.sy - 36 * this.l.u * P.s, ev.dmg, 2, ev.color);
+    this.fx.number(ev.uid, P.sx, v ? v.topY : P.sy - 36 * this.l.u * P.s, ev.dmg, 2, P.s);
   }
 
   private onShield(ev: { uid: number; x: number; y: number }, broke: boolean): void {
@@ -707,7 +708,11 @@ export class RunScene extends Phaser.Scene {
   }
 
   private onPlayerHit(ev: Extract<GameEvent, { t: 'playerHit' }>): void {
-    this.addTrauma(ev.source === 'contact' ? 0.25 : ev.source === 'boss' ? 0.7 : ev.source === 'explode' ? 0.6 : 0.45);
+    if (ev.source === 'contact') this.actors.counterHit();
+    this.addTrauma(ev.source === 'contact' ? 0.45 : ev.source === 'boss' ? 0.7 : ev.source === 'explode' ? 0.6 : 0.45);
+    const u = this.l.u;
+    this.fx.spawn('fx/impact', this.stall.chestX, this.l.counter.top + 8 * u, D.fxTop, 0.22, 60 * u, 140 * u).tint(HAZARD).squash(0.35).fade(1, 0);
+    this.stall.flash();
     this.buzz('light', 250);
     this.sfx('playerHurt');
   }
