@@ -1,3 +1,6 @@
+import { BREADS } from '../content/breads';
+import { DIPS } from '../content/dips';
+import { CHAPTERS } from '../content/chapters';
 import { freshSave, parseSave } from '../core/save';
 import { AFFIX_POOLS, GEAR_BASES, RARITY_INFO } from './gear';
 import { unlocksForXp } from './stall';
@@ -11,7 +14,7 @@ const calendarDay = (value: unknown): string | null => typeof value === 'string'
 
 export function freshSaveV2(): SaveV2 {
   return {
-    ...freshSave(), v: 2, stallXp: 0, inventory: [], equipped: {},
+    ...freshSave(), v: 2, stallXp: 0, unlockedBreads: [], unlockedDips: [], bossAttempts: {}, inventory: [], equipped: {},
     training: { wrist: 0, stamina: 0, flip: 0 },
     materials: { flour: 0, ghee: 0, egg: 0, onion: 0, spice: 0, sugar: 0, milk: 0 },
     streak: { day: 0, lastClaimDay: null, windowStartDay: null, restDaysUsed: 0 },
@@ -42,11 +45,22 @@ export function parseSaveV2(json: unknown): SaveV2 {
   if (raw.v !== 1 && raw.v !== 2) return fresh;
   const base = parseSave(JSON.stringify({ ...raw, v: 1 }));
   const save: SaveV2 = { ...fresh, ...base, v: 2 };
+  if (raw.bossAttempts === undefined) {
+    // Legacy wins prove attempts; reaching the boss wave proves at least one, not one per run.
+    const attempts = Math.max(integer(base.wins), Number(base.bestWave >= CHAPTERS[0].waves.length));
+    if (attempts) save.bossAttempts[CHAPTERS[0].id] = attempts;
+  }
   if (raw.v === 1) {
     save.idle.lastCollectedAt = date(base.lastPlayed);
     return save;
   }
   save.stallXp = num(raw.stallXp);
+  save.unlockedBreads = Object.values(BREADS).filter(b => !b.evolvedFrom && Array.isArray(raw.unlockedBreads) && raw.unlockedBreads.includes(b.id)).map(b => b.id);
+  save.unlockedDips = Object.values(DIPS).filter(d => Array.isArray(raw.unlockedDips) && raw.unlockedDips.includes(d.id)).map(d => d.id);
+  for (const chapter of CHAPTERS) {
+    const attempts = integer(obj(raw.bossAttempts)[chapter.id]);
+    if (attempts) save.bossAttempts[chapter.id] = attempts;
+  }
   const seen = new Set<string>();
   if (Array.isArray(raw.inventory)) for (const value of raw.inventory) {
     const item = parseItem(value);

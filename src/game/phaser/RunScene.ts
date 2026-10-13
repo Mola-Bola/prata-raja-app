@@ -89,7 +89,7 @@ export class RunScene extends Phaser.Scene {
     super('RunScene');
   }
 
-  create(data: { pending?: { seed?: number; loadout?: Loadout } | null }): void {
+  create(data: { pending?: { seed?: number; loadout?: Loadout; chapterId?: string } | null }): void {
     this.hub = this.registry.get('hub') as Hub;
     this.bridge = this.registry.get('bridge') as Bridge | undefined;
     this.reduceMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -115,7 +115,7 @@ export class RunScene extends Phaser.Scene {
       window.__world = null;
     });
     this.hub.controls = {
-      start: (seed, loadout) => this.start(seed, loadout),
+      start: (seed, loadout, chapterId) => this.start(seed, loadout, chapterId),
       choose: (i) => this.choose(i),
       reroll: () => this.rerollOffer(),
       pause: () => this.hold(),
@@ -127,7 +127,7 @@ export class RunScene extends Phaser.Scene {
     };
     this.applySettings();
     // Tests: ?bot=1 starts a self-playing run without anyone tapping the title screen.
-    if (data?.pending) this.start(data.pending.seed, data.pending.loadout);
+    if (data?.pending) this.start(data.pending.seed, data.pending.loadout, data.pending.chapterId);
     else if (this.url.bot) this.startBot();
   }
 
@@ -153,13 +153,14 @@ export class RunScene extends Phaser.Scene {
 
   // ── Controls (what the React overlay calls) ────────────────────────────────────────────────────────────────
 
-  private start(seed?: number, loadout?: Loadout): void {
+  private start(seed?: number, loadout?: Loadout, chapterId?: string): void {
     // Browsers only let sound start from a tap; this runs inside the Start button's click.
     unlockAudio();
     this.applySettings();
     this.clearWorld();
     const s = this.url.seed ?? seed ?? Math.floor(Math.random() * 0x100000000);
-    const w = createRun({ seed: s, content: CONTENT, loadout });
+    const w = createRun({ seed: s, content: CONTENT, loadout, chapterId });
+    this.stall.setBackground(w.chapter.background);
     this.world = w;
     window.__world = w;
     this.paused = false;
@@ -211,6 +212,8 @@ export class RunScene extends Phaser.Scene {
   private earlyResult(w: World): RunResult {
     const p = w.player;
     return {
+      chapterId: w.chapter.id,
+      bossAttempted: w.bossAttempted ?? false,
       won: false,
       wave: w.wave,
       kills: w.kills,

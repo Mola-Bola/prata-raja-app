@@ -4,7 +4,8 @@
 // they happen along the path, and range limits clip the last bit of travel, so hits do not depend on the step size.
 import type { BreadStats, Enemy, Projectile } from '../types';
 import { alive, clamp, dist, emit, hyp, newUid, type Ctx } from './ctx';
-import { DOT_ZONE, dotDamage, hitEnemy, killEnemy } from './hit';
+import { applyHitEffect } from '../status';
+import { chain, DOT_ZONE, dotDamage, hitEnemy, killEnemy } from './hit';
 import { placeOrb } from './throw';
 
 const HOMING_TURN = 5; // rad/s at homing 1
@@ -116,7 +117,7 @@ function spawnFragments(c: Ctx, s: Projectile, e: Enemy, left: number): void {
 function straightHit(c: Ctx, s: Projectile, e: Enemy, left: number): boolean {
   const st = s.stats as BreadStats;
   s.hit.push(e.uid);
-  if (hitEnemy(c, e, s.dmg, st, s.pierceLeft <= 0)) {
+  if (hitEnemy(c, e, s.dmg, st, s.pierceLeft <= 0, s.guaranteedCrit)) {
     s.ttl = -1;
     return false;
   }
@@ -193,10 +194,10 @@ function land(c: Ctx, s: Projectile): void {
   const n = w.enemies.length; // enemies born from these kills (splitters) are not caught by the same blast
   for (let i = 0; i < n; i++) {
     const e = w.enemies[i];
-    if (alive(e) && dist(s.tx, s.ty, e.x, e.y) <= s.radius + e.def.radius) hitEnemy(c, e, s.dmg, st, false);
+    if (alive(e) && dist(s.tx, s.ty, e.x, e.y) <= s.radius + e.def.radius) hitEnemy(c, e, s.dmg, st, false, s.guaranteedCrit);
   }
   if (st.zoneTime > 0) {
-    w.zones.push({ uid: newUid(c), x: s.tx, y: s.ty, radius: s.radius, dps: st.zoneDps, time: st.zoneTime, sprite: 'fx/smoke' });
+    w.zones.push({ uid: newUid(c), x: s.tx, y: s.ty, radius: s.radius, dps: st.zoneDps, time: st.zoneTime, sprite: 'fx/smoke', ...(st.zoneEffect ? { effect: st.zoneEffect, effectT: 0 } : {}) });
   }
   s.ttl = -1;
 }
@@ -231,7 +232,7 @@ function flyWave(c: Ctx, s: Projectile, dt: number): void {
     }
     if (!best) break;
     s.hit.push(best.uid);
-    hitEnemy(c, best, s.dmg, st, false);
+    hitEnemy(c, best, s.dmg, st, false, s.guaranteedCrit);
   }
   s.t += (y1 - y0) / s.vy;
   s.y = y1;
@@ -270,7 +271,7 @@ function flyBoomerang(c: Ctx, s: Projectile, dt: number): void {
     const by = ay + s.vy * slice;
     for (let e = firstTouched(c, s, ax, ay, bx, by); e; e = firstTouched(c, s, ax, ay, bx, by)) {
       s.hit.push(e.uid);
-      if (hitEnemy(c, e, s.dmg, st, true)) {
+      if (hitEnemy(c, e, s.dmg, st, true, s.guaranteedCrit)) {
         s.ttl = -1;
         return;
       }
@@ -309,7 +310,7 @@ function updateOrbit(c: Ctx, s: Projectile): void {
     for (let k = 0; k < h.length; k += 2) if (h[k] === e.uid) cooling = true;
     if (cooling) continue;
     h.push(e.uid, now);
-    hitEnemy(c, e, s.dmg, st, false);
+    hitEnemy(c, e, s.dmg, st, false, s.guaranteedCrit);
   }
 }
 
@@ -351,6 +352,16 @@ export function updateZones(c: Ctx): void {
     const live = Math.min(dt, z.time);
     z.time -= dt;
     const dmg = z.dps * (1 + c.p.stats.dotPct) * live;
+    if (z.effect) {
+      z.effectT = (z.effectT ?? 0) - live;
+      if (z.effectT <= 0) {
+        z.effectT += 1;
+        const targets = w.enemies.filter(e => alive(e) && dist(z.x, z.y, e.x, e.y) <= z.radius + e.def.radius);
+        if (z.effect.type === 'chain') {
+          if (targets[0]) chain(c, targets[0], z.effect, w.content.dips.masala.color);
+        } else for (const e of targets) for (const ev of applyHitEffect(z.effect, e)) emit(c, ev);
+      }
+    }
     if (dmg > 0) {
       for (let k = 0; k < w.enemies.length; k++) {
         const e = w.enemies[k];

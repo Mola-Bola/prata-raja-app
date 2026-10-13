@@ -4,6 +4,7 @@ import { makeRng } from '../../core/rng';
 import { computeStats } from '../../core/stats';
 import { createRun } from '../../core/sim';
 import { itemStats, rollItem } from '../gear';
+import { runPools } from '../recipes';
 import { computeLoadout } from '../loadout';
 import { freshSaveV2 } from '../migrate';
 import { LEVEL_THRESHOLDS, nextUnlock, runXp, stallLevel, UNLOCK_TABLE, unlocksForXp } from '../stall';
@@ -72,7 +73,7 @@ describe('training', () => {
 });
 describe('loadout', () => {
   it('returns zero additive bonuses for a fresh save and the existing starter bread', () => {
-    expect(computeLoadout(freshSaveV2(), CONTENT)).toEqual({ stats: {}, startBread: 'kosong' });
+    expect(computeLoadout(freshSaveV2(), CONTENT)).toEqual({ stats: {}, startBread: 'kosong', ...runPools(freshSaveV2(), CONTENT) });
   });
   it('stall level 4 (Extra reroll) gives the run two rerolls', () => {
     const save = freshSaveV2(); save.unlocks = { ...save.unlocks, secondReroll: true };

@@ -18,6 +18,14 @@ const BREAD_LINES: Record<BreadId, string> = {
   appam: 'Bounces between pests',
   idli: 'Volley of mini idli',
   vadai: 'Orbiting vadai guard you',
+  'golden-ghee-chakra': 'Bounces off 6 pests',
+  'tarik-lance': 'Fast, endless pierce',
+  'inferno-bomb': 'Blast leaves burning zone',
+  'half-boiled-halo': 'Homing bits heal on hit',
+  'thosai-typhoon': 'Wide wave pulls foes in',
+  'tandoor-meteor': 'Blast makes foes tender',
+  'garlic-thunder-zone': 'Zone sparks jump to foes',
+  'crusher-murtabak': 'Stun; 5th throw crits',
 };
 
 const DIP_LINES: Record<DipId, string> = {
@@ -43,7 +51,7 @@ const PASSIVE_LINES: Partial<Record<PassiveId, string>> = {
   'second-helping': '+1 revive at half HP',
 };
 
-/** ASSET_URLS keys of the card frames: passives plain, breads rare (gold), dips epic (purple). */
+/** ASSET_URLS keys of the card frames: passives plain, breads rare (gold), dips and evolutions epic (purple). */
 export type CardFrame = 'ui/card' | 'ui/card-rare' | 'ui/card-epic';
 
 export type CardView = {
@@ -54,7 +62,7 @@ export type CardView = {
   /** ASSET_URLS key of the item art. */
   sprite: string;
   frame: CardFrame;
-  /** 'NEW' for a first pick, level pips (●●●○○) for an upgrade, null for heal and gold. */
+  /** 'EVOLVE' for an evolution, 'NEW' for a first pick, level pips (●●●○○) for an upgrade, null for heal and gold. */
   badge: string | null;
 };
 
@@ -73,9 +81,11 @@ function item(name: string, line: string, sprite: string, frame: CardFrame, leve
 
 export function cardView(card: Card): CardView {
   switch (card.kind) {
+    case 'evolve':
     case 'bread': {
       const d = CONTENT.breads[card.id as BreadId];
-      return item(d.name, BREAD_LINES[d.id], d.sprite, 'ui/card-rare', card.level, d.levels.length);
+      const view = item(d.name, BREAD_LINES[d.id], d.sprite, card.kind === 'evolve' ? 'ui/card-epic' : 'ui/card-rare', card.level, d.evolvedFrom ? 1 : d.levels.length);
+      return card.kind === 'evolve' ? { ...view, badge: 'EVOLVE', label: `Evolve ${d.name}. ${view.line}` } : view;
     }
     case 'dip': {
       const d = CONTENT.dips[card.id as DipId];

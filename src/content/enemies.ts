@@ -157,3 +157,23 @@ export const ENEMIES: Record<string, EnemyDef> = {
     weakTo: 'Ranged kills before contact',
   },
 };
+
+// Chapter 2 reskins keep the same archetype rules; combat numbers are 35% stronger.
+const NIGHT_SKINS = {
+  'sugarcane-walker': 'sugar-ant', 'tray-rat': 'roach', 'neon-moth': 'pigeon', fishball: 'mosquito',
+  'ice-golem': 'burger-brute', 'satay-archer': 'chilli-imp', 'kway-teow-blob': 'boba-blob', 'noodle-bit': 'boba-pearl',
+  'drumstick-knight': 'tiffin-beetle', 'kopi-ghost': 'ice-kacang-sprite', 'chope-spirit': 'kettle-spirit', 'rojak-bomb': 'durian-bomb',
+};
+for (const [id, baseId] of Object.entries(NIGHT_SKINS)) {
+  const base = ENEMIES[baseId];
+  ENEMIES[id] = { ...base, id, name: id.split('-').map(word => word[0].toUpperCase() + word.slice(1)).join(' '),
+    sprite: `enemies/${id}`, hp: base.hp * 1.35, speed: base.speed * 1.35, contactDps: base.contactDps * 1.35,
+    ...(base.shield ? { shield: base.shield * 1.35 } : {}),
+    ...(base.ranged ? { ranged: { ...base.ranged, dmg: base.ranged.dmg * 1.35, projSprite: 'fx/spark' } } : {}),
+    ...(base.heal ? { heal: { ...base.heal, hps: base.heal.hps * 1.35 } } : {}),
+    ...(base.explode ? { explode: { ...base.explode, dmg: base.explode.dmg * 1.35 } } : {}),
+    ...(base.split ? { split: { into: 'noodle-bit', count: 3 } } : {}),
+    ...(base.summon ? { summon: { ...base.summon, id: 'sugarcane-walker' } } : {}),
+    ...(base.cloud ? { cloud: 8 } : {}),
+  };
+}

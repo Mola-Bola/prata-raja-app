@@ -8,6 +8,14 @@ export const MAX_BREADS = 4;
 export const MAX_DIPS = 4;
 const MAX_LEVEL = 5;
 
+function evolutionReady(player: Player, def: Content['breads'][BreadId], content: Content): boolean {
+  const from = def.evolvedFrom;
+  if (!from || !player.breads.some(b => b.id === from.bread && b.level === 5)) return false;
+  return from.partner.kind === 'dip'
+    ? player.dips.some(d => d.id === from.partner.id && d.level === 5)
+    : player.passives.some(p => p.id === from.partner.id && p.level === content.passives[p.id].maxLevel);
+}
+
 type Candidate = { card: Card; weight: number };
 
 /** Draw `n` (default 3) distinct cards (never two with the same id). Candidates and weights:
@@ -27,11 +35,11 @@ export function drawOffer(
 
   const cands: Candidate[] = [];
   for (const b of player.breads) {
-    if (b.level < MAX_LEVEL) cands.push({ card: { kind: 'bread', id: b.id, level: b.level + 1 }, weight: 1.2 });
+    if (!content.breads[b.id].evolvedFrom && b.level < MAX_LEVEL) cands.push({ card: { kind: 'bread', id: b.id, level: b.level + 1 }, weight: 1.2 });
   }
   if (player.breads.length < MAX_BREADS) {
     for (const id of new Set(breadPool)) {
-      if (!player.breads.some((b) => b.id === id)) cands.push({ card: { kind: 'bread', id, level: 1 }, weight: 0.8 });
+      if (!content.breads[id].evolvedFrom && !player.breads.some((b) => b.id === id || content.breads[b.id].evolvedFrom?.bread === id)) cands.push({ card: { kind: 'bread', id, level: 1 }, weight: 0.8 });
     }
   }
   for (const d of player.dips) {
@@ -47,16 +55,18 @@ export function drawOffer(
     if (level < p.maxLevel) cands.push({ card: { kind: 'passive', id: p.id, level: level + 1 }, weight: 0.7 });
   }
 
+  const evolutions = Object.values(content.breads).filter(b => evolutionReady(player, b, content));
   const recent = new Set(opts?.recentOffers?.slice(-2).flat().map((c) => `${c.kind}:${c.id}`));
   for (const c of cands) if (recent.has(`${c.card.kind}:${c.card.id}`)) c.weight *= 0.15;
 
   const offer: Card[] = [];
+  if (n > 0 && evolutions.length) offer.push({ kind: 'evolve', id: rng.pick(evolutions).id, level: 1 });
   const take = (c: Candidate) => {
     for (let i = cands.length - 1; i >= 0; i--) if (cands[i].card.kind === c.card.kind && cands[i].card.id === c.card.id) cands.splice(i, 1);
     offer.push(c.card);
   };
   // Guarantee: a player with no dip is always offered a new one (when the pool has any).
-  if (n > 0 && player.dips.length === 0) {
+  if (offer.length < n && player.dips.length === 0) {
     const newDips = cands.filter((c) => c.card.kind === 'dip');
     if (newDips.length > 0) take(rng.weighted(newDips, (c) => c.weight));
   }
@@ -71,7 +81,12 @@ export function drawOffer(
  *  content, loadout); if maxHp rose, heal by the rise (hp never above maxHp). heal: hp += 30% maxHp (capped).
  *  gold: returns { gold: 25 }. Every other card returns { gold: 0 }. */
 export function applyCard(player: Player, card: Card, content: Content, loadout?: Loadout): { gold: number } {
-  if (card.kind === 'bread') {
+  if (card.kind === 'evolve') {
+    const def = content.breads[card.id as BreadId];
+    if (!def || !evolutionReady(player, def, content)) return { gold: 0 };
+    const owned = player.breads.find(b => b.id === def.evolvedFrom!.bread)!;
+    Object.assign(owned, { id: def.id, level: 1, volleyLeft: 0, volleyT: 0, casts: 0 });
+  } else if (card.kind === 'bread') {
     const owned = player.breads.find((b) => b.id === card.id);
     if (owned) owned.level = card.level;
     else player.breads.push({ id: card.id as BreadId, level: 1, cd: 0, volleyLeft: 0, volleyT: 0 });

@@ -204,7 +204,12 @@ function throwMembers(c: Ctx, def: BreadDef, st: BreadStats, m0: number, members
 /** First shot of a throw. Volley members after the first follow every volleyGap (see continueVolley). */
 function tryFire(c: Ctx, b: OwnedBread, def: BreadDef, st: BreadStats): boolean {
   const together = st.volleyGap <= 0 ? Math.max(1, st.count) : 1;
+  const first = c.w.projectiles.length;
   if (!throwMembers(c, def, st, 0, together)) return false;
+  if (st.critEvery) {
+    b.casts = (b.casts ?? 0) + 1;
+    if (b.casts % st.critEvery === 0) for (let i = first; i < c.w.projectiles.length; i++) c.w.projectiles[i].guaranteedCrit = true;
+  }
   if (st.volleyGap > 0 && st.count > 1) {
     b.volleyLeft = st.count - 1;
     b.volleyT = st.volleyGap;

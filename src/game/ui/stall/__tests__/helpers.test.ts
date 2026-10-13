@@ -8,7 +8,7 @@ import { LEVEL_THRESHOLDS, UNLOCK_TABLE, unlocksForXp } from '@/meta/stall';
 import { STREAK_REWARDS } from '@/meta/streak';
 import { RARITIES, type SaveV2 } from '@/meta/types';
 
-import { chestArt, giftLabel, HOTSPOTS, mergeCandidates, mergeGear, newUnlocks, PANELS, pityLines, progress, rackItems, readyBadges, statLines, titleCase, unlockLevel, UNLOCK_NAMES } from '../helpers';
+import { chestArt, evolutionRecipes, giftLabel, HOTSPOTS, mergeCandidates, mergeGear, newUnlocks, PANELS, pityLines, progress, rackItems, readyBadges, statLines, titleCase, unlockLevel, UNLOCK_NAMES } from '../helpers';
 
 const NOW = new Date('2026-10-12T04:00:00Z');
 const veteran = (): SaveV2 => ({ ...freshSaveV2(), stallXp: 3900, unlocks: unlocksForXp(3900), idle: { lastCollectedAt: NOW.toISOString() } });
@@ -162,5 +162,22 @@ describe('badges on the hub props', () => {
     expect(readyBadges({ ...owned, equipped: { towel: towel.uid } }, NOW).gear).toBeUndefined();
     expect(readyBadges({ ...owned, pendingChests: [towel.uid] }, NOW).gear).toBeUndefined();
     expect(readyBadges({ ...owned, unlocks: {} }, NOW).gear).toBeUndefined();
+  });
+});
+
+describe('evolution recipe book', () => {
+  it('lists eight recipes, marking only available ingredient pairs known', () => {
+    const save = freshSaveV2();
+    const recipes = evolutionRecipes(save);
+    expect(recipes).toHaveLength(8);
+    expect(recipes.filter(r => r.known).map(r => r.id)).toEqual(['thosai-typhoon']);
+    save.stallXp = 150;
+    expect(evolutionRecipes(save).find(r => r.id === 'tarik-lance')).toMatchObject({ known: true, needs: 'Tissue Lv 5 + Teh Tarik Lv 5' });
+    save.unlockedDips = ['ghee'];
+    expect(evolutionRecipes(save).find(r => r.id === 'golden-ghee-chakra')?.known).toBe(true);
+    expect(evolutionRecipes(save).find(r => r.id === 'tandoor-meteor')?.known).toBe(false);
+    save.unlockedBreads = ['naan']; save.unlockedDips.push('mutton-curry');
+    expect(evolutionRecipes(save).find(r => r.id === 'tandoor-meteor')).toMatchObject({ known: true, sprite: 'evolutions/tandoor-meteor' });
+    expect(evolutionRecipes(save).find(r => r.id === 'thosai-typhoon')?.needs).toContain('Lv 5 + Fast Flip Lv 5');
   });
 });

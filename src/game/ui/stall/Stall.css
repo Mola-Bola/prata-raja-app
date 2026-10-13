@@ -683,3 +683,20 @@
     transform: none;
   }
 }
+
+.sh-recipes {
+  display: grid;
+  gap: 10px;
+}
+
+.sh-chapter {
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.sh-chapter img {
+  width: 60px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
+}

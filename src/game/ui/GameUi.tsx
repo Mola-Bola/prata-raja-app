@@ -13,6 +13,7 @@ import { brandWords } from '@/brand';
 import { CONTENT } from '@/content';
 import { makeRng } from '@/core/rng';
 import type { Card, RunResult } from '@/core/types';
+import { chapterUnlocked } from '@/meta/chapters';
 import { computeLoadout } from '@/meta/loadout';
 import { applyRunResult } from '@/meta/runRewards';
 import type { SaveV2 } from '@/meta/types';
@@ -50,6 +51,7 @@ function buzz(bridge: UiBridge, on: boolean, kind: HapticKind): void {
 }
 
 export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
+  const chapter = useRef(CONTENT.chapters[0].id);
   const [screen, setScreen] = useState<Screen>('title');
   const [runId, setRunId] = useState(0);
   const [offer, setOffer] = useState<Offer | null>(null);
@@ -138,9 +140,12 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
   const toggle = (key: SettingKey) => store.commit(toggleSetting(key));
 
   /** A fresh run with whatever the stall holds right now (the newest save, so a purchase a moment ago counts). */
-  const start = () => {
+  const start = (chapterId = chapter.current) => {
     const cur = store.current;
-    if (cur) hub.controls?.start(newSeed(), computeLoadout(cur, CONTENT));
+    if (cur) {
+      chapter.current = chapterUnlocked(cur, chapterId) ? chapterId : CONTENT.chapters[0].id;
+      hub.controls?.start(newSeed(), computeLoadout(cur, CONTENT), chapter.current);
+    }
   };
   const pause = () => {
     setPaused(true);
@@ -213,7 +218,7 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
           onToggle={toggle}
         />
       )}
-      {screen === 'results' && ended && <Results ended={ended} onAgain={start} onStall={toStall} />}
+      {screen === 'results' && ended && <Results ended={ended} onAgain={() => start()} onStall={toStall} />}
       <FeedbackLayer hub={hub} screen={screen} /> {/* [feedback hook] */}
     </div>
   );
@@ -390,7 +395,7 @@ function CardButton({ card, index, onPick }: { card: Card; index: number; onPick
       <span className="gu-card-text">
         <span className="gu-card-name">{v.name}</span>
         {v.badge && (
-          <span className={v.badge === 'NEW' ? 'gu-badge' : 'gu-pips'} aria-hidden="true">
+          <span className={v.badge === 'NEW' || v.badge === 'EVOLVE' ? 'gu-badge' : 'gu-pips'} aria-hidden="true">
             {v.badge}
           </span>
         )}

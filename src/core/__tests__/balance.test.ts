@@ -3,7 +3,13 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../../content';
 import { autoInput, autoPick, simulateRun, type BotOptions } from '../autoplay';
 import { chooseCard, createRun, drainEvents, step } from '../sim';
-import type { RunResult } from '../types';
+import { computeLoadout } from '../../meta/loadout';
+import { freshSaveV2 } from '../../meta/migrate';
+import { rollItem } from '../../meta/gear';
+import { unlocksForXp } from '../../meta/stall';
+import { SLOTS } from '../../meta/types';
+import { makeRng } from '../rng';
+import type { Loadout, RunResult } from '../types';
 
 /** BALANCE_SEEDS=300 gives the full measurement; the default stays quick. BALANCE_FIRST_SEED=301 runs a holdout range. */
 const SEED_COUNT = Number(process.env.BALANCE_SEEDS ?? 20);
@@ -56,6 +62,7 @@ function measureRun(seed: number, maxBreads: number): Measured {
   }
   const p = world.player;
   const result: RunResult = world.result ?? {
+    chapterId: world.chapter.id, bossAttempted: world.bossAttempted ?? false,
     won: false, wave: world.wave, kills: world.kills, bossKills: world.bossKills, time: world.time, level: p.level, gold: Math.round(world.gold),
     breads: p.breads.map((b) => ({ ...b })), dips: p.dips.map((d) => ({ ...d })),
   };
@@ -91,6 +98,43 @@ describe(`balance (autoplay bot, real content, seeds ${FIRST_SEED}..${FIRST_SEED
       expect(rate, name).toBeLessThanOrEqual(max);
       expect(bossSeconds, name).toBeGreaterThanOrEqual(30);
       expect(bossSeconds, name).toBeLessThanOrEqual(40);
+    }
+  }, 600_000);
+});
+
+function boostedLoadout(): Loadout {
+  const save = freshSaveV2();
+  save.stallXp = 1800;
+  save.unlocks = unlocksForXp(save.stallXp);
+  save.training = { wrist: 2, stamina: 2, flip: 2 };
+  const rng = makeRng(42);
+  for (const slot of SLOTS) {
+    const item = rollItem(rng, { slot, rarity: 'rare' });
+    save.inventory.push(item);
+    save.equipped[slot] = item.uid;
+  }
+  return computeLoadout(save, CONTENT);
+}
+
+describe('chapter 2 balance (two training steps each, Rare gear, S2 pools)', () => {
+  it('finishes and reports boosted four-bread, two-bread and solo win rates', () => {
+    const loadout = boostedLoadout();
+    const lines = ['| chapter | breads | wins / seeds | win rate | median wave |', '|---|---|---|---|---|'];
+    const rates: { maxBreads: number; rate: number }[] = [];
+    for (const maxBreads of [4, 2, 1]) {
+      const results = SEEDS.map(seed => simulateRun({ seed, content: CONTENT, chapterId: 'hawker-night', loadout, maxBreads, maxTime: MAX_TIME }));
+      for (const result of results) expect(result.time).toBeLessThan(MAX_TIME);
+      const wins = results.filter(r => r.won).length;
+      const rate = wins / SEED_COUNT;
+      lines.push(`| hawker-night | ${maxBreads} | ${wins} / ${SEED_COUNT} | ${(rate * 100).toFixed(1)}% | ${median(results.map(r => r.wave))} |`);
+      rates.push({ maxBreads, rate });
+    }
+    console.log(lines.join('\n'));
+    if (process.env.BALANCE_REPORT) writeFileSync(`${process.env.BALANCE_REPORT}.chapter2`, lines.join('\n') + '\n');
+    if (SEED_COUNT >= 300 && FIRST_SEED === 1) for (const { maxBreads, rate } of rates) {
+      if (maxBreads === 2) continue; // Chapter 2 has target bands for four breads and solo only.
+      expect(rate).toBeGreaterThanOrEqual(maxBreads === 4 ? .45 : .10);
+      expect(rate).toBeLessThanOrEqual(maxBreads === 4 ? .65 : .25);
     }
   }, 600_000);
 });

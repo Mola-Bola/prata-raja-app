@@ -19,6 +19,11 @@ export type RunRewards = {
 export function applyRunResult(save: SaveV2, result: RunResult, rng: Rng, now: Date): { save: SaveV2; rewards: RunRewards } {
   // Every run goes in the records; only one that got past wave 1 pays.
   const records = {
+    bossAttempts: { ...save.bossAttempts,
+      ...((result.bossAttempted ?? result.wave >= 10) ? {
+        [result.chapterId ?? 'kopitiam-street']: (save.bossAttempts[result.chapterId ?? 'kopitiam-street'] ?? 0) + 1,
+      } : {}),
+    },
     bestWave: Math.max(save.bestWave, result.wave), runs: save.runs + 1,
     wins: save.wins + Number(result.won), totalKills: save.totalKills + result.kills,
     lastPlayed: now.toISOString(),

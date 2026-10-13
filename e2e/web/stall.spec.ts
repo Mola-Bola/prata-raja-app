@@ -575,3 +575,58 @@ for (const [w, h, inset] of SCREENS) {
     expect(errors).toEqual([]);
   });
 }
+
+
+test('recipe book shows known and unknown evolutions and cooking persists once', async ({ page }) => {
+  const errors = watch(page);
+  await withSave(page, seed({ stallXp: 1300, unlockedBreads: [], unlockedDips: [], materials: { flour: 10, ghee: 10, egg: 10, onion: 10, spice: 10, sugar: 10, milk: 10 } }));
+  await page.goto('/play');
+  await tid(page, 'ui-start').click();
+  await openSheet(page, 'recipes');
+  await expect(tid(page, 'recipe-book')).toBeVisible();
+  await expect(all(page, 'evolution-recipe')).toHaveCount(8);
+  const chakra = all(page, 'evolution-recipe').filter({ hasText: 'Kosong Lv 5 + Ghee Lv 5' });
+  await expect(chakra).toHaveAttribute('data-known', 'false');
+  await expect(chakra).toContainText('Unknown recipe');
+  await expect(all(page, 'evolution-recipe').filter({ hasText: 'Tarik Lance' })).toHaveAttribute('data-known', 'true');
+  await tid(page, 'cook-rc-ghee').click();
+  await expect(tid(page, 'cook-rc-ghee')).toBeDisabled();
+  await expect(chakra).toContainText('Golden Ghee Chakra');
+  await expect(chakra).toHaveAttribute('data-known', 'true');
+  await expect.poll(async () => (await stored(page)).unlockedDips).toEqual(['ghee']);
+  expect((await stored(page)).materials).toMatchObject({ milk: 6, sugar: 9 });
+  await closeSheet(page);
+  await page.reload();
+  await tid(page, 'ui-start').click();
+  await openSheet(page, 'recipes');
+  await expect(tid(page, 'cook-rc-ghee')).toBeDisabled();
+  await expect(all(page, 'evolution-recipe').filter({ hasText: 'Golden Ghee Chakra' })).toHaveAttribute('data-known', 'true');
+  expect(errors).toEqual([]);
+});
+
+for (const attempts of [2, 3]) {
+  test(`Start daydream uses the chapter gate at ${attempts} boss attempts`, async ({ page }) => {
+    const errors = watch(page);
+    await withSave(page, seed({ bossAttempts: { 'kopitiam-street': attempts } }));
+    await page.goto('/play?seed=3');
+    await tid(page, 'ui-start').click();
+    await tid(page, 'stall-start').click();
+    if (attempts === 3) {
+      await expect(tid(page, 'stall-sheet')).toHaveAttribute('aria-label', 'Choose a chapter');
+      await expect(tid(page, 'chapter-kopitiam-street')).toBeVisible();
+      await tid(page, 'chapter-hawker-night').click();
+    } else {
+      await expect(all(page, 'stall-sheet')).toHaveCount(0);
+    }
+    await page.waitForFunction(() => !!window.__world);
+    const expected = attempts === 3 ? 'hawker-night' : 'kopitiam-street';
+    expect(await page.evaluate(() => window.__world!.chapter.id)).toBe(expected);
+    expect(await page.evaluate(() => window.__world!.chapter.background)).toBe(attempts === 3 ? 'scene/background2' : 'scene/background');
+    // Verify the background texture selected by the renderer as well as the content definition.
+    expect(await page.evaluate(() => {
+      const scene = window.__game!.scene.getScene('RunScene') as unknown as { stall: { bg: { texture: { key: string } } } };
+      return scene.stall.bg.texture.key;
+    })).toBe(attempts === 3 ? 'scene/background2' : 'scene/background');
+    expect(errors).toEqual([]);
+  });
+}

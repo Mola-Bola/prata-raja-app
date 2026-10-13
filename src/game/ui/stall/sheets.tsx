@@ -2,6 +2,8 @@
 // commit(update), which applies a pure src/meta update to the NEWEST save (so a double tap can never act on a stale copy).
 import { useState } from 'react';
 
+import { CONTENT } from '@/content';
+import { canCook, cook, RECIPES, recipeKnown } from '@/meta/recipes';
 import { makeRng } from '@/core/rng';
 import { openChest } from '@/meta/chests';
 import { equipItem, itemStats, RARITY_INFO, upgradeCost, upgradeItem } from '@/meta/gear';
@@ -12,7 +14,7 @@ import { SLOTS, TRAINING_IDS, type GearItem, type SaveV2 } from '@/meta/types';
 
 import { pipText } from '../cardText';
 import { Switch, toggleSetting } from '../settings';
-import { chestArt, giftLabel, mergeCandidates, mergeGear, pityLines, rackItems, statLines, titleCase, unlockLevel } from './helpers';
+import { chestArt, evolutionRecipes, giftLabel, mergeCandidates, mergeGear, pityLines, rackItems, statLines, titleCase, unlockLevel } from './helpers';
 import type { Art } from './StallProgress';
 
 export type Commit = (update: (save: SaveV2) => SaveV2) => void;
@@ -242,14 +244,40 @@ export function ChestsSheet({ save, commit, art }: Ctx) {
   );
 }
 
-export function PreviewSheet({ kind, art }: { kind: 'recipes' | 'special'; art: Art }) {
-  return kind === 'recipes' ? (
-    <>
-      <img className="sh-feature-art" src={art('hub/recipe-book')} alt="" />
-      <p>Coming soon</p>
-      <p>Keep your ingredients for new recipes.</p>
-    </>
-  ) : (
+export function RecipeSheet({ save, commit, art }: Ctx) {
+  return (
+    <div className="sh-recipes" data-testid="recipe-book">
+      <p>Cook foods to add them to your daydreams.</p>
+      {RECIPES.map(recipe => {
+        const def = recipe.unlocks.kind === 'bread' ? CONTENT.breads[recipe.unlocks.id] : CONTENT.dips[recipe.unlocks.id];
+        const owned = recipeKnown(save, recipe);
+        return (
+          <section className="sh-detail" key={recipe.id}>
+            <img className="sh-item-art" src={art(def.sprite)} alt="" />
+            <b>{def.name}</b>
+            <span>{Object.entries(recipe.costs).map(([m, n]) => `${n} ${m} (${save.materials[m as keyof typeof save.materials]})`).join(' · ')}</span>
+            <button type="button" className="gu-btn" data-testid={`cook-${recipe.id}`} disabled={!canCook(save, recipe.id)} onClick={() => commit(s => cook(s, recipe.id))}>
+              {owned ? 'Known recipe' : 'Cook recipe'}
+            </button>
+          </section>
+        );
+      })}
+      <h3 className="gu-heading">Evolutions</h3>
+      <p>Max both foods in a run, then pick Evolve.</p>
+      {evolutionRecipes(save).map(recipe => (
+        <section className="sh-detail" key={recipe.id} data-testid="evolution-recipe" data-known={recipe.known}>
+          <img className="sh-item-art" src={art(recipe.known ? recipe.sprite : 'ui/lock')} alt="" />
+          <b>{recipe.known ? recipe.name : 'Unknown recipe'}</b>
+          <span>{recipe.needs}</span>
+          <span>{recipe.known ? 'Known · ready to evolve in a run' : 'Cook the missing foods first'}</span>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+export function PreviewSheet({ art }: { kind: 'special'; art: Art }) {
+  return (
     <>
       <img className="sh-feature-art sh-preview" src={art('hub/chef-special')} alt="" />
       <p>Coming soon</p>

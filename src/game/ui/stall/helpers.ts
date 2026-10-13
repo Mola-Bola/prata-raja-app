@@ -1,4 +1,6 @@
 // Pure helpers for the stall screens (hub scene, sheets, payout panel): no React, no DOM, so Node tests cover them.
+import { CONTENT } from '@/content';
+import { runPools } from '@/meta/recipes';
 import type { Rng } from '@/core/rng';
 import type { PlayerStats } from '@/core/types';
 import { merge3 } from '@/meta/gear';
@@ -125,4 +127,20 @@ export function readyBadges(save: SaveV2, now: Date): Partial<Record<Panel, stri
     if (SLOTS.some(slot => save.unlocks[slot] && !save.equipped[slot] && rack.some(i => i.slot === slot))) badges.gear = true;
   }
   return badges;
+}
+
+/** A recipe is known once both foods can enter this player's run pool; passives are always available. */
+export function evolutionRecipes(save: SaveV2) {
+  const { breadPool, dipPool } = runPools(save, CONTENT);
+  return Object.values(CONTENT.breads).filter(b => b.evolvedFrom).map(b => {
+    const from = b.evolvedFrom!;
+    const partner = from.partner.kind === 'dip'
+      ? CONTENT.dips[from.partner.id as keyof typeof CONTENT.dips]
+      : CONTENT.passives[from.partner.id as keyof typeof CONTENT.passives];
+    return {
+      id: b.id, name: b.name, sprite: b.sprite,
+      known: breadPool.includes(from.bread) && (from.partner.kind === 'passive' || dipPool.some(id => id === from.partner.id)),
+      needs: `${CONTENT.breads[from.bread].name} Lv 5 + ${partner.name} Lv ${from.partner.kind === 'dip' ? 5 : CONTENT.passives[from.partner.id as keyof typeof CONTENT.passives].maxLevel}`,
+    };
+  });
 }

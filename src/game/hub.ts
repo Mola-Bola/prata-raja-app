@@ -36,7 +36,7 @@ export type HubEvents = {
 
 export type GameControls = {
   /** Start a fresh run (seed defaults to a random one; loadout = stall gear + training bonuses, S2). */
-  start(seed?: number, loadout?: Loadout): void;
+  start(seed?: number, loadout?: Loadout, chapterId?: string): void;
   choose(index: number): void;
   reroll(): void;
   pause(): void;

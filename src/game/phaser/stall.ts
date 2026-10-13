@@ -3,6 +3,7 @@
 // breathing, squash and tilt computed per frame.
 import * as Phaser from 'phaser';
 
+import { CONTENT } from '@/content';
 import type { OwnedBread, OwnedDip, Player, RunPhase } from '@/core/types';
 
 import { ART_COUNTER, COUNTER_LIP_ROWS, counterAt, type Layout } from './layout';
@@ -64,6 +65,10 @@ export class Stall {
       .setOrigin(0.5, 0)
       .setDepth(D.counter);
     this.kannan = addImage(scene, this.cur).setOrigin(0.5, 1).setDepth(D.kannan);
+  }
+
+  setBackground(key: string): void {
+    setImage(this.bg, key);
   }
 
   release(): void {
@@ -196,14 +201,15 @@ export class Stall {
     while (slots.length > n) this.imgs.put((slots.pop() as Slot).img);
     for (let i = 0; i < n; i++) {
       const o = owned[i];
+      const sprite = dir === 'breads' ? CONTENT.breads[(o as OwnedBread).id].sprite : `${dir}/${o.id}`;
       let s = slots[i];
       if (!s) {
-        s = { img: this.imgs.get(`${dir}/${o.id}`).setDepth(D.slot + i), id: o.id, level: o.level, pop: POP_TIME };
+        s = { img: this.imgs.get(sprite).setDepth(D.slot + i), id: o.id, level: o.level, pop: POP_TIME };
         slots.push(s);
         this.place(slots, dir === 'dips');
       } else if (s.id !== o.id) {
         s.id = o.id;
-        setImage(s.img, `${dir}/${o.id}`);
+        setImage(s.img, sprite);
         s.pop = POP_TIME;
         this.place(slots, dir === 'dips');
       } else if (s.level !== o.level) {

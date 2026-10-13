@@ -28,7 +28,7 @@ export const BOSSES: Record<string, BossDef> = {
     name: 'The Burger Baron',
     kind: 'tank',
     sprite: 'bosses/burger-baron',
-    hp: 1400,
+    hp: 2500,
     speed: 40,
     contactDps: 25,
     xp: 78,

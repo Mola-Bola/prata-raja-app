@@ -5,30 +5,32 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
+import { CONTENT } from '@/content';
+import { chapterUnlocked } from '@/meta/chapters';
 import type { SaveV2 } from '@/meta/types';
 
 import { HOTSPOTS, PANELS, readyBadges, unlockLevel, type Panel } from './helpers';
-import { CalendarSheet, ChestsSheet, GearSheet, IdleSheet, PreviewSheet, SettingsSheet, TrainingSheet, type Commit } from './sheets';
+import { CalendarSheet, ChestsSheet, GearSheet, IdleSheet, PreviewSheet, RecipeSheet, SettingsSheet, TrainingSheet, type Commit } from './sheets';
 import { StallProgress, type Art } from './StallProgress';
 import { openFeedback } from '../FeedbackSheet'; // [feedback hook]
 import './Stall.css';
 
 export type { Art } from './StallProgress';
 
-export function StallHub({ save, commit, onStart, art }: { save: SaveV2; commit: Commit; onStart: () => void; art: Art }) {
+export function StallHub({ save, commit, onStart, art }: { save: SaveV2; commit: Commit; onStart: (chapterId: string) => void; art: Art }) {
   // A sheet is a prop's panel, or the settings cog's.
-  const [panel, setPanel] = useState<Panel | 'settings' | null>(null);
+  const [panel, setPanel] = useState<Panel | 'settings' | 'chapters' | null>(null);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(timer);
   }, []);
   const badges = readyBadges(save, now);
-  const open = (id: Panel | 'settings') => {
+  const open = (id: Panel | 'settings' | 'chapters') => {
     setNow(new Date());
     setPanel(id);
   };
-  const spot = panel && panel !== 'settings' ? HOTSPOTS[panel] : null;
+  const spot = panel && panel !== 'settings' && panel !== 'chapters' ? HOTSPOTS[panel] : null;
   const locked = !!spot?.flag && !save.unlocks[spot.flag];
   return (
     <div className="sh-hub" data-testid="stall-hub">
@@ -78,25 +80,35 @@ export function StallHub({ save, commit, onStart, art }: { save: SaveV2; commit:
         </button>
       </header>
       <footer className="sh-footer" inert={!!panel}>
-        <button type="button" className="gu-btn gu-btn--primary gu-btn--wide sh-start" data-testid="stall-start" onClick={onStart}>
+        <button type="button" className="gu-btn gu-btn--primary gu-btn--wide sh-start" data-testid="stall-start" onClick={() => chapterUnlocked(save, 'hawker-night') ? open('chapters') : onStart(CONTENT.chapters[0].id)}>
           Start daydream
         </button>
         <button type="button" className="gu-btn" data-testid="stall-tell" onClick={openFeedback}>
           Tell Kannan
         </button>
       </footer>
+      {panel === 'chapters' && (
+        <Sheet title="Choose a chapter" onClose={() => setPanel(null)}>
+          {CONTENT.chapters.filter(ch => chapterUnlocked(save, ch.id)).map(ch => (
+            <button key={ch.id} type="button" className="gu-btn sh-chapter" data-testid={`chapter-${ch.id}`} onClick={() => onStart(ch.id)}>
+              <img src={art(ch.background)} alt="" />
+              {ch.name}
+            </button>
+          ))}
+        </Sheet>
+      )}
       {panel === 'settings' && (
         <Sheet title="Settings" onClose={() => setPanel(null)}>
           <SettingsSheet save={save} commit={commit} />
         </Sheet>
       )}
-      {panel && panel !== 'settings' && spot && (
+      {panel && panel !== 'settings' && panel !== 'chapters' && spot && (
         <Sheet title={spot.label} onClose={() => setPanel(null)}>
           {locked ? (
             <div className="sh-locked" data-testid="stall-locked">
               <img src={art('ui/lock')} alt="" />
               <p>Unlocks at stall level {unlockLevel(spot.flag!)}</p>
-              {(panel === 'recipes' || panel === 'special') && <PreviewSheet kind={panel} art={art} />}
+              {panel === 'special' && <PreviewSheet kind={panel} art={art} />}
             </div>
           ) : (
             <>
@@ -105,7 +117,8 @@ export function StallHub({ save, commit, onStart, art }: { save: SaveV2; commit:
               {panel === 'idle' && <IdleSheet save={save} commit={commit} art={art} now={now} />}
               {panel === 'calendar' && <CalendarSheet save={save} commit={commit} art={art} now={now} go={setPanel} />}
               {panel === 'chests' && <ChestsSheet save={save} commit={commit} art={art} />}
-              {(panel === 'recipes' || panel === 'special') && <PreviewSheet kind={panel} art={art} />}
+              {panel === 'recipes' && <RecipeSheet save={save} commit={commit} art={art} />}
+              {panel === 'special' && <PreviewSheet kind={panel} art={art} />}
             </>
           )}
         </Sheet>

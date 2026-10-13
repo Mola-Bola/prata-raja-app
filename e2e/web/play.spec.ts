@@ -217,7 +217,7 @@ test('every level-up card line takes three lines at most on a 360 px phone', asy
   const cards = await page.evaluate(() => {
     const c = window.__world!.content;
     const all = [
-      ...Object.keys(c.breads).map((id) => ({ kind: 'bread', id, level: 2 })),
+      ...Object.values(c.breads).map((b) => ({ kind: b.evolvedFrom ? 'evolve' : 'bread', id: b.id, level: b.evolvedFrom ? 1 : 2 })),
       ...Object.keys(c.dips).map((id) => ({ kind: 'dip', id, level: 2 })),
       ...Object.keys(c.passives).map((id) => ({ kind: 'passive', id, level: 2 })),
       { kind: 'heal', id: '', level: 1 },
@@ -225,7 +225,11 @@ test('every level-up card line takes three lines at most on a 360 px phone', asy
     ];
     return all;
   });
-  expect(cards).toHaveLength(36);
+  const expectedCount = await page.evaluate(() => {
+    const c = window.__world!.content;
+    return Object.keys(c.breads).length + Object.keys(c.dips).length + Object.keys(c.passives).length + 2;
+  });
+  expect(cards).toHaveLength(expectedCount);
   const wrapped: string[] = [];
   for (let i = 0; i < cards.length; i += 3) {
     await page.evaluate((offer) => window.__hub!.emit('levelUp', { offer: offer as never, rerolls: 1, level: 2 }), cards.slice(i, i + 3));

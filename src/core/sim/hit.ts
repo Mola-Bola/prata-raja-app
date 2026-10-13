@@ -21,7 +21,7 @@ function stun(c: Ctx, e: Enemy, time: number): void {
  *  (no dips, no crit) and the caller must stop the projectile. The bread's armourPierce share of that hit skips the
  *  shield and goes to hp. Returns true when the shield blocked.
  *  Otherwise: damage (crit roll), stun/knockback from the bread, every owned dip, Kannan's hit-buffs, kill check. */
-export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, shieldable: boolean): boolean {
+export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, shieldable: boolean, guaranteedCrit = false): boolean {
   const { w, p } = c;
   if (shieldable && e.shield > 0) {
     const ap = clamp(st ? st.armourPierce : 0, 0, 1);
@@ -38,11 +38,21 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
     }
     return true;
   }
-  const r = rollHit(dmg, p.stats, mods(c), dmgTakenMul(e), c.rng);
+  const r = rollHit(dmg, guaranteedCrit ? { ...p.stats, critChance: 1 } : p.stats, mods(c), dmgTakenMul(e), c.rng);
   e.hp -= r.dmg;
   e.flash = HIT_FLASH;
   emit(c, { t: 'hit', uid: e.uid, x: e.x, y: e.y, dmg: r.dmg, crit: r.crit, color: null });
   if (st) {
+    if (st.healOnHit) {
+      const hp = Math.min(st.healOnHit, p.stats.maxHp - p.hp);
+      p.hp += hp;
+      if (hp > 0) emit(c, { t: 'heal', hp });
+    }
+    if (st.pull) {
+      const dx = -Math.sign(e.x) * Math.min(Math.abs(e.x), st.pull);
+      e.x += dx;
+      e.cooldowns.bx = (e.cooldowns.bx ?? e.x - dx) + dx;
+    }
     if (st.stun > 0) stun(c, e, st.stun);
     if (st.knockback > 0) e.knock += st.knockback * (e.def.knockbackTaken ?? 1) * (e.boss ? 0.1 : 1);
   }
@@ -61,7 +71,7 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
 
 /** Masala: from the hit enemy the spark hops up to `jumps` times, each time to the nearest enemy within `range`
  *  of the last one it touched. Chain damage never crits. */
-function chain(c: Ctx, src: Enemy, fx: { dmg: number; jumps: number; range: number }, color: string): void {
+export function chain(c: Ctx, src: Enemy, fx: { dmg: number; jumps: number; range: number }, color: string): void {
   const { w, p } = c;
   const points = [{ x: src.x, y: src.y }];
   const hit: Enemy[] = [];

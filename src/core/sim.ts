@@ -61,7 +61,7 @@ export function step(world: World, dt: number, input: RunInput): void {
 /** Every displayed offer counts, including rerolls and queued level-ups. */
 function nextOffer(world: World, rng: Rng): Card[] {
   const history = world.recentOffers ?? [];
-  const offer = drawOffer(world.player, world.content, rng, { recentOffers: history });
+  const offer = drawOffer(world.player, world.content, rng, { ...world.loadout, recentOffers: history });
   world.recentOffers = [...history.slice(-1), offer];
   return offer;
 }
@@ -149,6 +149,7 @@ function spawnRequest(c: Ctx, r: SpawnRequest): void {
   const def = r.boss ? content.bosses[r.enemyId] : content.enemies[r.enemyId];
   if (!def) return;
   spawnEnemy(c, def, r.x, { elite: r.elite, boss: r.boss });
+  if (r.boss) c.w.bossAttempted = true;
   if (r.boss) emit(c, { t: 'bossSpawn', bossId: def.id, name: def.name });
 }
 
@@ -189,6 +190,7 @@ function endRun(c: Ctx, won: boolean): void {
   w.phase = won ? 'won' : 'lost';
   const cleared = won ? w.chapter.waves.length : Math.max(0, w.wave - 1);
   w.result = {
+    chapterId: w.chapter.id, bossAttempted: w.bossAttempted ?? false,
     won, wave: w.wave, kills: w.kills, bossKills: w.bossKills, time: w.time, level: p.level,
     gold: Math.round(w.gold) + 5 * cleared + (won ? 50 : 0),
     breads: p.breads.map((b) => ({ ...b })), dips: p.dips.map((d) => ({ ...d })),

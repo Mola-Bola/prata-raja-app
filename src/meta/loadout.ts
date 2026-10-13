@@ -1,4 +1,5 @@
 import type { Content, Loadout, PlayerStats } from '../core/types';
+import { runPools } from './recipes';
 import { itemStats } from './gear';
 import { trainingStats } from './training';
 import { SLOTS, type SaveV2 } from './types';
@@ -14,5 +15,5 @@ export function computeLoadout(save: SaveV2, content: Content): Loadout {
       stats[key] = (stats[key] ?? 0) + value;
     }
   }
-  return { stats, ...(save.unlocks.secondReroll ? { rerolls: 2 } : {}), ...(content.breads.kosong ? { startBread: content.breads.kosong.id } : {}) };
+  return { stats, ...(save.unlocks.secondReroll ? { rerolls: 2 } : {}), ...runPools(save, content), ...(content.breads.kosong ? { startBread: content.breads.kosong.id } : {}) };
 }
