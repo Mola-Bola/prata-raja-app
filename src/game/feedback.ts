@@ -3,19 +3,19 @@
 // `game-feedback` edge function (supabase/functions/game-feedback), which files the note in public.feedback so
 // `node scripts/feedback.mjs digest` and the Cell runner see it. Keep CHIPS and the limits in step with that function
 // (its test compares them).
+import { brandWords } from '@/brand';
 import type { RunResult } from '@/core/types';
 import { cleanFrom } from './deviceState';
 import type { AppInfo } from './appInfo';
 import type { Hub, HudState } from './hub';
 
-export type Chip = 'bug' | 'idea' | 'balance' | 'art';
-/** The four kinds on the sheet. The server maps them to feedback_kind: bug -> bug, idea -> idea, balance and art -> change
- *  (the chip itself is kept as a tag, so the inbox can still tell them apart). */
+export type Chip = 'direction' | 'bug' | 'feel' | 'idea';
+/** Direction is intent; only the server decides whether this device is the owner. */
 export const CHIPS: readonly { id: Chip; label: string }[] = [
+  { id: 'direction', label: 'Direction' },
   { id: 'bug', label: 'Bug' },
+  { id: 'feel', label: 'Feel' },
   { id: 'idea', label: 'Idea' },
-  { id: 'balance', label: 'Balance' },
-  { id: 'art', label: 'Art' },
 ];
 export const DEFAULT_CHIP: Chip = 'idea';
 export const BODY_MAX = 1000;
@@ -96,6 +96,8 @@ export type NotePayload = {
   id: string;
   /** The anonymous device id (deviceState.ts); the server rate-limits on it. */
   device_id: string;
+  device_secret?: string;
+  screenshot?: string;
   chip: Chip;
   body: string;
   from: string;
@@ -107,6 +109,8 @@ export const NO_INFO: AppInfo = { version: null, updateId: null, runtime: null, 
 export function buildNote(i: {
   id: string;
   deviceId: string;
+  deviceSecret?: string | null;
+  screenshot?: string | null;
   chip: Chip;
   text: string;
   from: string;
@@ -119,6 +123,8 @@ export function buildNote(i: {
   return {
     id: i.id,
     device_id: i.deviceId,
+    ...(i.deviceSecret ? { device_secret: i.deviceSecret } : {}),
+    ...(validScreenshot(i.screenshot) ? { screenshot: i.screenshot! } : {}),
     chip: i.chip,
     body: i.text.trim().slice(0, BODY_MAX),
     from: cleanFrom(i.from),
@@ -150,7 +156,7 @@ const BASE = process.env.EXPO_PUBLIC_SUPABASE_URL;
 /** The edge function's address, from the same public project URL the rest of the app uses ('' when the build has none). */
 export const FEEDBACK_URL = BASE ? `${BASE.replace(/\/+$/, '')}/functions/v1/game-feedback` : '';
 
-export type FailReason = 'offline' | 'busy' | 'rejected' | 'server' | 'unconfigured';
+export type FailReason = 'offline' | 'busy' | 'rejected' | 'server' | 'unconfigured' | 'unavailable';
 export type SendResult = { ok: true; id: string } | { ok: false; reason: FailReason };
 
 export const FAIL_TEXT: Record<FailReason, string> = {
@@ -159,6 +165,7 @@ export const FAIL_TEXT: Record<FailReason, string> = {
   rejected: 'That note didn’t go through. Try shortening it.',
   server: 'Something broke on our side. Try again in a moment.',
   unconfigured: 'Notes aren’t switched on in this build.',
+  unavailable: 'My notes isn’t available on this server yet. You can still send a note.',
 };
 
 /** POST the note. Never throws: every outcome is a SendResult. text/plain keeps it a "simple" request (no CORS preflight). */
@@ -177,7 +184,10 @@ export async function sendNote(
       body: JSON.stringify(note),
       signal: ctrl.signal,
     });
-    if (res.ok) return { ok: true, id: note.id };
+    if (res.ok) {
+      const answer = await res.json().catch(() => null);
+      return answer?.ok === true && answer.id === note.id ? { ok: true, id: note.id } : { ok: false, reason: 'server' };
+    }
     if (res.status === 429) return { ok: false, reason: 'busy' };
     return { ok: false, reason: res.status >= 400 && res.status < 500 ? 'rejected' : 'server' };
   } catch {
@@ -185,6 +195,59 @@ export async function sendNote(
   } finally {
     clearTimeout(timer);
   }
+}
+
+export const SCREENSHOT_MAX = 180 * 1024;
+export function validScreenshot(value: unknown): value is string {
+  if (typeof value !== 'string' || !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(value)) return false;
+  return value.length <= SCREENSHOT_MAX;
+}
+
+export type DevicePair = { device_id: string; device_secret: string };
+export type NoteMessage = { id: string; body: string; author_label: string; created_at: string };
+export type SavedNote = { id: string; body: string; chip: string; status: string; plan: string | null; shipped_in: string | null; created_at: string; messages: NoteMessage[] };
+export type NotesResult = { ok: true; notes: SavedNote[]; owner: boolean } | { ok: false; reason: FailReason };
+type RequestOptions = { url?: string; fetchImpl?: typeof fetch; timeoutMs?: number };
+const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+const text = (v: unknown, max = 10000): v is string => typeof v === 'string' && v.length <= max;
+const nullableText = (v: unknown) => v === null || text(v);
+const message = (v: unknown): v is NoteMessage => record(v) && text(v.id, 100) && text(v.body) && text(v.author_label, 100) && text(v.created_at, 100);
+const savedNote = (v: unknown): v is SavedNote => record(v) && text(v.id, 100) && text(v.body) && text(v.chip, 40) && text(v.status, 40) && nullableText(v.plan) && nullableText(v.shipped_in) && text(v.created_at, 100) && Array.isArray(v.messages) && v.messages.length <= 500 && v.messages.every(message);
+
+async function feedbackAction(body: Record<string, unknown>, opts: RequestOptions): Promise<{ ok: true; data: Record<string, unknown> } | { ok: false; reason: FailReason }> {
+  if (!body.device_id || !body.device_secret) return { ok: false, reason: 'unavailable' };
+  const url = opts.url ?? FEEDBACK_URL;
+  if (!url) return { ok: false, reason: 'unconfigured' };
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 15000);
+  try {
+    const res = await (opts.fetchImpl ?? fetch)(url, { method: 'POST', headers: { 'content-type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(body), signal: ctrl.signal });
+    if (!res.ok) return { ok: false, reason: res.status === 429 ? 'busy' : [400, 404, 405, 501].includes(res.status) ? 'unavailable' : res.status === 401 || res.status === 403 ? 'rejected' : 'server' };
+    const data: unknown = await res.json().catch(() => null);
+    return record(data) && data.ok === true ? { ok: true, data } : { ok: false, reason: 'unavailable' };
+  } catch { return { ok: false, reason: 'offline' }; }
+  finally { clearTimeout(timer); }
+}
+export async function listNotes(pair: DevicePair, opts: RequestOptions = {}): Promise<NotesResult> {
+  const answer = await feedbackAction({ action: 'list', ...pair }, opts);
+  if (!answer.ok) return answer;
+  const { notes, owner } = answer.data;
+  return Array.isArray(notes) && notes.length <= 200 && notes.every(savedNote) && typeof owner === 'boolean' ? { ok: true, notes, owner } : { ok: false, reason: 'unavailable' };
+}
+export async function replyToNote(pair: DevicePair, id: string, messageId: string, body: string, opts: RequestOptions = {}): Promise<SendResult> {
+  const answer = await feedbackAction({ action: 'reply', ...pair, id, message_id: messageId, body: body.trim().slice(0, BODY_MAX) }, opts);
+  if (!answer.ok) return answer;
+  return answer.data.id === id && answer.data.message_id === messageId ? { ok: true, id: messageId } : { ok: false, reason: 'unavailable' };
+}
+export async function pairOwner(pair: DevicePair, code: string, opts: RequestOptions = {}): Promise<{ ok: true; owner: true } | { ok: false; reason: FailReason }> {
+  const answer = await feedbackAction({ action: 'owner', ...pair, code: code.trim() }, opts);
+  if (!answer.ok) return answer;
+  return answer.data.owner === true ? { ok: true, owner: true } : { ok: false, reason: 'rejected' };
+}
+export function noteStatus(note: Pick<SavedNote, 'status' | 'shipped_in'>): string {
+  const labels = brandWords.statusLabels;
+  const known: Record<string, string> = { new: labels.received, needs_info: labels.question, proposed: labels.planReady, approved: labels.planned, in_progress: labels.building, shipped: labels.shipped, done: labels.done, wont_do: labels.not_now, duplicate: labels.merged };
+  return note.shipped_in ? `${brandWords.statusShort.shipped} in ${note.shipped_in}` : known[note.status] ?? 'Status pending';
 }
 
 // ── The sheet's state ────────────────────────────────────────────────────────────────────────────────────────────

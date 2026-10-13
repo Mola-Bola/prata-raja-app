@@ -10,6 +10,8 @@ import { useCallback, useEffect, useReducer, useRef, useState, useSyncExternalSt
 import { brandWords } from '@/brand';
 import { uuid } from '@/data/bytes';
 
+import { captureGame } from '../capture';
+import { FeedbackNotes } from './FeedbackNotes';
 import { device, getInfo, setAnalytics, trackFeedbackSent } from '../telemetry';
 import {
   BODY_MAX,
@@ -19,6 +21,7 @@ import {
   contextLine,
   FAIL_TEXT,
   initialSheet,
+  type NotePayload,
   type RunSnapshot,
   type Screen,
   sendNote,
@@ -33,7 +36,7 @@ const TELL = brandWords.words.tell;
 
 // ── Open / closed, for any caller ────────────────────────────────────────────────────────────────────────────────
 
-type Opened = { screen: Screen; run: RunSnapshot | null };
+type Opened = { screen: Screen; run: RunSnapshot | null; screenshot: string | null };
 let opened: Opened | null = null;
 const subs = new Set<() => void>();
 /** What the layer last saw: where the player is, and the run behind them. Read at the moment the sheet opens. */
@@ -52,7 +55,11 @@ const set = (next: Opened | null) => {
 
 /** Open the note sheet over whatever is on screen. Safe to call from the stall hub or any other screen. */
 export function openFeedback(): void {
-  set({ screen: here.screen, run: here.run() });
+  const next: Opened = { screen: here.screen, run: here.run(), screenshot: null };
+  set(next);
+  void captureGame().then(screenshot => {
+    if (opened === next) set({ ...next, screenshot });
+  }).catch(() => {});
 }
 export function closeFeedback(): void {
   set(null);
@@ -72,7 +79,7 @@ export function FeedbackLayer({ hub, screen }: { hub: Hub; screen: string }) {
       here.run = () => null;
     };
   }, [hub]);
-  return sheet ? <Sheet screen={sheet.screen} run={sheet.run} /> : null;
+  return sheet ? <Sheet {...sheet} /> : null;
 }
 
 /** The "Tell Kannan" button for the pause sheet and the results screen. */
@@ -105,11 +112,19 @@ export function AnalyticsSwitch() {
 
 // ── The sheet ────────────────────────────────────────────────────────────────────────────────────────────────────
 
-function Sheet({ screen, run }: Opened) {
+function Sheet({ screen, run, screenshot }: Opened) {
   const [s, dispatch] = useReducer(sheetReducer, undefined, () => initialSheet(device.get()?.from ?? ''));
   const alive = useRef(true);
-  const [deviceId] = useState(() => device.get()?.id ?? uuid());
+  const identity = useSyncExternalStore(device.subscribe, device.get, () => null);
+  const secretSaved = useSyncExternalStore(device.subscribe, device.secretSaved, () => false);
+  const deviceId = identity?.id ?? '';
+  const [pendingNote, setPendingNote] = useState<NotePayload | null>(null);
+  const [tab, setTab] = useState<'write' | 'notes'>('write');
+  const [notesOpened, setNotesOpened] = useState(false);
+  const [notesBusy, setNotesBusy] = useState(false);
+  const inFlight = useRef(false);
   const sending = s.phase === 'sending';
+  const busy = sending || notesBusy;
 
   useEffect(() => {
     alive.current = true;
@@ -120,25 +135,31 @@ function Sheet({ screen, run }: Opened) {
 
   const close = useCallback(() => closeFeedback(), []);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !sending && close();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !busy && close();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [close, sending]);
+  }, [close, busy]);
   // A note that has gone: say so for a moment, then step out of the way.
   useEffect(() => {
-    if (s.phase !== 'sent') return;
+    if (s.phase !== 'sent' || tab !== 'write') return;
     const t = window.setTimeout(close, 1600);
     return () => window.clearTimeout(t);
-  }, [s.phase, close]);
+  }, [s.phase, close, tab]);
 
-  const preview = buildNote({ id: '', deviceId, chip: s.chip, text: s.text, from: s.from, info: getInfo(), screen, run });
+  const preview = buildNote({ id: '', deviceId, deviceSecret: identity?.secret, screenshot, chip: s.chip, text: s.text, from: s.from, info: getInfo(), screen, run });
+
+  const displayedNote = pendingNote?.id === s.noteId ? pendingNote : preview;
 
   const send = async () => {
-    if (!canSend(s) || sending) return;
+    if (!identity || !canSend(s) || busy || inFlight.current) return;
+    inFlight.current = true;
     const id = s.noteId ?? uuid();
     dispatch({ type: 'send', id });
     device.update({ from: s.from });
-    const result = await sendNote({ ...preview, id });
+    const note = pendingNote?.id === id ? pendingNote : { ...preview, id };
+    setPendingNote(note);
+    const result = await sendNote(note);
+    inFlight.current = false;
     if (!alive.current) return;
     if (result.ok) {
       dispatch({ type: 'sent' });
@@ -153,13 +174,19 @@ function Sheet({ screen, run }: Opened) {
       <section className="gu-sheet fb-sheet" role="dialog" aria-modal="true" aria-label={TELL} data-testid="feedback-sheet">
         <header className="fb-head">
           <h2 className="gu-heading">{TELL}</h2>
-          <button type="button" className="fb-x" aria-label="Close" data-testid="feedback-close" disabled={sending} onClick={close}>
+          <button type="button" className="fb-x" aria-label="Close" data-testid="feedback-close" disabled={busy} onClick={close}>
             ×
           </button>
         </header>
+        <div className="fb-tabs" role="tablist" aria-label="Feedback">
+          <button type="button" className="fb-chip" role="tab" aria-selected={tab === 'write'} disabled={busy} data-testid="feedback-write-tab" onClick={() => setTab('write')}>Write a note</button>
+          <button type="button" className="fb-chip" role="tab" aria-selected={tab === 'notes'} disabled={busy} data-testid="feedback-notes-tab" onClick={() => { setNotesOpened(true); setTab('notes'); }}>My notes</button>
+        </div>
+        {notesOpened && <div hidden={tab !== 'notes'}><FeedbackNotes identity={identity} secretSaved={secretSaved} onBusy={setNotesBusy} /></div>}
+        <div className="fb-compose" hidden={tab !== 'write'}>
         {s.phase === 'sent' ? (
           <p className="fb-status fb-status--ok" role="status" data-testid="feedback-sent">
-            Sent. Thanks, Kannan will read it.
+            Sent. Thanks, Kannan will read it. {s.noteId && <span className="fb-note-reference">Note {s.noteId.slice(-8)}</span>}
           </p>
         ) : (
           <>
@@ -213,8 +240,9 @@ function Sheet({ screen, run }: Opened) {
                 onChange={(e) => dispatch({ type: 'from', from: e.target.value })}
               />
             </label>
+            {!secretSaved && <p className="fb-context">This device hasn’t saved its private note key. You can send a note, but its thread may be unavailable after reloading.</p>}
             <p className="fb-context" data-testid="feedback-context">
-              Goes with it: {contextLine(preview.context)}
+              Goes with it: {contextLine(displayedNote.context)}{displayedNote.screenshot ? ' · game screenshot' : ''}
             </p>
             {s.phase === 'failed' && s.reason && (
               <p className="fb-status fb-status--bad" role="alert" data-testid="feedback-error">
@@ -225,13 +253,14 @@ function Sheet({ screen, run }: Opened) {
               type="button"
               className="gu-btn gu-btn--primary gu-btn--wide"
               data-testid="feedback-send"
-              disabled={!canSend(s) || sending}
+              disabled={!identity || !canSend(s) || sending}
               onClick={() => void send()}
             >
               {sending ? 'Sending…' : s.phase === 'failed' ? 'Retry' : 'Send'}
             </button>
           </>
         )}
+        </div>
       </section>
     </div>
   );
