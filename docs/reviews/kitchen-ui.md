@@ -6,4 +6,4 @@ Setup uses implemented content and chapter waves, including each chapter's actua
 
 Phone layout: a scrollable setup sheet uses 70% of the game height; live controls fold away, with metrics above the visible canvas. Controls have labels, 44px tap targets, focus trapping/return, Escape closure and existing game tokens/fonts. Feedback uses TellButton. Shown damage explicitly includes overkill.
 
-Verification pending final dependency integration: browser tests cover 320px controls and real selected builds, live knobs, repeatable seeds/boss, save invariance through win/loss/restart/quit, and a normal run afterwards. No future quality, tiers, gear or drinks are represented as working.
+Verification: typecheck, focused ESLint, brand lint and diff checks passed against main anchor `cfcc997`. The lead runs the full pinned gate and shared post-ship browser build; no duplicate export was made here. Browser coverage prepared: browser tests cover 320px controls and real selected builds, live knobs, repeatable seeds/boss, save invariance through win/loss/restart/quit, and a normal run afterwards. No future quality, tiers, gear or drinks are represented as working.
