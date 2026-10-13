@@ -79,7 +79,7 @@
   width: 100%;
   border: 3px solid var(--edge);
   border-radius: 16px;
-  background: #fffbf2;
+  background: var(--cream);
   color: var(--ink);
   /* 16px or more, or iOS Safari zooms the page when the field takes focus */
   font: 600 16px/1.35 Nunito, system-ui, sans-serif;
@@ -102,12 +102,12 @@
 
 .fb-text::placeholder,
 .fb-input::placeholder {
-  color: #7a5a3f; /* 5.6:1 on the field */
+  color: var(--ink); /* 5.6:1 on the field */
 }
 
 .fb-text:focus-visible,
 .fb-input:focus-visible {
-  outline: 3px solid #ffd36b;
+  outline: 3px solid var(--orange);
   outline-offset: 2px;
 }
 
@@ -137,7 +137,7 @@
 .fb-context {
   margin: 0;
   font: 600 12px/1.35 Nunito, system-ui, sans-serif;
-  color: #6b4a32; /* 6.5:1 on cream */
+  color: var(--ink); /* 6.5:1 on cream */
 }
 
 .fb-status {
@@ -145,7 +145,7 @@
   padding: 10px 12px;
   border: 2.5px solid var(--edge);
   border-radius: 14px;
-  background: #fffbf2;
+  background: var(--cream);
   font: 700 14px/1.35 Nunito, system-ui, sans-serif;
 }
 
@@ -181,4 +181,22 @@
   min-height: 40px;
   padding: 6px 14px;
   font-size: 15px;
+}
+
+.fb-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fb-chip[aria-selected='true'] { border-color: var(--orange-deep); background: var(--orange); }
+.fb-compose:not([hidden]), .fb-notes, .fb-reply, .fb-pair[open] { display: grid; gap: 12px; }
+.fb-compose[hidden] { display: none; }
+.fb-notes-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.fb-note, .fb-pair { border: 2px solid var(--edge); border-radius: 14px; padding: 12px; }
+.fb-note summary, .fb-pair summary { cursor: pointer; min-height: 44px; font: 700 16px/1.4 Nunito, system-ui, sans-serif; touch-action: manipulation; }
+.fb-note-body { display: block; white-space: pre-wrap; overflow-wrap: anywhere; font: 600 16px/1.4 Nunito, system-ui, sans-serif; }
+.fb-note-status { display: block; font: 800 14px/1.4 Nunito, system-ui, sans-serif; margin-top: 8px; }
+.fb-messages { border-left: 3px solid var(--edge); padding-left: 10px; }
+.fb-sheet .fb-context, .fb-sheet .fb-from { font-size: 14px; }
+
+.fb-note-reference { display: block; font: 600 14px/1.4 Nunito, system-ui, sans-serif; }
+
+@media (max-width: 360px) {
+  .fb-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

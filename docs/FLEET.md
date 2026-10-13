@@ -7,6 +7,7 @@ Prata Raja is built by a **Codex fleet** that runs itself. The owner keeps one *
 ## Roles
 - **Main session (Comms + lead):** the only one that talks to the owner. Turns owner notes (chat + in-game) into ledger rows, sets priorities, spawns and stops worker sessions, merges and ships, reports ~5 lines with what to tap. Model: `gpt-6.1-sol` high for planning/review.
 - **Worker sessions:** `codex exec` in their own worktree (`~/prata-raja-<name>`, branch `sol/<name>`), each may use its own sub-agents. Model by task: Sol medium for builds/integration; cheaper/faster models for content, copy, slicing, research; Sol high for independent reviews. Codex Cloud (Codex is connected to GitHub) for heavy or long jobs so the Mac stays free.
+- **Explicit model selection (owner correction, 13 Oct):** bounded build workers use `gpt-6.1-sol` medium explicitly; do not leave the model unset and inherit Astra from the lead chat. Use Sol high for independent reviews. Preserve existing work when replacing an incorrectly selected worker.
 - **Background verifier:** after every ship, runs the full checks (`check.sh --web`, 300-seed balance, read-only Codex review of the shipped diff) and files any regression as a top ledger row; fix forward with another quick web release.
 
 ## The ledger (single source of truth, prevents overlaps/reversals)

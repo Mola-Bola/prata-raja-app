@@ -17,18 +17,29 @@ describe('cleanFrom', () => {
 
 describe('parseDevice', () => {
   it('reads a stored state', () => {
-    expect(parseDevice(JSON.stringify({ v: 1, id: ID, from: 'Mum', analytics: false }), fresh)).toEqual({ v: 1, id: ID, from: 'Mum', analytics: false });
+    expect(parseDevice(JSON.stringify({ v: 1, id: ID, from: 'Mum', analytics: false }), fresh)).toEqual({ v: 1, id: ID, from: 'Mum', analytics: false, secret: expect.any(String) });
   });
 
   it('starts fresh (analytics on, a new id) when nothing is stored or it is unreadable', () => {
     for (const json of [null, '', '{nope', '[]', '"x"', 'null', '42']) {
-      expect(parseDevice(json, fresh)).toEqual({ v: 1, id: fresh(), from: '', analytics: true });
+      expect(parseDevice(json, fresh)).toEqual({ v: 1, id: fresh(), from: '', analytics: true, secret: expect.any(String) });
     }
   });
 
   it('keeps what it can: a bad id is replaced, a bad name or switch falls back', () => {
-    expect(parseDevice(JSON.stringify({ id: 'not-an-id', from: 7, analytics: 'yes' }), fresh)).toEqual({ v: 1, id: fresh(), from: '', analytics: true });
+    expect(parseDevice(JSON.stringify({ id: 'not-an-id', from: 7, analytics: 'yes' }), fresh)).toEqual({ v: 1, id: fresh(), from: '', analytics: true, secret: expect.any(String) });
     expect(parseDevice(JSON.stringify({ id: ID }), fresh).analytics).toBe(true);
+  });
+
+  it('migrates a stable device ID and keeps the private secret across reloads', () => {
+    const migrated = parseDevice(JSON.stringify({ v: 1, id: ID, from: 'Owner' }));
+    expect(migrated.id).toBe(ID);
+    expect(migrated.secret).toMatch(/^[0-9a-f-]{36}\.[0-9a-f-]{36}$/);
+    expect(parseDevice(JSON.stringify(migrated))).toEqual(migrated);
+    const invalid = parseDevice(JSON.stringify({ ...migrated, secret: 'guessable' }));
+    expect(invalid.id).toBe(ID);
+    expect(invalid.secret).not.toBe('guessable');
+    expect(invalid.secret).not.toBe(migrated.secret);
   });
 
   it('makes a real uuid by default', () => {
@@ -64,7 +75,7 @@ describe('the device store', () => {
     const bridge = io(null);
     const store = createDeviceStore();
     await store.load(bridge, fresh);
-    expect(JSON.parse(bridge.saved[DEVICE_KEY])).toEqual({ v: 1, id: fresh(), from: '', analytics: true });
+    expect(JSON.parse(bridge.saved[DEVICE_KEY])).toEqual({ v: 1, id: fresh(), from: '', analytics: true, secret: expect.any(String) });
   });
 
   it('still works when storage cannot be read (this launch gets its own id)', async () => {
@@ -90,10 +101,25 @@ describe('the device store', () => {
     store.update({ analytics: false });
     store.update({ analytics: false });
     expect(calls).toBe(2);
-    expect(JSON.parse(bridge.saved[DEVICE_KEY])).toEqual({ v: 1, id: fresh(), from: 'Kannan', analytics: false });
+    expect(JSON.parse(bridge.saved[DEVICE_KEY])).toEqual({ v: 1, id: fresh(), from: 'Kannan', analytics: false, secret: expect.any(String) });
     off();
     store.update({ from: 'Other' });
     expect(calls).toBe(2);
+  });
+
+  it('confirms credential persistence before allowing private actions', async () => {
+    const store = createDeviceStore();
+    let finish: (() => void) | undefined;
+    await store.load({ load: async () => null, save: () => new Promise<void>(resolve => { finish = resolve; }) });
+    expect(store.secretSaved()).toBe(false);
+    finish!();
+    await Promise.resolve();
+    expect(store.secretSaved()).toBe(true);
+    const failing = createDeviceStore();
+    await failing.load({ load: async () => null, save: async () => { throw new Error('storage blocked'); } });
+    await Promise.resolve();
+    expect(failing.get()?.secret).toBeTruthy();
+    expect(failing.secretSaved()).toBe(false);
   });
 
   it('ignores updates before it has loaded', () => {
