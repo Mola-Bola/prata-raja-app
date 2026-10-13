@@ -36,16 +36,29 @@ describe('level-up card text', () => {
     expect(view.label).toContain('Evolve Tarik Lance');
   });
 
+  it('names linked bread on the card, including evolved links, within the phone text budget', () => {
+    for (const bread of Object.values(CONTENT.breads)) for (const id of ['fish-curry', 'condensed-milk', 'mint-chutney'] as const) {
+      const view = cardView({ kind: 'dip', id, level: 1, linkedBread: bread.id });
+      expect(view.line).toContain(CONTENT.breads[bread.evolvedFrom?.bread ?? bread.id].name);
+      expect(view.line.length).toBeLessThanOrEqual(MAX_CHARS);
+      expect(view.label).toContain(`Linked to ${CONTENT.breads[bread.evolvedFrom?.bread ?? bread.id].name};`);
+      expect(view.line).toMatch(/^Linked to /);
+    }
+    expect(cardView({ kind: 'dip', id: 'fish-curry', level: 1, linkedBread: 'murtabak' }).line).toBe('Linked to Murtabak');
+  });
+
   it('keeps dip effects beside their scope, including upgrades and evolved links, within the phone text budget', () => {
     for (const bread of Object.values(CONTENT.breads)) for (const id of ['fish-curry', 'condensed-milk', 'mint-chutney'] as const) {
       for (const level of [1, 3]) {
         const global = cardView({ kind: 'dip', id, level });
         const view = cardView({ kind: 'dip', id, level, linkedBread: bread.id });
-        expect(view.line).toBe(global.line);
+        expect(view.effect).toBe(global.line);
+        expect(view.effect!.length).toBeLessThanOrEqual(MAX_CHARS);
+        expect(words(view.effect!)).toBeLessThanOrEqual(8);
         expect(view.scope).toBe(`Linked to ${CONTENT.breads[bread.evolvedFrom?.bread ?? bread.id].name}`);
         expect(view.scope!.length).toBeLessThanOrEqual(MAX_CHARS);
         expect(words(view.scope!)).toBeLessThanOrEqual(8);
-        expect(view.label).toContain(view.line);
+        expect(view.label).toContain(view.effect!);
         expect(view.label).toContain(`${view.scope};`);
         expect(view.label).toContain('on this bread only');
         expect(view.badge).toBe(global.badge);
@@ -57,7 +70,7 @@ describe('level-up card text', () => {
     for (const id of Object.keys(CONTENT.dips)) {
       const view = cardView(card('dip', id));
       expect(view.scope).toBe('All breads');
-      expect(view.label).toContain('Applies to all breads.');
+      expect(view.label).toBe(`${view.name}, new. ${view.line}`);
     }
     for (const kind of ['bread', 'evolve', 'passive', 'heal', 'gold'] as const) {
       const id = kind === 'bread' ? 'kosong' : kind === 'evolve' ? 'tarik-lance' : kind === 'passive' ? 'extra-dough' : '';

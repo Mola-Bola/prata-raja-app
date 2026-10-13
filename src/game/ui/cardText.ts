@@ -57,6 +57,8 @@ export type CardFrame = 'ui/card' | 'ui/card-rare' | 'ui/card-epic';
 export type CardView = {
   name: string;
   line: string;
+  /** Linked dip effects are rendered beside their original link line. */
+  effect?: string;
   /** Dips affect every bread unless linked to one. Keep this separate from their effect. */
   scope?: string;
   /** Spoken label for the card button. */
@@ -92,11 +94,11 @@ export function cardView(card: Card): CardView {
     case 'dip': {
       const d = CONTENT.dips[card.id as DipId];
       const view = item(d.name, DIP_LINES[d.id], d.sprite, 'ui/card-epic', card.level, d.levels.length);
-      if (!card.linkedBread) return { ...view, scope: 'All breads', label: `${view.label}. Applies to all breads.` };
+      if (!card.linkedBread) return { ...view, scope: 'All breads' };
       const linked = CONTENT.breads[card.linkedBread];
       const name = CONTENT.breads[linked.evolvedFrom?.bread ?? linked.id].name;
       const scope = `Linked to ${name}`;
-      return { ...view, scope, label: `${view.label}. ${scope}; ${d.id === 'condensed-milk' ? 'longer Sticky and Sugar Crash' : d.id === 'mint-chutney' ? 'longer chill and freeze' : 'stronger burn'} on this bread only.` };
+      return { ...view, effect: view.line, line: scope.length <= 25 ? scope : `Link: ${name}`, scope, label: `${view.label}. Linked to ${name}; ${d.id === 'condensed-milk' ? 'longer Sticky and Sugar Crash' : d.id === 'mint-chutney' ? 'longer chill and freeze' : 'stronger burn'} on this bread only.` };
     }
     case 'passive': {
       const d = CONTENT.passives[card.id as PassiveId];

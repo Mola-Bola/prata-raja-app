@@ -410,7 +410,7 @@ function CardButton({ card, index, onPick }: { card: Card; index: number; onPick
             {v.badge}
           </span>
         )}
-        <span className="gu-card-line">{v.line}</span>
+        <span className="gu-card-line">{v.effect ?? v.line}</span>
         {v.scope && <span className="gu-card-scope">{v.scope}</span>}
       </span>
     </button>
