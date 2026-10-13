@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { DEFAULT_KITCHEN_TUNING } from '@/core/kitchen';
 import type { OwnedBread, OwnedDip, RunResult } from '@/core/types';
 
 import type { AppInfo } from '../appInfo';
@@ -96,6 +97,14 @@ describe('contextLine', () => {
 describe('toScreen', () => {
   it('names the stall hub "hub" and anything unknown the title', () => {
     expect(['title', 'stall', 'run', 'results', 'hub', 'weird'].map(toScreen)).toEqual(['title', 'hub', 'run', 'results', 'hub', 'title']);
+  });
+});
+
+describe('kitchen note context', () => {
+  it('reports the sandbox screen, wave and chosen build in the sent payload', () => {
+    const note = build({ screen: toScreen('kitchen'), run: RUN });
+    expect(note.context).toMatchObject({ screen: 'kitchen', wave: 7, seed: 77, breads: ['kosong:2'], dips: ['fish-curry:1'] });
+    expect(contextLine(note.context)).toBe('v0.1.1 · kitchen, wave 7 · Lv 4 · android 14');
   });
 });
 
@@ -213,6 +222,44 @@ describe('trackRun (what run a note is about)', () => {
     boss: null,
     breads: [{ id: 'kosong', level: 2 }],
     dips: [{ id: 'fish-curry', level: 1 }],
+  });
+
+  const kitchenStats = (wave: number) => ({ time: 12, wave, phase: 'wave' as const, hp: 50, maxHp: 100,
+    kills: 3, damageShown: 200, damageShownPerSecond: 200 / 12, tuning: { ...DEFAULT_KITCHEN_TUNING } });
+
+  it('replaces production context with the kitchen lifecycle and keeps its final HUD build', () => {
+    const hub = createHub();
+    const t = trackRun(hub);
+    hub.emit('runStart', { seed: 99 });
+    hub.emit('runEnd', { won: false, wave: 5, kills: 30, bossKills: 0, time: 90, level: 4, gold: 12, breads, dips });
+    hub.emit('kitchenStart', { seed: 456, tuning: { ...DEFAULT_KITCHEN_TUNING } });
+    expect(t.read()).toEqual({ seed: 456, wave: 0, level: 1, breads: [], dips: [], over: false });
+    hub.emit('kitchenStats', kitchenStats(8));
+    expect(t.read()).toMatchObject({ seed: 456, wave: 8, over: false });
+    hub.emit('hud', { ...hud(8, 1), breads: [{ id: 'inferno-bomb', level: 1 }], dips: [{ id: 'mint-chutney', level: 5 }] });
+    hub.emit('kitchenEnd', { reason: 'lost', stats: { ...kitchenStats(9), phase: 'lost' } });
+    expect(t.read()).toEqual({ seed: 456, wave: 9, level: 1, breads: ['inferno-bomb:1'], dips: ['mint-chutney:5'], over: true });
+    expect(build({ screen: 'kitchen', run: t.read() }).context).toMatchObject({ screen: 'kitchen', seed: 456, wave: 9, breads: ['inferno-bomb:1'], dips: ['mint-chutney:5'] });
+    hub.emit('kitchenEnd', { reason: 'stopped', stats: { ...kitchenStats(9), phase: 'lost' } });
+    expect(t.read()).toBeNull();
+    hub.emit('runStart', { seed: 100 });
+    expect(t.read()).toEqual({ seed: 100, wave: 0, level: 1, breads: [], dips: [], over: false });
+    t.stop();
+  });
+
+  it('clears a stopped kitchen and unsubscribes from every kitchen event', () => {
+    const hub = createHub();
+    const t = trackRun(hub);
+    hub.emit('kitchenStart', { seed: 77, tuning: { ...DEFAULT_KITCHEN_TUNING } });
+    hub.emit('hud', hud(4, 1));
+    hub.emit('kitchenEnd', { reason: 'stopped', stats: kitchenStats(4) });
+    expect(t.read()).toBeNull();
+    t.stop();
+    hub.emit('kitchenStart', { seed: 88, tuning: { ...DEFAULT_KITCHEN_TUNING } });
+    hub.emit('kitchenStats', kitchenStats(8));
+    hub.emit('hud', hud(8, 1));
+    hub.emit('kitchenEnd', { reason: 'won', stats: { ...kitchenStats(8), phase: 'won' } });
+    expect(t.read()).toBeNull();
   });
 
   it('knows nothing before a run, then follows the hud, then the result', () => {
