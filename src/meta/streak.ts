@@ -3,8 +3,8 @@ import { rollChest } from './chests';
 import { MATERIALS, type GearItem, type Material, type SaveV2 } from './types';
 
 export const STREAK_REWARDS = [
-  { gold: 50 }, { reroll: 1 }, { materialCount: 1 }, { gold: 80 },
-  { training: 1 }, { materialCount: 2 }, { chest: 'rare' },
+  { gold: 50 }, { gold: 60 }, { materialCount: 1 }, { gold: 80 },
+  { gold: 120 }, { materialCount: 2 }, { chest: 'rare' },
 ] as const;
 const DAY_MS = 86400000;
 const dayNumber = (day: string) => Date.parse(`${day}T00:00:00Z`) / DAY_MS;
@@ -12,8 +12,8 @@ const dayString = (day: number) => new Date(day * DAY_MS).toISOString().slice(0,
 
 /** Offset is minutes east of UTC (Sydney +600), not Date.getTimezoneOffset(). */
 export function claim(save: SaveV2, now: Date, tzOffsetMinutes: number) {
-  const rewards: { day: number; gold: number; reroll: number; training: number; materials: Partial<Record<Material, number>>; chest: GearItem | null } = {
-    day: 0, gold: 0, reroll: 0, training: 0, materials: {}, chest: null,
+  const rewards: { day: number; gold: number; materials: Partial<Record<Material, number>>; chest: GearItem | null } = {
+    day: 0, gold: 0, materials: {}, chest: null,
   };
   const localTime = now.getTime() + tzOffsetMinutes * 60000;
   if (!Number.isFinite(localTime) || Math.abs(tzOffsetMinutes) > 840 || Math.abs(localTime) > 8.64e15) return { save, rewards };
@@ -47,8 +47,6 @@ export function claim(save: SaveV2, now: Date, tzOffsetMinutes: number) {
   rewards.day = day;
   const gift = STREAK_REWARDS[day - 1];
   rewards.gold = 'gold' in gift ? gift.gold : 0;
-  rewards.reroll = 'reroll' in gift ? gift.reroll : 0;
-  rewards.training = 'training' in gift ? gift.training : 0;
   // Login rewards replay from their calendar day; callers need no ambient RNG.
   const rng = makeRng(today ^ save.chestPity.opened);
   const materials = { ...save.materials };
@@ -61,9 +59,9 @@ export function claim(save: SaveV2, now: Date, tzOffsetMinutes: number) {
   if (chest) rewards.chest = { ...chest.item, uid: `daily-${dayString(today)}-${chest.pity.opened}-${chest.item.uid}` };
   const next: SaveV2 = {
     ...save, gold: save.gold + rewards.gold, materials,
-    tokens: { reroll: save.tokens.reroll + rewards.reroll, training: save.tokens.training + rewards.training },
     inventory: rewards.chest ? [...save.inventory, rewards.chest] : [...save.inventory],
     chestPity: chest?.pity ?? { ...save.chestPity },
+    pendingChests: rewards.chest ? [...save.pendingChests, rewards.chest.uid] : [...save.pendingChests],
     streak: { day, lastClaimDay: dayString(today), windowStartDay: dayString(anchor + currentWindow * 7), restDaysUsed },
   };
   return { save: next, rewards };

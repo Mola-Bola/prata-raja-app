@@ -1,0 +1,164 @@
+// The stall in the morning: the hub scene (scene/hub.webp) with a tappable spot on each prop, the stall level bar and coins on
+// top, and the big Start button at the bottom. Each spot opens a sheet (sheets.tsx). The scene is drawn at its own 9:16
+// shape from the top of the screen, and the hotspots are percentages of that picture, so they stay on their props on any
+// phone; a taller phone gets the floor extended below it (Stall.css), where the Start button sits.
+import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+
+import type { SaveV2 } from '@/meta/types';
+
+import { HOTSPOTS, PANELS, readyBadges, unlockLevel, type Panel } from './helpers';
+import { CalendarSheet, ChestsSheet, GearSheet, IdleSheet, PreviewSheet, SettingsSheet, TrainingSheet, type Commit } from './sheets';
+import { StallProgress, type Art } from './StallProgress';
+import './Stall.css';
+
+export type { Art } from './StallProgress';
+
+export function StallHub({ save, commit, onStart, art }: { save: SaveV2; commit: Commit; onStart: () => void; art: Art }) {
+  // A sheet is a prop's panel, or the settings cog's.
+  const [panel, setPanel] = useState<Panel | 'settings' | null>(null);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const badges = readyBadges(save, now);
+  const open = (id: Panel | 'settings') => {
+    setNow(new Date());
+    setPanel(id);
+  };
+  const spot = panel && panel !== 'settings' ? HOTSPOTS[panel] : null;
+  const locked = !!spot?.flag && !save.unlocks[spot.flag];
+  return (
+    <div className="sh-hub" data-testid="stall-hub">
+      <div className="sh-scene" data-testid="stall-scene" inert={!!panel}>
+        <img className="sh-art" src={art('scene/hub')} alt="Kannan’s morning stall" draggable={false} />
+        {/* Every tap area first, then every label: a label is never under another prop's area, so its whole pill is tappable. */}
+        {PANELS.map((id) => {
+          const { x, y, w, h } = HOTSPOTS[id].box;
+          return (
+            <button
+              key={id}
+              type="button"
+              className="sh-prop"
+              tabIndex={-1}
+              aria-hidden="true"
+              data-testid={`stall-${id}-prop`}
+              data-ready={badges[id] ? '' : undefined}
+              onClick={() => open(id)}
+              style={{ left: `${x + w / 2}%`, top: `${y + h / 2}%`, width: `${w}%`, height: `${h}%` }}
+            />
+          );
+        })}
+        {PANELS.map((id) => {
+          const s = HOTSPOTS[id];
+          const { x, y, w, h } = s.box;
+          const lock = !!s.flag && !save.unlocks[s.flag];
+          const badge = badges[id];
+          const at = { '--bx': `${x + w / 2}%`, '--by': `${s.pill === 'top' ? y : y + h}%` } as CSSProperties;
+          // The label under a prop is the control a screen reader and a keyboard get.
+          return (
+            <button key={id} type="button" className={`sh-label sh-label--${s.side}`} style={at} data-testid={`stall-${id}`} data-locked={lock || undefined} onClick={() => open(id)}>
+              {lock && <img src={art('ui/lock')} alt="Locked" />}
+              {s.label}
+              {badge && <i className="sh-badge">{badge === true ? '!' : badge}</i>}
+            </button>
+          );
+        })}
+      </div>
+      <header className="sh-top" inert={!!panel}>
+        <StallProgress xp={save.stallXp} art={art} />
+        <span className="sh-coins" data-testid="stall-coins">
+          <img src={art('ui/coins')} alt="Coins" />
+          {save.gold}
+        </span>
+        <button type="button" className="sh-cog" data-testid="stall-settings" aria-label="Settings" onClick={() => open('settings')}>
+          <img src={art('hub/settings')} alt="" />
+        </button>
+      </header>
+      <footer className="sh-footer" inert={!!panel}>
+        <button type="button" className="gu-btn gu-btn--primary gu-btn--wide sh-start" data-testid="stall-start" onClick={onStart}>
+          Start daydream
+        </button>
+      </footer>
+      {panel === 'settings' && (
+        <Sheet title="Settings" onClose={() => setPanel(null)}>
+          <SettingsSheet save={save} commit={commit} />
+        </Sheet>
+      )}
+      {panel && panel !== 'settings' && spot && (
+        <Sheet title={spot.label} onClose={() => setPanel(null)}>
+          {locked ? (
+            <div className="sh-locked" data-testid="stall-locked">
+              <img src={art('ui/lock')} alt="" />
+              <p>Unlocks at stall level {unlockLevel(spot.flag!)}</p>
+              {(panel === 'recipes' || panel === 'special') && <PreviewSheet kind={panel} art={art} />}
+            </div>
+          ) : (
+            <>
+              {panel === 'gear' && <GearSheet save={save} commit={commit} art={art} />}
+              {panel === 'training' && <TrainingSheet save={save} commit={commit} art={art} />}
+              {panel === 'idle' && <IdleSheet save={save} commit={commit} art={art} now={now} />}
+              {panel === 'calendar' && <CalendarSheet save={save} commit={commit} art={art} now={now} go={setPanel} />}
+              {panel === 'chests' && <ChestsSheet save={save} commit={commit} art={art} />}
+              {(panel === 'recipes' || panel === 'special') && <PreviewSheet kind={panel} art={art} />}
+            </>
+          )}
+        </Sheet>
+      )}
+    </div>
+  );
+}
+
+/** A bottom sheet over a dim: Escape or a tap outside closes it, focus moves in and returns, and Tab stays inside. The hub
+ *  behind it is inert while it is open, and focus that falls out of the sheet (the button it was on just disabled itself:
+ *  claiming a gift, spending the last coins) is brought back to the sheet. */
+function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    ref.current?.focus();
+    return () => previous?.focus();
+  }, []);
+  useEffect(() => {
+    const el = ref.current;
+    if (el && !el.contains(document.activeElement)) el.focus({ preventScroll: true });
+  });
+  return (
+    <div className="sh-dim" onClick={onClose}>
+      <section
+        ref={ref}
+        tabIndex={-1}
+        className="gu-sheet sh-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        data-testid="stall-sheet"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClose();
+          if (e.key !== 'Tab') return;
+          const buttons = ref.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)');
+          if (!buttons?.length) return;
+          const first = buttons[0];
+          const last = buttons[buttons.length - 1];
+          if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }}
+      >
+        <header className="sh-sheet-head">
+          <h2 className="gu-heading">{title}</h2>
+          <button type="button" className="gu-btn" data-testid="stall-close" onClick={onClose} aria-label="Close panel">
+            ×
+          </button>
+        </header>
+        {children}
+      </section>
+    </div>
+  );
+}

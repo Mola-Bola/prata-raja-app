@@ -37,5 +37,7 @@ export type SaveV2 = Omit<SaveV1, 'v'> & {
   idle: { lastCollectedAt: string | null };
   chestPity: ChestPity;
   unlocks: Partial<Record<UnlockFlag, boolean>>;
-  tokens: { reroll: number; training: number };
+  /** uids of inventory items still in a closed chest. A chest's item is owned from the moment it is rolled (so a crash can
+   *  never lose it); opening only reveals it, and until then the item stays out of the gear rack. */
+  pendingChests: string[];
 };

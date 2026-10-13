@@ -16,7 +16,7 @@ export function freshSaveV2(): SaveV2 {
     materials: { flour: 0, ghee: 0, egg: 0, onion: 0, spice: 0, sugar: 0, milk: 0 },
     streak: { day: 0, lastClaimDay: null, windowStartDay: null, restDaysUsed: 0 },
     idle: { lastCollectedAt: null }, chestPity: { rare: 0, epic: 0, opened: 0 },
-    unlocks: {}, tokens: { reroll: 0, training: 0 },
+    unlocks: {}, pendingChests: [],
   };
 }
 function parseItem(value: unknown): GearItem | null {
@@ -70,7 +70,10 @@ export function parseSaveV2(json: unknown): SaveV2 {
   save.chestPity = { rare: integer(pity.rare) % 5, epic: integer(pity.epic) % 20, opened: integer(pity.opened) };
   for (const flag of UNLOCK_FLAGS) if (obj(raw.unlocks)[flag] === true) save.unlocks[flag] = true;
   Object.assign(save.unlocks, unlocksForXp(save.stallXp));
-  save.tokens = { reroll: integer(obj(raw.tokens).reroll), training: integer(obj(raw.tokens).training) };
+  // A closed chest must name an item that is still owned; anything else is dropped (the item itself is never lost).
+  if (Array.isArray(raw.pendingChests)) for (const uid of raw.pendingChests) {
+    if (typeof uid === 'string' && seen.has(uid) && !save.pendingChests.includes(uid)) save.pendingChests.push(uid);
+  }
   return save;
   } catch { return fresh; }
 }

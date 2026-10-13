@@ -9,6 +9,9 @@ import { expect, type Page, test } from '@playwright/test';
 test.use({ viewport: { width: 390, height: 844 } });
 
 const tid = (page: Page, id: string) => page.locator(`[data-testid="${id}"]`).filter({ visible: true }).first();
+const all = (page: Page, id: string) => page.locator(`[data-testid="${id}"]`);
+/** The save the game wrote (SaveV2 under the bridge's localStorage key). */
+const stored = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('game:prata-raja/save') ?? 'null'));
 
 /** Collect console errors and page errors; the game must draw a whole run without one. */
 function watch(page: Page): string[] {
@@ -28,10 +31,17 @@ test('title, start, drag, pick a card, pause, quit', async ({ page }) => {
   const errors = watch(page);
   await page.goto('/play');
   await expect(page.locator('canvas')).toBeVisible();
-  // The title screen is the overlay's; Start asks the scene (through the hub) for a run.
+  // The title screen is the overlay's; Start asks the scene (through the hub) for a run. A first launch goes straight into
+  // run 1: no stall in between. No run is live, so the game loop sleeps behind the title (it only costs battery there).
+  await expect(tid(page, 'ui-start')).toHaveText('Start daydream');
+  await page.waitForFunction(() => !!window.__game && !window.__game.loop.running, null, { timeout: 30_000 });
+  // Nothing in the game box can scroll (the canvas used to leave 4 px under itself, and a focus then shifted every screen).
+  expect(await page.evaluate(() => { const r = document.querySelector('[data-testid="game-root"]')!; return r.scrollHeight - r.clientHeight; })).toBe(0);
   await tid(page, 'ui-start').click();
   await page.waitForFunction(() => !!window.__world, null, { timeout: 60_000 });
+  expect(await page.evaluate(() => window.__game!.loop.running)).toBe(true); // the run woke it
   await expect(page.getByText(/Wave 1\/10/)).toBeVisible();
+  await expect(page.locator('[data-testid="stall-hub"]')).toHaveCount(0);
 
   // Drag below the HUD band: Kannan's target follows the finger (field x, 0 at the middle of the screen).
   await page.mouse.move(195, 700);
@@ -58,12 +68,32 @@ test('title, start, drag, pick a card, pause, quit', async ({ page }) => {
   await tid(page, 'ui-resume').click();
   await page.waitForFunction((t) => window.__world!.time > t, t0);
 
-  // Quitting mid-run wakes Kannan early: the results screen shows, and Title goes back to the title.
+  // The Sound switch lives in the save (SaveV2 now), and the save keeps its other fields.
   await tid(page, 'ui-pause').click();
+  await page.getByRole('switch', { name: 'Sound' }).click();
+  await expect.poll(async () => (await stored(page))?.settings.sfx).toBe(false);
+  expect((await stored(page)).v).toBe(2);
+  await page.getByRole('switch', { name: 'Sound' }).click();
+  await expect.poll(async () => (await stored(page))?.settings.sfx).toBe(true);
+
+  // End run wakes Kannan early. This one is still on wave 1, so it is too short to pay: the results say so, nothing is paid
+  // (no coins, XP, chest or ingredients), and the run still counts in the records. Back to stall opens the hub.
   await tid(page, 'ui-quit').click();
   await expect(tid(page, 'ui-again')).toBeVisible();
-  await tid(page, 'ui-title').click();
-  await expect(tid(page, 'ui-start')).toBeVisible();
+  expect(await page.evaluate(() => window.__world!.result!.wave)).toBe(1);
+  await expect(tid(page, 'results-short')).toHaveText('Too short a daydream — no tips this time');
+  await expect(all(page, 'results-coins')).toHaveCount(0);
+  await expect.poll(async () => (await stored(page))?.runs).toBe(1);
+  const short = await stored(page);
+  expect(short).toMatchObject({ gold: 0, stallXp: 0, pendingChests: [], inventory: [], bestWave: 1 });
+  expect(Object.values(short.materials).every((n) => n === 0)).toBe(true);
+  await page.waitForFunction(() => !window.__game!.loop.running); // the wake-up screen covers the canvas: the loop sleeps again
+  await tid(page, 'ui-stall').click();
+  await expect(tid(page, 'stall-hub')).toBeVisible();
+  await expect(tid(page, 'stall-coins')).toHaveText('0');
+  await page.waitForTimeout(300);
+  expect(await stored(page)).toEqual(short); // looking around the stall pays and changes nothing
+  expect(await page.evaluate(() => window.__game!.loop.running)).toBe(false);
   expect(errors).toEqual([]);
 });
 
@@ -126,5 +156,135 @@ test('a bot-played run reaches wave 3 with no console error', async ({ page }) =
   console.log(`actualFps after 10 s: ${fps.toFixed(1)}`);
   test.info().annotations.push({ type: 'fps', description: fps.toFixed(1) });
   expect(await page.evaluate(() => window.__world!.wave)).toBeGreaterThanOrEqual(3);
+  expect(errors).toEqual([]);
+});
+
+/** Save a screenshot for the owner when RUN_SHOTS=1: .spike/<name>.png, shrunk with sips. */
+async function shot(page: Page, name: string): Promise<void> {
+  if (process.env.RUN_SHOTS !== '1') return;
+  const path = `.spike/${name}.png`;
+  await page.screenshot({ path });
+  try {
+    execFileSync('sips', ['-Z', '900', path]);
+  } catch {
+    // not macOS: keep the full-size picture
+  }
+}
+
+for (const [w, h] of [
+  [390, 844],
+  [360, 640],
+  [412, 915],
+] as const) {
+  test(`the title: a wide Start pill near the bottom, the tagline just above it, the hero in view (${w}x${h})`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    const errors = watch(page);
+    await page.goto('/play');
+    await expect(tid(page, 'ui-start')).toBeEnabled();
+    const box = async (sel: string) => (await page.locator(sel).filter({ visible: true }).first().boundingBox())!;
+    const start = await box('[data-testid="ui-start"]');
+    const chip = await box('.gu-splash-foot .gu-chip');
+    const foot = await box('.gu-splash-foot');
+    const logo = await box('.gu-logo');
+    // A wide chunky pill, not the old 240 px round badge: at least 280 px across (never wider than the screen less a gutter), about 70 px
+    // tall, and its bottom a little above the screen's.
+    expect(start.width).toBeGreaterThanOrEqual(Math.min(280, w - 36));
+    expect(start.width).toBeLessThanOrEqual(w - 24);
+    expect(start.height).toBeGreaterThanOrEqual(64);
+    expect(start.height).toBeLessThanOrEqual(90);
+    expect(start.y + start.height).toBeLessThanOrEqual(h - 16);
+    expect(start.y + start.height).toBeGreaterThanOrEqual(h - 60);
+    expect(start.x + start.width / 2).toBeCloseTo(w / 2, 0);
+    // The tagline sits just above it, and everything but that foot (a quarter of a short screen at most) is hero.
+    expect(chip.y + chip.height).toBeLessThanOrEqual(start.y);
+    expect(start.y - (chip.y + chip.height)).toBeLessThanOrEqual(24);
+    expect(foot.y).toBeGreaterThanOrEqual(0.72 * h);
+    expect(logo.y + logo.height).toBeLessThan(0.45 * h);
+    if (w === 390) await shot(page, 's2-title');
+    await tid(page, 'ui-start').click();
+    await page.waitForFunction(() => !!window.__world, null, { timeout: 60_000 });
+    expect(errors).toEqual([]);
+  });
+}
+
+test('every level-up card line takes three lines at most on a 360 px phone', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 640 });
+  const errors = watch(page);
+  await page.goto('/play?seed=3');
+  await tid(page, 'ui-start').click();
+  await page.waitForFunction(() => !!window.__world, null, { timeout: 60_000 });
+  // Every card there is, three at a time, as the level-up sheet shows them.
+  const cards = await page.evaluate(() => {
+    const c = window.__world!.content;
+    const all = [
+      ...Object.keys(c.breads).map((id) => ({ kind: 'bread', id, level: 2 })),
+      ...Object.keys(c.dips).map((id) => ({ kind: 'dip', id, level: 2 })),
+      ...Object.keys(c.passives).map((id) => ({ kind: 'passive', id, level: 2 })),
+      { kind: 'heal', id: '', level: 1 },
+      { kind: 'gold', id: '', level: 1 },
+    ];
+    return all;
+  });
+  expect(cards).toHaveLength(36);
+  const wrapped: string[] = [];
+  for (let i = 0; i < cards.length; i += 3) {
+    await page.evaluate((offer) => window.__hub!.emit('levelUp', { offer: offer as never, rerolls: 1, level: 2 }), cards.slice(i, i + 3));
+    await expect(tid(page, 'ui-card-0')).toBeVisible();
+    await page.waitForTimeout(400); // the cards pop in
+    const rows = await page.evaluate(() =>
+      Array.from(document.querySelectorAll<HTMLElement>('.gu-card')).map((c) => {
+        const line = c.querySelector<HTMLElement>('.gu-card-line')!;
+        return { text: line.textContent ?? '', lines: Math.round(line.getBoundingClientRect().height / parseFloat(getComputedStyle(line).lineHeight)), overflow: c.scrollHeight - c.clientHeight };
+      }),
+    );
+    for (const r of rows) {
+      if (r.lines > 3) wrapped.push(`${r.lines} lines: ${r.text}`);
+      if (r.overflow > 1) wrapped.push(`overflows its card: ${r.text}`);
+    }
+  }
+  expect(wrapped).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test('an enemy biting at the counter shows the danger cue, and every hit flashes the HP pill', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors = watch(page);
+  await page.goto('/play?seed=3');
+  await tid(page, 'ui-start').click();
+  await page.waitForFunction(() => !!window.__world && window.__world.time > 0.5, null, { timeout: 60_000 });
+  const marks = () =>
+    page.evaluate(() => {
+      const scene = window.__game!.scene.getScene('RunScene') as unknown as { children: { list: { type: string; text?: string; visible: boolean }[] } };
+      return scene.children.list.filter((o) => o.type === 'Text' && o.text === '!' && o.visible).length;
+    });
+  expect(await marks()).toBe(0);
+  const pill = page.locator('.gu-hp');
+  await expect(pill).not.toHaveAttribute('data-hit', /./);
+  // A roach at the counter, far to the left of Kannan, chewing on him.
+  await page.evaluate(() => {
+    const w = window.__world!;
+    const def = w.content.enemies.roach ?? Object.values(w.content.enemies)[0];
+    w.enemies.push({
+      uid: w.nextUid++, def, boss: false, elite: false, x: -170, y: 30, hp: 1e6, maxHp: 1e6, shield: 0, statuses: [], state: 'attack',
+      t: 0, age: 0, knock: 0, flash: 0, cooldowns: { bx: -170, ph: 0, _mt: 0 }, phase: 0, holdY: 0,
+    });
+  });
+  await expect.poll(marks, { message: 'the "!" over the biter' }).toBe(1);
+  // Its bites hurt (every half second), and each drop in HP restarts the flash: the two animation names take turns.
+  await expect(pill).toHaveAttribute('data-hit', /^[ab]$/, { timeout: 10_000 });
+  const first = await pill.getAttribute('data-hit');
+  await expect.poll(() => pill.getAttribute('data-hit'), { timeout: 10_000 }).not.toBe(first);
+  const name = await pill.evaluate((el) => getComputedStyle(el).animationName);
+  expect(['gu-hurt-a', 'gu-hurt-b']).toContain(name);
+  // Freeze the flash a moment into it for the picture: the pill red, the glow and the "!" over the biter.
+  await page.addStyleTag({ content: '.gu-hp[data-hit] { animation-play-state: paused !important; animation-delay: -0.05s !important; }' });
+  await page.waitForTimeout(150);
+  await shot(page, 's2-danger');
+  // Gone when it is gone.
+  await page.evaluate(() => {
+    const w = window.__world!;
+    w.enemies.length = 0;
+  });
+  await expect.poll(marks).toBe(0);
   expect(errors).toEqual([]);
 });

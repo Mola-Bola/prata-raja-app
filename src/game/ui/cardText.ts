@@ -1,41 +1,46 @@
 // Level-up card text and art keys: pure data, no React or DOM (the test runs it under Node).
-// Every line is at most 8 words (__tests__/cardText.test.ts). Names and sprites come from CONTENT.
+// Every line is at most 8 words and 25 characters (__tests__/cardText.test.ts). Names and sprites come from CONTENT.
 import { CONTENT } from '@/content';
 import type { BreadId, Card, DipId, PassiveId } from '@/core/types';
 
+/** A card is about 80 px of text wide on a 360 px phone, three to a row: a line wraps every 10 characters or so, so it must stay
+ *  short (words and letters both are capped in __tests__/cardText.test.ts) to take three lines at most. */
 const BREAD_LINES: Record<BreadId, string> = {
-  kosong: 'Spinning prata, ricochets at L3',
-  tissue: 'Pierces through a line of pests',
-  'roti-bomb': 'Lobbed bomb, splash damage',
-  'egg-telur': 'Bursts into fragments on hit',
-  thosai: 'Rolling wave hits a whole row',
+  kosong: 'Spins; ricochets at L3',
+  tissue: 'Pierces a line of pests',
+  'roti-bomb': 'Bomb with big splash',
+  'egg-telur': 'Bursts into bits on hit',
+  thosai: 'Wave hits a whole row',
   chapati: 'Boomerang hits twice',
-  naan: 'Slow lob, big landing blast',
-  'garlic-naan': 'Lingering garlic zone hurts all inside',
-  murtabak: 'Heavy slam: knockback and stun',
-  appam: 'Bounces from pest to pest',
-  idli: 'Quick volley of mini idli',
-  vadai: 'Orbiting vadai guard the counter',
+  naan: 'Slow lob, big blast',
+  'garlic-naan': 'Zone hurts all inside',
+  murtabak: 'Slam: knockback, stun',
+  appam: 'Bounces between pests',
+  idli: 'Volley of mini idli',
+  vadai: 'Orbiting vadai guard you',
 };
 
 const DIP_LINES: Record<DipId, string> = {
   'fish-curry': 'Burns over time',
-  'condensed-milk': 'Slows; 5 stacks = Sugar Crash',
+  'condensed-milk': 'Slows, then Sugar Crash',
   'mint-chutney': 'Chills; 3 chills freeze',
-  masala: 'Sparks jump to nearby pests',
-  'mutton-curry': 'Knockback; foes take more damage',
-  'chicken-curry': 'Hits stack damage; full stacks crit',
-  sambal: 'Burning foes explode on death',
-  'teh-tarik': 'Every 5th hit speeds up throws',
-  ghee: 'Hits spin: faster shots, bigger crits',
-  dhal: 'Heals a little on every kill',
+  masala: 'Sparks jump to pests',
+  'mutton-curry': 'Shoves; foes hurt more',
+  'chicken-curry': 'Stacking damage, crits',
+  sambal: 'Burning foes explode',
+  'teh-tarik': '5th hit speeds throws',
+  ghee: 'Faster shots, big crits',
+  dhal: 'Heals a little per kill',
 };
 
-/** Passives whose CONTENT desc runs past 8 words; the same numbers, shorter words. */
+/** Passives whose CONTENT desc is too long for a card; the same numbers, shorter words. */
 const PASSIVE_LINES: Partial<Record<PassiveId, string>> = {
-  'kopi-break': '+0.3 HP/s regen; heal 5% on level-up',
-  'bigger-tips': '+15% XP; XP flies to the counter',
-  multitasker: 'Throw while moving, 25% rate, +25%/lvl',
+  'extra-dough': '+1 bread, 12° fan',
+  'big-dough': '+10% size and blast',
+  'kopi-break': '+0.3 HP/s; heals on level',
+  'bigger-tips': '+15% XP, auto-collected',
+  multitasker: 'Throw on the move +25%',
+  'second-helping': '+1 revive at half HP',
 };
 
 /** ASSET_URLS keys of the card frames: passives plain, breads rare (gold), dips epic (purple). */
