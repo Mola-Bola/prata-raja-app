@@ -2,6 +2,7 @@
 // that arrives while the sprites are still loading is remembered and happens the moment the scene is ready.
 import * as Phaser from 'phaser';
 
+import type { KitchenConfig } from '@/core/kitchen';
 import type { Loadout } from '@/core/types';
 
 import type { Hub } from '../hub';
@@ -9,6 +10,8 @@ import { loadSprites, makeShadow } from './tex';
 
 export class BootScene extends Phaser.Scene {
   private pending: { seed?: number; loadout?: Loadout; chapterId?: string } | null = null;
+
+  private pendingKitchen: KitchenConfig | null = null;
 
   constructor() {
     super('BootScene');
@@ -20,13 +23,18 @@ export class BootScene extends Phaser.Scene {
       hub.controls = {
         start: (seed, loadout, chapterId) => {
           this.pending = { seed, loadout, chapterId };
+          this.pendingKitchen = null;
         },
+        startKitchen: (config) => { this.pendingKitchen = config; this.pending = null; },
+        tuneKitchen: (tuning) => { if (this.pendingKitchen) this.pendingKitchen = { ...this.pendingKitchen, tuning }; },
+        stopKitchen: () => { this.pendingKitchen = null; },
         choose: () => {},
         reroll: () => {},
         pause: () => {},
         resume: () => {},
         quit: () => {
           this.pending = null;
+          this.pendingKitchen = null;
         },
       };
     }
@@ -38,6 +46,6 @@ export class BootScene extends Phaser.Scene {
 
   create(): void {
     makeShadow(this);
-    this.scene.start('RunScene', { pending: this.pending });
+    this.scene.start('RunScene', { pending: this.pending, pendingKitchen: this.pendingKitchen });
   }
 }

@@ -3,6 +3,7 @@
 // damage, spawns or drops, it only shows them.
 import * as Phaser from 'phaser';
 
+import { applyKitchenTuning, createKitchenRun, DEFAULT_KITCHEN_TUNING, type KitchenConfig, type KitchenTuning } from '@/core/kitchen';
 import { CONTENT } from '@/content';
 import { autoInput, autoPick } from '@/core/autoplay';
 import { SAVE_KEY } from '@/core/save';
@@ -13,7 +14,7 @@ import { parseSaveV2 } from '@/meta/migrate';
 
 import { playSfx, setSfxEnabled, unlockAudio, type SfxName } from '../audio/sfx';
 import type { Bridge, HapticKind } from '../bridgeTypes';
-import type { Hub, HudState } from '../hub';
+import type { Hub, HudState, KitchenStats } from '../hub';
 import { Actors } from './actors';
 import { DangerCue } from './danger';
 import { Fx } from './fx';
@@ -35,14 +36,15 @@ const TAU = Math.PI * 2;
 const hex = (c: string): number => parseInt(c.slice(1), 16);
 
 /** URL switches for tests: ?seed=N fixes the run's seed, ?bot=1 plays by itself (and starts at once), ?speed=N runs the sim N times faster. */
-function readUrl(): { seed: number | null; bot: boolean; speed: number } {
-  if (typeof window === 'undefined') return { seed: null, bot: false, speed: 1 };
+function readUrl(): { seed: number | null; bot: boolean; speed: number; kitchen: boolean } {
+  if (typeof window === 'undefined') return { seed: null, bot: false, speed: 1, kitchen: false };
   const q = new URLSearchParams(window.location.search);
   const seed = q.get('seed');
   const speed = Number(q.get('speed'));
   return {
     seed: seed !== null && Number.isFinite(Number(seed)) ? Number(seed) >>> 0 : null,
     bot: q.get('bot') === '1',
+    kitchen: q.get('kitchen') === '1',
     speed: Number.isFinite(speed) && speed > 0 ? Math.min(speed, 16) : 1,
   };
 }
@@ -65,6 +67,9 @@ export class RunScene extends Phaser.Scene {
 
   private world: World | null = null;
   private paused = false;
+  private kitchenTuning: KitchenTuning | null = null;
+  private damageShown = 0;
+  private bootRequest = 0;
   private levelUpOpen = false;
   /** The run is over (won, lost, or Kannan woke up early): the world stays on screen, frozen, until the next start or quit. */
   private ended = false;
@@ -89,7 +94,7 @@ export class RunScene extends Phaser.Scene {
     super('RunScene');
   }
 
-  create(data: { pending?: { seed?: number; loadout?: Loadout; chapterId?: string } | null }): void {
+  create(data: { pending?: { seed?: number; loadout?: Loadout; chapterId?: string } | null; pendingKitchen?: KitchenConfig | null }): void {
     this.hub = this.registry.get('hub') as Hub;
     this.bridge = this.registry.get('bridge') as Bridge | undefined;
     this.reduceMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -116,6 +121,9 @@ export class RunScene extends Phaser.Scene {
     });
     this.hub.controls = {
       start: (seed, loadout, chapterId) => this.start(seed, loadout, chapterId),
+      startKitchen: (config) => this.startKitchen(config),
+      tuneKitchen: (tuning) => this.tuneKitchen(tuning),
+      stopKitchen: () => this.stopKitchen(),
       choose: (i) => this.choose(i),
       reroll: () => this.rerollOffer(),
       pause: () => this.hold(),
@@ -127,16 +135,18 @@ export class RunScene extends Phaser.Scene {
     };
     this.applySettings();
     // Tests: ?bot=1 starts a self-playing run without anyone tapping the title screen.
-    if (data?.pending) this.start(data.pending.seed, data.pending.loadout, data.pending.chapterId);
-    else if (this.url.bot) this.startBot();
+    if (data?.pendingKitchen) this.startKitchen(data.pendingKitchen);
+    else if (data?.pending) this.start(data.pending.seed, data.pending.loadout, data.pending.chapterId);
+    else if (this.url.bot && !this.url.kitchen) this.startBot();
   }
 
   /** The bot starts a run the way the Start button does: with the gear and training its save holds (none if it cannot be read). */
   private startBot(): void {
     if (!this.bridge) return this.start();
+    const request = ++this.bootRequest;
     this.bridge.load(SAVE_KEY).then(
-      (json) => this.start(undefined, computeLoadout(parseSaveV2(json), CONTENT)),
-      () => this.start(),
+      (json) => { if (request === this.bootRequest) this.start(undefined, computeLoadout(parseSaveV2(json), CONTENT)); },
+      () => { if (request === this.bootRequest) this.start(); },
     );
   }
 
@@ -154,12 +164,55 @@ export class RunScene extends Phaser.Scene {
   // ── Controls (what the React overlay calls) ────────────────────────────────────────────────────────────────
 
   private start(seed?: number, loadout?: Loadout, chapterId?: string): void {
-    // Browsers only let sound start from a tap; this runs inside the Start button's click.
+    const s = this.url.seed ?? seed ?? Math.floor(Math.random() * 0x100000000);
+    this.showWorld(createRun({ seed: s, content: CONTENT, loadout, chapterId }));
+    this.hub.emit('runStart', { seed: s });
+    void this.bridge?.track('run_start', {}).catch(() => {});
+    this.wake();
+  }
+
+  private startKitchen(config: KitchenConfig): void {
+    const world = createKitchenRun(config, CONTENT);
+    const tuning = applyKitchenTuning(world, { ...DEFAULT_KITCHEN_TUNING, ...config.tuning });
+    this.showWorld(world);
+    this.kitchenTuning = tuning;
+    this.hub.emit('kitchenStart', { seed: world.seed, tuning: { ...tuning } });
+    this.publishKitchenStats();
+    this.wake();
+  }
+
+  private tuneKitchen(tuning: KitchenTuning): void {
+    if (!this.world || !this.kitchenTuning) return;
+    this.kitchenTuning = applyKitchenTuning(this.world, tuning);
+    this.publishKitchenStats();
+  }
+
+  private kitchenStats(): KitchenStats | null {
+    const w = this.world, tuning = this.kitchenTuning;
+    if (!w || !tuning) return null;
+    return { time: w.time, wave: w.wave, phase: w.phase, hp: Math.max(0, w.player.hp), maxHp: w.player.stats.maxHp,
+      kills: w.kills, damageShown: this.damageShown, damageShownPerSecond: w.time > 0 ? this.damageShown / w.time : 0,
+      tuning: { ...tuning } };
+  }
+
+  private publishKitchenStats(): void {
+    const stats = this.kitchenStats();
+    if (stats) this.hub.emit('kitchenStats', stats);
+  }
+
+  private stopKitchen(): void {
+    if (!this.kitchenTuning) return;
+    const stats = this.kitchenStats();
+    this.clearWorld();
+    this.paused = false;
+    if (stats) this.hub.emit('kitchenEnd', { reason: 'stopped', stats });
+    this.wake(); // Draw the cleared scene even if the completed run put the loop to sleep.
+  }
+
+  private showWorld(w: World): void {
     unlockAudio();
     this.applySettings();
     this.clearWorld();
-    const s = this.url.seed ?? seed ?? Math.floor(Math.random() * 0x100000000);
-    const w = createRun({ seed: s, content: CONTENT, loadout, chapterId });
     this.stall.setBackground(w.chapter.background);
     this.world = w;
     window.__world = w;
@@ -172,9 +225,6 @@ export class RunScene extends Phaser.Scene {
     this.lastGold = 0;
     this.stall.snapshot(0);
     this.refreshDips();
-    this.hub.emit('runStart', { seed: s });
-    void this.bridge?.track('run_start', {}).catch(() => {});
-    this.wake();
   }
 
   /** Stop the run where it is (the sim does not step, the frame is left as drawn). */
@@ -196,6 +246,7 @@ export class RunScene extends Phaser.Scene {
   /** "Quit to title". A live run ends the way a lost one does (Kannan wakes up early) so it pays out and the results
    *  screen shows it; a run that already ended, or none, just goes back to the idle stall. */
   private quit(): void {
+    if (this.kitchenTuning) { this.stopKitchen(); return; }
     const w = this.world;
     this.paused = false;
     if (w && !this.ended && w.phase !== 'won' && w.phase !== 'lost') {
@@ -227,6 +278,9 @@ export class RunScene extends Phaser.Scene {
   }
 
   private clearWorld(): void {
+    this.bootRequest++;
+    this.kitchenTuning = null;
+    this.damageShown = 0;
     this.world = null;
     this.ended = false;
     this.wokeEarly = false;
@@ -245,7 +299,7 @@ export class RunScene extends Phaser.Scene {
 
   private choose(i: number): void {
     const w = this.world;
-    if (!w || w.phase !== 'levelup') return;
+    if (!w || this.kitchenTuning || w.phase !== 'levelup') return;
     const card = w.offer[i];
     if (!card) return;
     chooseCard(w, i);
@@ -258,7 +312,7 @@ export class RunScene extends Phaser.Scene {
 
   private rerollOffer(): void {
     const w = this.world;
-    if (w && reroll(w)) this.openLevelUp(w);
+    if (w && !this.kitchenTuning && reroll(w)) this.openLevelUp(w);
   }
 
   private openLevelUp(w: World): void {
@@ -320,7 +374,7 @@ export class RunScene extends Phaser.Scene {
     let alpha = 1;
     if (w && !this.ended) {
       alpha = this.stepSim(w, dt);
-      if (w.phase === 'levelup') {
+      if (w.phase === 'levelup' && !this.kitchenTuning) {
         if (this.url.bot) this.choose(autoPick(w));
         else if (!this.levelUpOpen) this.openLevelUp(w);
       }
@@ -386,6 +440,7 @@ export class RunScene extends Phaser.Scene {
         break;
       }
     }
+    this.publishKitchenStats();
     this.hub.emit('hud', {
       wave: w.wave,
       waves: w.chapter.waves.length,
@@ -446,6 +501,7 @@ export class RunScene extends Phaser.Scene {
   private handle(w: World, events: GameEvent[]): void {
     for (let i = 0; i < events.length; i++) {
       const ev = events[i];
+      if (this.kitchenTuning && (ev.t === 'hit' || ev.t === 'dot')) this.damageShown += Math.max(0, ev.dmg);
       switch (ev.t) {
         case 'throw': {
           this.stall.release();
@@ -521,14 +577,14 @@ export class RunScene extends Phaser.Scene {
           this.fx.spawn('fx/levelup-ring', this.stall.chestX, this.stall.feetY, D.fxTop, 0.8, 50 * this.l.u, 230 * this.l.u).add().fade(0.85, 0, 0.3);
           this.sfx('levelUp');
           this.buzz('medium');
-          void this.bridge?.track('level_up', {}).catch(() => {});
+          if (!this.kitchenTuning) void this.bridge?.track('level_up', {}).catch(() => {});
           break;
         case 'waveStart':
           this.hub.emit('waveStart', { wave: ev.wave, waves: ev.total });
           this.sfx('waveStart');
           break;
         case 'bossSpawn':
-          this.hub.emit('boss', { name: ev.name });
+          if (!this.kitchenTuning) this.hub.emit('boss', { name: ev.name });
           this.sfx('bossAppear');
           this.buzz('heavy');
           this.addTrauma(0.35);
@@ -750,9 +806,16 @@ export class RunScene extends Phaser.Scene {
 
   /** Freeze the run on screen and hand its result to the overlay. */
   private endRun(w: World): void {
+    if (this.ended) return;
     this.ended = true;
     this.levelUpOpen = false;
     if (!w.result) return;
+    const stats = this.kitchenStats();
+    if (stats) {
+      this.hub.emit('kitchenStats', stats);
+      this.hub.emit('kitchenEnd', { reason: w.result.won ? 'won' : 'lost', stats });
+      return;
+    }
     void this.bridge?.track('run_end', { wave: w.result.wave, won: w.result.won, kills: w.result.kills, secs: Math.round(w.result.time) }).catch(() => {});
     this.hub.emit('runEnd', w.result);
   }
