@@ -10,8 +10,8 @@ import { ATLASES, FRAME_ATLAS } from '../atlas';
 
 export type Tex = { key: string; frame?: string };
 
-/** Full-screen art that only the React overlay shows (title and wake-up screens, as <img>): keep it out of GPU memory. */
-const DOM_ONLY = new Set(['scene/hero', 'scene/wake']);
+/** Full-screen art that only the React overlay shows (title, wake-up and stall screens, as <img>): keep it out of GPU memory. */
+const DOM_ONLY = new Set(['scene/hero', 'scene/wake', 'scene/hub']);
 
 /** Queue the atlas pages and the loose scene art on the scene's loader (call from preload). */
 export function loadSprites(scene: Phaser.Scene): void {

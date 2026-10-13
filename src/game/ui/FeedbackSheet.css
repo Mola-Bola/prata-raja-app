@@ -169,3 +169,16 @@
 .fb-switch {
   grid-column: 1 / -1;
 }
+
+/* Results: the note button floats in the corner so the payout panel keeps its height. */
+.fb-results-tell {
+  position: absolute;
+  top: max(10px, var(--gu-safe-top, 0px));
+  right: 10px;
+}
+
+.fb-results-tell .gu-btn {
+  min-height: 40px;
+  padding: 6px 14px;
+  font-size: 15px;
+}

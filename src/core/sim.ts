@@ -42,7 +42,7 @@ export function createRun(opts: { seed: number; content: Content; chapterId?: st
   return {
     seed, rngState: seed >>> 0, content, chapter, time: 0, phase: 'intro', wave: 0, waveTime: 0, budgetLeft: 0, spawnClock: 0,
     player, enemies: [], projectiles: [], zones: [], nextUid: 1, kills: 0, bossKills: 0, gold: 0, pendingLevelUps: 0, offer: [],
-    rerolls: 1, events: [], result: null, loadout, contactAcc: 0, contactT: 0,
+    rerolls: loadout?.rerolls ?? 1, events: [], result: null, loadout, contactAcc: 0, contactT: 0,
   };
 }
 

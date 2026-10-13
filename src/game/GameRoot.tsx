@@ -109,6 +109,7 @@ export default function GameRoot({ haptic, save, load, track, insets, info }: Pr
       window.clearInterval(poll);
       hub.controls = null;
       g.destroy(true); // asynchronous: the engine finishes tearing down on its next step
+      g.loop.wake(); // ...and a loop asleep (no run on screen) has no next step, so wake it to finish the job
       if (window.__game === g) delete window.__game;
       if (window.__hub === hub) delete window.__hub;
     };
@@ -141,7 +142,9 @@ export default function GameRoot({ haptic, save, load, track, insets, info }: Pr
         } as CSSProperties),
       }}
     >
-      <div ref={parent} style={{ position: 'absolute', inset: 0 }} />
+      {/* Flex, so the canvas is a block and not a character on a text baseline: an inline canvas leaves 4 px under it, which gave
+          this whole box 4 px of hidden scroll (a focus or scrollIntoView then shifted every screen by 4 px). */}
+      <div ref={parent} style={{ position: 'absolute', inset: 0, display: 'flex', overflow: 'hidden' }} />
       {/* The overlay ignores touches (they go to the game) except on its own buttons. */}
       <GameUi hub={hub} bridge={bridge} />
     </div>

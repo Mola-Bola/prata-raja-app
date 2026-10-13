@@ -65,13 +65,13 @@ export function upgradeCost(item: Pick<GearItem, 'level'>): number {
 }
 export function upgradeItem(save: SaveV2, uid: string): SaveV2 {
   const item = save.inventory.find(i => i.uid === uid);
-  if (!save.unlocks.gear || !item || save.gold < upgradeCost(item) || !Number.isFinite(upgradeCost(item))) return save;
+  if (!save.unlocks.gear || !item || save.pendingChests.includes(uid) || save.gold < upgradeCost(item) || !Number.isFinite(upgradeCost(item))) return save;
   return { ...save, gold: save.gold - upgradeCost(item), inventory: save.inventory.map(i => i.uid === uid ? { ...i, level: i.level + 1 } : i) };
 }
-/** Puts an owned item in its slot, replacing the old one. Locked gear or locked slots are refused. */
+/** Puts an owned item in its slot, replacing the old one. Locked gear, locked slots and items still in a closed chest are refused. */
 export function equipItem(save: SaveV2, uid: string): SaveV2 {
   const item = save.inventory.find(i => i.uid === uid);
-  if (!item || !save.unlocks.gear || !save.unlocks[item.slot]) return save;
+  if (!item || !save.unlocks.gear || !save.unlocks[item.slot] || save.pendingChests.includes(uid) || save.equipped[item.slot] === uid) return save;
   return { ...save, equipped: { ...save.equipped, [item.slot]: uid } };
 }
 export function itemStats(item: GearItem): Partial<PlayerStats> {

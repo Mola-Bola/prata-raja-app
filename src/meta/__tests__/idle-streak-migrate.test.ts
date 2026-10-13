@@ -73,7 +73,7 @@ describe('idle income', () => {
 describe('streak', () => {
   it('starts on day 1 with 50 coins and records the window', () => {
     const { save, rewards } = claimOn(freshSaveV2(), 0);
-    expect(rewards).toMatchObject({ day: 1, gold: 50, reroll: 0, training: 0, chest: null, materials: {} });
+    expect(rewards).toMatchObject({ day: 1, gold: 50, chest: null, materials: {} });
     expect(save.gold).toBe(50);
     expect(save.streak).toEqual({ day: 1, lastClaimDay: dayName(0), windowStartDay: dayName(0), restDaysUsed: 0 });
   });
@@ -86,13 +86,10 @@ describe('streak', () => {
       rewards.push(claimed.rewards);
     }
     expect(rewards.map(r => r.day)).toEqual([1, 2, 3, 4, 5, 6, 7, 1]);
-    expect(rewards.map(r => r.gold)).toEqual([50, 0, 0, 80, 0, 0, 0, 50]);
-    expect(rewards.map(r => r.reroll)).toEqual([0, 1, 0, 0, 0, 0, 0, 0]);
-    expect(rewards.map(r => r.training)).toEqual([0, 0, 0, 0, 1, 0, 0, 0]);
+    expect(rewards.map(r => r.gold)).toEqual([50, 60, 0, 80, 120, 0, 0, 50]); // coins only: nothing here that cannot be spent
     expect(rewards.map(r => Object.values(r.materials).reduce((a, b) => a + b, 0))).toEqual([0, 0, 1, 0, 0, 2, 0, 0]);
     expect(rewards.map(r => r.chest !== null)).toEqual([false, false, false, false, false, false, true, false]);
-    expect(save.gold).toBe(180);
-    expect(save.tokens).toEqual({ reroll: 1, training: 1 });
+    expect(save.gold).toBe(360);
     expect(save.inventory).toHaveLength(1);
   });
   it('day 3 and day 6 add one and two material units to the save', () => {
@@ -181,8 +178,8 @@ describe('streak', () => {
 describe('migrate', () => {
   it('a fresh save has every SaveV2 field and no progress', () => {
     expect(Object.keys(freshSaveV2()).sort()).toEqual([
-      'bestWave', 'chestPity', 'equipped', 'gold', 'idle', 'inventory', 'lastPlayed', 'materials', 'runs',
-      'settings', 'stallXp', 'streak', 'tokens', 'totalKills', 'training', 'unlocks', 'v', 'wins',
+      'bestWave', 'chestPity', 'equipped', 'gold', 'idle', 'inventory', 'lastPlayed', 'materials', 'pendingChests', 'runs',
+      'settings', 'stallXp', 'streak', 'totalKills', 'training', 'unlocks', 'v', 'wins',
     ]);
     expect(freshSaveV2()).toMatchObject({ v: 2, gold: 0, stallXp: 0, inventory: [], equipped: {}, unlocks: {}, training: { wrist: 0, stamina: 0, flip: 0 } });
   });
@@ -196,7 +193,7 @@ describe('migrate', () => {
       '{"v":2,"inventory":[{"uid":"a","baseId":"__proto__","slot":"towel","rarity":"common","level":1,"affixes":[]}]}',
       '{"v":1,"gold":1e400,"lastPlayed":"2026-13-45"}',
       '{"v":2,"stallXp":1e400,"streak":{"day":1e400,"lastClaimDay":"2026-10-05","windowStartDay":"2026-10-05"},"chestPity":{"rare":-1e400}}',
-      '{"v":2,"training":{"wrist":1e400},"materials":{"flour":"inf"},"tokens":null,"idle":[]}',
+      '{"v":2,"training":{"wrist":1e400},"materials":{"flour":"inf"},"idle":[]}',
       '[[[[',
     ];
     for (const json of hostile) {
@@ -225,19 +222,19 @@ describe('migrate', () => {
       training: { wrist: 2, stamina: 0, flip: 5 }, materials: { flour: 3, ghee: 0, egg: 1, onion: 0, spice: 0, sugar: 2, milk: 0 },
       streak: { day: 4, lastClaimDay: dayName(3), windowStartDay: dayName(0), restDaysUsed: 1 },
       idle: { lastCollectedAt: new Date(T + 2 * DAY).toISOString() }, chestPity: { rare: 3, epic: 14, opened: 34 },
-      unlocks: unlocksForXp(1300), tokens: { reroll: 1, training: 2 },
+      unlocks: unlocksForXp(1300),
     };
     expect(parseSaveV2(JSON.stringify(save))).toEqual(save);
   });
   it('recovers each damaged field on its own', () => {
     const raw = {
       ...JSON.parse(JSON.stringify(freshSaveV2())), bestWave: 9, gold: -5, stallXp: 'x', training: { wrist: 99, stamina: -1, flip: 2.9 },
-      materials: { flour: 2.7, ghee: -1 }, chestPity: { rare: 7, epic: 25, opened: -3 }, tokens: { reroll: 'a', training: 3 },
+      materials: { flour: 2.7, ghee: -1 }, chestPity: { rare: 7, epic: 25, opened: -3 },
       idle: { lastCollectedAt: 'not a date' },
     };
     expect(parseSaveV2(JSON.stringify(raw))).toMatchObject({
       gold: 0, stallXp: 0, bestWave: 9, training: { wrist: 5, stamina: 0, flip: 2 }, materials: { flour: 2, ghee: 0, egg: 0 },
-      chestPity: { rare: 2, epic: 5, opened: 0 }, tokens: { reroll: 0, training: 3 }, idle: { lastCollectedAt: null },
+      chestPity: { rare: 2, epic: 5, opened: 0 }, idle: { lastCollectedAt: null },
     });
   });
   it('keeps valid gear and drops only the broken pieces; the first copy of a uid wins', () => {

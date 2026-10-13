@@ -32,6 +32,8 @@ export const D = {
 
 // ── Colours (Okabe-Ito, colourblind safe: docs/research/game-feel.md section 2) ───────────────────────────────
 export const HAZARD = 0xd55e00;
+/** The red of the counter warning: an enemy biting Kannan (danger.ts). */
+export const DANGER = 0xe5372b;
 export const CHILL_TINT = 0x9fd4ff;
 export const FREEZE_TINT = 0xb8e6ff;
 export const ELITE_TINT = 0xffe08a;

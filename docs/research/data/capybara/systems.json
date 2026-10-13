@@ -1,0 +1,38 @@
+{
+ "source": [
+  "https://meowdb.com/db/capybara-go",
+  "https://meowdb.com/db/capybara-go/misc-systems-reference",
+  "https://meowdb.com/db/capybara-go/gem-farming-and-resource-hub",
+  "https://meowdb.com/db/capybara-go/events-reference-guide",
+  "https://meowdb.com/db/capybara-go/gulu-mine-stats",
+  "https://meowdb.com/db/capybara-go/guild-hegemony-guide",
+  "https://meowdb.com/reuse"
+ ],
+ "fetched": "2026-10-12",
+ "site": "MeowDB (NiaMeowDB), a community database. Rebranding to NiaDB announced for late Oct / early Nov 2026; old links said to keep working.",
+ "game_version_seen": "Pages cite Capybara Go v1.8.x (v1.8.4 through v1.8.12 seen).",
+ "core_loop": {"statement":"No single core-loop statement on the source pages. Index sections name the systems: Story and Hard Mode stages; Gulu Mine (unlocks after Story chapter 31); PvP and cross-server (Alien Minefield, Guild Hegemony); Events and Homestead; spending and packs; progression (pets, collectibles, relics, polarization); mechanics (crowd control, DoT, damage caps, tenacity).","source":"https://meowdb.com/db/capybara-go"},
+ "daily_systems": [
+  {"name":"Stamina regeneration","numbers":"Base 60 stamina per 24 h (1 per 24:00). Perky pet talent track reaches +30% at max (78 per 24 h, 18:27 each). Royal Roses awakening track: 90 per 24 h at 5-star; 108 per 24 h (13:20 each) at 5-star awakened max. Page says the table assumes Perky is already applied.","type":"data table (credit: gnocchi, Capy Data Squad)","source":"https://meowdb.com/db/capybara-go/misc-systems-reference","dated":"2026-05-05"},
+  {"name":"Dungeon Dive challenge vouchers","numbers":"2 Challenge Vouchers per day (guide says buy 2 daily). Described as best gem-to-reward ratio in the game.","type":"guide","source":"https://meowdb.com/db/capybara-go/gem-farming-and-resource-hub","dated":"2026-05-05"},
+  {"name":"Free-to-play gem income","numbers":"About 4,000 gems per day, about 27,000 per week.","type":"estimate (MeowDB)","source":"https://meowdb.com/db/capybara-go/gem-farming-and-resource-hub","dated":"2026-05-05"},
+  {"name":"Monthly + Lifetime Pass gem income","numbers":"About 5,000 gems per day, about 35,000 per week.","type":"estimate (MeowDB)","source":"https://meowdb.com/db/capybara-go/gem-farming-and-resource-hub","dated":"2026-05-05"},
+  {"name":"Guru Fund","numbers":"11 brackets of 14 score points. Each bracket costs 2,000 gems and pays 1,400 gold + 150 keys. Full run: 22,000 gems for 15,400 gold + 1,650 keys.","type":"data table","source":"https://meowdb.com/db/capybara-go/misc-systems-reference","dated":"2026-05-05","frequency":"not stated as daily"},
+  {"name":"Growth Events","numbers":"1,000 gems per round x 4 rounds = 4,000 gems per fully cleared Growth Event.","type":"guide","source":"https://meowdb.com/db/capybara-go/gem-farming-and-resource-hub","dated":"2026-05-05"},
+  {"name":"Gulu Mine","numbers":"Unlocks after Story chapter 31; +1 floor per 10 more Story chapters; max 30 floors. Floors 1-7 drop Normal, Fine and Rare gems; floor 8+ adds Mythic chances; floor 11+ adds Immortal chances.","type":"data + guide","source":["https://meowdb.com/db/capybara-go/gem-farming-and-resource-hub","https://meowdb.com/db/capybara-go/gulu-mine-stats"],"dated":"gulu page 2025-10-09; gem guide 2026-05-05"},
+  {"name":"Alien Minefield (PvP window)","numbers":"5-day PvP / cross-server window. Stone points: Quartzite 1, Kyanite 10, Spodumene 200 (1 Spodumene = 200 Quartzites or 20 Kyanites).","type":"data","source":"https://meowdb.com/db/capybara-go/events-reference-guide","dated":"2026-05-05"},
+  {"name":"Fisherman's Journey","numbers":"10-day Fishing Points battle pass. Free track about 1,200 gems + about 500 bait. Paid track adds about 1,000 gems and 3 UP Wish Letters.","type":"data (approximate, as printed)","source":["https://meowdb.com/db/capybara-go/gem-farming-and-resource-hub","https://meowdb.com/db/capybara-go/events-reference-guide"],"dated":"2026-05-05"},
+  {"name":"Joint Archaeology (recurring 5-day carnival)","numbers":"Refreshable daily packs. Daily Best Value $5.99 = 100 gems + 40 Mount Cores + 40 pickaxes + 40 Sunrise Chests.","type":"data","source":["https://meowdb.com/db/capybara-go/gem-farming-and-resource-hub","https://meowdb.com/db/capybara-go/events-reference-guide"],"dated":"2026-05-05"},
+  {"name":"Immortal Peach Garden (annual ~10-day event)","numbers":"Growth timers: Longevity Peach 38 min, Treasure Fruit 4 h, Ginseng Fruit 8 h. Max yield ranges printed as 180-450 and 320-800.","type":"guide","source":["https://meowdb.com/db/capybara-go/gem-farming-and-resource-hub","https://meowdb.com/db/capybara-go/events-reference-guide"],"dated":"2026-05-05"},
+  {"name":"Guild Hegemony dice","numbers":"Guild Hegemony Dice x1,000 for 600 gems; limit 10 per event (v1.8.8 guide).","type":"data","source":"https://meowdb.com/db/capybara-go/guild-hegemony-guide","dated":"2026-05-05"}
+ ],
+ "passive_skills": [
+  {"name":"Spawn of Evil","effect":"At under 50% HP for the first time: gain protection of Spawn of Evil until battle ends. 60% chance to poison on attack."},
+  {"name":"Angel Power","effect":"Battle start: gain protection of Angel for 6 rounds. 60% chance on attack to recover 10% of max HP."}
+ ],
+ "not_captured": [
+  "Story and Hard Mode drop tables and per-stage numbers (large pages; not transcribed)",
+  "Full daily / weekly task list (page names Tasks Daily/Weekly; no numbers in fetched text)"
+ ],
+ "reuse_terms": "meowdb.com/reuse: short excerpts and stat lines may be reused with attribution; copying a whole page, catalog or database requires asking first. Only extracted numbers are stored here, each with its page."
+}
