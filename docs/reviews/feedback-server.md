@@ -25,6 +25,8 @@ Notes retain 6/device/hour and 120/global/hour guards. Replies permit 12/note/ho
 
 Focused mocked handler/logic tests cover cross-device and wrong-secret denial, legacy isolation, ownership retries and uniqueness races, owner spoofing, atomic code reuse, projection without secrets, per-note/global reply and note limits, request size, JPEG validation, storage paths and safe backend errors. They mock the PostgREST boundary, including bulk-insert atomicity; no live database or provider call was made.
 
+`LOGS=/tmp/prata-raja-feedback-server-check SKIP_DB=1 bash scripts/check.sh` passed: typecheck, lint, brand and 811 tests; database tests skipped. Final focused run passed 33 tests. Branch pushed; CI run `38394644102` started normally (pending at handoff).
+
 `deno check --node-modules-dir=none supabase/functions/game-feedback/index.ts` passed. Plain `deno check` initially encountered the shared node_modules version mismatch; disabling node_modules resolution uses Deno's own dependency cache without changing repository dependencies.
 
 Supabase changelog reviewed on 13 October 2026: upcoming CBC TLS deprecation does not change this modern Deno handler API. Reviewed current insert and Edge Function authorization docs. Security checklist: service-role remains server-only; no user metadata authorization; no RLS, view, SECURITY DEFINER or policy change; capability predicates protect each service-role operation; storage uses existing private bucket. Production access, real storage upload and deployment remain for the lead's approved ship path.
