@@ -1,6 +1,9 @@
 # Prata Raja — handoff (rolling; replace the top block when state changes)
 
-## 13 Oct 2026 — live 0.3.0 (runtime 1, OTA + web); lead = Claude Opus desk
+## 13 Oct 2026 — live 0.3.1 (runtime 1, OTA + web); lead = Claude Opus desk
+
+- **0.3.1** (main `551ac82`): prologue comic (first launch, skip, replay in settings), mynah thief + drain rat, story/pest art sliced (report `docs/reviews/prologue-report.md`). e2e 40/40, balance 57/44/23. Accepted review P2: legacy saves with runs=0 may see the skippable comic once.
+- **In flight: 0.4.0 slice 1** on Codex in `~/prata-raja-sig` (branch `sol/signature`): signature bread + one linked dip + spectacular Murtabak + web chunk-404 fix (blank page right after a Pages publish). Brief `/private/tmp/claude-501/pr/sig-brief.md`, log `sig.out`. Lead commits, runs check.sh --web, Codex review, ships.
 
 - **0.3.0** (main `9fb4c17`): `sol/s3` merged (Codex resolved 8 conflicts + wired recipe book, chapter select, evolve cards, background2; report `docs/reviews/s3-integration-report.md`). Codex review 2xP2 fixed (legacy wins seed boss attempts → ch.2 unlocks for 0.2.x saves; starter foods are known recipes). e2e 36/36, 712 vitest. Balance ch1 63/42/24, ch2 62/32/10 (night solo near its floor; watch the Baron fight on a phone). Live-verified hub + recipe book (locked to L6; locked sheet still says "Coming soon" — reword next patch).
 - **Next:** owner answers to the DEPTH questions → 0.3.1 prologue + mynah/drain rat (art waiting, HANDOFF item 5) → ROADMAP 0.3.2/0.4. All builders on Codex until Claude weekly resets (14 Oct ~17:00 Sydney). Worktrees `~/prata-raja-{s2,fb,feel,depth,s3}` are merged and can be removed.
