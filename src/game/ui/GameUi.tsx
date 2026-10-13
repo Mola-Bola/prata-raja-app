@@ -411,6 +411,7 @@ function CardButton({ card, index, onPick }: { card: Card; index: number; onPick
           </span>
         )}
         <span className="gu-card-line">{v.line}</span>
+        {v.scope && <span className="gu-card-scope">{v.scope}</span>}
       </span>
     </button>
   );
