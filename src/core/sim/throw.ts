@@ -19,19 +19,26 @@ function base(c: Ctx, def: BreadDef, st: BreadStats, motion: BreadMotion): Proje
 
 // ── Targeting ────────────────────────────────────────────────────────────────
 
-/** Closest living enemy to (player.x, 0) within range (first found wins ties). */
+/** Is `a` the better thing to shoot than `b`? Whatever is at the counter hurting Kannan (state 'attack') comes first, however far
+ *  along the counter it stands; then whatever is closest to the counter (lowest y); then whatever is nearest his lane. Equal
+ *  in all three: false, so the first one found keeps its place. */
+function shootFirst(a: Enemy, b: Enemy, px: number): boolean {
+  const aAttacks = a.state === 'attack';
+  if (aAttacks !== (b.state === 'attack')) return aAttacks;
+  if (!aAttacks && a.y !== b.y) return a.y < b.y;
+  return Math.abs(a.x - px) < Math.abs(b.x - px);
+}
+
+/** The enemy to shoot at: shootFirst's pick among the living ones within range of (player.x, 0). */
 function nearestInRange(c: Ctx, range: number): Enemy | null {
   const { w, p } = c;
+  const r2 = range * range;
   let best: Enemy | null = null;
-  let bd = range * range;
   for (const e of w.enemies) {
     if (!alive(e)) continue;
     const dx = e.x - p.x;
-    const d2 = dx * dx + e.y * e.y;
-    if (best === null ? d2 <= bd : d2 < bd) {
-      best = e;
-      bd = d2;
-    }
+    if (dx * dx + e.y * e.y > r2) continue;
+    if (best === null || shootFirst(e, best, p.x)) best = e;
   }
   return best;
 }
@@ -45,35 +52,42 @@ function anyInRange(c: Ctx, range: number): boolean {
   return false;
 }
 
-/** The `n` best in-range enemies to bomb: most living neighbours within `blast` first, ties nearest first. Later picks
- *  prefer enemies outside the blast of the earlier ones (so extra bombs find another cluster), then anything left. */
+/** The `n` best in-range enemies to bomb: a blast that catches the most attackers (enemies at the counter) first, then the most
+ *  living neighbours within `blast`, then shootFirst's order. Later picks prefer enemies outside the blast of the earlier ones
+ *  (so extra bombs find another cluster), then anything left. */
 function clusterTargets(c: Ctx, range: number, blast: number, n: number): Enemy[] {
   const { w, p } = c;
   const r2 = range * range;
   const cands: Enemy[] = [];
   const score: number[] = [];
-  const near: number[] = [];
+  const attackers: number[] = [];
   for (const e of w.enemies) {
     const dx = e.x - p.x;
     const d2 = dx * dx + e.y * e.y;
     if (!alive(e) || d2 > r2) continue;
     let s = 0;
+    let a = e.state === 'attack' ? 1 : 0;
     for (const o of w.enemies) {
-      if (o !== e && alive(o) && hyp(o.x - e.x, o.y - e.y) <= blast) s++;
+      if (o !== e && alive(o) && hyp(o.x - e.x, o.y - e.y) <= blast) {
+        s++;
+        if (o.state === 'attack') a++;
+      }
     }
     cands.push(e);
     score.push(s);
-    near.push(d2);
+    attackers.push(a);
   }
   const out: Enemy[] = [];
   const used = new Set<number>();
   const clear = (i: number): boolean => out.every((o) => hyp(o.x - cands[i].x, o.y - cands[i].y) > blast);
+  const better = (i: number, j: number): boolean =>
+    attackers[i] !== attackers[j] ? attackers[i] > attackers[j] : score[i] !== score[j] ? score[i] > score[j] : shootFirst(cands[i], cands[j], p.x);
   while (out.length < n && out.length < cands.length) {
     let bi = -1;
     for (const needClear of [true, false]) {
       for (let i = 0; i < cands.length; i++) {
         if (used.has(i) || (needClear && !clear(i))) continue;
-        if (bi < 0 || score[i] > score[bi] || (score[i] === score[bi] && near[i] < near[bi])) bi = i;
+        if (bi < 0 || better(i, bi)) bi = i;
       }
       if (bi >= 0) break;
     }
@@ -83,6 +97,10 @@ function clusterTargets(c: Ctx, range: number, blast: number, n: number): Enemy[
   return out;
 }
 
+/** Where e will be after t seconds closing at vs: never past the reach line, and a boss never past where it parks. */
+const predictY = (e: Enemy, vs: number, t: number): number =>
+  Math.max(FIELD.reachY, e.boss ? e.holdY : -Infinity, e.y - vs * t);
+
 /** Angle (0 = straight up the street, + = right) that meets the enemy: it walks toward Kannan while the shot flies. */
 function aimAngle(c: Ctx, e: Enemy, speed: number): number {
   const px = c.p.x;
@@ -90,7 +108,7 @@ function aimAngle(c: Ctx, e: Enemy, speed: number): number {
   let ty = e.y;
   let t = hyp(e.x - px, ty) / speed;
   for (let i = 0; i < 3; i++) {
-    ty = Math.max(FIELD.reachY, e.y - vs * t);
+    ty = predictY(e, vs, t);
     t = hyp(e.x - px, ty) / speed;
   }
   return Math.atan2(e.x - px, ty);
@@ -131,7 +149,7 @@ function spawnLob(c: Ctx, def: BreadDef, st: BreadStats, target: Enemy): void {
   const s = base(c, def, st, 'lob');
   const time = Math.max(0.05, st.lobTime);
   s.tx = clamp(target.x, -FIELD.halfWidth, FIELD.halfWidth);
-  s.ty = Math.max(FIELD.reachY, target.y - approachSpeed(target) * time);
+  s.ty = predictY(target, approachSpeed(target), time);
   s.vx = (s.tx - c.p.x) / time;
   s.vy = s.ty / time;
   s.ttl = time;

@@ -8,12 +8,14 @@
 import * as Phaser from 'phaser';
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 
+import type { AppInfo } from './appInfo';
 import type { Bridge } from './bridgeTypes';
 import { GAME_BG } from './config';
 import { installFonts } from './fonts';
 import { createHub, type Hub } from './hub';
 import { BootScene } from './phaser/BootScene';
 import { RunScene } from './phaser/RunScene';
+import { startTelemetry, trackFromRenderer } from './telemetry'; // [analytics hook]
 import { GameUi } from './ui/GameUi';
 
 type Insets = { top: number; right: number; bottom: number; left: number };
@@ -23,6 +25,8 @@ type Insets = { top: number; right: number; bottom: number; left: number };
 type Props = Bridge & {
   /** Safe-area insets in px, measured by the app: an Android WebView does not report env(safe-area-inset-*). */
   insets?: Insets;
+  /** [analytics + feedback hook] Which build this is (version, OTA id, platform, device), measured by the app (src/game/appInfo.ts). */
+  info?: AppInfo;
   dom?: import('expo/dom').DOMProps;
 };
 
@@ -40,7 +44,7 @@ installFonts();
 /** The overlay reads --gu-safe-* (see GameUi.css): the app's measured inset, but never less than what the browser reports. */
 const safe = (side: keyof Insets, insets?: Insets) => `max(env(safe-area-inset-${side}, 0px), ${insets?.[side] ?? 0}px)`;
 
-export default function GameRoot({ haptic, save, load, track, insets }: Props) {
+export default function GameRoot({ haptic, save, load, track, insets, info }: Props) {
   const parent = useRef<HTMLDivElement>(null);
   // The app re-sends props (new function objects each time), but the game is created once: it holds this stable
   // facade, which always calls the newest functions.
@@ -53,12 +57,18 @@ export default function GameRoot({ haptic, save, load, track, insets }: Props) {
       haptic: (kind) => latest.current.haptic(kind),
       save: (key, json) => latest.current.save(key, json),
       load: (key) => latest.current.load(key),
-      track: (event, props) => latest.current.track(event, props),
+      // [analytics hook] Analytics (telemetry.ts) own the renderer's events when they are configured; the app's own track() (a
+      // dev log) is only the fallback, so nothing is sent twice.
+      track: (event, props) => (trackFromRenderer(event, props) ? Promise.resolve() : latest.current.track(event, props)),
     }),
     [],
   );
   // The seam between the Phaser scenes and the React overlay (see hub.ts).
   const hub = useMemo(() => createHub(), []);
+
+  // [analytics hook] Starts with the game; reports the run events the hub announces. `info` is fixed for the page's life.
+  const infoRef = useRef(info);
+  useEffect(() => startTelemetry({ hub, bridge, info: infoRef.current ?? null }), [hub, bridge]);
 
   useEffect(() => {
     const el = parent.current;
@@ -99,6 +109,7 @@ export default function GameRoot({ haptic, save, load, track, insets }: Props) {
       window.clearInterval(poll);
       hub.controls = null;
       g.destroy(true); // asynchronous: the engine finishes tearing down on its next step
+      g.loop.wake(); // ...and a loop asleep (no run on screen) has no next step, so wake it to finish the job
       if (window.__game === g) delete window.__game;
       if (window.__hub === hub) delete window.__hub;
     };
@@ -131,7 +142,9 @@ export default function GameRoot({ haptic, save, load, track, insets }: Props) {
         } as CSSProperties),
       }}
     >
-      <div ref={parent} style={{ position: 'absolute', inset: 0 }} />
+      {/* Flex, so the canvas is a block and not a character on a text baseline: an inline canvas leaves 4 px under it, which gave
+          this whole box 4 px of hidden scroll (a focus or scrollIntoView then shifted every screen by 4 px). */}
+      <div ref={parent} style={{ position: 'absolute', inset: 0, display: 'flex', overflow: 'hidden' }} />
       {/* The overlay ignores touches (they go to the game) except on its own buttons. */}
       <GameUi hub={hub} bridge={bridge} />
     </div>

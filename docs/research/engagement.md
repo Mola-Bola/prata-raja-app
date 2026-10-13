@@ -42,7 +42,7 @@ Researched 12 Oct 2026 for slices S1-S4. Names (Dough, Dhal Burst, Burger Bandit
 - **What:** a daily login with a 7-day gift ladder; a missed day is absorbed, not punished.
 - **Reference:** Duolingo lets learners hold up to two streak freezes ([Duolingo blog](https://blog.duolingo.com/how-duolingo-streak-builds-habit)). Its own figures (+0.38% relative daily actives; 3.6x course completion for 7-day streakers) are unaudited and the comparison groups are unnamed. Its retention lead says the first week is the most fragile and that letting people pick their streak length lifted retention ([Lenny's Newsletter](https://lennysnewsletter.com/p/behind-the-product-duolingo-streaks)).
 - **Why:** streaks run on loss aversion, so one miss must not feel like a wipe.
-- **Prata Raja:** day 1 50 Dough; day 2 reroll token; day 3 one material; day 4 80 Dough; day 5 training token; day 6 two materials; day 7 a Rare-or-better chest. Two rest days per 7-day window, applied automatically. A miss beyond that drops the streak by one day, never to zero. Freezes are never for sale.
+- **Prata Raja:** day 1 50 Dough; day 2 60 Dough; day 3 one material; day 4 80 Dough; day 5 120 Dough; day 6 two materials; day 7 a Rare-or-better chest (lead ruling, 12 Oct: coins instead of reroll/training tokens, so nothing here is unspendable). Two rest days per 7-day window, applied automatically. A miss beyond that drops the streak by one day, never to zero. Freezes are never for sale.
 
 ### 7. Chef's Special: one seeded run a day, previewed the day before (S4; preview from S2)
 - **What:** a daily run with the same seed for everyone, plus modifiers.

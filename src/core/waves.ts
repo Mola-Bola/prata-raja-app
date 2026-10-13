@@ -47,8 +47,14 @@ export function spawnTick(world: World, dt: number, rng: Rng): SpawnRequest[] {
   const def = waveDef(world);
   const due = def.budget * (Math.min(1, world.waveTime / def.duration) ** PACE);
   const out: SpawnRequest[] = [];
+  let living = 0;
+  if (world.wave >= 6 && world.wave <= 9 && !def.boss) {
+    for (const e of world.enemies) if (isLiving(e)) living++;
+  }
+  // Pull one affordable spawn forward when the late-wave street has gone quiet; never add threat.
+  const fillGap = world.wave >= 6 && world.wave <= 9 && !def.boss && living <= 2 && world.spawnClock >= 2.5;
   // Spawn while the spent share is behind the curve. Only picks that fit the budget left, so nothing overshoots.
-  while (def.budget - world.budgetLeft < due) {
+  while (def.budget - world.budgetLeft < due || (fillGap && out.length === 0)) {
     const fits = Object.keys(def.mix).filter((id) => def.mix[id] > 0 && costOf(world, id) <= world.budgetLeft).sort();
     if (fits.length === 0) break;
     const id = rng.weighted(fits, (k) => def.mix[k]);
@@ -68,6 +74,7 @@ export function spawnTick(world: World, dt: number, rng: Rng): SpawnRequest[] {
       out.push({ enemyId: id, elite: rng.chance(def.eliteChance), x, boss: false });
     }
   }
+  if (out.length > 0) world.spawnClock = 0;
   return out;
 }
 

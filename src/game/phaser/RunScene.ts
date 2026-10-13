@@ -5,14 +5,17 @@ import * as Phaser from 'phaser';
 
 import { CONTENT } from '@/content';
 import { autoInput, autoPick } from '@/core/autoplay';
-import { parseSave, SAVE_KEY } from '@/core/save';
+import { SAVE_KEY } from '@/core/save';
 import { chooseCard, createRun, drainEvents, reroll, step } from '@/core/sim';
 import { FIELD, type GameEvent, type Loadout, type RunInput, type RunResult, type World } from '@/core/types';
+import { computeLoadout } from '@/meta/loadout';
+import { parseSaveV2 } from '@/meta/migrate';
 
 import { playSfx, setSfxEnabled, unlockAudio, type SfxName } from '../audio/sfx';
 import type { Bridge, HapticKind } from '../bridgeTypes';
 import type { Hub, HudState } from '../hub';
 import { Actors } from './actors';
+import { DangerCue } from './danger';
 import { Fx } from './fx';
 import { DragInput } from './input';
 import { makeLayout, Projector, type Layout } from './layout';
@@ -55,6 +58,7 @@ export class RunScene extends Phaser.Scene {
   private actors!: Actors;
   private fx!: Fx;
   private tele!: Telegraphs;
+  private danger!: DangerCue;
   private drag!: DragInput;
   private url = readUrl();
   private reduceMotion = false;
@@ -85,7 +89,7 @@ export class RunScene extends Phaser.Scene {
     super('RunScene');
   }
 
-  create(data: { pending?: { seed?: number; loadout?: Loadout } | null }): void {
+  create(data: { pending?: { seed?: number; loadout?: Loadout; chapterId?: string } | null }): void {
     this.hub = this.registry.get('hub') as Hub;
     this.bridge = this.registry.get('bridge') as Bridge | undefined;
     this.reduceMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -94,7 +98,8 @@ export class RunScene extends Phaser.Scene {
     this.stall = new Stall(this, this.imgs);
     this.actors = new Actors(this.proj, this.imgs, this.discs);
     this.fx = new Fx(this, this.imgs);
-    this.tele = new Telegraphs(this, this.proj, (uid, out) => this.actors.locate(uid, out));
+    this.tele = new Telegraphs(this.imgs, this.proj, (uid, out) => this.actors.locate(uid, out));
+    this.danger = new DangerCue(this, this.actors);
     this.drag = new DragInput(this, () => this.l);
     // Browsers only start sound from a tap: the first touch on the canvas unlocks it (the Start button's click does too).
     this.input.on('pointerdown', unlockAudio);
@@ -110,7 +115,7 @@ export class RunScene extends Phaser.Scene {
       window.__world = null;
     });
     this.hub.controls = {
-      start: (seed, loadout) => this.start(seed, loadout),
+      start: (seed, loadout, chapterId) => this.start(seed, loadout, chapterId),
       choose: (i) => this.choose(i),
       reroll: () => this.rerollOffer(),
       pause: () => this.hold(),
@@ -122,8 +127,17 @@ export class RunScene extends Phaser.Scene {
     };
     this.applySettings();
     // Tests: ?bot=1 starts a self-playing run without anyone tapping the title screen.
-    if (data?.pending) this.start(data.pending.seed, data.pending.loadout);
-    else if (this.url.bot) this.start();
+    if (data?.pending) this.start(data.pending.seed, data.pending.loadout, data.pending.chapterId);
+    else if (this.url.bot) this.startBot();
+  }
+
+  /** The bot starts a run the way the Start button does: with the gear and training its save holds (none if it cannot be read). */
+  private startBot(): void {
+    if (!this.bridge) return this.start();
+    this.bridge.load(SAVE_KEY).then(
+      (json) => this.start(undefined, computeLoadout(parseSaveV2(json), CONTENT)),
+      () => this.start(),
+    );
   }
 
   // ── Layout ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -134,17 +148,19 @@ export class RunScene extends Phaser.Scene {
     this.stall.setLayout(this.l);
     this.actors.setLayout(this.l);
     this.fx.u = this.l.u;
+    this.danger.setUnit(this.l.u);
   }
 
   // ── Controls (what the React overlay calls) ────────────────────────────────────────────────────────────────
 
-  private start(seed?: number, loadout?: Loadout): void {
+  private start(seed?: number, loadout?: Loadout, chapterId?: string): void {
     // Browsers only let sound start from a tap; this runs inside the Start button's click.
     unlockAudio();
     this.applySettings();
     this.clearWorld();
     const s = this.url.seed ?? seed ?? Math.floor(Math.random() * 0x100000000);
-    const w = createRun({ seed: s, content: CONTENT, loadout });
+    const w = createRun({ seed: s, content: CONTENT, loadout, chapterId });
+    this.stall.setBackground(w.chapter.background);
     this.world = w;
     window.__world = w;
     this.paused = false;
@@ -158,6 +174,7 @@ export class RunScene extends Phaser.Scene {
     this.refreshDips();
     this.hub.emit('runStart', { seed: s });
     void this.bridge?.track('run_start', {}).catch(() => {});
+    this.wake();
   }
 
   /** Stop the run where it is (the sim does not step, the frame is left as drawn). */
@@ -218,6 +235,7 @@ export class RunScene extends Phaser.Scene {
     this.actors.clear();
     this.fx.clear();
     this.tele.clear();
+    this.danger.clear();
     this.stall.reset();
     this.drag.release();
     this.trauma = 0;
@@ -255,7 +273,8 @@ export class RunScene extends Phaser.Scene {
     this.bridge
       ?.load(SAVE_KEY)
       .then((json) => {
-        const s = parseSave(json).settings;
+        // The save is SaveV2 now (parseSave would read it as unknown and give back the default switches).
+        const s = parseSaveV2(json).settings;
         this.hapticsOn = s.haptics;
         setSfxEnabled(s.sfx);
       })
@@ -280,6 +299,18 @@ export class RunScene extends Phaser.Scene {
     } catch (e) {
       if (this.faults++ < 5) console.error('[run] frame failed', e);
     }
+    // No run on screen (the title, the stall, the wake-up screen: the overlay covers the canvas): stop drawing it. This frame
+    // still finishes and renders, so the last picture is there; start() wakes the loop.
+    if (!this.world || this.ended) this.game.loop.sleep();
+  }
+
+  /** Wake the loop for a run. It sleeps (see update) whenever none is live, so a start can find it stopped. */
+  private wake(): void {
+    const loop = this.game.loop;
+    if (loop.running) return;
+    // The window may have changed shape while the loop slept (rotation, split screen): look again before the first frame.
+    if (this.scale.getParentBounds()) this.scale.refresh();
+    loop.wake();
   }
 
   private frame(dt: number): void {
@@ -305,6 +336,7 @@ export class RunScene extends Phaser.Scene {
       this.publishHud(w, dt);
     }
     this.tele.draw(w ? w.time : 0, l.u);
+    if (w) this.danger.update(w, l, this.uiTime, this.reduceMotion);
     this.fx.update(dt);
     this.shake(dt);
   }
@@ -416,6 +448,7 @@ export class RunScene extends Phaser.Scene {
       const ev = events[i];
       switch (ev.t) {
         case 'throw': {
+          this.stall.release();
           this.sfx('throw');
           // A puff of flour where the bread leaves his hand.
           const u = this.l.u;
@@ -564,7 +597,7 @@ export class RunScene extends Phaser.Scene {
     if (!ev.color && this.dipColors.length > 0 && ((this.hits++ & 1) === 0 || ev.crit)) {
       this.fx.spawn('fx/curry-splash', sx, cy, D.fx - 1, 0.3, 22 * u * s, 56 * u * s).tint(this.dipTint()).fade(0.9, 0, 0.2).spin(ev.uid * 2.1, 0);
     }
-    this.fx.number(ev.uid, sx, v ? v.topY : P.sy - 36 * u * P.s, ev.dmg, ev.crit ? 1 : ev.color ? 2 : 0, ev.color ?? '#ffffff');
+    this.fx.number(ev.uid, sx, v ? v.topY : P.sy - 36 * u * P.s, ev.dmg, ev.crit ? 1 : ev.color ? 2 : 0, P.s);
     if (ev.crit) this.critUid = ev.uid;
     if (v && (v.elite || v.boss)) this.addTrauma(v.boss ? 0.1 : 0.2);
     this.sfx(ev.crit ? 'crit' : 'hit');
@@ -574,7 +607,7 @@ export class RunScene extends Phaser.Scene {
     if (ev.dmg < 1) return;
     const P = this.proj.at(ev.x, ev.y);
     const v = this.actors.viewOf(ev.uid);
-    this.fx.number(ev.uid, P.sx, v ? v.topY : P.sy - 36 * this.l.u * P.s, ev.dmg, 2, ev.color);
+    this.fx.number(ev.uid, P.sx, v ? v.topY : P.sy - 36 * this.l.u * P.s, ev.dmg, 2, P.s);
   }
 
   private onShield(ev: { uid: number; x: number; y: number }, broke: boolean): void {
@@ -671,11 +704,18 @@ export class RunScene extends Phaser.Scene {
       // Sugar Crash: the fifth sugar stack tips it over.
       this.fx.spawn('fx/sugar-sparkle', v.sx, v.sy - v.bh * 0.6, D.fxTop, 0.5, 30 * u, v.bw * 1.5).fade(1, 0, 0.3).spin(0, 4);
       this.sfx('sugarCrash');
+    } else if (ev.status === 'ccImmune') {
+      // A freeze or stun just ended, or was turned away: for a few seconds it cannot be held again. A white outline says so.
+      this.actors.immune(ev.uid);
     }
   }
 
   private onPlayerHit(ev: Extract<GameEvent, { t: 'playerHit' }>): void {
-    this.addTrauma(ev.source === 'contact' ? 0.25 : ev.source === 'boss' ? 0.7 : ev.source === 'explode' ? 0.6 : 0.45);
+    if (ev.source === 'contact') this.actors.counterHit();
+    this.addTrauma(ev.source === 'contact' ? 0.45 : ev.source === 'boss' ? 0.7 : ev.source === 'explode' ? 0.6 : 0.45);
+    const u = this.l.u;
+    this.fx.spawn('fx/impact', this.stall.chestX, this.l.counter.top + 8 * u, D.fxTop, 0.22, 60 * u, 140 * u).tint(HAZARD).squash(0.35).fade(1, 0);
+    this.stall.flash();
     this.buzz('light', 250);
     this.sfx('playerHurt');
   }

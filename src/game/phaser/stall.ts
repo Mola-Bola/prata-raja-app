@@ -3,10 +3,11 @@
 // breathing, squash and tilt computed per frame.
 import * as Phaser from 'phaser';
 
+import { CONTENT } from '@/content';
 import type { OwnedBread, OwnedDip, Player, RunPhase } from '@/core/types';
 
 import { ART_COUNTER, COUNTER_LIP_ROWS, counterAt, type Layout } from './layout';
-import { D } from './look';
+import { D, HAZARD, WHITE } from './look';
 import type { Img, ImagePool } from './pools';
 import { addCrop, addImage, setImage } from './tex';
 
@@ -43,6 +44,8 @@ export class Stall {
   fieldX = 0;
   handX = 0;
   handY = 0;
+  private hitT = 0;
+  private throwT = 0;
   private l!: Layout;
   private cur = pose('idle');
   private flip = false;
@@ -62,6 +65,18 @@ export class Stall {
       .setOrigin(0.5, 0)
       .setDepth(D.counter);
     this.kannan = addImage(scene, this.cur).setOrigin(0.5, 1).setDepth(D.kannan);
+  }
+
+  setBackground(key: string): void {
+    setImage(this.bg, key);
+  }
+
+  release(): void {
+    this.throwT = 0.28;
+  }
+
+  flash(): void {
+    this.hitT = 0.18;
   }
 
   setLayout(l: Layout): void {
@@ -85,10 +100,16 @@ export class Stall {
     this.sync(this.dips, [], 'dips', DIP_SPOTS.length);
     this.sync(this.breads, [], 'breads', MAX_BREADS);
     this.prevX = 0;
+    this.hitT = 0;
+    this.throwT = 0;
+    this.counter.clearTint();
   }
 
   update(p: Player | null, phase: RunPhase | null, alpha: number, time: number, dt: number): void {
     const l = this.l;
+    this.hitT = Math.max(0, this.hitT - dt);
+    this.throwT = Math.max(0, this.throwT - dt);
+    this.counter.setTint(this.hitT > 0 ? HAZARD : WHITE);
     this.fieldX = p ? this.prevX + (p.x - this.prevX) * alpha : 0;
     // He follows the finger across the whole counter, but his sprite never leaves the screen.
     const kx = Math.min(l.kannan.maxX, Math.max(l.kannan.minX, l.w / 2 + this.fieldX * l.ppu));
@@ -105,8 +126,8 @@ export class Stall {
     let tint = 0xffffff;
     if (p) {
       const slide = p.targetX - p.x;
-      let windup = false;
-      for (const b of p.breads) if (b.cd > 0 && b.cd <= 0.11 && !p.moving && b.id !== 'vadai') windup = true;
+      let windup = 0;
+      for (const b of p.breads) if (b.cd > 0 && b.cd <= 0.11 && !p.moving && b.id !== 'vadai') windup = Math.max(windup, 1 - b.cd / 0.11);
       if (phase === 'won') {
         key = 'cheer';
         dy = -Math.abs(Math.sin(time * 7)) * 9 * l.u;
@@ -120,12 +141,15 @@ export class Stall {
         const q = p.hurtAnim / 0.2;
         dx = Math.sin(time * 90) * 5 * l.u * q;
         tint = 0xff9a8a;
-      } else if (p.throwAnim > 0) {
-        key = 'release';
-        const q = p.throwAnim / 0.18;
-        sx *= 1 + 0.03 * q;
-        sy *= 1 - 0.015 * q;
-        rot += 0.03 * q;
+      } else if (this.throwT > 0) {
+        const elapsed = 0.28 - this.throwT;
+        key = elapsed < 0.12 ? 'release' : 'idle';
+        // Fast extension, then a slower spring back: one clock, no per-throw tween objects.
+        const q = elapsed < 0.06 ? Math.sin(elapsed / 0.06 * Math.PI / 2) : Math.pow((0.28 - elapsed) / 0.22, 2);
+        sx *= 1 - 0.1 * q;
+        sy *= 1 + 0.12 * q;
+        rot += 0.1 * q;
+        dy -= 4 * l.u * q;
       } else if (Math.abs(slide) > 8) {
         // The lean art leans left; flip it to go right.
         key = 'lean';
@@ -133,7 +157,11 @@ export class Stall {
         rot += (slide > 0 ? 1 : -1) * 0.025;
       } else if (windup) {
         key = 'windup';
-        rot -= 0.02;
+        const q = windup * windup;
+        sx *= 1 + 0.1 * q;
+        sy *= 1 - 0.09 * q;
+        rot -= 0.09 * q;
+        dy += 3 * l.u * q;
       }
     }
     const name = pose(key);
@@ -154,8 +182,10 @@ export class Stall {
     this.chestX = kx;
     this.chestY = k.bottom - 0.5 * k.h;
     this.feetY = k.bottom - 0.16 * k.h;
-    this.handX = kx + HAND.x * k.w;
-    this.handY = k.bottom - HAND.y * k.h;
+    const hx = HAND.x * k.w * sx;
+    const hy = -HAND.y * k.h * sy;
+    this.handX = kx + dx + hx * Math.cos(rot) - hy * Math.sin(rot);
+    this.handY = k.bottom + dy + hx * Math.sin(rot) + hy * Math.cos(rot);
     if (p) {
       this.sync(this.dips, p.dips, 'dips', DIP_SPOTS.length);
       this.sync(this.breads, p.breads, 'breads', MAX_BREADS);
@@ -171,14 +201,15 @@ export class Stall {
     while (slots.length > n) this.imgs.put((slots.pop() as Slot).img);
     for (let i = 0; i < n; i++) {
       const o = owned[i];
+      const sprite = dir === 'breads' ? CONTENT.breads[(o as OwnedBread).id].sprite : `${dir}/${o.id}`;
       let s = slots[i];
       if (!s) {
-        s = { img: this.imgs.get(`${dir}/${o.id}`).setDepth(D.slot + i), id: o.id, level: o.level, pop: POP_TIME };
+        s = { img: this.imgs.get(sprite).setDepth(D.slot + i), id: o.id, level: o.level, pop: POP_TIME };
         slots.push(s);
         this.place(slots, dir === 'dips');
       } else if (s.id !== o.id) {
         s.id = o.id;
-        setImage(s.img, `${dir}/${o.id}`);
+        setImage(s.img, sprite);
         s.pop = POP_TIME;
         this.place(slots, dir === 'dips');
       } else if (s.level !== o.level) {

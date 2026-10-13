@@ -27,7 +27,7 @@ type Candidate = { card: Card; weight: number };
  *  { kind: 'heal', id: '', level: 1 } then { kind: 'gold', id: '', level: 1 }. Deterministic for a given rng state. */
 export function drawOffer(
   player: Player, content: Content, rng: Rng,
-  opts?: { n?: number; breadPool?: BreadId[]; dipPool?: DipId[] },
+  opts?: { n?: number; breadPool?: BreadId[]; dipPool?: DipId[]; recentOffers?: readonly Card[][] },
 ): Card[] {
   const n = opts?.n ?? 3;
   const breadPool = opts?.breadPool ?? Object.values(content.breads).filter((b) => b.unlock === 'starter').map((b) => b.id).sort();
@@ -56,16 +56,19 @@ export function drawOffer(
   }
 
   const evolutions = Object.values(content.breads).filter(b => evolutionReady(player, b, content));
+  const recent = new Set(opts?.recentOffers?.slice(-2).flat().map((c) => `${c.kind}:${c.id}`));
+  for (const c of cands) if (recent.has(`${c.card.kind}:${c.card.id}`)) c.weight *= 0.15;
+
   const offer: Card[] = [];
   if (n > 0 && evolutions.length) offer.push({ kind: 'evolve', id: rng.pick(evolutions).id, level: 1 });
   const take = (c: Candidate) => {
-    cands.splice(cands.indexOf(c), 1);
+    for (let i = cands.length - 1; i >= 0; i--) if (cands[i].card.kind === c.card.kind && cands[i].card.id === c.card.id) cands.splice(i, 1);
     offer.push(c.card);
   };
   // Guarantee: a player with no dip is always offered a new one (when the pool has any).
   if (offer.length < n && player.dips.length === 0) {
     const newDips = cands.filter((c) => c.card.kind === 'dip');
-    if (newDips.length > 0) take(rng.pick(newDips));
+    if (newDips.length > 0) take(rng.weighted(newDips, (c) => c.weight));
   }
   while (offer.length < n && cands.length > 0) take(rng.weighted(cands, (c) => c.weight));
   if (offer.length < n) offer.push({ kind: 'heal', id: '', level: 1 });

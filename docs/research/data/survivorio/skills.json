@@ -1,0 +1,62 @@
+{
+ "source": [
+  "https://survivorio.fandom.com/wiki/Skills",
+  "https://survivorio.fandom.com/wiki/Category:Skills",
+  "https://survivorio.fandom.com/wiki/Category:Passive_Skills",
+  "https://survivorio.fandom.com/wiki/Weapon_Skill_Evolution_Guide",
+  "https://survivorio.fandom.com/wiki/Shotgun",
+  "https://survivorio.fandom.com/wiki/Void_Power",
+  "https://survivorio.fandom.com/wiki/Fitness_Guide",
+  "https://survivorio.fandom.com/wiki/Energy_Cube",
+  "https://survivorio.fandom.com/wiki/Merging"
+ ],
+ "fetched": "2026-10-12",
+ "max_level": "Every skill has 5 levels plus EVO (Skills page).",
+ "slots": "Each run: 1 weapon + 5 other active skills, and 6 passive skills (Skills page). Skills reset at the start of each level.",
+ "count_total": 36,
+ "count_note": "36 entries. The 'Drone (disambiguation)' page in the Skills category is excluded.",
+ "weapons": [
+  {"name":"Baseball Bat","evolution":"Lucille","evo_requires_passive":"Fitness Guide","type":"weapon (active skill slot)"},
+  {"name":"Katana","evolution":"Demon Blade","evo_requires_passive":"Ronin Oyoroi","effect":"Blade waves in front and behind the player; one of the two starting weapons.","evo_effect":"Health regeneration after killing enemies.","type":"weapon (active skill slot)"},
+  {"name":"Kunai","evolution":"Spirit Shuriken","evo_requires_passive":"Koga Ninja Scroll","effect":"Default weapon even when none is equipped; auto-targeting.","type":"weapon (active skill slot)"},
+  {"name":"Lightchaser","evolution":"Eternal Light","evo_requires_passive":"Ronin Oyoroi","effect":"Sends blade waves out from the player; more waves with each star level.","tag":"S grade (Eternal set)","type":"weapon (active skill slot)"},
+  {"name":"Revolver","evolution":"Reaper","evo_requires_passive":"Hi-Power Bullet","effect":"Fires 6 high-damage bullets before reloading.","evo_effect":"One more revolver and added damage; total bullet count 12.","type":"weapon (active skill slot)"},
+  {"name":"Shotgun","evolution":"Gatling","evo_requires_passive":"Hi-Power Bullet","effect":"Attacks only in the facing direction; grade ladder below.","evo_effect":"Fires at extremely high speed with a tighter spread; still fires in facing direction.","type":"weapon (active skill slot)"},
+  {"name":"Sword of Disorder","evolution":"Sword of Domination","evo_requires_passive":"Hi-Power Magnet","tag":"S grade (Chaos set)","type":"weapon (active skill slot)"},
+  {"name":"Void Power","evolution":"Gloom Nova","evo_requires_passive":"Exo-Bracer","effect":"S grade weapon; fires auto-targeted black holes (area of effect).","evo_effect":"Energy veils push enemies back and deal damage; veils do not block projectiles.","tag":"S grade (Void set)","type":"weapon (active skill slot)"}
+ ],
+ "weapon_grade_ladders": {"Shotgun":[{"grade":"Normal","atk_base":10},{"grade":"Good","atk_base":20,"grade_skill":"ATK +10%"},{"grade":"Better","atk_base":30,"grade_skill":"2x damage to enemies in front"},{"grade":"Excellent","atk_base":50,"grade_skill":"Range extended"},{"grade":"Excellent+1","atk_base":60,"grade_skill":"ATK +10%"},{"grade":"Epic","atk_base":null,"grade_skill":"ATK +15%","note":"base ATK '??' on wiki"},{"grade":"Legendary","atk_base":null,"grade_skill":"Pierces all enemies","note":"base ATK '??' on wiki"}],"Void Power":[{"grade":"Normal","atk_base":null,"note":"base ATK '??'; grade skill text is a joke entry on the wiki"},{"grade":"Good","atk_base":null,"grade_skill":"ATK +15%"},{"grade":"Better","atk_base":null,"grade_skill":"All projectile range +15%"},{"grade":"Excellent","atk_base":75,"grade_skill":"Released black holes explode before fading"},{"grade":"Excellent+1","atk_base":90},{"grade":"Excellent+2","atk_base":105},{"grade":"Epic","atk_base":198,"grade_skill":"ATK +25%"},{"grade":"Epic+1","atk_base":231},{"grade":"Epic+2","atk_base":264},{"grade":"Epic+3","atk_base":297},{"grade":"Legendary","atk_base":347,"grade_skill":"Energy veil explodes when shattered"}]},
+ "void_power_star_upgrades": {"2*":"Doubled black hole damage","3*":"Doubled black hole size","4*":"Increased black hole damage","5*":"Increased black hole damage","EVO":"Life in Death (as printed)"},
+ "active_skills": [
+  {"name":"Boomerang","effect":"Launches boomerangs that fly out and return.","evolution":"Magnetic Rebounder","evo_requires_passive":"Hi-Power Magnet","evo_effect":"Fires two purple magnetic rebounders in a circle, damaging enemies in their path.","type":"active"},
+  {"name":"Brick","effect":"Drops bricks above the player; knockback; limited durability.","evolution":"1-ton Iron","evo_requires_passive":"Fitness Guide","type":"active"},
+  {"name":"Drill Shot","effect":"Launches drills that bounce around the screen and pierce enemies.","evolution":"Whistling Arrow","evo_requires_passive":"Ammo Thruster","type":"active"},
+  {"name":"Durian","effect":"Launches a durian that bounces around the screen with knockback.","evolution":"Caltrops","evo_requires_passive":"HE Fuel","type":"active"},
+  {"name":"Forcefield","effect":"Creates a damaging forcefield around the player.","evolution":"Force Barrier","evo_requires_passive":"Energy Drink","evo_effect":"Slows enemies that come into contact.","type":"active"},
+  {"name":"Guardian","effect":"Launches tops that rotate around the player and block enemy attacks (wiki text cut off).","evolution":"Defender","evo_requires_passive":"Exo-Bracer","evo_effect":"No longer has a limited duration.","type":"active"},
+  {"name":"Laser Launcher","effect":"Fires lasers in a criss-cross pattern around the player; lasers remove poison patches.","evolution":"Death Ray","evo_requires_passive":"Energy Cube","type":"active"},
+  {"name":"Lightning Emitter","effect":"Summons lightning bolts. Wiki calls it generally the best active (opinion).","evolution":"Supercell","evo_requires_passive":"Energy Cube","combination":"with Modular Mine -> Thunderbolt Bomb","type":"active"},
+  {"name":"Medi-drone","effect":"Creates a healing zone that heals the player inside it.","unlock":"Unlocked with the hero Catnips (page)","combination":"Destroyer + Medi-drone (5 star) -> Divine Destroyer","type":"active"},
+  {"name":"Modular Mine","unlock":"Earned at the start of Main Level 10 (page)","combination":"with Molotov -> Inferno Bomb; with Lightning Emitter -> Thunderbolt Bomb","type":"active"},
+  {"name":"Molotov","effect":"Launches Molotovs that leave fire patches on the ground.","evolution":"Fuel Barrel","evo_requires_passive":"Oil Bond","evo_effect":"Evolved form creates a ring around the player that slowly closes (Molotov page).","type":"active"},
+  {"name":"Moonshade Slash","effect":"Exclusive skill by Tsukiyomi (page).","evolution":"Moonhalo Slash","evo_requires_passive":"Ronin Oyoroi","type":"active"},
+  {"name":"RPG","effect":"Launches rockets that explode on impact.","evolution":"Sharkmaw Gun","evo_requires_passive":"HE Fuel","type":"active"},
+  {"name":"Soccer Ball","evolution":"Quantum Ball","evo_requires_passive":"Sports Shoes","evo_effect":"More quantum balls spawn; damage and flight speed greatly increased. Base effect not captured.","type":"active"},
+  {"name":"Type-A Drone","effect":"Launches small missiles in a clockwise circle from a drone.","combination":"with Type-B Drone -> Destroyer","type":"active"},
+  {"name":"Type-B Drone","effect":"Launches rockets in a counter-clockwise circle from a drone.","combination":"with Type-A Drone -> Destroyer","type":"active"}
+ ],
+ "passive_skills": [
+  {"name":"Ammo Thruster","effect":"Makes projectiles move faster.","required_for":["Drill Shot -> Whistling Arrow"],"type":"passive"},
+  {"name":"Energy Cube","effect":"Lowers the cooldown of all attack skills.","required_for":["Laser Launcher -> Death Ray","Lightning Emitter -> Supercell"],"type":"passive"},
+  {"name":"Energy Drink","effect":"Heals the player every 5 s.","required_for":["Forcefield -> Force Barrier"],"type":"passive"},
+  {"name":"Exo-Bracer","effect":"Increases the time skills stay active before resetting.","required_for":["Guardian -> Defender","Void Power -> Gloom Nova"],"type":"passive"},
+  {"name":"Fitness Guide","effect":"Increases player max HP.","star_effect":"Max HP +20%, +40%, +60%, +80%, +100% at 1* to 5*","required_for":["Brick -> 1-ton Iron","Baseball Bat -> Lucille"],"type":"passive"},
+  {"name":"HE Fuel","effect":"Increases size and range of skills.","required_for":["Durian -> Caltrops","RPG -> Sharkmaw Gun"],"type":"passive"},
+  {"name":"Hi-Power Bullet","effect":"Increases ATK.","required_for":["Revolver -> Reaper","Shotgun -> Gatling"],"type":"passive"},
+  {"name":"Hi-Power Magnet","effect":"Increases pickup range for EXP and items.","required_for":["Boomerang -> Magnetic Rebounder","Sword of Disorder -> Sword of Domination"],"type":"passive"},
+  {"name":"Koga Ninja Scroll","effect":"Increases EXP during matches.","required_for":["Kunai -> Spirit Shuriken"],"type":"passive"},
+  {"name":"Oil Bond","effect":"Increases the value of gold picked up.","required_for":["Molotov -> Fuel Barrel"],"type":"passive"},
+  {"name":"Ronin Oyoroi","effect":"Each upgrade reduces damage taken by 10%, max 50%.","required_for":["Katana -> Demon Blade","Lightchaser -> Eternal Light","Moonshade Slash -> Moonhalo Slash"],"type":"passive"},
+  {"name":"Sports Shoes","effect":"Increases player speed.","required_for":["Soccer Ball -> Quantum Ball"],"type":"passive"}
+ ]
+}

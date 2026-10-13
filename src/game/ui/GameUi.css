@@ -152,43 +152,38 @@
   bottom: 0;
   display: grid;
   justify-items: center;
-  gap: 16px;
-  padding: 0 calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 30px) calc(var(--safe-left) + 16px);
+  gap: 14px;
+  padding: 0 calc(var(--safe-right) + 18px) calc(var(--safe-bottom) + 24px) calc(var(--safe-left) + 18px);
 }
 
+/* The one big button: a wide chunky pill pinned to the bottom, so the hero above it stays in view. */
 .gu-start {
-  position: relative;
   pointer-events: auto;
   display: grid;
   place-items: center;
-  width: min(64vw, 240px);
-  aspect-ratio: 1;
-  padding: 0;
-  border: 0;
-  background: none;
+  width: min(100%, 360px);
+  min-height: 72px;
+  padding: 10px 24px;
+  border: 4px solid var(--orange-deep);
+  border-radius: 999px;
+  background: var(--orange);
   color: var(--ink);
-  font: 700 25px/1.05 Fredoka, system-ui, sans-serif;
+  font: 700 30px/1.05 Fredoka, system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 0 var(--orange-deep), 0 16px 24px rgba(90, 40, 10, 0.35);
   cursor: pointer;
   touch-action: manipulation;
-  transition: transform 0.09s ease-out;
-}
-
-.gu-start img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 6px 0 rgba(120, 50, 10, 0.4));
-}
-
-.gu-start span {
-  position: relative;
-  max-width: 62%;
-  text-align: center;
+  transition: transform 0.09s ease-out, box-shadow 0.09s ease-out;
 }
 
 .gu-start:active {
-  transform: scale(0.95);
+  transform: translateY(5px);
+  box-shadow: 0 3px 0 var(--orange-deep), 0 8px 12px rgba(90, 40, 10, 0.35);
+}
+
+.gu-start:disabled {
+  opacity: 0.75;
+  cursor: default;
 }
 
 /* ── HUD (during a run) ─────────────────────────────────────────────────────── */
@@ -312,10 +307,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  width: fit-content;
-  max-width: 86%;
-  margin-top: 10px;
-  padding: 6px 12px 6px 6px;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 8px;
+  padding: 4px 10px;
   border: 2.5px solid var(--edge);
   border-radius: 16px;
   background: var(--cream);
@@ -324,23 +319,28 @@
 
 .gu-boss img {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
 }
 
 .gu-boss-body {
+  flex: 1;
   display: grid;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
 }
 
 .gu-boss-name {
-  font: 600 15px/1.1 Fredoka, system-ui, sans-serif;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 600 13px/1.1 Fredoka, system-ui, sans-serif;
 }
 
 .gu-boss .gu-bar {
   flex: none;
-  width: 160px;
+  height: 8px;
+  width: auto;
 }
 
 /* On the counter's front edge, bottom-left, over the steel (the renderer draws the counter as a strip along the bottom edge:
@@ -363,6 +363,15 @@
 .gu-hp img {
   width: 30px;
   height: 30px;
+}
+
+/* A hit on Kannan: the pill flashes red and shakes a little. Two identical animations, used in turn, so the next hit restarts it. */
+.gu-hp[data-hit='a'] {
+  animation: gu-hurt-a 0.34s ease-out;
+}
+
+.gu-hp[data-hit='b'] {
+  animation: gu-hurt-b 0.34s ease-out;
 }
 
 .gu-hp .gu-bar {
@@ -488,7 +497,11 @@
   touch-action: manipulation;
   transition: transform 0.09s ease-out;
   animation: gu-pop 0.34s cubic-bezier(0.2, 0.8, 0.2, 1.2) backwards;
-  animation-delay: calc(var(--i, 0) * 60ms);
+  animation-delay: calc(var(--i, 0) * 150ms);
+}
+
+.gu-card[data-revealed="false"] {
+  visibility: hidden;
 }
 
 .gu-card:active {
@@ -683,6 +696,56 @@
   }
   to {
     opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes gu-hurt-a {
+  0% {
+    background: #f26b52;
+    border-color: var(--red);
+    transform: translateX(0);
+  }
+  15% {
+    transform: translateX(-5px);
+  }
+  32% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-3px);
+  }
+  70% {
+    transform: translateX(2px);
+  }
+  100% {
+    background: var(--cream);
+    border-color: var(--edge);
+    transform: none;
+  }
+}
+
+@keyframes gu-hurt-b {
+  0% {
+    background: #f26b52;
+    border-color: var(--red);
+    transform: translateX(0);
+  }
+  15% {
+    transform: translateX(-5px);
+  }
+  32% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-3px);
+  }
+  70% {
+    transform: translateX(2px);
+  }
+  100% {
+    background: var(--cream);
+    border-color: var(--edge);
     transform: none;
   }
 }

@@ -1,0 +1,66 @@
+{
+  "source": ["https://terraria.wiki.gg/wiki/Armor"],
+  "fetched": "2026-10-12",
+  "licence": "CC BY-NC-SA 4.0. Footer: 'Page content is under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 License unless otherwise noted.' (API rightsinfo: https://creativecommons.org/licenses/by-nc-sa/4.0)",
+  "revision": "Armor page lastrevid 1032721; API touched 2026-10-12.",
+  "caveat": "30 representative sets (12 pre-Hardmode, 18 Hardmode) from the Armor page's set tables. The page is 207k chars; the first 100k were read, which covers the Pre-Hardmode, Hardmode and Wizard tables; the Miscellaneous section was not read. Helmet-dependent sets list each variant. Bonus text paraphrased with numbers kept. Cactus armor class is marked uncertain on the page. Read via summarising fetch; spot-check.",
+  "sets": [
+    {"set": "Wood armor", "era": "pre-Hardmode", "class": "none", "bonus": "+1 defense"},
+    {"set": "Copper armor", "era": "pre-Hardmode", "class": "none", "bonus": "+2 defense"},
+    {"set": "Iron armor", "era": "pre-Hardmode", "class": "none", "bonus": "+2 defense"},
+    {"set": "Platinum armor", "era": "pre-Hardmode", "class": "none", "bonus": "+4 defense"},
+    {"set": "Mining armor", "era": "pre-Hardmode", "class": "none", "bonus": "+10% mining speed (+30% total)"},
+    {"set": "Cactus armor", "era": "pre-Hardmode", "class": "none (page marks uncertain)", "bonus": "thorns deal 15 / 30 / 45 damage (normal / Expert / Master), knockback 10"},
+    {"set": "Ninja armor", "era": "pre-Hardmode", "class": "none", "bonus": "+20% movement speed"},
+    {"set": "Bee armor", "era": "pre-Hardmode", "class": "summoner", "bonus": "+10% summon damage (+23% total)"},
+    {"set": "Obsidian armor", "era": "pre-Hardmode", "class": "summoner", "bonus": "+15% summon damage (+31% total), +30% whip range, +15% whip speed"},
+    {"set": "Molten armor", "era": "pre-Hardmode", "class": "melee", "bonus": "immunity to On Fire!; +10% melee damage (+17% total)"},
+    {"set": "Jungle armor", "era": "pre-Hardmode", "class": "magic", "bonus": "-16% mana cost"},
+    {"set": "Necro armor", "era": "pre-Hardmode", "class": "ranged", "bonus": "+10% ranged critical strike chance"},
+    {"set": "Cobalt armor", "era": "Hardmode", "class": "varies by helmet", "variants": [
+      {"helmet": "Cobalt Hat", "class": "magic", "bonus": "-14% mana cost"},
+      {"helmet": "Cobalt Mask", "class": "ranged", "bonus": "20% chance not to consume ammo"},
+      {"helmet": "Cobalt Helmet", "class": "melee", "bonus": "+15% melee speed"}
+    ]},
+    {"set": "Palladium armor", "era": "Hardmode", "class": "varies by helmet", "bonus": "Rapid Healing for 5 s after striking an enemy, increasing health regeneration (shared by all helmets)", "variants": [
+      {"helmet": "Headgear", "class": "magic"},
+      {"helmet": "Helmet", "class": "ranged"},
+      {"helmet": "Mask", "class": "melee"}
+    ]},
+    {"set": "Mythril armor", "era": "Hardmode", "class": "varies by helmet", "variants": [
+      {"helmet": "Hood", "class": "magic", "bonus": "-17% mana cost"},
+      {"helmet": "Hat", "class": "ranged", "bonus": "20% chance not to consume ammo"},
+      {"helmet": "Helmet", "class": "melee", "bonus": "+10% melee critical strike chance (+28% total)"}
+    ]},
+    {"set": "Orichalcum armor", "era": "Hardmode", "class": "none (shared by all helmets)", "bonus": "shoots a flower petal after striking an enemy, dealing 36 damage and piercing infinitely"},
+    {"set": "Adamantite armor", "era": "Hardmode", "class": "varies by helmet", "variants": [
+      {"helmet": "Headgear", "class": "magic", "bonus": "-19% mana cost"},
+      {"helmet": "Mask", "class": "ranged", "bonus": "25% chance not to consume ammo"},
+      {"helmet": "Helmet", "class": "melee", "bonus": "+20% melee speed, +20% movement speed (+25% total)"}
+    ]},
+    {"set": "Titanium armor", "era": "Hardmode", "class": "none (shared by all helmets)", "bonus": "Titanium Barrier for 10 s after striking an enemy, summoning Titanium Shards for 50 damage and 15 knockback"},
+    {"set": "Hallowed armor", "era": "Hardmode", "class": "varies by helmet", "bonus": "shared Holy Protection: dodge the next attack after striking an enemy (all helmets)", "variants": [
+      {"helmet": "Hood", "class": "summoner", "bonus": "+2 minion capacity (+3 total)"},
+      {"helmet": "Headgear", "class": "magic"},
+      {"helmet": "Helmet", "class": "ranged"},
+      {"helmet": "Mask", "class": "melee"}
+    ]},
+    {"set": "Chlorophyte armor", "era": "Hardmode", "class": "varies by helmet", "bonus": "shared leaf crystal attacks enemies for 100 base damage", "variants": [
+      {"helmet": "Visor", "class": "summoner", "bonus": "+2 minion capacity (+3 total)"},
+      {"helmet": "Mask", "class": "melee", "bonus": "5% damage reduction"}
+    ]},
+    {"set": "Turtle armor", "era": "Hardmode", "class": "melee", "bonus": "thorns deal 200% of enemy contact damage, knockback 10; 15% damage reduction"},
+    {"set": "Tiki armor", "era": "Hardmode", "class": "summoner", "bonus": "+1 minion capacity (+4 total); +20% whip range (+30% total)"},
+    {"set": "Beetle armor", "era": "Hardmode", "class": "varies by chest", "variants": [
+      {"chest": "Shell", "class": "none", "bonus": "Beetle Endurance: +15% damage reduction per step, up to 45%; a step every 3 s when undamaged"},
+      {"chest": "Scale Mail", "class": "melee", "bonus": "Beetle Might: +10% melee damage and speed per step, up to 30%, after dealing melee damage"}
+    ]},
+    {"set": "Shroomite armor", "era": "Hardmode", "class": "ranged", "bonus": "stealth when still: -750 aggro; up to +50% ranged damage, +10% ranged critical strike chance, +50% ranged knockback"},
+    {"set": "Spectre armor", "era": "Hardmode", "class": "magic", "bonus": "Hood: -40% magic damage (-25% total), 20% of magic damage dealt heals you or a nearby ally; Mask: magic damage spawns homing orbs dealing 100% of the damage"},
+    {"set": "Spider armor", "era": "Hardmode", "class": "summoner", "bonus": "+12% summon damage (+28% total)"},
+    {"set": "Solar Flare armor", "era": "Hardmode", "class": "melee", "bonus": "20% damage reduction after not being hit for 3 s (stacks to 29.6% total); dash dealing 150 damage, knockback 9; charge explosion dealing 150 melee damage, knockback 15"},
+    {"set": "Vortex armor", "era": "Hardmode", "class": "ranged", "bonus": "double-tap Down/Up to toggle stealth: -1200 aggro; up to +80% ranged damage, +20% ranged critical chance, +50% ranged knockback; 0.3x movement speed"},
+    {"set": "Nebula armor", "era": "Hardmode", "class": "magic", "bonus": "magic damage may spawn Damage, Life and Mana Boosters (up to +45% damage, more health and mana regen), lasting 8 s"},
+    {"set": "Stardust armor", "era": "Hardmode", "class": "summoner", "bonus": "summons a Stardust Guardian that follows and defends the player"}
+  ]
+}

@@ -8,7 +8,7 @@ import type { Enemy, EnemyKind, Projectile, World } from '@/core/types';
 
 import type { Layout, Projector } from './layout';
 import {
-  ANIM, CHILL_TINT, D, DISC_SQUASH, ELITE_SCALE, ELITE_TINT, ENEMY_SHOT_U, enemyShare, FREEZE_TINT, LAUNCH_U, LOB_U, SHOT_FIT, SHOT_MIN_U,
+  ANIM, CHILL_TINT, D, DISC_SQUASH, ELITE_SCALE, ELITE_TINT, ENEMY_SHOT_U, ENEMY_SCALE_FLOOR, enemyShare, FREEZE_TINT, LAUNCH_U, LOB_U, SHOT_FIT, SHOT_MIN_U,
   STEP, SWARM_SCALE, TENDER_TINT, WHITE, ZONE_TINT,
 } from './look';
 import { DiscPool, ImagePool, type Disc, type Img } from './pools';
@@ -31,6 +31,9 @@ export type EnemyView = {
   ice: Img | null;
   stunA: Img | null;
   stunB: Img | null;
+  /** The white outline of crowd-control immunity (a white copy of the body, a little larger, behind it) and the seconds it has left. */
+  outline: Img | null;
+  outlineT: number;
   /** Sprite size as a share of the screen width at depth scale 1, and the texture's own size. */
   share: number;
   tw: number;
@@ -55,6 +58,8 @@ export type EnemyView = {
   /** 1 right after a hit, decaying: the squash. */
   squash: number;
   recoil: number;
+  attackT: number;
+  attacking: boolean;
   /** Sim times at which an aim / boss tell started and ends (0 = none). */
   aimFrom: number;
   aimUntil: number;
@@ -81,7 +86,9 @@ type ShotView = {
   /** Screen position last drawn, for the heading of enemy shots and the trail behind a bread. */
   lx: number;
   ly: number;
-  trail: Img | null;
+  trail: { img: Img; x: number; y: number; k: number; spin: number; t: number }[];
+  trailT: number;
+  trailNext: number;
 };
 
 type Corpse = { v: EnemyView; t: number; k: number };
@@ -89,6 +96,10 @@ type Corpse = { v: EnemyView; t: number; k: number };
 const CORPSE_LIFE = 0.24;
 /** Seconds a new enemy takes to fade in. */
 const FADE_IN = 0.35;
+/** The white outline shown when an enemy shrugs off crowd control: how long it takes to fade, and how much bigger than the body its
+ *  white copy is. */
+const OUTLINE_TIME = 0.7;
+const OUTLINE_GROW = 1.12;
 
 export class Actors {
   private l!: Layout;
@@ -106,6 +117,8 @@ export class Actors {
   private zones = new Map<number, Img>();
   private zoneStamp = new Map<number, number>();
   private corpses: Corpse[] = [];
+  private trailCount = 0;
+  private spent: { v: ShotView | null; t: number }[] = Array.from({ length: 24 }, () => ({ v: null, t: 0 }));
 
   constructor(
     private proj: Projector,
@@ -125,6 +138,12 @@ export class Actors {
 
   viewOf(uid: number): EnemyView | undefined {
     return this.enemyMap.get(uid);
+  }
+
+  /** The enemy just became immune to freeze and stun, or turned one away: outline it in white for a moment. */
+  immune(uid: number): void {
+    const v = this.enemyMap.get(uid);
+    if (v) v.outlineT = OUTLINE_TIME;
   }
 
   /** Field position of a drawn enemy (for aim lines and tells). */
@@ -164,6 +183,10 @@ export class Actors {
     if (!v) return;
     v.squash = 1;
     if (dip) v.dip = dip;
+  }
+
+  counterHit(): void {
+    for (const v of this.enemies) if (v.attacking) v.attackT = 0.16;
   }
 
   aim(uid: number, from: number, until: number): void {
@@ -212,10 +235,12 @@ export class Actors {
     this.time = time;
     this.now = w.time;
     this.drawEnemies(w, alpha, dt);
-    this.drawShots(w, alpha);
+    if (w.phase === 'won' || w.phase === 'lost') this.clearShots();
+    else this.drawShots(w, alpha, dt);
     this.drawZones(w);
     this.sweep();
     this.drawCorpses(dt);
+    this.drawSpent(dt);
   }
 
   /** Release every view (a run ended or restarted). */
@@ -225,9 +250,7 @@ export class Actors {
     this.enemyMap.clear();
     for (const c of this.corpses) this.release(c.v);
     this.corpses.length = 0;
-    for (const s of this.shots) this.releaseShot(s);
-    this.shots.length = 0;
-    this.shotMap.clear();
+    this.clearShots();
     for (const [, img] of this.zones) this.imgs.put(img);
     this.zones.clear();
     this.zoneStamp.clear();
@@ -242,11 +265,11 @@ export class Actors {
     const share = enemyShare(e.def.radius) * (elite ? ELITE_SCALE : 1) * (e.def.kind === 'swarm' ? SWARM_SCALE : 1);
     const v: EnemyView = {
       uid: e.uid, stamp: 0, kind: e.def.kind, boss: e.boss, elite, body, shadow,
-      flame: null, sugar: null, ice: null, stunA: null, stunB: null,
+      flame: null, sugar: null, ice: null, stunA: null, stunB: null, outline: null, outlineT: 0,
       share, tw: body.width, th: body.height, texMax: Math.max(body.width, body.height),
       phase: (e.uid * 2.399963) % TAU,
       px: e.x, py: e.y, fx: e.x, fy: e.y, sx: 0, sy: 0, bw: 1, bh: 1, topY: 0,
-      clock: e.age, vx: 0, dash: 0, lean: 0, squash: 0, recoil: 0, aimFrom: 0, aimUntil: 0, tellUntil: 0,
+      clock: e.age, vx: 0, dash: 0, lean: 0, squash: 0, recoil: 0, attackT: 0, attacking: false, aimFrom: 0, aimUntil: 0, tellUntil: 0,
       tint: WHITE, mode: MULTIPLY, sugarStacks: 0, dip: 0,
     };
     body.setTint(WHITE).setTintMode(MULTIPLY);
@@ -274,7 +297,7 @@ export class Actors {
       const sx0 = P.sx;
       const sy0 = P.sy;
       // A boss parks far up the street: it is drawn a little larger than its depth says so it still reads as the big one.
-      const k = (v.share * this.l.w * s * (v.boss ? 1 + 0.55 * (1 - s) : 1)) / v.texMax;
+      const k = (v.share * this.l.w * Math.max(ENEMY_SCALE_FLOOR, s) * (v.boss ? 1 + 0.55 * (1 - s) : 1)) / v.texMax;
       const bw = v.tw * k;
       const bh = v.th * k;
 
@@ -298,7 +321,8 @@ export class Actors {
         }
       }
       v.sugarStacks = sugar;
-      const disabled = frozen || stunned;
+      // A boss is never stopped by cold or stars (the sim only slows it): it keeps moving and breathing, under its ice or its sparks.
+      const disabled = !v.boss && (frozen || stunned);
 
       // Animation clock: the sim's movement clock while walking (slows and stops with the enemy), its age otherwise.
       let clk: number;
@@ -355,12 +379,25 @@ export class Actors {
         smy *= 1 + 0.03 * br;
         hop *= 0.6;
       }
-      if (e.state === 'attack') {
-        // Chewing on the counter: quick small squashes and a lunge at the camera.
-        const ch = Math.sin(e.age * 22 + v.phase);
-        smy *= 1 + 0.05 * ch;
-        smx *= 1.05 - 0.03 * ch;
-      }
+      v.attacking = e.state === 'attack' && !disabled;
+      let attackY = 0;
+      if (v.attacking) {
+        v.attackT = Math.max(0, v.attackT - dt);
+        if (v.attackT > 0) {
+          const elapsed = 0.16 - v.attackT;
+          const lunge = elapsed < 0.04 ? elapsed / 0.04 : (0.16 - elapsed) / 0.12;
+          attackY = 16 * u * lunge;
+          smy *= 1 + 0.18 * lunge;
+          smx *= 1 - 0.12 * lunge;
+          rot += 0.12 * lunge;
+        } else {
+          const windup = clamp(((w.contactT ?? 0) - 0.18) / 0.32, 0, 1);
+          attackY = -7 * u * windup * windup;
+          smy *= 1 - 0.14 * windup;
+          smx *= 1 + 0.12 * windup;
+          rot -= 0.1 * windup;
+        }
+      } else v.attackT = 0;
       // Hit: squash, then spring back. A knocked-back enemy hops.
       if (v.squash > 0) {
         v.squash = Math.max(0, v.squash - dt * 8);
@@ -401,7 +438,7 @@ export class Actors {
         smx *= grow;
         smy *= grow;
       }
-      if (e.flash > 0) {
+      if (e.flash > 0 || v.squash > 0.5) {
         tint = WHITE;
         mode = FILL;
       } else if (frozen) tint = FREEZE_TINT;
@@ -416,7 +453,7 @@ export class Actors {
         v.mode = mode;
       }
 
-      const by = sy0 - hop - lift;
+      const by = sy0 - hop - lift + attackY;
       // New arrivals fade in (they spawn at the vanishing point or out of a summoner) instead of popping.
       const born = e.age < FADE_IN ? e.age / FADE_IN : 1;
       v.body
@@ -433,6 +470,19 @@ export class Actors {
         .setScale(shw, shw * 0.62)
         .setAlpha(0.34 * (1 - 0.35 * hi) * born)
         .setDepth(D.shadow);
+      // Shrugged off a freeze or stun: a white copy of the body, a little larger and behind it, that fades.
+      if (v.outlineT > 0) {
+        v.outlineT = Math.max(0, v.outlineT - dt);
+        const o = (v.outline ??= this.imgs.get(e.def.sprite).setTint(WHITE).setTintMode(FILL));
+        o.setPosition(sx0 + shake, by - (bh * smy) / 2)
+          .setScale(k * smx * OUTLINE_GROW, k * smy * OUTLINE_GROW)
+          .setRotation(rot)
+          .setAlpha(born * 0.9 * (v.outlineT / OUTLINE_TIME))
+          .setDepth(D.enemy + sy0 - 0.25);
+      } else if (v.outline) {
+        this.imgs.put(v.outline);
+        v.outline = null;
+      }
       v.sx = sx0;
       v.sy = sy0;
       v.bw = bw;
@@ -492,7 +542,7 @@ export class Actors {
   }
 
   private dropOverlays(v: EnemyView): void {
-    for (const k of ['flame', 'sugar', 'ice', 'stunA', 'stunB'] as const) {
+    for (const k of ['flame', 'sugar', 'ice', 'stunA', 'stunB', 'outline'] as const) {
       const img = v[k];
       if (img) {
         this.imgs.put(img);
@@ -551,7 +601,8 @@ export class Actors {
       if (s.stamp === this.frame) this.shots[keep++] = s;
       else {
         this.shotMap.delete(s.uid);
-        this.releaseShot(s);
+        if (s.motion === 'enemy' || s.motion === 'orbit') this.releaseShot(s);
+        else this.fadeShot(s);
       }
     }
     this.shots.length = keep;
@@ -564,13 +615,53 @@ export class Actors {
     }
   }
 
+  private clearShots(): void {
+    for (const s of this.shots) this.releaseShot(s);
+    this.shots.length = 0;
+    this.shotMap.clear();
+    for (const s of this.spent) {
+      if (s.v) this.releaseShot(s.v);
+      s.v = null;
+    }
+  }
+
+  private fadeShot(v: ShotView): void {
+    for (const s of this.spent) {
+      if (s.v) continue;
+      // A spent bread gets only a 120ms exit, never a persistent landing prop.
+      for (const t of v.trail) this.imgs.put(t.img);
+      this.trailCount -= v.trail.length;
+      v.trail.length = 0;
+      s.v = v;
+      s.t = 0;
+      return;
+    }
+    this.releaseShot(v);
+  }
+
+  private drawSpent(dt: number): void {
+    for (const s of this.spent) {
+      if (!s.v) continue;
+      s.t += dt;
+      if (s.t >= 0.12) {
+        this.releaseShot(s.v);
+        s.v = null;
+      } else {
+        const alpha = 1 - s.t / 0.12;
+        s.v.disc?.cont.setAlpha(alpha);
+        s.v.img?.setAlpha(alpha);
+        s.v.shadow?.setAlpha(0.3 * alpha);
+      }
+    }
+  }
+
   // ── Shots ──────────────────────────────────────────────────────────────────────────────────────────────────
 
   private addShot(s: Projectile): ShotView {
     const enemy = s.owner === 'enemy';
     const v: ShotView = {
       uid: s.uid, stamp: 0, motion: s.motion, disc: null, img: null, shadow: null, dia: 0, texMax: 1,
-      px: s.x, py: s.y, pz: s.z, lx: -1, ly: -1, trail: null,
+      px: s.x, py: s.y, pz: s.z, lx: -1, ly: -1, trail: [], trailT: 0, trailNext: 0,
     };
     if (enemy) {
       v.img = this.imgs.get(s.sprite);
@@ -592,15 +683,20 @@ export class Actors {
       } else {
         v.dia = Math.max(SHOT_MIN_U, 2 * s.radius * SHOT_FIT);
         // A flying bread leaves a soft swoosh behind it (the thick end is the head, so it trails when turned to the heading).
-        if (s.motion === 'straight' || s.motion === 'boomerang') v.trail = this.imgs.get('fx/swoosh').setOrigin(0.9, 0.4).setVisible(false);
+
       }
+    }
+    // Three fading copies per moving bread, capped at 48 atlas images for the whole arena.
+    if (!enemy && (s.motion === 'straight' || s.motion === 'boomerang' || s.motion === 'lob') && this.trailCount < 48) {
+      for (let i = 0; i < 3; i++) v.trail.push({ img: this.imgs.get(s.sprite).setVisible(false), x: 0, y: 0, k: 1, spin: 0, t: 1 });
+      this.trailCount += 3;
     }
     this.shots.push(v);
     this.shotMap.set(s.uid, v);
     return v;
   }
 
-  private drawShots(w: World, alpha: number): void {
+  private drawShots(w: World, alpha: number, dt: number): void {
     const P = this.proj;
     const list = w.projectiles;
     for (let i = 0; i < list.length; i++) {
@@ -611,7 +707,7 @@ export class Actors {
       const x = v.px + (s.x - v.px) * alpha;
       const y = v.py + (s.y - v.py) * alpha;
       P.at(x, y);
-      const sc = P.s;
+      const sc = s.owner === 'player' ? Math.max(0.55, P.s) : P.s;
       let sx = P.sx;
       let sy = P.sy;
       if (s.owner === 'player' && s.motion !== 'orbit') {
@@ -641,7 +737,8 @@ export class Actors {
         const z = v.pz + (s.z - v.pz) * alpha;
         const lift = z * (40 + 0.32 * s.ty) * P.ppu * sc;
         const k = ((v.dia * P.ppu * sc) / v.texMax) * (1 + 0.28 * z);
-        (v.img as Img).setPosition(sx, sy - lift).setScale(k).setRotation(s.spin * 0.5).setDepth(D.shot + sy);
+        (v.img as Img).setPosition(sx, sy - lift).setScale(k).setRotation(s.spin).setDepth(D.shot + sy);
+        this.drawTrail(v, sx, sy - lift, k, s.spin, dt);
         const shw = (v.dia * P.ppu * sc * 0.85 * (1 - 0.45 * z)) / 64;
         (v.shadow as Img).setPosition(sx, sy).setScale(shw, shw * 0.6).setAlpha(0.36 * (1 - 0.3 * z)).setDepth(D.shadow);
         continue;
@@ -657,19 +754,24 @@ export class Actors {
       const spin = s.motion === 'boomerang' ? s.spin * 1.8 : s.spin;
       d.cont.setPosition(sx, sy).setScale(k, k * DISC_SQUASH).setDepth(D.shot + sy);
       d.img.setRotation(spin);
-      const tr = v.trail;
-      if (tr) {
-        const hx = sx - v.lx;
-        const hy = sy - v.ly;
-        // Hidden on the first frame (no heading yet) and when the shot barely moves on screen.
-        if (v.ly >= 0 && hx * hx + hy * hy > 4) {
-          const len = (v.dia * P.ppu * sc * 3.4) / tr.width;
-          tr.setVisible(true).setPosition(sx, sy).setRotation(Math.atan2(hy, hx)).setScale(len, len * 0.5).setAlpha(0.42).setDepth(D.shot + sy - 0.5);
-        } else tr.setVisible(false);
-        v.lx = sx;
-        v.ly = sy;
-      }
+      this.drawTrail(v, sx, sy, k, spin, dt);
     }
+  }
+
+  private drawTrail(v: ShotView, x: number, y: number, k: number, spin: number, dt: number): void {
+    if (v.trail.length === 0) return;
+    for (const t of v.trail) {
+      t.t += dt;
+      t.img.setVisible(t.t < 0.16).setPosition(t.x, t.y).setScale(t.k, t.k * DISC_SQUASH)
+        .setRotation(t.spin).setAlpha(Math.max(0, 0.32 * (1 - t.t / 0.16))).setDepth(D.shot + t.y - 1);
+    }
+    v.trailT += dt;
+    if (v.trailT < 0.045 || (v.ly >= 0 && (x - v.lx) ** 2 + (y - v.ly) ** 2 < 4)) return;
+    v.trailT = 0;
+    const t = v.trail[v.trailNext];
+    t.x = x; t.y = y; t.k = k; t.spin = spin; t.t = 0;
+    v.trailNext = (v.trailNext + 1) % v.trail.length;
+    v.lx = x; v.ly = y;
   }
 
   private releaseShot(s: ShotView): void {
@@ -679,7 +781,8 @@ export class Actors {
     }
     if (s.img) this.imgs.put(s.img);
     if (s.shadow) this.imgs.put(s.shadow);
-    if (s.trail) this.imgs.put(s.trail);
+    for (const t of s.trail) this.imgs.put(t.img);
+    this.trailCount -= s.trail.length;
   }
 
   // ── Zones ──────────────────────────────────────────────────────────────────────────────────────────────────

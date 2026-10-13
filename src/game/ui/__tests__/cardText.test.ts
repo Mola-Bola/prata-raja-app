@@ -6,10 +6,13 @@ import type { Card } from '@/core/types';
 import { cardView, pipText } from '../cardText';
 
 const words = (s: string) => s.trim().split(/\s+/).length;
+/** A card holds about 10 characters a line on a 360 px phone and the line may take 3: 8 words is not short enough on its own
+ *  (a 6-word line of 38 characters took 4 lines), so the letters are capped too. */
+const MAX_CHARS = 25;
 const card = (kind: Card['kind'], id: string, level = 1): Card => ({ kind, id, level });
 
 describe('level-up card text', () => {
-  it('every bread, dip and passive has a name and a line of at most 8 words', () => {
+  it('every bread, dip and passive has a name and a line of at most 8 words and 25 characters', () => {
     const cards = [
       ...Object.values(CONTENT.breads).map((b) => card(b.evolvedFrom ? 'evolve' : 'bread', b.id)),
       ...Object.keys(CONTENT.dips).map((id) => card('dip', id)),
@@ -21,6 +24,7 @@ describe('level-up card text', () => {
       expect(v.name, c.id).not.toBe('');
       expect(v.line, c.id).not.toBe('');
       expect(words(v.line), `${c.id}: "${v.line}"`).toBeLessThanOrEqual(8);
+      expect(v.line.length, `${c.id}: "${v.line}"`).toBeLessThanOrEqual(MAX_CHARS);
     }
   });
 
@@ -28,12 +32,24 @@ describe('level-up card text', () => {
     const view = cardView(card('evolve', 'tarik-lance'));
     expect(view.frame).toBe('ui/card-epic');
     expect(view.sprite).toBe('evolutions/tarik-lance');
+    expect(view.badge).toBe('EVOLVE');
+    expect(view.label).toContain('Evolve Tarik Lance');
   });
 
   it('heal and gold lines are at most 8 words too', () => {
     for (const c of [card('heal', ''), card('gold', '')]) {
       expect(words(cardView(c).line), c.kind).toBeLessThanOrEqual(8);
+      expect(cardView(c).line.length, c.kind).toBeLessThanOrEqual(MAX_CHARS);
     }
+  });
+
+  it('no line has a word of more than 10 letters (a long word cannot wrap, and sets the width of the whole line; a hyphen can)', () => {
+    const cards = [
+      ...Object.keys(CONTENT.breads).map((id) => card('bread', id)),
+      ...Object.keys(CONTENT.dips).map((id) => card('dip', id)),
+      ...Object.keys(CONTENT.passives).map((id) => card('passive', id)),
+    ];
+    for (const c of cards) for (const word of cardView(c).line.split(/[\s-]+/)) expect(word.length, `${c.id}: "${word}"`).toBeLessThanOrEqual(10);
   });
 
   it('new picks badge NEW, upgrades show pips for the level they make', () => {

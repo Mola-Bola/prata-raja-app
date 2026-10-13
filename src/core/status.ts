@@ -4,12 +4,36 @@ import type { Buff, Content, Enemy, GameEvent, HitEffect, Player, Status, Status
 
 /** Repeated `time -= dt` leaves float residue (0.5 minus five 0.1s is ~3e-17); anything this small counts as expired. */
 const EPS = 1e-9;
+/** Crowd control (freeze, stun, Sugar Crash) cannot chain: when one ends, that enemy shrugs off the next for this long. */
+export const CC_IMMUNITY = 3;
+/** A boss is never stopped. A freeze or stun on it is a slow of this much for the same time (and still shows). */
+export const BOSS_CC_SLOW = 0.4;
+/** An elite is held for this share of the time. */
+export const ELITE_CC_SHARE = 0.5;
 
 const find = (e: Enemy, id: StatusId): Status | undefined => e.statuses.find((s) => s.id === id);
 const fresh = (id: StatusId, time: number, o: Partial<Status> = {}): Status => ({ id, time, stacks: 1, dps: 0, amount: 0, ...o });
 function drop(e: Enemy, id: StatusId): void {
   const i = e.statuses.findIndex((s) => s.id === id);
   if (i >= 0) e.statuses.splice(i, 1);
+}
+
+/** A freeze or a stun (a bread's, or the Sugar Crash) lands on e. Returns the 'status' event for it (the status itself, or
+ *  'ccImmune' when the immunity turned it away) and whether the status was newly added rather than refreshed.
+ *  - while the immunity runs (CC_IMMUNITY after the last one ended) nothing is applied;
+ *  - an elite is held for ELITE_CC_SHARE of the time;
+ *  - a boss gets the status for the full time, but it never stops it: isDisabled ignores it, speedMul turns it into a
+ *    BOSS_CC_SLOW slow, and the renderer still shows the ice or the stars. */
+export function applyCc(e: Enemy, id: 'freeze' | 'stun', time: number): { event: StatusId; added: boolean } {
+  if (find(e, 'ccImmune')) return { event: 'ccImmune', added: false };
+  const held = e.elite && !e.boss ? time * ELITE_CC_SHARE : time;
+  const cur = find(e, id);
+  if (cur) {
+    cur.time = id === 'freeze' ? held : Math.max(cur.time, held);
+    return { event: id, added: false };
+  }
+  e.statuses.push(fresh(id, held));
+  return { event: id, added: true };
 }
 
 /** Apply one dip effect to the enemy a bread just hit (mutates e.statuses / e.knock). Returns a 'status' event
@@ -20,6 +44,8 @@ function drop(e: Enemy, id: StatusId): void {
  *    add/refresh 'stun' (time = max(time, crashStun)) and return a 'status' event for 'stun' (Sugar Crash).
  *  - chill: 'chill' stacks += 1 (time = effect.time, amount = slowPerStack). When stacks reach freezeAt:
  *    remove 'chill', add/refresh 'freeze' (time = freezeTime), event 'freeze'.
+ *  The stacks always build and are always spent at the threshold; what the crash or the freeze does to the enemy is applyCc's
+ *  call (immunity, elites, bosses).
  *  - tender: refresh 'tender' (amount = dmgTakenPct, time); e.knock += knockback × (e.def.knockbackTaken ?? 1) × (e.boss ? 0.1 : 1).
  *  - chain, deathBlast, haste, spin, stackDmg, healOnKill: not statuses; return [] and change nothing. */
 export function applyHitEffect(effect: HitEffect, e: Enemy): GameEvent[] {
@@ -59,10 +85,7 @@ export function applyHitEffect(effect: HitEffect, e: Enemy): GameEvent[] {
       sugar.dps = effect.dpsPerStack;
       if (sugar.stacks >= effect.crashAt) {
         drop(e, 'sugar');
-        const stun = find(e, 'stun');
-        if (stun) stun.time = Math.max(stun.time, effect.crashStun);
-        else e.statuses.push(fresh('stun', effect.crashStun));
-        ev('stun');
+        ev(applyCc(e, 'stun', effect.crashStun).event);
       }
       break;
     }
@@ -78,10 +101,7 @@ export function applyHitEffect(effect: HitEffect, e: Enemy): GameEvent[] {
       chill.amount = effect.slowPerStack;
       if (chill.stacks >= effect.freezeAt) {
         drop(e, 'chill');
-        const freeze = find(e, 'freeze');
-        if (freeze) freeze.time = effect.freezeTime;
-        else e.statuses.push(fresh('freeze', effect.freezeTime));
-        ev('freeze');
+        ev(applyCc(e, 'freeze', effect.freezeTime).event);
       }
       break;
     }
@@ -109,24 +129,32 @@ export function applyHitEffect(effect: HitEffect, e: Enemy): GameEvent[] {
  *  before this tick: a status with 0.1 s left ticks for min(dt, 0.1).) */
 export function tickStatuses(e: Enemy, dt: number, dotPct: number): number {
   let dot = 0;
+  let ccEnded = false;
   for (let i = e.statuses.length - 1; i >= 0; i--) {
     const s = e.statuses[i];
     const live = Math.min(dt, s.time);
     if (s.id === 'burn') dot += s.dps * (1 + dotPct) * live;
     else if (s.id === 'sugar') dot += s.dps * s.stacks * (1 + dotPct) * live;
     s.time -= dt;
-    if (s.time <= EPS) e.statuses.splice(i, 1);
+    if (s.time <= EPS) {
+      e.statuses.splice(i, 1);
+      if (s.id === 'freeze' || s.id === 'stun') ccEnded = true;
+    }
   }
+  // Once the last freeze/stun ends (overlapping ones count as one), whatever just stopped it (or slowed a boss) cannot do so again for CC_IMMUNITY: no freeze-lock, no stun-lock.
+  if (ccEnded && !hasStatus(e, 'freeze') && !hasStatus(e, 'stun') && !find(e, 'ccImmune')) e.statuses.push(fresh('ccImmune', CC_IMMUNITY));
   return dot;
 }
 
-/** 0 while stunned or frozen; otherwise (1 − sugarSlow.amount) × (1 − chill.amount × chill.stacks), never below 0.15. */
+/** 0 while stunned or frozen; otherwise (1 − sugarSlow.amount) × (1 − chill.amount × chill.stacks), never below 0.15.
+ *  A boss is never stopped: while it is "frozen" or "stunned" it moves at (1 − BOSS_CC_SLOW) of that instead. */
 export function speedMul(e: Enemy): number {
   if (isDisabled(e)) return 0;
   const slow = find(e, 'sugarSlow')?.amount ?? 0;
   const chill = find(e, 'chill');
   const chillSlow = chill ? chill.amount * chill.stacks : 0;
-  return Math.max(0.15, (1 - slow) * (1 - chillSlow));
+  const held = e.boss && (hasStatus(e, 'stun') || hasStatus(e, 'freeze')) ? 1 - BOSS_CC_SLOW : 1;
+  return Math.max(0.15, (1 - slow) * (1 - chillSlow) * held);
 }
 
 /** 1 + tender.amount (1 without tender). */
@@ -134,9 +162,9 @@ export function dmgTakenMul(e: Enemy): number {
   return 1 + (find(e, 'tender')?.amount ?? 0);
 }
 
-/** True while stunned or frozen (no moving, no attacking). */
+/** True while stunned or frozen (no moving, no attacking). Never for a boss: it is only slowed (see speedMul). */
 export function isDisabled(e: Enemy): boolean {
-  return hasStatus(e, 'stun') || hasStatus(e, 'freeze');
+  return !e.boss && (hasStatus(e, 'stun') || hasStatus(e, 'freeze'));
 }
 
 export function hasStatus(e: Enemy, id: StatusId): boolean {

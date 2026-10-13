@@ -11,10 +11,10 @@
 //  - Kannan.moving is true while he still slides toward targetX (|x - targetX| > 1) as well as while input.moving is set; he throws in neither.
 //  - after chooseCard / revive / step the phase is one of intro | wave | levelup | won | lost; events never repeat once drained.
 import { applyCard, drawOffer } from './cards';
-import { makeRng } from './rng';
+import { makeRng, type Rng } from './rng';
 import { computeStats, xpToNext } from './stats';
 import { tickBuffs } from './status';
-import { FIELD, type Content, type GameEvent, type Loadout, type Player, type RunInput, type World } from './types';
+import { FIELD, type Card, type Content, type GameEvent, type Loadout, type Player, type RunInput, type World } from './types';
 import { spawnTick, startWave, waveDone, type SpawnRequest } from './waves';
 import { alive, clamp, dirtyMods, emit, type Ctx } from './sim/ctx';
 import { flushContact, updateEnemies, updateEnemyShots } from './sim/enemies';
@@ -41,8 +41,8 @@ export function createRun(opts: { seed: number; content: Content; chapterId?: st
   };
   return {
     seed, rngState: seed >>> 0, content, chapter, time: 0, phase: 'intro', wave: 0, waveTime: 0, budgetLeft: 0, spawnClock: 0,
-    player, enemies: [], projectiles: [], zones: [], nextUid: 1, kills: 0, bossKills: 0, gold: 0, pendingLevelUps: 0, offer: [],
-    rerolls: 1, events: [], result: null, loadout, contactAcc: 0, contactT: 0,
+    player, enemies: [], projectiles: [], zones: [], nextUid: 1, kills: 0, bossKills: 0, gold: 0, pendingLevelUps: 0, offer: [], recentOffers: [],
+    rerolls: loadout?.rerolls ?? 1, events: [], result: null, loadout, contactAcc: 0, contactT: 0,
   };
 }
 
@@ -58,6 +58,14 @@ export function step(world: World, dt: number, input: RunInput): void {
   }
 }
 
+/** Every displayed offer counts, including rerolls and queued level-ups. */
+function nextOffer(world: World, rng: Rng): Card[] {
+  const history = world.recentOffers ?? [];
+  const offer = drawOffer(world.player, world.content, rng, { ...world.loadout, recentOffers: history });
+  world.recentOffers = [...history.slice(-1), offer];
+  return offer;
+}
+
 export function chooseCard(world: World, index: number): void {
   if (world.phase !== 'levelup') return;
   const card = world.offer[index];
@@ -69,7 +77,7 @@ export function chooseCard(world: World, index: number): void {
   p.revivesLeft += Math.max(0, p.stats.revives - revives); // Second Helping: the new revive is usable at once
   world.pendingLevelUps = Math.max(0, world.pendingLevelUps - 1);
   if (world.pendingLevelUps > 0) {
-    world.offer = drawOffer(world.player, world.content, rng, world.loadout);
+    world.offer = nextOffer(world, rng);
   } else {
     world.offer = [];
     world.phase = world.wave === 0 ? 'intro' : 'wave';
@@ -80,7 +88,7 @@ export function chooseCard(world: World, index: number): void {
 export function reroll(world: World): boolean {
   if (world.phase !== 'levelup' || world.rerolls <= 0) return false;
   const rng = makeRng(world.rngState);
-  world.offer = drawOffer(world.player, world.content, rng, world.loadout);
+  world.offer = nextOffer(world, rng);
   world.rerolls--;
   world.rngState = rng.state;
   return true;
@@ -114,7 +122,7 @@ function stepOnce(w: World, dt: number, input: RunInput): void {
   sweepDead(w);
   if (w.pendingLevelUps > 0 && (w.phase === 'wave' || w.phase === 'intro')) {
     w.phase = 'levelup';
-    w.offer = drawOffer(w.player, w.content, rng, w.loadout);
+    w.offer = nextOffer(w, rng);
   }
   w.rngState = rng.state;
 }

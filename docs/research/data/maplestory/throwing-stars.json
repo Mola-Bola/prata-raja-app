@@ -1,0 +1,166 @@
+{
+  "source": [
+    "https://maplestorywiki.net/w/Throwing_Star",
+    "https://maplestorywiki.net/w/Night_Lord",
+    "https://maplestorywiki.net/w/Night_Walker"
+  ],
+  "fetched": "2026-10-12",
+  "page_last_edited": "5 February 2022",
+  "licence_note": "MapleStory Wiki footer: CC BY-NC-SA. Internal reference only.",
+  "notes": [
+    "The page says throwing stars are ammunition for Thieves, namely the Night Lord and Night Walker classes.",
+    "Hermit (3rd job of the Night Lord line) is not listed on the GMS pages read. MapleStory Classic (meowdb.com, search snippet only) says Hermit skills Avenger and Shadow Partner use throwing stars. That is Classic-version data and is not verified for GMS.",
+    "Columns: level_requirement, attack_boost (the ATK figure on the wiki), max_per_slot. Tab is the wiki tab each row sits in (Obtainable or Unobtainable).",
+    "Kumbi Throwing-Stars: 500 cap on the wiki table. A search snippet cites 700 for the Classic version. Use the wiki table value for GMS.",
+    "Freshness caveat: the page read is an old revision (footer: Retrieved from oldid=310283; last edited 5 February 2022). Stars added after that revision may be missing. Check the live wiki or the client before relying on the full list."
+  ],
+  "stars": [
+    {
+      "name": "Subi Throwing-Stars",
+      "level_requirement": 10,
+      "attack_boost": 15,
+      "max_per_slot": 500,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "A Beginner Thief's Throwing Stars",
+      "level_requirement": 10,
+      "attack_boost": 15,
+      "max_per_slot": 1000,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Wolbi Throwing-Stars",
+      "level_requirement": 10,
+      "attack_boost": 17,
+      "max_per_slot": 500,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Snowball",
+      "level_requirement": 10,
+      "attack_boost": 17,
+      "max_per_slot": 800,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Mokbi Throwing-Stars",
+      "level_requirement": 10,
+      "attack_boost": 19,
+      "max_per_slot": 700,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Wooden Top",
+      "level_requirement": 10,
+      "attack_boost": 19,
+      "max_per_slot": 800,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Paper Fighter Plane",
+      "level_requirement": 10,
+      "attack_boost": 20,
+      "max_per_slot": 1000,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Orange",
+      "level_requirement": 10,
+      "attack_boost": 20,
+      "max_per_slot": 1000,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Kumbi Throwing-Stars",
+      "level_requirement": 10,
+      "attack_boost": 21,
+      "max_per_slot": 500,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Icicle",
+      "level_requirement": 10,
+      "attack_boost": 21,
+      "max_per_slot": 800,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Maple Throwing-Stars",
+      "level_requirement": 10,
+      "attack_boost": 21,
+      "max_per_slot": 800,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Tobi Throwing-Stars",
+      "level_requirement": 10,
+      "attack_boost": 23,
+      "max_per_slot": 1000,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Steely Throwing-Knives",
+      "level_requirement": 10,
+      "attack_boost": 25,
+      "max_per_slot": 1000,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Ilbi Throwing-Stars",
+      "level_requirement": 10,
+      "attack_boost": 27,
+      "max_per_slot": 800,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Hwabi Throwing-Stars",
+      "level_requirement": 70,
+      "attack_boost": 27,
+      "max_per_slot": 1000,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Infinite Throwing-Knives",
+      "level_requirement": 10,
+      "attack_boost": 27,
+      "max_per_slot": 2000,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Crystal Ilbi Throwing-Stars",
+      "level_requirement": 50,
+      "attack_boost": 29,
+      "max_per_slot": 800,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Flame Throwing-Stars",
+      "level_requirement": 130,
+      "attack_boost": 29,
+      "max_per_slot": 1500,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "Balanced Fury",
+      "level_requirement": 70,
+      "attack_boost": 30,
+      "max_per_slot": 800,
+      "tab": "Obtainable"
+    },
+    {
+      "name": "White Gold Throwing-Stars",
+      "level_requirement": 100,
+      "attack_boost": 28,
+      "max_per_slot": 2000,
+      "tab": "Unobtainable"
+    },
+    {
+      "name": "Magic Throwing Knife",
+      "level_requirement": 50,
+      "attack_boost": 30,
+      "max_per_slot": 1200,
+      "tab": "Unobtainable"
+    }
+  ]
+}

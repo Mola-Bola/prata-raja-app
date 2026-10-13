@@ -1,0 +1,207 @@
+{
+  "source": [
+    "https://www.poewiki.net/w/api.php?action=cargoquery&format=json&tables=ascendancy_classes&fields=_pageName=Page,name,character_class,id",
+    "https://www.poewiki.net/w/api.php?action=cargoquery&format=json&tables=character_classes&fields=_pageName=Page,name,strength,dexterity,intelligence",
+    "https://www.poewiki.net/w/api.php?action=cargoquery&format=json&tables=passive_skills&fields=_pageName=Page,name,ascendancy_class,is_notable,is_keystone,is_ascendancy_starting_node,stat_text&where=ascendancy_class+IS+NOT+NULL",
+    "https://www.poewiki.net/wiki/Special:CargoTables/ascendancy_classes"
+  ],
+  "fetched": "2026-10-12",
+  "licence_note": "Wiki text CC BY-NC-SA 3.0. Internal reference only.",
+  "notes": [
+    "character_class codes in the wiki data: Str=Marauder, Dex=Ranger, Int=Witch, IntStr=Templar, Duelist=Duelist, Shadow=Shadow, DexStrInt=Scion.",
+    "Identity lines are my one-line summaries of each ascendancy notable set (names and stat lines from the wiki). They are not wiki prose; verify before design use.",
+    "Some notable names in the wiki data are placeholders (for example Occultist <<HRB34>> style names, Deadeye flavour names). Identity lines lean on the stat lines where available."
+  ],
+  "classes": [
+    {
+      "base_class": "Scion",
+      "attribute_code": "DexStrInt",
+      "base_attributes": {
+        "str": 20,
+        "dex": 20,
+        "int": 20
+      },
+      "ascendancies": [
+        {
+          "name": "Ascendant",
+          "wiki_page": "Ascendant",
+          "identity": "Path nodes that let the build allocate passives from another class starting point (Ranger, Witch, Marauder, Duelist, Templar, Shadow)."
+        },
+        {
+          "name": "Luminary",
+          "wiki_page": "Luminary",
+          "identity": "Mercenary-linked support: buffs a linked Mercenary (taunt, auras, unique equipment, cheaper Link skills)."
+        },
+        {
+          "name": "Reliquarian",
+          "wiki_page": "Reliquarian",
+          "identity": "Display nodes that reward showing specific unique items (martial weapon, caster weapon, armour, jewellery). Stat lines not captured."
+        }
+      ],
+      "base_attributes_note": "Starting attribute values from character_classes (str/dex/int)."
+    },
+    {
+      "base_class": "Marauder",
+      "attribute_code": "Str",
+      "base_attributes": {
+        "str": 32,
+        "dex": 14,
+        "int": 14
+      },
+      "ascendancies": [
+        {
+          "name": "Berserker",
+          "wiki_page": "Berserker",
+          "identity": "Rage-based melee: rage gain and loss rules, Strike-skill and leech notables (Crave the Slaughter, Aspect of Carnage)."
+        },
+        {
+          "name": "Chieftain",
+          "wiki_page": "Chieftain",
+          "identity": "Slam and strike melee with triggered effects and elemental-resistance sharing (Tasalio, Valako, Tukohama)."
+        },
+        {
+          "name": "Juggernaut",
+          "wiki_page": "Juggernaut",
+          "identity": "Tank: endurance charges, life and armour defence, action-speed floors (Ancestral Endurance, Toughened Skin)."
+        }
+      ],
+      "base_attributes_note": "Starting attribute values from character_classes (str/dex/int)."
+    },
+    {
+      "base_class": "Ranger",
+      "attribute_code": "Dex",
+      "base_attributes": {
+        "str": 14,
+        "dex": 32,
+        "int": 14
+      },
+      "ascendancies": [
+        {
+          "name": "Deadeye",
+          "wiki_page": "Deadeye",
+          "identity": "Projectile attacks: attack projectiles can fork extra times, mana-based damage notables."
+        },
+        {
+          "name": "Pathfinder",
+          "wiki_page": "Pathfinder",
+          "identity": "Flask, shrine and nature utility (Master Distiller, Master Toxicist, Woodland Shrines, Innate Blessing)."
+        },
+        {
+          "name": "Raider",
+          "wiki_page": "Warden",
+          "identity": "Spectral wolf summons, shared charges and minion scaling (Pack Mentality, Greatwolf's Call).",
+          "note": "Wiki page title is Warden; display name in data is Raider."
+        }
+      ],
+      "base_attributes_note": "Starting attribute values from character_classes (str/dex/int)."
+    },
+    {
+      "base_class": "Witch",
+      "attribute_code": "Int",
+      "base_attributes": {
+        "str": 14,
+        "dex": 14,
+        "int": 32
+      },
+      "ascendancies": [
+        {
+          "name": "Elementalist",
+          "wiki_page": "Elementalist",
+          "identity": "Elemental spells: Elemental Conflux on kills and herald area (Retribution, Tribulation)."
+        },
+        {
+          "name": "Necromancer",
+          "wiki_page": "Necromancer",
+          "identity": "Minion, poison, chaos and curse focus (Venom Drinker, Rotten Core, Vile Imprecations)."
+        },
+        {
+          "name": "Occultist",
+          "wiki_page": "Occultist",
+          "identity": "Hex and cooldown focus with Visiting Harbinger summons. Some notable names are placeholders in the wiki data."
+        }
+      ],
+      "base_attributes_note": "Starting attribute values from character_classes (str/dex/int)."
+    },
+    {
+      "base_class": "Duelist",
+      "attribute_code": "Duelist",
+      "base_attributes": {
+        "str": 23,
+        "dex": 23,
+        "int": 14
+      },
+      "ascendancies": [
+        {
+          "name": "Champion",
+          "wiki_page": "Champion",
+          "identity": "Defensive melee with aura and fortification support (Fortitude, Inspirational, Worthy Foe)."
+        },
+        {
+          "name": "Gladiator",
+          "wiki_page": "Gladiator",
+          "identity": "Lucky and Unlucky risk rules, block and ailment or stun avoidance (Spectacular Parlay, Risk Aversion)."
+        },
+        {
+          "name": "Slayer",
+          "wiki_page": "Slayer",
+          "identity": "Attribute stacking and gem quality (Centerpiece, Private Tuition, Fancy Foil, Illicit Gains)."
+        }
+      ],
+      "base_attributes_note": "Starting attribute values from character_classes (str/dex/int)."
+    },
+    {
+      "base_class": "Shadow",
+      "attribute_code": "Shadow",
+      "base_attributes": {
+        "str": 14,
+        "dex": 23,
+        "int": 23
+      },
+      "ascendancies": [
+        {
+          "name": "Assassin",
+          "wiki_page": "Assassin",
+          "identity": "Critical-strike and poison focus with elusive and life-recoup notables (Toxic Delivery, Mistwalker)."
+        },
+        {
+          "name": "Saboteur",
+          "wiki_page": "Saboteur",
+          "identity": "Chill, freeze and shock with reactive ailments (Brine Bound, Within the Tempest, Changing Seasons)."
+        },
+        {
+          "name": "Trickster",
+          "wiki_page": "Trickster",
+          "identity": "Shade Form on being hit, curse-limit scaling with Power Charges, blinding (Formless, Faithless, Sightless)."
+        }
+      ],
+      "base_attributes_note": "Starting attribute values from character_classes (str/dex/int)."
+    },
+    {
+      "base_class": "Templar",
+      "attribute_code": "IntStr",
+      "base_attributes": {
+        "str": 23,
+        "dex": 14,
+        "int": 23
+      },
+      "ascendancies": [
+        {
+          "name": "Guardian",
+          "wiki_page": "Guardian",
+          "identity": "Pantheon-style Devout of <god> nodes: each grants a god blessing (hex reflection, ground immunity, charges)."
+        },
+        {
+          "name": "Hierophant",
+          "wiki_page": "Hierophant",
+          "identity": "Minion and hex focus: half Strength to minions, Marionettes, Feeding Frenzy, Hexbearer."
+        },
+        {
+          "name": "Inquisitor",
+          "wiki_page": "Inquisitor",
+          "identity": "Vaal skills and chaos or corruption (Chaos Reigns, Fever for Corruption, Depose Order)."
+        }
+      ],
+      "base_attributes_note": "Starting attribute values from character_classes (str/dex/int)."
+    }
+  ]
+}

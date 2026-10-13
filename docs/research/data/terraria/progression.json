@@ -1,0 +1,43 @@
+{
+  "source": ["https://terraria.wiki.gg/wiki/Bosses", "https://terraria.wiki.gg/wiki/Hardmode", "https://terraria.wiki.gg/wiki/Ore", "https://terraria.wiki.gg/wiki/Chlorophyte_Ore"],
+  "fetched": "2026-10-12",
+  "licence": "CC BY-NC-SA 4.0. Footer: 'Page content is under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 License unless otherwise noted.' (see armor-set-bonuses.json)",
+  "revision": "Bosses lastrevid 1031655 (touched 2026-10-12); Hardmode lastrevid 1033440 (touched 2026-10-08); Ore lastrevid 287543 (touched 2026-10-07); Chlorophyte Ore page read directly (no API check).",
+  "caveat": "Main progression bosses only (event bosses such as Dark Mage, Ogre, Betsy, Pumpking and the Lunar pillars, and the Mechdusa seed boss, are omitted). Hardmode page leaves most boss gear unlocks as not stated (n/s), so gear is mostly given by ore/bar tier below. Order follows the Bosses page. Lunatic Cultist timing: Bosses page says after Golem and Skeletron; Hardmode page says tied to Golem. Read via summarising fetch; spot-check.",
+  "altar_rounds": "Wall of Flesh guarantees a Pwnhammer, which breaks Demon/Crimson Altars. The first three altar rounds set the Hardmode ore pairs (Cobalt/Palladium, then Mythril/Orichalcum, then Adamantite/Titanium).",
+  "bosses": [
+    {"order": 1, "boss": "King Slime", "phase": "pre-Hardmode", "trigger": "Slime Crown, or 150 slimes in Slime Rain (75 if already killed)", "drops_or_unlocks": "drops Gold, a Ninja armor piece and slime items (per Bosses page)", "gear_tier": "n/s"},
+    {"order": 2, "boss": "Eye of Cthulhu", "phase": "pre-Hardmode", "trigger": "Suspicious Looking Eye, or nightly spawn chance (1/3) once conditions are met", "drops_or_unlocks": "drops Demonite Ore (Corruption world) or Crimtane Ore (Crimson world), per Ore page", "gear_tier": "ore tier 6 (Demonite / Crimtane)"},
+    {"order": 3, "boss": "Eater of Worlds", "phase": "pre-Hardmode (Corruption only)", "trigger": "Worm Food, or every third Shadow Orb broken", "drops_or_unlocks": "only source of Shadow Scales; drops large Demonite Ore", "gear_tier": "ore tier 6 (Demonite)"},
+    {"order": 4, "boss": "Brain of Cthulhu", "phase": "pre-Hardmode (Crimson only)", "trigger": "Bloody Spine, or every third Crimson Heart broken", "drops_or_unlocks": "only source of Tissue Samples; drops large Crimtane Ore", "gear_tier": "ore tier 6 (Crimtane)"},
+    {"order": 5, "boss": "Queen Bee", "phase": "pre-Hardmode", "trigger": "Abeemination, or destroying a Larva", "drops_or_unlocks": "allows Witch Doctor to spawn; only source of Bee Wax", "gear_tier": "n/s"},
+    {"order": 6, "boss": "Deerclops", "phase": "pre-Hardmode", "trigger": "Deer Thing in Snow biome, or natural spawn during a midnight Blizzard", "drops_or_unlocks": "n/s", "gear_tier": "n/s"},
+    {"order": 7, "boss": "Skeletron", "phase": "pre-Hardmode", "trigger": "Old Man's curse at night, or Clothier Voodoo Doll killing the Clothier at night", "drops_or_unlocks": "stops Dungeon Guardians spawning, allowing free Dungeon access", "gear_tier": "n/s"},
+    {"order": 8, "boss": "Wall of Flesh", "phase": "pre-Hardmode", "trigger": "Guide Voodoo Doll thrown into Underworld lava", "drops_or_unlocks": "irreversibly enables Hardmode; guaranteed Pwnhammer for breaking Demon/Crimson Altars", "gear_tier": "starts altar rounds 1-3 (see gear_tiers)"},
+    {"order": 9, "boss": "Queen Slime", "phase": "Hardmode (optional)", "trigger": "Gelatin Crystal (from Underground Hallow)", "drops_or_unlocks": "n/s", "gear_tier": "n/s"},
+    {"order": 10, "boss": "The Twins", "phase": "Hardmode", "trigger": "Mechanical Eye at night", "drops_or_unlocks": "Hallowed Bars and Souls of Sight (Hallowed Bars come only from the three mechanical bosses collectively)", "gear_tier": "Hallowed Bars (see gear_tiers)"},
+    {"order": 11, "boss": "The Destroyer", "phase": "Hardmode", "trigger": "Mechanical Worm at night", "drops_or_unlocks": "Hallowed Bars and Souls of Might", "gear_tier": "Hallowed Bars (see gear_tiers)"},
+    {"order": 12, "boss": "Skeletron Prime", "phase": "Hardmode", "trigger": "Mechanical Skull at night", "drops_or_unlocks": "Hallowed Bars and Souls of Fright", "gear_tier": "Hallowed Bars (see gear_tiers)"},
+    {"order": 13, "boss": "Plantera", "phase": "Hardmode", "trigger": "Plantera's Bulb (Underground Jungle, after all three mechanical bosses)", "drops_or_unlocks": "Temple Key (always dropped); Autohammer (from Truffle) crafts Shroomite Bars from Chlorophyte Bars; Spectre Bars via Adamantite/Titanium Forge (needs Ectoplasm); dungeon spawns stronger Hardmode enemies; Crimson/Corruption/Hallow spread halved", "gear_tier": "Shroomite and Spectre bars (per Hardmode page)"},
+    {"order": 14, "boss": "Golem", "phase": "Hardmode", "trigger": "Lihzahrd Power Cell at Lihzahrd Altar", "drops_or_unlocks": "Hardmode page: unlocks Old One's Army Tier 3 (Betsy); loot n/s", "gear_tier": "n/s"},
+    {"order": 15, "boss": "Duke Fishron", "phase": "Hardmode", "trigger": "Truffle Worm as bait, fishing in the Ocean", "drops_or_unlocks": "'powerful loot'; specific items not stated", "gear_tier": "n/s"},
+    {"order": 16, "boss": "Empress of Light", "phase": "Hardmode", "trigger": "Prismatic Lacewing (in Hallow after Plantera)", "drops_or_unlocks": "powerful loot; not required for progression", "gear_tier": "n/s"},
+    {"order": 17, "boss": "Lunatic Cultist", "phase": "Hardmode", "trigger": "Kill four cultists at the Dungeon entrance (after Golem and Skeletron)", "drops_or_unlocks": "starts the Lunar Events", "gear_tier": "n/s"},
+    {"order": 18, "boss": "Moon Lord", "phase": "Hardmode (final)", "trigger": "Celestial Sigil, or defeat all four Celestial Pillars", "drops_or_unlocks": "drops Luminite; endgame items need Luminite Bars (Ancient Manipulator) and Lunar Fragments from the Celestial Pillars", "gear_tier": "Luminite (see gear_tiers)"}
+  ],
+  "gear_tiers": [
+    {"ore_tier": 1, "ores": ["Copper", "Tin"], "phase": "pre-Hardmode", "condition": "Surface, Underground, Cavern; no boss or event stated. Tin is the world-seed alternative to Copper."},
+    {"ore_tier": 2, "ores": ["Iron", "Lead"], "phase": "pre-Hardmode", "condition": "Surface, Underground, Cavern; Lead is the world-seed alternative to Iron."},
+    {"ore_tier": 3, "ores": ["Silver", "Tungsten"], "phase": "pre-Hardmode", "condition": "Silver: Underground, Cavern, Floating Islands, Surface (rare); Tungsten is the world-seed alternative."},
+    {"ore_tier": 4, "ores": ["Gold", "Platinum"], "phase": "pre-Hardmode", "condition": "Gold: Underground, Cavern, Floating Islands, Surface (very rare); Platinum is the world-seed alternative."},
+    {"ore_tier": 5, "ores": ["Meteorite"], "phase": "pre-Hardmode", "condition": "Meteorite biome."},
+    {"ore_tier": 6, "ores": ["Demonite (Corruption world)", "Crimtane (Crimson world)"], "phase": "pre-Hardmode", "condition": "Cavern and Corruption Chasms / Crimson; dropped by Eye of Cthulhu. Demonite also from Eater of Worlds; Crimtane also from Brain of Cthulhu."},
+    {"ore_tier": 8, "ores": ["Hellstone"], "phase": "pre-Hardmode", "condition": "The Underworld, within 140 blocks of the bottom."},
+    {"ore_tier": 9, "ores": ["Cobalt", "Palladium"], "phase": "Hardmode", "condition": "Chosen when the first Altar round is destroyed (Pwnhammer); Underground, Cavern."},
+    {"ore_tier": 10, "ores": ["Mythril", "Orichalcum"], "phase": "Hardmode", "condition": "Chosen at the second Altar round; Cavern."},
+    {"ore_tier": 11, "ores": ["Adamantite", "Titanium"], "phase": "Hardmode", "condition": "Chosen at the third Altar round; Cavern, roughly at lava depth."},
+    {"ore_tier": 12, "ores": ["Chlorophyte"], "phase": "Hardmode", "condition": "Underground Jungle, after Hardmode starts (Chlorophyte Ore page). Chlorophyte Bar = 5 ore at an Adamantite or Titanium Forge (Desktop, Console and Mobile versions)."},
+    {"ore_tier": 13, "ores": ["Luminite"], "phase": "endgame", "condition": "Dropped by Moon Lord; crafted at the Ancient Manipulator, not a Furnace."},
+    {"ore_tier": "n/s", "ores": ["Hallowed Bars"], "phase": "Hardmode", "condition": "Collectively from The Twins, The Destroyer and Skeletron Prime (Souls of Sight, Might, Fright)."}
+  ]
+}

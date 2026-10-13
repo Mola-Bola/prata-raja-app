@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { MAX_BREADS, MAX_DIPS, applyCard, drawOffer } from '../cards';
 import { makeRng } from '../rng';
 import { BASE_STATS } from '../stats';
-import type { BreadId, Content, DipId, Player } from '../types';
+import type { BreadId, Card, Content, DipId, Player } from '../types';
 
 // Fake content: only the fields cards.ts and computeStats read. 'recipe-s2' entries are locked.
 const item = (id: string, unlock = 'starter') => ({ id, name: id, flavor: '', sprite: '', levels: [], unlock });
@@ -36,6 +36,27 @@ describe('drawOffer', () => {
     for (const offer of offersFor(p)) {
       expect(offer).toHaveLength(3);
       expect(new Set(offer.map((c) => `${c.kind}:${c.id}`)).size).toBe(3);
+    }
+  });
+
+  it('strongly damps both recent offers by identity, even after an upgrade, and forgets older offers', () => {
+    const p = player({ breads: [ownedBread('naan', 2)], dips: [{ id: 'ghee', level: 1 }] });
+    const recent: Card[][] = [[{ kind: 'bread', id: 'naan', level: 1 }], [{ kind: 'dip', id: 'ghee', level: 1 }]];
+    const count = (history: Card[][]) => seeds.flatMap((seed) => drawOffer(p, fake, makeRng(seed), { n: 1, recentOffers: history }))
+      .filter((c) => c.id === 'naan' || c.id === 'ghee').length;
+    expect(count(recent)).toBeLessThan(count([]) * 0.4);
+    expect(count([...recent, [], []])).toBe(count([]));
+    expect(drawOffer(p, fake, makeRng(42), { recentOffers: recent })).toEqual(drawOffer(p, fake, makeRng(42), { recentOffers: recent }));
+  });
+
+  it('keeps the dip guarantee and never duplicates a card when everything is recent', () => {
+    const p = player();
+    const all: Card[] = [...Object.keys(fake.breads).map((id) => ({ kind: 'bread' as const, id, level: 1 })),
+      ...Object.keys(fake.dips).map((id) => ({ kind: 'dip' as const, id, level: 1 }))];
+    for (const seed of seeds) {
+      const offer = drawOffer(p, fake, makeRng(seed), { recentOffers: [all, all] });
+      expect(offer.some((c) => c.kind === 'dip')).toBe(true);
+      expect(new Set(offer.map((c) => `${c.kind}:${c.id}`)).size).toBe(offer.length);
     }
   });
 

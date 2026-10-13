@@ -1,0 +1,1243 @@
+{
+  "source": [
+    "https://www.poewiki.net/w/api.php?action=cargoquery&format=json&tables=mods&fields=_pageName=Page,name,generation_type,mod_groups,required_level,tier_text,id,stat_text,mod_type&where=domain='1'+AND+game_mode='0'+AND+(generation_type='1'+OR+generation_type='2')",
+    "https://www.poewiki.net/w/api.php?action=cargoquery&format=json&tables=mod_stats&fields=_pageName=Page,id,min,max",
+    "https://www.poewiki.net/wiki/Special:CargoTables/mods",
+    "https://www.poewiki.net/wiki/Special:CargoTables/mod_stats"
+  ],
+  "fetched": "2026-10-12",
+  "licence_note": "Wiki text CC BY-NC-SA 3.0. Internal reference only.",
+  "notes": [
+    "Sample of 10 prefix/suffix families, base (non-Uber, non-Local, non-Essence, non-hybrid) tiered mods only, from domain 1 (item) and game mode 0.",
+    "generation_type 1 = prefix, 2 = suffix (checked against names: prefixes such as \"Prime\"/\"Flaring\", suffixes such as \"of Haast\").",
+    "rolls maps each stat id to [min, max] roll range for that tier. Tier 1 is the best tier.",
+    "Not in the sample: local weapon/armour variants, Uber and Essence tiers (E1..E6 labels), hybrid mods, and Abyss jewel mods.",
+    "Family IncreasedAttackSpeed has 4 tiered base ids in the wiki data (other tiers carry no \"Tier N\" label)."
+  ],
+  "families": [
+    {
+      "family": "IncreasedLife",
+      "label": "Maximum Life",
+      "affix_type": "prefix",
+      "stat_ids": [
+        "base_maximum_life"
+      ],
+      "tier_count": 13,
+      "best_tier": 1,
+      "worst_tier": 13,
+      "tiers": [
+        {
+          "tier": 1,
+          "affix_name": "Prime",
+          "required_level": 86,
+          "mod_id": "IncreasedLife12",
+          "rolls": {
+            "base_maximum_life": [
+              175,
+              189
+            ]
+          }
+        },
+        {
+          "tier": 2,
+          "affix_name": "Rapturous",
+          "required_level": 81,
+          "mod_id": "IncreasedLife11",
+          "rolls": {
+            "base_maximum_life": [
+              160,
+              174
+            ]
+          }
+        },
+        {
+          "tier": 3,
+          "affix_name": "Vigorous",
+          "required_level": 73,
+          "mod_id": "IncreasedLife10",
+          "rolls": {
+            "base_maximum_life": [
+              145,
+              159
+            ]
+          }
+        },
+        {
+          "tier": 4,
+          "affix_name": "Fecund",
+          "required_level": 64,
+          "mod_id": "IncreasedLife9",
+          "rolls": {
+            "base_maximum_life": [
+              130,
+              144
+            ]
+          }
+        },
+        {
+          "tier": 5,
+          "affix_name": "Athlete&#039;s",
+          "required_level": 54,
+          "mod_id": "IncreasedLife8",
+          "rolls": {
+            "base_maximum_life": [
+              115,
+              129
+            ]
+          }
+        },
+        {
+          "tier": 6,
+          "affix_name": "Virile",
+          "required_level": 44,
+          "mod_id": "IncreasedLife7",
+          "rolls": {
+            "base_maximum_life": [
+              100,
+              114
+            ]
+          }
+        },
+        {
+          "tier": 7,
+          "affix_name": "Rotund",
+          "required_level": 36,
+          "mod_id": "IncreasedLife6",
+          "rolls": {
+            "base_maximum_life": [
+              85,
+              99
+            ]
+          }
+        },
+        {
+          "tier": 8,
+          "affix_name": "Robust",
+          "required_level": 30,
+          "mod_id": "IncreasedLife5",
+          "rolls": {
+            "base_maximum_life": [
+              70,
+              84
+            ]
+          }
+        },
+        {
+          "tier": 9,
+          "affix_name": "Stout",
+          "required_level": 24,
+          "mod_id": "IncreasedLife4",
+          "rolls": {
+            "base_maximum_life": [
+              55,
+              69
+            ]
+          }
+        },
+        {
+          "tier": 10,
+          "affix_name": "Stalwart",
+          "required_level": 18,
+          "mod_id": "IncreasedLife3",
+          "rolls": {
+            "base_maximum_life": [
+              40,
+              54
+            ]
+          }
+        },
+        {
+          "tier": 11,
+          "affix_name": "Sanguine",
+          "required_level": 11,
+          "mod_id": "IncreasedLife2",
+          "rolls": {
+            "base_maximum_life": [
+              25,
+              39
+            ]
+          }
+        },
+        {
+          "tier": 12,
+          "affix_name": "Healthy",
+          "required_level": 5,
+          "mod_id": "IncreasedLife1",
+          "rolls": {
+            "base_maximum_life": [
+              10,
+              24
+            ]
+          }
+        },
+        {
+          "tier": 13,
+          "affix_name": "Hale",
+          "required_level": 1,
+          "mod_id": "IncreasedLife0",
+          "rolls": {
+            "base_maximum_life": [
+              3,
+              9
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "family": "IncreasedMana",
+      "label": "Maximum Mana",
+      "affix_type": "prefix",
+      "stat_ids": [
+        "base_maximum_mana"
+      ],
+      "tier_count": 13,
+      "best_tier": 1,
+      "worst_tier": 13,
+      "tiers": [
+        {
+          "tier": 1,
+          "affix_name": "Ultramarine",
+          "required_level": 85,
+          "mod_id": "IncreasedMana13",
+          "rolls": {
+            "base_maximum_mana": [
+              74,
+              78
+            ]
+          }
+        },
+        {
+          "tier": 2,
+          "affix_name": "Zaffre",
+          "required_level": 81,
+          "mod_id": "IncreasedMana12",
+          "rolls": {
+            "base_maximum_mana": [
+              69,
+              73
+            ]
+          }
+        },
+        {
+          "tier": 3,
+          "affix_name": "Blue",
+          "required_level": 75,
+          "mod_id": "IncreasedMana11",
+          "rolls": {
+            "base_maximum_mana": [
+              65,
+              68
+            ]
+          }
+        },
+        {
+          "tier": 4,
+          "affix_name": "Mazarine",
+          "required_level": 69,
+          "mod_id": "IncreasedMana10",
+          "rolls": {
+            "base_maximum_mana": [
+              60,
+              64
+            ]
+          }
+        },
+        {
+          "tier": 5,
+          "affix_name": "Chalybeous",
+          "required_level": 60,
+          "mod_id": "IncreasedMana9",
+          "rolls": {
+            "base_maximum_mana": [
+              55,
+              59
+            ]
+          }
+        },
+        {
+          "tier": 6,
+          "affix_name": "Gentian",
+          "required_level": 51,
+          "mod_id": "IncreasedMana8",
+          "rolls": {
+            "base_maximum_mana": [
+              50,
+              54
+            ]
+          }
+        },
+        {
+          "tier": 7,
+          "affix_name": "Opalescent",
+          "required_level": 42,
+          "mod_id": "IncreasedMana7",
+          "rolls": {
+            "base_maximum_mana": [
+              45,
+              49
+            ]
+          }
+        },
+        {
+          "tier": 8,
+          "affix_name": "Aqua",
+          "required_level": 35,
+          "mod_id": "IncreasedMana6",
+          "rolls": {
+            "base_maximum_mana": [
+              40,
+              44
+            ]
+          }
+        },
+        {
+          "tier": 9,
+          "affix_name": "Cerulean",
+          "required_level": 29,
+          "mod_id": "IncreasedMana5",
+          "rolls": {
+            "base_maximum_mana": [
+              35,
+              39
+            ]
+          }
+        },
+        {
+          "tier": 10,
+          "affix_name": "Sapphire",
+          "required_level": 23,
+          "mod_id": "IncreasedMana4",
+          "rolls": {
+            "base_maximum_mana": [
+              30,
+              34
+            ]
+          }
+        },
+        {
+          "tier": 11,
+          "affix_name": "Azure",
+          "required_level": 17,
+          "mod_id": "IncreasedMana3",
+          "rolls": {
+            "base_maximum_mana": [
+              25,
+              29
+            ]
+          }
+        },
+        {
+          "tier": 12,
+          "affix_name": "Cobalt",
+          "required_level": 11,
+          "mod_id": "IncreasedMana2",
+          "rolls": {
+            "base_maximum_mana": [
+              20,
+              24
+            ]
+          }
+        },
+        {
+          "tier": 13,
+          "affix_name": "Beryl",
+          "required_level": 1,
+          "mod_id": "IncreasedMana1",
+          "rolls": {
+            "base_maximum_mana": [
+              15,
+              19
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "family": "FireResistance",
+      "label": "Fire Resistance",
+      "affix_type": "suffix",
+      "stat_ids": [
+        "base_fire_damage_resistance_%"
+      ],
+      "tier_count": 8,
+      "best_tier": 1,
+      "worst_tier": 8,
+      "tiers": [
+        {
+          "tier": 1,
+          "affix_name": "of Tzteosh",
+          "required_level": 84,
+          "mod_id": "FireResist8",
+          "rolls": {
+            "base_fire_damage_resistance_%": [
+              46,
+              48
+            ]
+          }
+        },
+        {
+          "tier": 2,
+          "affix_name": "of the Magma",
+          "required_level": 72,
+          "mod_id": "FireResist7",
+          "rolls": {
+            "base_fire_damage_resistance_%": [
+              42,
+              45
+            ]
+          }
+        },
+        {
+          "tier": 3,
+          "affix_name": "of the Volcano",
+          "required_level": 60,
+          "mod_id": "FireResist6",
+          "rolls": {
+            "base_fire_damage_resistance_%": [
+              36,
+              41
+            ]
+          }
+        },
+        {
+          "tier": 4,
+          "affix_name": "of the Furnace",
+          "required_level": 48,
+          "mod_id": "FireResist5",
+          "rolls": {
+            "base_fire_damage_resistance_%": [
+              30,
+              35
+            ]
+          }
+        },
+        {
+          "tier": 5,
+          "affix_name": "of the Kiln",
+          "required_level": 36,
+          "mod_id": "FireResist4",
+          "rolls": {
+            "base_fire_damage_resistance_%": [
+              24,
+              29
+            ]
+          }
+        },
+        {
+          "tier": 6,
+          "affix_name": "of the Drake",
+          "required_level": 24,
+          "mod_id": "FireResist3",
+          "rolls": {
+            "base_fire_damage_resistance_%": [
+              18,
+              23
+            ]
+          }
+        },
+        {
+          "tier": 7,
+          "affix_name": "of the Salamander",
+          "required_level": 12,
+          "mod_id": "FireResist2",
+          "rolls": {
+            "base_fire_damage_resistance_%": [
+              12,
+              17
+            ]
+          }
+        },
+        {
+          "tier": 8,
+          "affix_name": "of the Whelpling",
+          "required_level": 1,
+          "mod_id": "FireResist1",
+          "rolls": {
+            "base_fire_damage_resistance_%": [
+              6,
+              11
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "family": "ColdResistance",
+      "label": "Cold Resistance",
+      "affix_type": "suffix",
+      "stat_ids": [
+        "base_cold_damage_resistance_%"
+      ],
+      "tier_count": 8,
+      "best_tier": 1,
+      "worst_tier": 8,
+      "tiers": [
+        {
+          "tier": 1,
+          "affix_name": "of Haast",
+          "required_level": 84,
+          "mod_id": "ColdResist8",
+          "rolls": {
+            "base_cold_damage_resistance_%": [
+              46,
+              48
+            ]
+          }
+        },
+        {
+          "tier": 2,
+          "affix_name": "of the Ice",
+          "required_level": 72,
+          "mod_id": "ColdResist7",
+          "rolls": {
+            "base_cold_damage_resistance_%": [
+              42,
+              45
+            ]
+          }
+        },
+        {
+          "tier": 3,
+          "affix_name": "of the Polar Bear",
+          "required_level": 60,
+          "mod_id": "ColdResist6",
+          "rolls": {
+            "base_cold_damage_resistance_%": [
+              36,
+              41
+            ]
+          }
+        },
+        {
+          "tier": 4,
+          "affix_name": "of the Walrus",
+          "required_level": 50,
+          "mod_id": "ColdResist5",
+          "rolls": {
+            "base_cold_damage_resistance_%": [
+              30,
+              35
+            ]
+          }
+        },
+        {
+          "tier": 5,
+          "affix_name": "of the Yeti",
+          "required_level": 38,
+          "mod_id": "ColdResist4",
+          "rolls": {
+            "base_cold_damage_resistance_%": [
+              24,
+              29
+            ]
+          }
+        },
+        {
+          "tier": 6,
+          "affix_name": "of the Penguin",
+          "required_level": 26,
+          "mod_id": "ColdResist3",
+          "rolls": {
+            "base_cold_damage_resistance_%": [
+              18,
+              23
+            ]
+          }
+        },
+        {
+          "tier": 7,
+          "affix_name": "of the Seal",
+          "required_level": 14,
+          "mod_id": "ColdResist2",
+          "rolls": {
+            "base_cold_damage_resistance_%": [
+              12,
+              17
+            ]
+          }
+        },
+        {
+          "tier": 8,
+          "affix_name": "of the Inuit",
+          "required_level": 1,
+          "mod_id": "ColdResist1",
+          "rolls": {
+            "base_cold_damage_resistance_%": [
+              6,
+              11
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "family": "LightningResistance",
+      "label": "Lightning Resistance",
+      "affix_type": "suffix",
+      "stat_ids": [
+        "base_lightning_damage_resistance_%"
+      ],
+      "tier_count": 8,
+      "best_tier": 1,
+      "worst_tier": 8,
+      "tiers": [
+        {
+          "tier": 1,
+          "affix_name": "of Ephij",
+          "required_level": 84,
+          "mod_id": "LightningResist8",
+          "rolls": {
+            "base_lightning_damage_resistance_%": [
+              46,
+              48
+            ]
+          }
+        },
+        {
+          "tier": 2,
+          "affix_name": "of the Lightning",
+          "required_level": 72,
+          "mod_id": "LightningResist7",
+          "rolls": {
+            "base_lightning_damage_resistance_%": [
+              42,
+              45
+            ]
+          }
+        },
+        {
+          "tier": 3,
+          "affix_name": "of the Maelstrom",
+          "required_level": 60,
+          "mod_id": "LightningResist6",
+          "rolls": {
+            "base_lightning_damage_resistance_%": [
+              36,
+              41
+            ]
+          }
+        },
+        {
+          "tier": 4,
+          "affix_name": "of the Tempest",
+          "required_level": 49,
+          "mod_id": "LightningResist5",
+          "rolls": {
+            "base_lightning_damage_resistance_%": [
+              30,
+              35
+            ]
+          }
+        },
+        {
+          "tier": 5,
+          "affix_name": "of the Thunderhead",
+          "required_level": 37,
+          "mod_id": "LightningResist4",
+          "rolls": {
+            "base_lightning_damage_resistance_%": [
+              24,
+              29
+            ]
+          }
+        },
+        {
+          "tier": 6,
+          "affix_name": "of the Storm",
+          "required_level": 25,
+          "mod_id": "LightningResist3",
+          "rolls": {
+            "base_lightning_damage_resistance_%": [
+              18,
+              23
+            ]
+          }
+        },
+        {
+          "tier": 7,
+          "affix_name": "of the Squall",
+          "required_level": 13,
+          "mod_id": "LightningResist2",
+          "rolls": {
+            "base_lightning_damage_resistance_%": [
+              12,
+              17
+            ]
+          }
+        },
+        {
+          "tier": 8,
+          "affix_name": "of the Cloud",
+          "required_level": 1,
+          "mod_id": "LightningResist1",
+          "rolls": {
+            "base_lightning_damage_resistance_%": [
+              6,
+              11
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "family": "ChaosResistance",
+      "label": "Chaos Resistance",
+      "affix_type": "suffix",
+      "stat_ids": [
+        "base_chaos_damage_resistance_%"
+      ],
+      "tier_count": 6,
+      "best_tier": 1,
+      "worst_tier": 6,
+      "tiers": [
+        {
+          "tier": 1,
+          "affix_name": "of Bameth",
+          "required_level": 81,
+          "mod_id": "ChaosResist6",
+          "rolls": {
+            "base_chaos_damage_resistance_%": [
+              31,
+              35
+            ]
+          }
+        },
+        {
+          "tier": 2,
+          "affix_name": "of Exile",
+          "required_level": 65,
+          "mod_id": "ChaosResist5",
+          "rolls": {
+            "base_chaos_damage_resistance_%": [
+              26,
+              30
+            ]
+          }
+        },
+        {
+          "tier": 3,
+          "affix_name": "of Expulsion",
+          "required_level": 56,
+          "mod_id": "ChaosResist4",
+          "rolls": {
+            "base_chaos_damage_resistance_%": [
+              21,
+              25
+            ]
+          }
+        },
+        {
+          "tier": 4,
+          "affix_name": "of Eviction",
+          "required_level": 44,
+          "mod_id": "ChaosResist3",
+          "rolls": {
+            "base_chaos_damage_resistance_%": [
+              16,
+              20
+            ]
+          }
+        },
+        {
+          "tier": 5,
+          "affix_name": "of Banishment",
+          "required_level": 30,
+          "mod_id": "ChaosResist2",
+          "rolls": {
+            "base_chaos_damage_resistance_%": [
+              11,
+              15
+            ]
+          }
+        },
+        {
+          "tier": 6,
+          "affix_name": "of the Lost",
+          "required_level": 16,
+          "mod_id": "ChaosResist1",
+          "rolls": {
+            "base_chaos_damage_resistance_%": [
+              5,
+              10
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "family": "PhysicalDamage",
+      "label": "Added Physical Damage to Attacks (AddedPhysicalDamage tier ladder)",
+      "affix_type": "prefix",
+      "stat_ids": [
+        "attack_maximum_added_physical_damage",
+        "attack_minimum_added_physical_damage"
+      ],
+      "tier_count": 9,
+      "best_tier": 1,
+      "worst_tier": 9,
+      "tiers": [
+        {
+          "tier": 1,
+          "affix_name": "Flaring",
+          "required_level": 76,
+          "mod_id": "AddedPhysicalDamage9",
+          "rolls": {
+            "attack_maximum_added_physical_damage": [
+              22,
+              26
+            ],
+            "attack_minimum_added_physical_damage": [
+              11,
+              15
+            ]
+          }
+        },
+        {
+          "tier": 2,
+          "affix_name": "Tempered",
+          "required_level": 64,
+          "mod_id": "AddedPhysicalDamage8",
+          "rolls": {
+            "attack_maximum_added_physical_damage": [
+              19,
+              22
+            ],
+            "attack_minimum_added_physical_damage": [
+              9,
+              12
+            ]
+          }
+        },
+        {
+          "tier": 3,
+          "affix_name": "Razor-sharp",
+          "required_level": 52,
+          "mod_id": "AddedPhysicalDamage7",
+          "rolls": {
+            "attack_maximum_added_physical_damage": [
+              15,
+              18
+            ],
+            "attack_minimum_added_physical_damage": [
+              7,
+              10
+            ]
+          }
+        },
+        {
+          "tier": 4,
+          "affix_name": "Annealed",
+          "required_level": 44,
+          "mod_id": "AddedPhysicalDamage6",
+          "rolls": {
+            "attack_maximum_added_physical_damage": [
+              13,
+              15
+            ],
+            "attack_minimum_added_physical_damage": [
+              6,
+              9
+            ]
+          }
+        },
+        {
+          "tier": 5,
+          "affix_name": "Gleaming",
+          "required_level": 35,
+          "mod_id": "AddedPhysicalDamage5",
+          "rolls": {
+            "attack_maximum_added_physical_damage": [
+              11,
+              12
+            ],
+            "attack_minimum_added_physical_damage": [
+              5,
+              7
+            ]
+          }
+        },
+        {
+          "tier": 6,
+          "affix_name": "Honed",
+          "required_level": 28,
+          "mod_id": "AddedPhysicalDamage4",
+          "rolls": {
+            "attack_maximum_added_physical_damage": [
+              9,
+              10
+            ],
+            "attack_minimum_added_physical_damage": [
+              4,
+              6
+            ]
+          }
+        },
+        {
+          "tier": 7,
+          "affix_name": "Polished",
+          "required_level": 19,
+          "mod_id": "AddedPhysicalDamage3",
+          "rolls": {
+            "attack_maximum_added_physical_damage": [
+              6,
+              7
+            ],
+            "attack_minimum_added_physical_damage": [
+              3,
+              4
+            ]
+          }
+        },
+        {
+          "tier": 8,
+          "affix_name": "Burnished",
+          "required_level": 13,
+          "mod_id": "AddedPhysicalDamage2",
+          "rolls": {
+            "attack_maximum_added_physical_damage": [
+              4,
+              5
+            ],
+            "attack_minimum_added_physical_damage": [
+              2,
+              3
+            ]
+          }
+        },
+        {
+          "tier": 9,
+          "affix_name": "Glinting",
+          "required_level": 5,
+          "mod_id": "AddedPhysicalDamage1",
+          "rolls": {
+            "attack_maximum_added_physical_damage": [
+              2,
+              2
+            ],
+            "attack_minimum_added_physical_damage": [
+              1,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "family": "FireDamage",
+      "label": "Added Fire Damage to Attacks (AddedFireDamage tier ladder)",
+      "affix_type": "prefix",
+      "stat_ids": [
+        "attack_maximum_added_fire_damage",
+        "attack_minimum_added_fire_damage"
+      ],
+      "tier_count": 9,
+      "best_tier": 1,
+      "worst_tier": 9,
+      "tiers": [
+        {
+          "tier": 1,
+          "affix_name": "Cremating",
+          "required_level": 76,
+          "mod_id": "AddedFireDamage9",
+          "rolls": {
+            "attack_maximum_added_fire_damage": [
+              39,
+              45
+            ],
+            "attack_minimum_added_fire_damage": [
+              19,
+              25
+            ]
+          }
+        },
+        {
+          "tier": 2,
+          "affix_name": "Blasting",
+          "required_level": 64,
+          "mod_id": "AddedFireDamage8",
+          "rolls": {
+            "attack_maximum_added_fire_damage": [
+              32,
+              38
+            ],
+            "attack_minimum_added_fire_damage": [
+              16,
+              22
+            ]
+          }
+        },
+        {
+          "tier": 3,
+          "affix_name": "Incinerating",
+          "required_level": 52,
+          "mod_id": "AddedFireDamage7",
+          "rolls": {
+            "attack_maximum_added_fire_damage": [
+              27,
+              31
+            ],
+            "attack_minimum_added_fire_damage": [
+              13,
+              18
+            ]
+          }
+        },
+        {
+          "tier": 4,
+          "affix_name": "Scorching",
+          "required_level": 44,
+          "mod_id": "AddedFireDamage6",
+          "rolls": {
+            "attack_maximum_added_fire_damage": [
+              23,
+              27
+            ],
+            "attack_minimum_added_fire_damage": [
+              11,
+              15
+            ]
+          }
+        },
+        {
+          "tier": 5,
+          "affix_name": "Flaming",
+          "required_level": 35,
+          "mod_id": "AddedFireDamage5",
+          "rolls": {
+            "attack_maximum_added_fire_damage": [
+              19,
+              22
+            ],
+            "attack_minimum_added_fire_damage": [
+              9,
+              12
+            ]
+          }
+        },
+        {
+          "tier": 6,
+          "affix_name": "Burning",
+          "required_level": 28,
+          "mod_id": "AddedFireDamage4",
+          "rolls": {
+            "attack_maximum_added_fire_damage": [
+              15,
+              18
+            ],
+            "attack_minimum_added_fire_damage": [
+              7,
+              10
+            ]
+          }
+        },
+        {
+          "tier": 7,
+          "affix_name": "Smoking",
+          "required_level": 20,
+          "mod_id": "AddedFireDamage3",
+          "rolls": {
+            "attack_maximum_added_fire_damage": [
+              11,
+              13
+            ],
+            "attack_minimum_added_fire_damage": [
+              5,
+              7
+            ]
+          }
+        },
+        {
+          "tier": 8,
+          "affix_name": "Smouldering",
+          "required_level": 12,
+          "mod_id": "AddedFireDamage2",
+          "rolls": {
+            "attack_maximum_added_fire_damage": [
+              7,
+              8
+            ],
+            "attack_minimum_added_fire_damage": [
+              3,
+              5
+            ]
+          }
+        },
+        {
+          "tier": 9,
+          "affix_name": "Heated",
+          "required_level": 1,
+          "mod_id": "AddedFireDamage1",
+          "rolls": {
+            "attack_maximum_added_fire_damage": [
+              2,
+              2
+            ],
+            "attack_minimum_added_fire_damage": [
+              1,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "family": "IncreasedAttackSpeed",
+      "label": "Attack Speed",
+      "affix_type": "suffix",
+      "stat_ids": [
+        "attack_speed_+%"
+      ],
+      "tier_count": 4,
+      "best_tier": 1,
+      "worst_tier": 4,
+      "tiers": [
+        {
+          "tier": 1,
+          "affix_name": "of Grandmastery",
+          "required_level": 76,
+          "mod_id": "IncreasedAttackSpeed4",
+          "rolls": {
+            "attack_speed_+%": [
+              14,
+              16
+            ]
+          }
+        },
+        {
+          "tier": 2,
+          "affix_name": "of Mastery",
+          "required_level": 22,
+          "mod_id": "IncreasedAttackSpeed3",
+          "rolls": {
+            "attack_speed_+%": [
+              11,
+              13
+            ]
+          }
+        },
+        {
+          "tier": 3,
+          "affix_name": "of Ease",
+          "required_level": 11,
+          "mod_id": "IncreasedAttackSpeed2",
+          "rolls": {
+            "attack_speed_+%": [
+              8,
+              10
+            ]
+          }
+        },
+        {
+          "tier": 4,
+          "affix_name": "of Skill",
+          "required_level": 1,
+          "mod_id": "IncreasedAttackSpeed1",
+          "rolls": {
+            "attack_speed_+%": [
+              5,
+              7
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "family": "CriticalStrikeChanceIncrease",
+      "label": "Global Critical Strike Chance",
+      "affix_type": "suffix",
+      "stat_ids": [
+        "critical_strike_chance_+%"
+      ],
+      "tier_count": 7,
+      "best_tier": 1,
+      "worst_tier": 7,
+      "tiers": [
+        {
+          "tier": 1,
+          "affix_name": "of Rending",
+          "required_level": 85,
+          "mod_id": "CriticalStrikeChance7",
+          "rolls": {
+            "critical_strike_chance_+%": [
+              39,
+              44
+            ]
+          }
+        },
+        {
+          "tier": 2,
+          "affix_name": "of Incision",
+          "required_level": 72,
+          "mod_id": "CriticalStrikeChance6",
+          "rolls": {
+            "critical_strike_chance_+%": [
+              35,
+              38
+            ]
+          }
+        },
+        {
+          "tier": 3,
+          "affix_name": "of Penetrating",
+          "required_level": 58,
+          "mod_id": "CriticalStrikeChance5",
+          "rolls": {
+            "critical_strike_chance_+%": [
+              30,
+              34
+            ]
+          }
+        },
+        {
+          "tier": 4,
+          "affix_name": "of Rupturing",
+          "required_level": 44,
+          "mod_id": "CriticalStrikeChance4",
+          "rolls": {
+            "critical_strike_chance_+%": [
+              25,
+              29
+            ]
+          }
+        },
+        {
+          "tier": 5,
+          "affix_name": "of Piercing",
+          "required_level": 30,
+          "mod_id": "CriticalStrikeChance3",
+          "rolls": {
+            "critical_strike_chance_+%": [
+              20,
+              24
+            ]
+          }
+        },
+        {
+          "tier": 6,
+          "affix_name": "of Stinging",
+          "required_level": 20,
+          "mod_id": "CriticalStrikeChance2",
+          "rolls": {
+            "critical_strike_chance_+%": [
+              15,
+              19
+            ]
+          }
+        },
+        {
+          "tier": 7,
+          "affix_name": "of Needling",
+          "required_level": 5,
+          "mod_id": "CriticalStrikeChance1",
+          "rolls": {
+            "critical_strike_chance_+%": [
+              10,
+              14
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

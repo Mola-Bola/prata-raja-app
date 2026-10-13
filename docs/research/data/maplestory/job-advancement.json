@@ -1,0 +1,119 @@
+{
+  "source": [
+    "https://maplestorywiki.net/w/Night_Lord",
+    "https://maplestorywiki.net/w/Thief",
+    "https://maplestorywiki.net/w/Night_Walker",
+    "https://maplestorywiki.net/w/Assassin"
+  ],
+  "fetched": "2026-10-12",
+  "licence_note": "MapleStory Wiki footer: content available under Creative Commons Attribution-NonCommercial-ShareAlike. Nexon owns MapleStory. Internal reference only.",
+  "provenance": "Community wiki compilation. The pages do not state a client-extraction pipeline. Not verified.",
+  "notes": [
+    "Levels are the current values on maplestorywiki.net (Night Lord and Night Walker pages list 10/30/60/100/200/260).",
+    "Older values disagree: en.wikibooks MapleStory/Jobs (search snippet only, not fetched) lists 3rd job at 70 and 4th at 120. These look like an older version; check the live client before relying on them.",
+    "StrategyWiki Job Advancements (strategywiki.org) returned a Cloudflare 403 challenge to automated fetch and was not read. Its 60/100 figure is from a search snippet only.",
+    "Open Advancement (RED update, Thief page): Explorers can switch jobs within their class for mesos.",
+    "Night Lord page trivia: if another Explorer on the same world has not reached 4th job, extra quests are needed for 3rd and 4th jobs.",
+    "The Warrior, Magician, Bowman and Pirate pages fetched did not carry the same advancement table, so they are not included."
+  ],
+  "lines": [
+    {
+      "line": "Explorer Thief (Night Lord line)",
+      "page": "https://maplestorywiki.net/w/Night_Lord",
+      "page_last_edited": "18 March 2026",
+      "tiers": [
+        {
+          "tier": "1st",
+          "level": 10,
+          "job": "Rogue",
+          "starting_quest": "[Explorer] Path of the Thief",
+          "unlocks": "HP and MP boost and a basic Thief weapon (Thief page)."
+        },
+        {
+          "tier": "2nd",
+          "level": 30,
+          "job": "Assassin or Bandit (branch choice)",
+          "starting_quest": "[Explorer] The 2 Paths of the Thief",
+          "unlocks": "Branch choice: Assassin leads to Night Lord; Bandit leads to Shadower (Thief page)."
+        },
+        {
+          "tier": "3rd",
+          "level": 60,
+          "job": "Hermit (Assassin line)",
+          "starting_quest": "[Explorer] Chiefs of El Nath",
+          "unlocks": "Hermit is the 3rd job on the Night Lord line (Night Lord page). Hermit skills are not described on the GMS pages read."
+        },
+        {
+          "tier": "4th",
+          "level": 100,
+          "job": "Night Lord",
+          "starting_quest": "[Explorer] Leaving the Pond",
+          "unlocks": "Claw and Charm weapons. Consumes Throwing Stars; the first star in the Use slot gives an attack boost (Night Lord page)."
+        },
+        {
+          "tier": "5th",
+          "level": 200,
+          "job": "5th job",
+          "starting_quest": "[5th Job] 5th Job: Call of the Erdas",
+          "unlocks": "Not described on the source page."
+        },
+        {
+          "tier": "6th",
+          "level": 260,
+          "job": "6th job",
+          "starting_quest": "[6th Job] Merged Dimension",
+          "unlocks": "Not described on the source page."
+        }
+      ]
+    },
+    {
+      "line": "Cygnus Knights (Night Walker)",
+      "page": "https://maplestorywiki.net/w/Night_Walker",
+      "page_last_edited": "18 March 2026",
+      "tiers": [
+        {
+          "tier": "1st",
+          "level": 10,
+          "job": "Night Walker (1st job)",
+          "starting_quest": "[Cygnus Knights] The Path of a Night Walker",
+          "unlocks": "Not described on the source page."
+        },
+        {
+          "tier": "2nd",
+          "level": 30,
+          "job": null,
+          "starting_quest": "[Cygnus Knights] End of the Knight-in-Training",
+          "unlocks": "Not described on the source page."
+        },
+        {
+          "tier": "3rd",
+          "level": 60,
+          "job": null,
+          "starting_quest": "[Cygnus Knights] The Advanced Knight's Trial",
+          "unlocks": "Not described on the source page."
+        },
+        {
+          "tier": "4th",
+          "level": 100,
+          "job": null,
+          "starting_quest": "[Cygnus Knights] Behind the Rumor",
+          "unlocks": "Not described on the source page. The Night Lord page says Night Walker also consumes Throwing Stars."
+        },
+        {
+          "tier": "5th",
+          "level": 200,
+          "job": null,
+          "starting_quest": "[5th Job] 5th Job: Call of the Erdas",
+          "unlocks": "Not described on the source page."
+        },
+        {
+          "tier": "6th",
+          "level": 260,
+          "job": null,
+          "starting_quest": "[6th Job] Merged Dimension",
+          "unlocks": "Not described on the source page."
+        }
+      ]
+    }
+  ]
+}

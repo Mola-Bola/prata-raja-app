@@ -1,6 +1,6 @@
 // Damage rules: a bread hit on an enemy, dip chain/sambal side effects, DoT bookkeeping, kills, XP and gold.
 import { rollHit, xpToNext } from '../stats';
-import { applyHitEffect, dmgTakenMul, hasStatus, onBreadHit } from '../status';
+import { applyCc, applyHitEffect, dmgTakenMul, hasStatus, onBreadHit } from '../status';
 import type { BreadStats, Enemy, HitEffect } from '../types';
 import { cdGet, clamp, dirtyMods, dist, emit, HIT_FLASH, hurtable, mods, type Ctx } from './ctx';
 import { spawnEnemy } from './spawn';
@@ -13,12 +13,8 @@ const DOT_EVERY = 0.5;
 const ZONE_COLOR = '#C9D98C';
 
 function stun(c: Ctx, e: Enemy, time: number): void {
-  const s = e.statuses.find((x) => x.id === 'stun');
-  if (s) s.time = Math.max(s.time, time);
-  else {
-    e.statuses.push({ id: 'stun', time, stacks: 1, dps: 0, amount: 0 });
-    emit(c, { t: 'status', uid: e.uid, status: 'stun' });
-  }
+  const { event, added } = applyCc(e, 'stun', time);
+  if (added || event === 'ccImmune') emit(c, { t: 'status', uid: e.uid, status: event });
 }
 
 /** A bread hit lands on e. `shieldable` = a straight/boomerang shot without pierce left: a front shield eats the hit

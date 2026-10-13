@@ -8,7 +8,7 @@ import type { Hub } from '../hub';
 import { loadSprites, makeShadow } from './tex';
 
 export class BootScene extends Phaser.Scene {
-  private pending: { seed?: number; loadout?: Loadout } | null = null;
+  private pending: { seed?: number; loadout?: Loadout; chapterId?: string } | null = null;
 
   constructor() {
     super('BootScene');
@@ -18,8 +18,8 @@ export class BootScene extends Phaser.Scene {
     const hub = this.registry.get('hub') as Hub | undefined;
     if (hub) {
       hub.controls = {
-        start: (seed, loadout) => {
-          this.pending = { seed, loadout };
+        start: (seed, loadout, chapterId) => {
+          this.pending = { seed, loadout, chapterId };
         },
         choose: () => {},
         reroll: () => {},

@@ -182,3 +182,24 @@ describe('evolutions', () => {
     for (const card of w.offer) if (card.kind === 'bread') expect(['kosong', 'naan']).toContain(card.id);
   });
 });
+
+it('queued offers and rerolls retain the recipe pools, history and eligible evolution', () => {
+  const w = createRun({ seed: 17, content: CONTENT, loadout: { breadPool: ['naan'], dipPool: ['ghee'], rerolls: 2 } });
+  w.player.breads[0].level = 5;
+  w.player.dips = [{ id: 'ghee', level: 5 }];
+  w.pendingLevelUps = 2;
+  step(w, 1 / 30, { targetX: null, moving: false });
+  for (let i = 0; i < 3; i++) {
+    expect(w.offer).toContainEqual({ kind: 'evolve', id: 'golden-ghee-chakra', level: 1 });
+    expect(w.offer.filter(c => c.kind === 'bread').every(c => c.id === 'naan')).toBe(true);
+    expect(w.offer.some(c => c.kind === 'dip')).toBe(false);
+    expect(w.recentOffers?.at(-1)).toEqual(w.offer);
+    if (i < 2) expect(reroll(w)).toBe(true);
+  }
+  expect(w.recentOffers).toHaveLength(2);
+  expect(w.rerolls).toBe(0);
+  chooseCard(w, w.offer.findIndex(c => c.kind !== 'evolve'));
+  expect(w.phase).toBe('levelup');
+  expect(w.offer).toContainEqual({ kind: 'evolve', id: 'golden-ghee-chakra', level: 1 });
+  expect(w.recentOffers?.at(-1)).toEqual(w.offer);
+});
