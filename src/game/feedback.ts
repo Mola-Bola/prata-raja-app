@@ -20,11 +20,11 @@ export const CHIPS: readonly { id: Chip; label: string }[] = [
 export const DEFAULT_CHIP: Chip = 'idea';
 export const BODY_MAX = 1000;
 
-export type Screen = 'title' | 'hub' | 'run' | 'results';
+export type Screen = 'title' | 'hub' | 'run' | 'results' | 'kitchen';
 
-/** GameUi's own screen names -> the four a note reports (the stall hub is "hub"). */
+/** GameUi's own screen names -> the screens a note reports (the stall hub is "hub"). */
 export function toScreen(s: string): Screen {
-  return s === 'stall' ? 'hub' : s === 'run' || s === 'results' || s === 'hub' ? s : 'title';
+  return s === 'stall' ? 'hub' : s === 'run' || s === 'results' || s === 'hub' || s === 'kitchen' ? s : 'title';
 }
 
 // ── What the run looked like ─────────────────────────────────────────────────────────────────────────────────────
@@ -50,11 +50,29 @@ export function trackRun(hub: Hub): { read(): RunSnapshot | null; stop(): void }
   let seed: number | null = null;
   let hud: HudState | null = null;
   let end: RunResult | null = null;
+  let kitchenWave: number | null = null;
+  let kitchenOver = false;
+  const reset = (nextSeed: number | null) => {
+    seed = nextSeed;
+    hud = null;
+    end = null;
+    kitchenWave = null;
+    kitchenOver = false;
+  };
   const offs = [
     hub.on('runStart', (p) => {
-      seed = p.seed;
-      hud = null;
-      end = null;
+      reset(p.seed);
+    }),
+    hub.on('kitchenStart', (p) => reset(p.seed)),
+    hub.on('kitchenStats', (stats) => {
+      kitchenWave = stats.wave;
+    }),
+    hub.on('kitchenEnd', ({ reason, stats }) => {
+      if (reason === 'stopped') reset(null);
+      else {
+        kitchenWave = stats.wave;
+        kitchenOver = true;
+      }
     }),
     hub.on('hud', (h) => {
       hud = h;
@@ -67,8 +85,8 @@ export function trackRun(hub: Hub): { read(): RunSnapshot | null; stop(): void }
     read() {
       if (seed === null) return null;
       if (end) return { seed, wave: end.wave, level: end.level, breads: owned(end.breads), dips: owned(end.dips), over: true };
-      if (hud) return { seed, wave: hud.wave, level: hud.level, breads: owned(hud.breads), dips: owned(hud.dips), over: false };
-      return { seed, wave: 0, level: 1, breads: [], dips: [], over: false };
+      if (hud) return { seed, wave: kitchenWave ?? hud.wave, level: hud.level, breads: owned(hud.breads), dips: owned(hud.dips), over: kitchenOver };
+      return { seed, wave: kitchenWave ?? 0, level: 1, breads: [], dips: [], over: kitchenOver };
     },
     stop: () => offs.forEach((off) => off()),
   };
@@ -83,7 +101,7 @@ export type NoteContext = {
   platform: string;
   device: string | null;
   screen: Screen;
-  /** Only on the run and results screens; null elsewhere (an old run says nothing about the title). */
+  /** Only on the run, results and kitchen screens; null elsewhere (an old run says nothing about the title). */
   wave: number | null;
   level: number | null;
   seed: number | null;
@@ -119,7 +137,7 @@ export function buildNote(i: {
   run: RunSnapshot | null;
 }): NotePayload {
   const info = i.info ?? NO_INFO;
-  const run = i.screen === 'run' || i.screen === 'results' ? i.run : null;
+  const run = i.screen === 'run' || i.screen === 'results' || i.screen === 'kitchen' ? i.run : null;
   return {
     id: i.id,
     device_id: i.deviceId,
@@ -146,7 +164,7 @@ export function buildNote(i: {
 
 /** The small line under the note box: what travels with it, in a few words. */
 export function contextLine(c: NoteContext): string {
-  const where = c.screen === 'run' && c.wave ? `run, wave ${c.wave}` : c.screen === 'results' && c.wave ? `results, wave ${c.wave}` : c.screen;
+  const where = c.wave && (c.screen === 'run' || c.screen === 'results' || c.screen === 'kitchen') ? `${c.screen}, wave ${c.wave}` : c.screen;
   return [c.app_version ? `v${c.app_version}` : null, where, c.level && c.wave ? `Lv ${c.level}` : null, c.platform].filter(Boolean).join(' · ');
 }
 
@@ -165,7 +183,7 @@ export const FAIL_TEXT: Record<FailReason, string> = {
   rejected: 'That note didn’t go through. Try shortening it.',
   server: 'Something broke on our side. Try again in a moment.',
   unconfigured: 'Notes aren’t switched on in this build.',
-  unavailable: 'My notes isn’t available on this server yet. You can still send a note.',
+  unavailable: 'My notes isn’t available on this server yet.',
 };
 
 /** POST the note. Never throws: every outcome is a SendResult. text/plain keeps it a "simple" request (no CORS preflight). */
@@ -247,7 +265,7 @@ export async function pairOwner(pair: DevicePair, code: string, opts: RequestOpt
 export function noteStatus(note: Pick<SavedNote, 'status' | 'shipped_in'>): string {
   const labels = brandWords.statusLabels;
   const known: Record<string, string> = { new: labels.received, needs_info: labels.question, proposed: labels.planReady, approved: labels.planned, in_progress: labels.building, shipped: labels.shipped, done: labels.done, wont_do: labels.not_now, duplicate: labels.merged };
-  return note.shipped_in ? `${brandWords.statusShort.shipped} in ${note.shipped_in}` : known[note.status] ?? 'Status pending';
+  return note.status === 'shipped' && note.shipped_in ? `${brandWords.statusShort.shipped} in ${note.shipped_in}` : known[note.status] ?? 'Status pending';
 }
 
 // ── The sheet's state ────────────────────────────────────────────────────────────────────────────────────────────
