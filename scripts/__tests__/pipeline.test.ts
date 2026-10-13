@@ -140,7 +140,21 @@ describe('pipeline', { timeout: 60_000 }, () => {
       expect(f.fast('release', 'Test', '--branch', `sol/${f.name}`).stderr).toContain('not ready in the ledger');
       expect(f.git('rev-parse', 'HEAD')).toBe(result.base);
       update('ready');
+      execFileSync(process.execPath, ['--input-type=module', '-e', `
+        import {openLedger} from './scripts/fleet.mjs'; const db=openLedger(process.cwd(),{render:false});
+        db.add({source:'test',intent:'next',brief:'follow-up',owned:['src'],dependsOn:[1]});
+        if(db.claim('next-worker')) throw new Error('Dependency must wait');db.close();
+      `],{cwd:f.root,env:f.env});
       expect(f.fast('release', 'Test', '--branch', `sol/${f.name}`).status).toBe(0);
+      const outcome=JSON.parse(execFileSync(process.execPath,['--input-type=module','-e',`
+        import {openLedger} from './scripts/fleet.mjs'; const db=openLedger(process.cwd(),{render:false});
+        console.log(JSON.stringify({shipped:db.list()[0],next:db.claim('next-worker')})); db.close();
+      `],{cwd:f.root,env:f.env,encoding:'utf8'}));
+      expect(outcome.shipped.status).toBe('shipped');
+      expect(outcome.shipped.release).toBe('0.4.2');
+      expect(outcome.shipped.result.head).toBe(f.git('rev-parse','HEAD'));
+      expect(outcome.next.id).toBe(2);
+      expect(f.git('status','--porcelain')).toBe('');
     } finally { f.close(); }
   });
   it('release enforces source ownership again for a ready ledger row', () => {
@@ -161,6 +175,25 @@ describe('pipeline', { timeout: 60_000 }, () => {
       expect(f.git('rev-parse','HEAD')).toBe(result.base);
       expect(existsSync(join(f.root,'.akit/shipped'))).toBe(false);
     } finally { f.close(); }
+  });
+  it('rejects a branch-only base that hides earlier unowned edits', () => {
+    const f=fixture();
+    try {
+      const base=f.git('rev-parse','HEAD'),cwd=join(f.base,`prata-raja-${f.name}`);
+      f.git('worktree','add','-b',`sol/${f.name}`,cwd,base);
+      writeFileSync(join(cwd,'unowned.txt'),'hidden change');
+      execFileSync('git',['add','-A'],{cwd,env:f.env});
+      execFileSync('git',['commit','-qm','Unowned change'],{cwd,env:f.env});
+      const hiddenBase=f.git('rev-parse',`sol/${f.name}`);
+      mkdirSync(join(cwd,'src'));writeFileSync(join(cwd,'src/change.txt'),'fixed');
+      execFileSync('git',['add','-A'],{cwd,env:f.env});
+      execFileSync('git',['commit','-qm','Owned change'],{cwd,env:f.env});
+      const run=spawnSync(process.execPath,['scripts/pipeline.mjs','verify-slice',f.name,hiddenBase],{cwd:f.root,env:f.env,encoding:'utf8'});
+      expect(run.status).toBe(1);
+      expect(run.stderr).toContain('ancestor of main');
+      expect(existsSync(f.report)).toBe(false);
+      expect(f.git('rev-parse','main')).toBe(base);
+    } finally {f.close();}
   });
   it.each([false, true])('verifies an existing bounded agent worktree; concurrent HEAD change=%s', (concurrent) => {
     const f = fixture();
