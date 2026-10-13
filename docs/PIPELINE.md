@@ -1,5 +1,8 @@
 # Slice and release pipeline
 
+Fast lane is the default; see the Fleet section below. The original rigorous
+workflow described here is available with `--full` on both entry points.
+
 Run from the repository; release runs only on clean `main`. No new dependencies.
 Pipeline process tests have a 60-second per-test timeout for loaded Macs.
 In a sandbox with shared read-only node_modules, run Vitest with
@@ -26,12 +29,13 @@ bash scripts/release.sh "Heat and links" --branch sol/heat --branch sol/links
 # Add --minor for a minor bump; otherwise use ship-cloud's next patch label.
 ```
 Slices create sibling `prata-raja-<name>` worktrees and `sol/<name>` branches.
-They share node_modules, copy only local .env, run check.sh --web (SKIP_DB=1),
-review real P0/P1/P2 bugs, and allow one fix/recheck/re-review round.
+They share node_modules and copy only local .env. With `--full`, they run
+check.sh --web (SKIP_DB=1), review real P0/P1/P2 bugs, and allow one
+fix/recheck/re-review round. The default uses quick checks and defers review.
 After green local checks and review, slice pushes `git push -u origin <branch>`.
 Reports/results live at `/private/tmp/claude-501/slices/<name>/`; exit 0 means green.
 Release refuses stale/failed reports, conflicts and failed merged checks/akit check.
-It reviews the full merged diff (including app.json and migrations), then commits
+With `--full`, it reviews the merged diff, then commits
 only the pipeline's version bump without another review. Checks and reviews are
 bound to pinned commits; any HEAD change fails verification. It stamps that exact
 HEAD and ships only through akit, then pushes `git push origin main`.
@@ -44,13 +48,13 @@ nonblocking snapshot: queued/missing runs and lookup errors are reported; the
 pipeline never waits for CI, including while billing is refused. Other CI
 failures are reported for the lead to inspect, not treated as local slice failures.
 Release reports remain under `/private/tmp/claude-501/slices/release-<timestamp>/REPORT.md`.
-OTA refuses runtime/config/plugin/native source changes relative to both pre-merge main
+Web release refuses runtime/config/plugin/native source changes relative to both pre-merge main
 and the common base of main and the slices (including on retries).
 Dependency and lockfile changes (except root package version fields), native patches,
 and EAS config changes are also refused conservatively: shared node_modules
 cannot prove they are JS-only. Use the documented `--apk --cloud` path in
 `docs/UPDATES.md` for these releases; this pipeline does not build APKs.
-Codex uses gpt-6.1-sol/medium, explicit git writable roots and ephemeral sessions;
+Codex uses gpt-6.1-sol (medium builds, high reviews), explicit git writable roots and ephemeral sessions;
 Codex commits only in its own worktree, and only when the pipeline grants writable
 git roots. Otherwise it edits only and the lead commits.
 Network access is enabled (includes localhost); full checks and fallback commits run externally.
@@ -64,3 +68,68 @@ Pages race: release is locked across worktrees and waits for the exact published
 SHA's Pages build + matching live HTML before cleanup; old chunks are already retained.
 After failure inspect git status/logs before retrying; merges/version may remain,
 ship may have partially published. Never blindly re-run shipping or force cleanup.
+
+## Fleet fast lane (default)
+
+Both entry points now default to quick checks. Slices run `check.sh` with DB
+skipped, allow one fix round, push, and explicitly report review as deferred.
+`--full` retains the previous pre-ship web check and read-only review path.
+Release always keeps clean-main, exact branch/report HEAD, version-only bump,
+release lock and native/dependency guards. Database migrations are refused;
+use the normal applied-and-fingerprinted path. Neither mode permits Android
+shipping. The selected label is passed explicitly to
+`akit ship -- node scripts/publish-web.mjs --label <label>`.
+
+After akit check, release creates a durable verification job and stamps the exact
+HEAD with `fast lane: post-ship review queued <ledger id>`. Successful publishing
+marks that job queued and launches it detached, before push/Pages propagation.
+A queued job is **not** evidence of completed checks. Full-mode releases also
+queue the 300-seed and post-ship checks.
+
+Jobs and logs survive worktree cleanup and reboot in
+`$(git rev-parse --git-common-dir)/fleet-verifications/<job-id>/`.
+`job.json` records status, attempts, pinned base/HEAD, release, ledger id and port;
+`result.json` records web, balance, findings and errors; `attempt-N/` preserves each attempt’s evidence. The verifier uses a fresh
+detached worktree, local `.env` only, shared node_modules, and an available unique
+port. It runs `check.sh --web`, `BALANCE_SEEDS=300` balance tests and a read-only
+structured Codex review. Failures/findings create a high-priority investigation
+row reserved to the lead (without dirtying the shipping checkout; the lead regenerates `docs/LEDGER.md` after shipping); passing all three marks the verification row verified. Failed worktrees and
+logs are kept for diagnosis.
+
+Recover a queued/failed/interrupted job without publishing again:
+```bash
+node scripts/verify-fleet.mjs run <job-id>
+```
+A job still `awaiting-ship` refuses verification. If shipping succeeded but the
+process died before recording `shippedAt`, the lead must first verify the publish
+SHA/label and record that evidence before confirming the job as shipped. A crashed
+verifier leaves `running/pid`; check the process is dead before removing that lock
+and retrying. Never remove a live verifier's lock. Retry creates a new worktree;
+existing failure evidence stays intact. Review findings and infrastructure errors
+are investigation requests, not automatically established gameplay regressions.
+
+Release labels now advance from the greatest of the source version and recorded
+cloud labels. A web-only release does not create an OTA database row, so its source
+version prevents the next web release reusing the label. Verification rows are
+reserved atomically and have job-specific ownership, allowing a fresh publish
+attempt after a failed publish without an old queue row blocking it. Fleet-linked
+slices carry `FLEET_LEDGER_ID`; release requires their ledger row to be ready and
+rechecks the exact changed files against that row's ownership before any merge.
+
+## Verify an existing agent worktree
+
+For bounded subagent work that already exists on `sol/<name>` in the sibling
+`prata-raja-<name>` worktree, create a genuine pipeline result without running
+code generation again:
+
+```bash
+FLEET_LEDGER_ID=6 PORT=9606 node scripts/pipeline.mjs verify-slice feedback-ui <base-sha> --dry-run
+FLEET_LEDGER_ID=6 PORT=9606 node scripts/pipeline.mjs verify-slice feedback-ui <base-sha>
+```
+
+Use the agreed ancestor commit as the base. The command requires a clean worktree,
+checks claimed ownership, runs quick checks (or `--full` web checks and review),
+rejects concurrent HEAD changes, pushes, and writes the ordinary pinned pipeline
+report. Only then does it mark the linked row ready. Failed checks mark that row
+failed and keep the report. It neither edits game code nor merges nor ships.
+A pre-existing agent worktree is preserved after release; the lead owns cleanup.

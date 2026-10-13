@@ -11,6 +11,7 @@ import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import type { AppInfo } from './appInfo';
 import type { Bridge } from './bridgeTypes';
 import { GAME_BG } from './config';
+import { installCapture } from './capture';
 import { installFonts } from './fonts';
 import { createHub, type Hub } from './hub';
 import { BootScene } from './phaser/BootScene';
@@ -99,6 +100,11 @@ export default function GameRoot({ haptic, save, load, track, insets, info }: Pr
     g.registry.set('bridge', bridge);
     window.__game = g;
     window.__hub = hub;
+    const stopCapture = installCapture(done => {
+      // Hidden/stall scenes sleep; do not wake or advance a run just to capture a note.
+      if (!g.loop.running || !g.renderer) return done(null);
+      g.renderer.snapshot(image => done(image instanceof HTMLImageElement ? image : null), 'image/jpeg', 0.7);
+    });
 
     // A line in the WebView's console (adb logcat shows it as `chromium`) so Android FPS can be read without a screenshot.
     const poll = window.setInterval(() => {
@@ -107,6 +113,7 @@ export default function GameRoot({ haptic, save, load, track, insets, info }: Pr
 
     return () => {
       window.clearInterval(poll);
+      stopCapture();
       hub.controls = null;
       g.destroy(true); // asynchronous: the engine finishes tearing down on its next step
       g.loop.wake(); // ...and a loop asleep (no run on screen) has no next step, so wake it to finish the job
