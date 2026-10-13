@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
+import { brandWords } from '@/brand';
 import { CONTENT } from '@/content';
 import { chapterUnlocked } from '@/meta/chapters';
 import type { SaveV2 } from '@/meta/types';
@@ -17,7 +18,7 @@ import './Stall.css';
 
 export type { Art } from './StallProgress';
 
-export function StallHub({ save, commit, onStart, onStory, art }: { save: SaveV2; commit: Commit; onStart: (chapterId: string) => void; onStory: () => void; art: Art }) {
+export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { save: SaveV2; commit: Commit; onStart: (chapterId: string) => void; onStory: () => void; onKitchen: () => void; art: Art }) {
   // A sheet is a prop's panel, or the settings cog's.
   const [panel, setPanel] = useState<Panel | 'settings' | 'chapters' | 'signature' | null>(null);
   const [now, setNow] = useState(() => new Date());
@@ -86,7 +87,8 @@ export function StallHub({ save, commit, onStart, onStory, art }: { save: SaveV2
         <button type="button" className="gu-btn gu-btn--primary gu-btn--wide sh-start" data-testid="stall-start" onClick={() => chapterUnlocked(save, 'hawker-night') ? open('chapters') : onStart(CONTENT.chapters[0].id)}>
           Start daydream
         </button>
-        <button type="button" className="gu-btn" data-testid="stall-tell" onClick={openFeedback}>
+        <button type="button" className="gu-btn" data-testid="stall-kitchen" onClick={onKitchen}>{brandWords.words.kitchen}</button>
+        <button type="button" className="gu-btn" data-testid="stall-tell" style={{ gridColumn: '1 / -1' }} onClick={openFeedback}>
           Tell Kannan
         </button>
       </footer>
