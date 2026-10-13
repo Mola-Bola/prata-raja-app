@@ -1,6 +1,7 @@
 // The one seam between the Phaser renderer (src/game/phaser/*) and the React DOM overlays (src/game/ui/*).
 // The renderer owns the World and publishes; the UI listens and calls GameControls. Neither imports the other.
-import type { BreadId, Card, DipId, Loadout, RunResult } from '@/core/types';
+import type { KitchenConfig, KitchenTuning } from '@/core/kitchen';
+import type { BreadId, Card, DipId, Loadout, RunPhase, RunResult } from '@/core/types';
 
 export type HudState = {
   wave: number;
@@ -19,7 +20,23 @@ export type HudState = {
   dips: { id: DipId; level: number }[];
 };
 
+/** Hit and DoT numbers shown on screen, including overkill; not effective HP removed. */
+export type KitchenStats = {
+  time: number;
+  wave: number;
+  phase: RunPhase;
+  hp: number;
+  maxHp: number;
+  kills: number;
+  damageShown: number;
+  damageShownPerSecond: number;
+  tuning: KitchenTuning;
+};
+
 export type HubEvents = {
+  kitchenStart: { seed: number; tuning: KitchenTuning };
+  kitchenStats: KitchenStats;
+  kitchenEnd: { reason: 'won' | 'lost' | 'stopped'; stats: KitchenStats };
   /** About 10 times a second while a run is live. */
   hud: HudState;
   /** The run paused for a pick; the UI shows the cards and answers with controls.choose/reroll. */
@@ -37,6 +54,9 @@ export type HubEvents = {
 export type GameControls = {
   /** Start a fresh run (seed defaults to a random one; loadout = stall gear + training bonuses, S2). */
   start(seed?: number, loadout?: Loadout, chapterId?: string): void;
+  startKitchen(config: KitchenConfig): void;
+  tuneKitchen(tuning: KitchenTuning): void;
+  stopKitchen(): void;
   choose(index: number): void;
   reroll(): void;
   pause(): void;
