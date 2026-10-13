@@ -52,7 +52,8 @@ summary() { # one short tail for the ✓/✗ line
 run tsc npx tsc --noEmit
 run lint npx expo lint src
 run brand node scripts/brand-lint.mjs # names people see come from src/brand.ts only
-run vitest npx vitest run
+# Worktrees share read-only node_modules; avoid Vite's bundled-config temp files there.
+run vitest npx vitest run --configLoader runner
 if [ "${SKIP_DB:-0}" = 1 ]; then echo "- pgtap skipped (SKIP_DB=1)"; else run pgtap supabase test db; fi
 
 if [ "$WEB" = 1 ]; then
@@ -63,7 +64,16 @@ if [ "$WEB" = 1 ]; then
       node scripts/web-pwa.mjs dist
   }
   run build build
-  if ! curl -s -o /dev/null "http://localhost:$PORT/"; then
+  if [ "${CHECK_OWN_SERVER:-0}" = 1 ]; then
+    node scripts/serve-web.mjs "$PORT" >"$LOGS/serve.log" 2>&1 &
+    SERVER_PID=$!
+    trap 'kill "$SERVER_PID" 2>/dev/null || true; wait "$SERVER_PID" 2>/dev/null || true' EXIT
+    sleep 2
+    if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+      echo "✗ e2e server failed (port $PORT); see $LOGS/serve.log"
+      exit 1
+    fi
+  elif ! curl -s -o /dev/null "http://localhost:$PORT/"; then
     nohup node scripts/serve-web.mjs "$PORT" >"$LOGS/serve.log" 2>&1 &
     sleep 2
   fi
