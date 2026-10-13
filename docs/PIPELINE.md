@@ -115,3 +115,21 @@ reserved atomically and have job-specific ownership, allowing a fresh publish
 attempt after a failed publish without an old queue row blocking it. Fleet-linked
 slices carry `FLEET_LEDGER_ID`; release requires their ledger row to be ready and
 rechecks the exact changed files against that row's ownership before any merge.
+
+## Verify an existing agent worktree
+
+For bounded subagent work that already exists on `sol/<name>` in the sibling
+`prata-raja-<name>` worktree, create a genuine pipeline result without running
+code generation again:
+
+```bash
+FLEET_LEDGER_ID=6 PORT=9606 node scripts/pipeline.mjs verify-slice feedback-ui <base-sha> --dry-run
+FLEET_LEDGER_ID=6 PORT=9606 node scripts/pipeline.mjs verify-slice feedback-ui <base-sha>
+```
+
+Use the agreed ancestor commit as the base. The command requires a clean worktree,
+checks claimed ownership, runs quick checks (or `--full` web checks and review),
+rejects concurrent HEAD changes, pushes, and writes the ordinary pinned pipeline
+report. Only then does it mark the linked row ready. Failed checks mark that row
+failed and keep the report. It neither edits game code nor merges nor ships.
+A pre-existing agent worktree is preserved after release; the lead owns cleanup.

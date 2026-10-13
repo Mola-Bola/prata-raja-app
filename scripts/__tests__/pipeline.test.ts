@@ -162,6 +162,36 @@ describe('pipeline', { timeout: 60_000 }, () => {
       expect(existsSync(join(f.root,'.akit/shipped'))).toBe(false);
     } finally { f.close(); }
   });
+  it.each([false, true])('verifies an existing bounded agent worktree; concurrent HEAD change=%s', (concurrent) => {
+    const f = fixture();
+    try {
+      const base=f.git('rev-parse','HEAD'), cwd=join(f.base,`prata-raja-${f.name}`);
+      f.git('worktree','add','-b',`sol/${f.name}`,cwd,base);
+      mkdirSync(join(cwd,'src'));
+      writeFileSync(join(cwd,'src/change.txt'),'fixed');
+      execFileSync('git',['add','-A'],{cwd,env:f.env});
+      execFileSync('git',['commit','-qm','Agent implemented'],{cwd,env:f.env});
+      execFileSync(process.execPath,['--input-type=module','-e', `
+        import {openLedger} from './scripts/fleet.mjs';const db=openLedger(process.cwd(),{render:false});
+        db.addClaimed({source:'test',intent:'slice',brief:'build',owned:['src']},'agent');
+        db.status(1,'building',{branch:'sol/${f.name}'});db.close();
+      `],{cwd:f.root,env:f.env});
+      Object.assign(f.env,{FLEET_LEDGER_ID:'1',PIPELINE_CHECK_COMMIT:concurrent?'1':'',PIPELINE_CAPACITY_FILE:join(f.base,'no-codegen')});
+      const call=(...args: string[])=>spawnSync(process.execPath,['scripts/pipeline.mjs','verify-slice',f.name,base,...args],{cwd:f.root,env:f.env,encoding:'utf8'});
+      expect(call('--dry-run').status).toBe(0);
+      expect(existsSync(f.report)).toBe(false);
+      const verified=call();
+      expect(verified.status,verified.stderr).toBe(concurrent?1:0);
+      const report=JSON.parse(readFileSync(join(f.report,'result.json'),'utf8'));
+      expect(report.ledgerId).toBe(1);
+      expect(report.ok).toBe(!concurrent);
+      expect(report.ownedDirectories).not.toContain(cwd);
+      expect(existsSync(join(f.base,'no-codegen'))).toBe(false);
+      const rows=JSON.parse(execFileSync(process.execPath,['scripts/fleet.mjs','list'],{cwd:f.root,env:f.env,encoding:'utf8'}));
+      expect(rows[0].status).toBe(concurrent?'failed':'ready');
+      if(!concurrent) expect(f.fast('release','Agent slice','--branch',`sol/${f.name}`).status).toBe(0);
+    } finally {f.close();}
+  });
   it('shares ship label semantics and handles numeric ordering/minor bumps', () => {
     expect(chooseLabel('0.4.1', ['0.4.9', '0.4.10', 'junk'])).toBe('0.4.11');
     expect(chooseLabel('0.5.0', ['0.4.10'])).toBe('0.5.1');
