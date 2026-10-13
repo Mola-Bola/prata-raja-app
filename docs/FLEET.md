@@ -13,6 +13,7 @@ Prata Raja is built by a **Codex fleet** that runs itself. The owner keeps one *
 - Every owner note gets a row and a visible status back to the owner (see feedback below).
 
 ## Shipping: fast lane by default
+- **Web-only shipping (owner, 13 Oct):** ship the web build alone: `SKIP_DB=1 ~/cell/akit/akit check` → stamp → `~/cell/akit/akit ship -- node scripts/publish-web.mjs --label "$(node scripts/ship-cloud.mjs --next-label)"`. No Android OTA/APK unless the owner asks (they play in the browser only; same feel, fastest loop, half the build work).
 - Ship an OTA as soon as a slice works: `npx tsc --noEmit` + `npx vitest run` (or the touched tests) → `SKIP_DB=1 ~/cell/akit/akit check` → stamp `.akit/reviewed-<sha>` with "fast lane: post-ship review queued <ledger id>" → `~/cell/akit/akit ship -- node scripts/ship-cloud.mjs --notes "…"`. Batch small slices into one OTA when they land close together; several OTAs a day is fine.
 - Full e2e, balance and reviews run **after** the ship (background verifier) and in CI (once GitHub billing is fixed). Regressions → quick fix-forward OTA; a bad build can be rolled back by shipping the previous label's commit.
 - Hard stops still apply: no native/runtime changes or new native modules without the owner (APK); no database migrations without the normal applied-and-fingerprinted path; never print secrets; never pay-to-win.

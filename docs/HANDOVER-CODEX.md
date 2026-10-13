@@ -8,6 +8,7 @@ One packet for the next Codex lead. It merges (A) the Claude desk session (0.2.0
 3. Close the open items below in order, then continue the next rounds.
 
 ## Owner direction (decided; notes are intent, not spec)
+- **Web-only shipping (owner, 13 Oct):** ship the web build alone: `SKIP_DB=1 ~/cell/akit/akit check` → stamp → `~/cell/akit/akit ship -- node scripts/publish-web.mjs --label "$(node scripts/ship-cloud.mjs --next-label)"`. No Android OTA/APK unless the owner asks (they play in the browser only; same feel, fastest loop, half the build work).
 - **New 13 Oct (top priority for design):** rotis = main weapons, dips = tiered PoE-style gems, themed enhancements: `docs/BUILDS.md`; sessions lead in every domain (`DIRECTION.md`). Exploratory, not firm: first deliver a polished malleable base + a Test Kitchen sandbox (BUILDS.md §5 step 0) so the owner can feel the roti/dip playstyle and steer.
 - Never pay-to-win; progression never gated by money; less Archero, its own game. Monetisation only if it takes off, and fair (cosmetics, supporter pass, convenience, buy-once OK; never power).
 - PoE-style layered builds: persistent signature bread / gear / job tree / drinks-as-flasks + in-run cards that chain off them; easy start, deep end. Foods as skills (murtabak, appam, idli, vadai…). Plan: `docs/DEPTH.md`, `docs/ROADMAP.md`, `docs/OWNER-SUMMARY-DEPTH.md`.

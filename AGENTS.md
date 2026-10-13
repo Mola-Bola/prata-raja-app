@@ -53,4 +53,5 @@ Cell (`~/cell`) is the engine: `akit` (shared feedback CLI and ship gate), the r
 - Models: Opus plans, merges and judges; Sonnet subagents implement; Codex (`~/cell/runner/bin/codex-run.sh review <brief>`) reviews.
 
 ## Fleet mode (13 Oct 2026, owner direction)
+**Web-only shipping (owner, 13 Oct):** ship the web build alone: `SKIP_DB=1 ~/cell/akit/akit check` → stamp → `~/cell/akit/akit ship -- node scripts/publish-web.mjs --label "$(node scripts/ship-cloud.mjs --next-label)"`. No Android OTA/APK unless the owner asks (they play in the browser only; same feel, fastest loop, half the build work).
 Read `docs/FLEET.md`: fast-lane OTAs (typecheck + unit tests + akit check, stamp "fast lane: post-ship review queued <ledger id>"), full e2e/balance/review after the ship, ledger claims with owned files before coding, Jev for closed-choice triage. Hard stops unchanged (native/APK, DB migrations, secrets, pay-to-win).
