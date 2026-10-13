@@ -185,3 +185,21 @@ describe('rateVerdict', () => {
     expect(rateVerdict({ device: 0, global: LIMITS.globalPerHour })).toBe('global');
   });
 });
+
+
+describe('Kitchen experimental metadata', () => {
+  it('persists only a bounded Kitchen boolean and keeps legacy rows unchanged', () => {
+    for (const enabled of [false, true]) {
+      const n = ok(note({ context: { screen: 'kitchen', flaky_kosong: enabled } }));
+      expect(n.flakyKosong).toBe(enabled);
+      expect(rowFor(n, ID).params).toMatchObject({ experiments: { flaky_kosong: enabled } });
+    }
+    for (const value of [undefined, null, 1, 'true', {}, []]) {
+      expect(rowFor(ok(note({ context: { screen: 'kitchen', flaky_kosong: value } })), ID).params).not.toHaveProperty('experiments');
+    }
+    for (const screen of ['run', 'results', 'title', 'hub']) {
+      expect(rowFor(ok(note({ context: { screen, flaky_kosong: true } })), ID).params).not.toHaveProperty('experiments');
+    }
+    expect(rowFor(ok(note()), ID).params).not.toHaveProperty('experiments');
+  });
+});

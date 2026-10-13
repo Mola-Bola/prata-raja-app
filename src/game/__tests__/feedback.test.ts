@@ -327,3 +327,19 @@ describe('noteStatus', () => {
     expect(noteStatus({ status: 'wont_do', shipped_in: '0.4.3' })).toBe('Not now');
   });
 });
+
+
+describe('Flaky Kosong feedback lifecycle', () => {
+  it('captures the active experiment and clears it on a new test, exit and ordinary run', () => {
+    const hub = createHub(), tracker = trackRun(hub);
+    hub.emit('kitchenStart', { seed: 123, tuning: { ...DEFAULT_KITCHEN_TUNING }, flakyKosong: true });
+    expect(build({ screen: 'kitchen', run: tracker.read() }).context.flaky_kosong).toBe(true);
+    hub.emit('kitchenStart', { seed: 123, tuning: { ...DEFAULT_KITCHEN_TUNING }, flakyKosong: false });
+    expect(build({ screen: 'kitchen', run: tracker.read() }).context.flaky_kosong).toBe(false);
+    expect(build({ screen: 'hub', run: tracker.read() }).context).not.toHaveProperty('flaky_kosong');
+    hub.emit('runStart', { seed: 321 });
+    expect(tracker.read()).not.toHaveProperty('flakyKosong');
+    expect(build({ screen: 'run', run: tracker.read() }).context).not.toHaveProperty('flaky_kosong');
+    tracker.stop();
+  });
+});

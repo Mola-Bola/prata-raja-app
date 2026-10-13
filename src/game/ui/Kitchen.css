@@ -28,3 +28,6 @@
 .kt-help { margin: 0; font-size: 14px; line-height: 1.35; }
 
 .kt-tags { grid-column: 1/-1; }
+
+.kt-root .kt-experiment { display: flex; align-items: center; gap: 8px; }
+.kt-experiment input { width: 24px; height: 24px; accent-color: var(--orange-deep); }

@@ -81,7 +81,7 @@ export function Kitchen({ hub, ready, onStart, onExit }: { hub: Hub; ready: bool
       <span>Wave <b>{stats?.wave ?? config.wave}</b></span><span>Time <b>{Math.floor(stats?.time ?? 0)}s</b></span>
       <span>Kills <b>{stats?.kills ?? 0}</b></span><span>Shown damage <b>{Math.round(stats?.damageShown ?? 0)}</b></span>
       <span>Shown / sec <b>{(stats?.damageShownPerSecond ?? 0).toFixed(1)}</b></span>
-      <small>Damage includes overkill · {stats?.phase ?? 'Ready'}</small>
+      <small>Damage includes overkill · {stats?.phase ?? 'Ready'}{stats?.flakyKosong && ' · Experimental Flaky Kosong'}</small>
     </div>
     <footer className="kt-dock" inert={setup}>
       {(end || paused) && <p role="status">{end ?? 'Test paused'}</p>}
@@ -111,6 +111,8 @@ export function Kitchen({ hub, ready, onStart, onExit }: { hub: Hub; ready: bool
           <label>Repeatable seed<input type="number" data-testid="kitchen-seed" min="0" max="4294967295" step="1" value={config.seed} onChange={e => setConfig(c => ({ ...c, seed: Number(e.target.value) }))} /></label>
           <button type="button" className="gu-btn" data-testid="kitchen-new-seed" onClick={() => setConfig(c => ({ ...c, seed: seed() }))}>New seed</button>
         </div>
+        <label className="kt-experiment"><input type="checkbox" data-testid="kitchen-flaky" checked={config.flakyKosong === true} onChange={e => setConfig(c => ({ ...c, flakyKosong: e.target.checked }))} />Experimental: Flaky Kosong</label>
+        <p className="kt-help">Kosong sheds two small pieces per hit and keeps its ricochets. Normal runs are unchanged.</p>
         <h3>Rotis · up to four</h3>
         {Array.from({ length: 4 }, (_, i) => { const b = config.breads[i]; return <div className="kt-slot" key={i}>
           <label>Roti {i + 1}<select data-testid={`kitchen-bread-${i}`} value={b?.id ?? ''} onChange={e => changeBread(i, e.target.value)}><option value="">Empty</option>{Object.values(CONTENT.breads).map(def => <option key={def.id} value={def.id} disabled={config.breads.some((other, j) => j !== i && (CONTENT.breads[other.id].evolvedFrom?.bread ?? other.id) === (def.evolvedFrom?.bread ?? def.id))}>{def.name}{def.evolvedFrom ? ' · evolved' : ''}</option>)}</select></label>

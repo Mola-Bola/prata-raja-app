@@ -176,7 +176,7 @@ export class RunScene extends Phaser.Scene {
     const tuning = applyKitchenTuning(world, { ...DEFAULT_KITCHEN_TUNING, ...config.tuning });
     this.showWorld(world);
     this.kitchenTuning = tuning;
-    this.hub.emit('kitchenStart', { seed: world.seed, tuning: { ...tuning } });
+    this.hub.emit('kitchenStart', { seed: world.seed, tuning: { ...tuning }, ...(config.flakyKosong !== undefined ? { flakyKosong: world.flakyKosong === true } : {}) });
     this.publishKitchenStats();
     this.wake();
   }
@@ -192,7 +192,7 @@ export class RunScene extends Phaser.Scene {
     if (!w || !tuning) return null;
     return { time: w.time, wave: w.wave, phase: w.phase, hp: Math.max(0, w.player.hp), maxHp: w.player.stats.maxHp,
       kills: w.kills, damageShown: this.damageShown, damageShownPerSecond: w.time > 0 ? this.damageShown / w.time : 0,
-      tuning: { ...tuning } };
+      tuning: { ...tuning }, flakyKosong: w.flakyKosong === true };
   }
 
   private publishKitchenStats(): void {

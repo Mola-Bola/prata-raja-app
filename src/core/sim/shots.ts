@@ -113,6 +113,28 @@ function spawnFragments(c: Ctx, s: Projectile, e: Enemy, left: number): void {
   }
 }
 
+/** Two cropped pieces continue along the incoming heading; ricochet damage/cadence stays intact. */
+function spawnFlakes(c: Ctx, s: Projectile, e: Enemy, left: number): void {
+  if (!c.w.flakyKosong || s.breadId !== 'kosong' || s.flake || (s.flakesShed ?? 0) >= 6) return;
+  const st = s.stats as BreadStats;
+  const damage = s.dmg * 0.1;
+  const fst: BreadStats = { ...st, fragments: 0, hops: 0, pierce: 0, homing: 0, stun: 0, knockback: 0, dmg: damage };
+  const heading = Math.atan2(s.vx, s.vy);
+  s.flakesShed = (s.flakesShed ?? 0) + 2;
+  const first = c.w.projectiles.length;
+  for (const angle of [heading - 0.35, heading + 0.35]) {
+    const f: Projectile = {
+      uid: newUid(c), owner: 'player', sprite: s.sprite, breadId: s.breadId, motion: 'straight',
+      x: e.x, y: e.y, vx: Math.sin(angle) * FRAGMENT_SPEED, vy: Math.cos(angle) * FRAGMENT_SPEED,
+      z: 0, t: 0, ttl: 120 / FRAGMENT_SPEED, dmg: damage, radius: 4 * (1 + c.p.stats.sizePct),
+      pierceLeft: 0, hopsLeft: 0, hit: [e.uid], returning: false, targetUid: null, tx: 0, ty: 0,
+      stats: fst, spin: 0, flake: true,
+    };
+    c.w.projectiles.push(f);
+  }
+  for (let i = first; i < first + 2; i++) flyStraight(c, c.w.projectiles[i], left);
+}
+
 /** One straight-shot hit: shield block / pierce / hop / fragments / done. Returns true when the shot flies on (pierced or hopped). */
 function straightHit(c: Ctx, s: Projectile, e: Enemy, left: number): boolean {
   const st = s.stats as BreadStats;
@@ -121,6 +143,7 @@ function straightHit(c: Ctx, s: Projectile, e: Enemy, left: number): boolean {
     s.ttl = -1;
     return false;
   }
+  spawnFlakes(c, s, e, left);
   if (s.pierceLeft > 0) {
     s.pierceLeft--;
     return true;

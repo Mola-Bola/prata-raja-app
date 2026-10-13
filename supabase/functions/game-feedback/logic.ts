@@ -42,6 +42,7 @@ export type Note = {
   seed: number | null;
   breads: string[];
   dips: string[];
+  flakyKosong?: boolean;
 };
 
 export type Parsed = { ok: true; note: Note } | { ok: false; error: string };
@@ -92,6 +93,7 @@ export function parseNote(raw: unknown): Parsed {
       seed: int(c.seed, 0xffffffff),
       breads: list(c.breads),
       dips: list(c.dips),
+      ...(c.screen === 'kitchen' && typeof c.flaky_kosong === 'boolean' ? { flakyKosong: c.flaky_kosong } : {}),
     },
   };
 }
@@ -121,6 +123,7 @@ export function rowFor(n: Note, authorId: string) {
       device_id: n.deviceId,
       ...(n.from ? { from: n.from } : {}),
       screen: n.screen,
+      ...(n.screen === 'kitchen' && n.flakyKosong !== undefined ? { experiments: { flaky_kosong: n.flakyKosong } } : {}),
       ...(n.runtime ? { runtime: n.runtime } : {}),
       ...(n.seed !== null ? { seed: n.seed } : {}),
       ...(n.wave !== null ? { wave: n.wave } : {}),

@@ -93,3 +93,27 @@ test('stall kitchen keeps an existing save unchanged through loss, win, restart 
   await expect(tid(page, 'results')).toBeVisible();
   await expect.poll(async () => JSON.parse((await stored(page))!).runs).toBe(JSON.parse(before!).runs + 1);
 });
+
+
+test('Flaky Kosong is explicit, restartable and isolated from saves and the next Kitchen visit', async ({ page }) => {
+  await page.goto('/play?kitchen=1');
+  await expect(tid(page, 'kitchen-flaky')).not.toBeChecked();
+  const before = await stored(page);
+  await tid(page, 'kitchen-bread-level-0').selectOption('5');
+  await tid(page, 'kitchen-flaky').check();
+  await tid(page, 'kitchen-start').click();
+  await page.waitForFunction(() => window.__world?.flakyKosong === true);
+  await expect(tid(page, 'kitchen-stats')).toContainText('Experimental Flaky Kosong');
+  await tid(page, 'kitchen-restart').click();
+  await page.waitForFunction(() => window.__world?.flakyKosong === true && window.__world.time < 1);
+  await tid(page, 'kitchen-setup').click();
+  await tid(page, 'kitchen-flaky').uncheck();
+  await tid(page, 'kitchen-start').click();
+  await page.waitForFunction(() => window.__world != null && window.__world.flakyKosong === undefined);
+  await expect(tid(page, 'kitchen-stats')).not.toContainText('Experimental Flaky Kosong');
+  expect(await stored(page)).toBe(before);
+  await tid(page, 'kitchen-exit').click();
+  await tid(page, 'stall-kitchen').click();
+  await expect(tid(page, 'kitchen-flaky')).not.toBeChecked();
+  expect(await stored(page)).toBe(before);
+});

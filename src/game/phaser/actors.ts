@@ -687,6 +687,10 @@ export class Actors {
     } else {
       v.disc = this.discs.get(s.sprite);
       v.texMax = Math.max(v.disc.img.width, v.disc.img.height);
+      if (s.flake) {
+        const img = v.disc.img;
+        img.setCrop(img.width * 0.32, img.height * 0.26, img.width * 0.34, img.height * 0.2);
+      }
       if (s.motion === 'wave') {
         // The thosai roll lies diagonal in its art: turn it level, then the container stretches it across the street.
         v.disc.img.setRotation(0.7);
@@ -703,7 +707,7 @@ export class Actors {
       if (image) image.scene.tweens.add({ targets: image, alpha: 0.6, duration: 140, yoyo: true, repeat: 2 });
     }
     // Three fading copies per moving bread, capped at 48 atlas images for the whole arena.
-    if (!enemy && (s.motion === 'straight' || s.motion === 'boomerang' || s.motion === 'lob') && this.trailCount < 48) {
+    if (!enemy && !s.flake && (s.motion === 'straight' || s.motion === 'boomerang' || s.motion === 'lob') && this.trailCount < 48) {
       for (let i = 0; i < 3; i++) v.trail.push({ img: this.imgs.get(s.sprite).setVisible(false), x: 0, y: 0, k: 1, spin: 0, t: 1 });
       this.trailCount += 3;
     }
@@ -766,7 +770,8 @@ export class Actors {
         d.cont.setPosition(sx, sy).setScale(kx, kx * 0.52).setDepth(D.shot + sy);
         continue;
       }
-      const k = (v.dia * P.ppu * sc) / v.texMax;
+      const layers = 1 - (s.flakesShed ?? 0) * 0.08;
+      const k = (v.dia * P.ppu * sc * layers) / v.texMax;
       const spin = s.motion === 'boomerang' ? s.spin * 1.8 : s.spin;
       d.cont.setPosition(sx, sy).setScale(k, k * DISC_SQUASH).setDepth(D.shot + sy);
       d.img.setRotation(spin);
@@ -794,7 +799,7 @@ export class Actors {
     const image = s.img ?? s.disc?.img;
     if (image) {
       image.scene.tweens.killTweensOf(image);
-      image.setAlpha(1);
+      image.setAlpha(1).setCrop();
     }
     if (s.disc) {
       s.disc.img.setRotation(0);
