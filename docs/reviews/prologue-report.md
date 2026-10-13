@@ -1,5 +1,8 @@
 # 0.3.1 prologue + street pests
 
+Status: superseded — shipped in 0.3.1. World-tier scenes remain unwired (verified 13 Oct 2026).
+
+
 - Six rendered portrait panels, gentle pan/zoom, captions ≤12 words, tap-through and always-visible Skip.
 - First Start shows the story before run 1; Skip/finish commits `prologueSeen` through saveStore.
 - Returning v1/v2 players bypass it, including old saves without a story flag; settings cog → Story replays and returns to stall.

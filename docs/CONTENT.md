@@ -1,5 +1,8 @@
 # Prata Raja: Content Compendium (v1, 2026-10-12)
 
+> Design v1; `src/content` is the source of truth. Not reflected here: 0.2.0 boss CC immunity (freeze/stun → slow), elite half CC and 3 s post-CC immunity; 0.4.1 rule that a running freeze/stun is never extended or chained.
+
+
 Drafted by a Haiku agent, edited by the lead for the stall-defense view (owner pick A). Numbers are first-pass; the balance sim tunes them. Distances are field units (SPEC §3.2: field 540 wide × 1000 deep, counter at y=0).
 
 Kannan, a cheerful Tamil-Singaporean prata cook at a kopitiam stall, zones out over his tawa and daydreams he is PRATA RAJA. Runs are daydreams. He defends the stall from pests, junk-food invaders and weather spirits by throwing spinning breads. Dying wakes him up ("Oi Kannan!"). Between runs he upgrades gear, crafts recipes and trains at the real stall.

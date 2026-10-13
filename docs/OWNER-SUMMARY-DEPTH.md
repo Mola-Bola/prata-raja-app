@@ -1,3 +1,5 @@
+Status (13 Oct 2026 evening): superseded by [ROADMAP](ROADMAP.md) / [HANDOFF](HANDOFF.md); the plan and questions below are historical, not the current next steps. Loaded Murtabak shipped first; later chapter places remain open.
+
 Kannan's stall becomes a recipe workshop, with one-thumb runs and a build you keep between them.
 That build joins gear, a small job tree, drinks and one favourite bread.
 Dips attach to a particular bread, so a loaded Murtabak feels different from rapid Idli.

@@ -21,7 +21,9 @@ bash scripts/check.sh       # tsc, lint, unit tests, database tests (one line pe
 
 Run `bash scripts/check.sh` before declaring any task done (`SKIP_DB=1` skips the database tests when the local Supabase isn't up; `--web [specs…]` adds a web build and the Playwright suite).
 CI: `.github/workflows/check.yml` runs the same checks on every PR (tsc, lint, vitest, assert-guard, gitleaks; the pgTAP job only when `supabase/**` changed) and `e2e-nightly.yml` runs `check.sh --web` nightly when main moved. Source of truth is `~/cell/starter/.github/workflows/`. No required checks (personal account, no Pro): a red run is a signal to fix, not a gate.
-CI duty (every builder, Claude or Codex): push your finished slice branch, then read `gh run list -R Mola-Bola/prata-raja-app -L 3`; a run that fails in seconds is an account problem (billing/minutes), not your code: report it to the lead instead of ignoring it. Checks also run on `sol/**` and `s*/**` pushes. The lead pushes `main` after every merge or ship.
+CI duty (every builder, Claude or Codex): push your finished slice branch, then read `gh run list -R Mola-Bola/prata-raja-app -L 3`; a run that fails in seconds is an account problem (billing/minutes), not your code: report it to the lead instead of ignoring it. Checks also run on `sol/**`, `s*/**`, `codex/**` and `polish/**` pushes. The lead pushes `main` after every merge or ship.
+
+GitHub Actions have been refused by account billing since about 12 Oct 2026 (confirmed 13 Oct evening); the owner is fixing billing. Until restored, local `bash scripts/check.sh --web` is the gate. Builders still push their own finished branch and read the run list above; report billing refusals to the lead. Codex commits in its own worktree when the pipeline grants Git writable roots; otherwise the lead commits.
 
 ## Navigation & Routing
 
@@ -50,4 +52,4 @@ Cell (`~/cell`) is the engine: `akit` (shared feedback CLI and ship gate), the r
 - Read `DIRECTION.md` first in every round or inbox run: it is the owner's standing steering and overrides defaults here.
 - Notes come in through the in-app "Tell Kannan" tab (table `feedback`). `node scripts/feedback.mjs digest` shows what is open; `plan`, `reply`, `status` move a note on (it wraps `akit feedback`).
 - Short sessions: one round per session, handed over through `round-handoff`. Screenshots are expensive: only changed screens, shrunk with `sips -Z 900`; prefer Playwright testID assertions.
-- Models: Opus plans, merges and judges; Sonnet subagents implement; Codex (`~/cell/runner/bin/codex-run.sh review <brief>`) reviews.
+- Models: Opus plans, merges and judges; Sonnet subagents implement. Reviews use a diff pasted into stdin: `codex exec -m gpt-6.1-sol -c model_reasoning_effort=medium -s read-only --ephemeral -`.

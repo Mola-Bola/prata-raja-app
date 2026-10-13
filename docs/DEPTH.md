@@ -1,6 +1,6 @@
 # Prata Raja: build a stall, then cook a run
 
-Design proposal, 13 Oct 2026. Owner direction in [BACKLOG](BACKLOG.md) governs this document. These are future rules, not a claim that live 0.2.0 implements them. Food details and names remain editable when the owner supplies specifics.
+Design proposal, 13 Oct 2026. Owner direction in [BACKLOG](BACKLOG.md) governs this document. These are future rules, not a claim that live 0.4.1 implements them. Food details and names remain editable when the owner supplies specifics.
 The identity: Kannan defends a fixed counter. He cooks a persistent signature dish, then discovers ways to serve it during a 6–12 minute daydream. Food behaviour, stall position, linked bowls and drink rhythm make the build visible.
 Sources: [build engines](research/teardown-builds-poe-bl2.md), [fair monetisation](research/fair-monetisation.md), [WORLD](WORLD.md), [CONTENT](CONTENT.md), [feel](research/game-feel.md) and [owner clips](research/owner-refs-2026-10-13.md). All values here are proposed tuning starts.
 

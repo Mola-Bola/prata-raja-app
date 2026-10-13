@@ -1,5 +1,8 @@
 # Signature 2 — 0.4.1 / sol/signature2
 
+Status: superseded — shipped in 0.4.1.
+
+
 - Stall → Signature: choose Roti Bomb, Appam or Murtabak; reload, then start a run.
 - Every known base bread has a one-line identity; the existing signatureBread save field persists it.
 - Roti Bomb implements DEPTH's heat route: signature hits ×1.7; every fourth successful serving

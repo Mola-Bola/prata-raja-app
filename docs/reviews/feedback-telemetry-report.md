@@ -1,5 +1,8 @@
 # Tell Kannan in the game + PostHog analytics, replay and error tracking: build report
 
+Status: superseded — shipped in 0.2.1.
+
+
 Branch `s2/feedback` (worktree `~/prata-raja-fb`, from main `9653b84`). Built and verified; **not merged, pushed or shipped**. The lead's job from here: merge (recipe in section 5), add two lines to `.env.production`, ship an OTA (JS only: no native change, no runtime bump).
 
 ## 1. What it does
