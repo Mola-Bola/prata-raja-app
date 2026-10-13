@@ -61,6 +61,7 @@ Hub = the real stall in the morning (rendered scene, tappable spots). **Every re
 - **Determinism:** seeded RNG state lives in the World, so a run replays from its seed + inputs (daily challenge, tests, balance sims).
 - **Save:** versioned JSON via the bridge (expo-sqlite kv on device, localStorage on web): SaveV2 under the same key (`parseSaveV2` migrates v1 saves from 0.1.x).
 - **Telemetry (allowlisted, anonymous):** `run_start`, `run_end {wave, won, kills, secs}`, `level_up`, `card_pick {kind}`.
+- **Analytics and notes (see `docs/TELEMETRY.md`, `docs/FEEDBACK.md`):** PostHog events, replay and errors with an in-game Analytics off switch; "Tell Kannan" files notes into the family inbox via the `game-feedback` edge function.
 - **Performance budget:** ≤150 enemies, ≤300 projectiles, 60 fps on a mid-range Android; pooled sprites.
 
 ## 8. Slices

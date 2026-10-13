@@ -1,7 +1,8 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { appInfo } from '@/game/appInfo';
 import { bridge } from '@/game/bridge';
 import { GAME_BG } from '@/game/config';
 
@@ -11,11 +12,12 @@ const GameRoot = lazy(() => import('@/game/GameRoot'));
 /** The game, full screen, no account needed. The game itself is a DOM component (src/game/GameRoot.tsx). */
 export default function Play() {
   const insets = useSafeAreaInsets();
+  const info = useMemo(() => appInfo(), []); // which build this is: the game's notes and analytics carry it
   return (
     // The page behind the WebView is the game's colour, so nothing white shows while it starts.
     <View style={{ flex: 1, backgroundColor: GAME_BG }} testID="play">
       <Suspense fallback={null}>
-        <GameRoot {...bridge} insets={insets} dom={{ showsVerticalScrollIndicator: false, showsHorizontalScrollIndicator: false, mediaPlaybackRequiresUserAction: false }} />
+        <GameRoot {...bridge} insets={insets} info={info} dom={{ showsVerticalScrollIndicator: false, showsHorizontalScrollIndicator: false, mediaPlaybackRequiresUserAction: false }} />
       </Suspense>
     </View>
   );

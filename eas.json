@@ -13,7 +13,9 @@
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://nzxgskzmofddxyjocduq.supabase.co",
         "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_T59LlEI4fQ079i3QAESDZA_zG2t3Nev",
-        "EXPO_PUBLIC_WEB_URL": "https://mola-bola.github.io/prata-raja"
+        "EXPO_PUBLIC_WEB_URL": "https://mola-bola.github.io/prata-raja",
+        "EXPO_PUBLIC_POSTHOG_HOST": "https://fam-relay.nambikkai-inbox.workers.dev",
+        "EXPO_PUBLIC_POSTHOG_KEY": "phc_AxnpbqN7zoG5d4CMtaa7mbZ74tnnFyBFKfkWMjqEUCKx"
       }
     }
   }

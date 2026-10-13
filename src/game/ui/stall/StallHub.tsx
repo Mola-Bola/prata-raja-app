@@ -10,6 +10,7 @@ import type { SaveV2 } from '@/meta/types';
 import { HOTSPOTS, PANELS, readyBadges, unlockLevel, type Panel } from './helpers';
 import { CalendarSheet, ChestsSheet, GearSheet, IdleSheet, PreviewSheet, SettingsSheet, TrainingSheet, type Commit } from './sheets';
 import { StallProgress, type Art } from './StallProgress';
+import { openFeedback } from '../FeedbackSheet'; // [feedback hook]
 import './Stall.css';
 
 export type { Art } from './StallProgress';
@@ -79,6 +80,9 @@ export function StallHub({ save, commit, onStart, art }: { save: SaveV2; commit:
       <footer className="sh-footer" inert={!!panel}>
         <button type="button" className="gu-btn gu-btn--primary gu-btn--wide sh-start" data-testid="stall-start" onClick={onStart}>
           Start daydream
+        </button>
+        <button type="button" className="gu-btn" data-testid="stall-tell" onClick={openFeedback}>
+          Tell Kannan
         </button>
       </footer>
       {panel === 'settings' && (

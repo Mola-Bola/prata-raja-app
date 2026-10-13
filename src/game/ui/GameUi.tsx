@@ -21,6 +21,8 @@ import { ASSET_URLS } from '../assets';
 import type { Bridge, HapticKind } from '../bridgeTypes';
 import type { Hub, HudState } from '../hub';
 import { cardView } from './cardText';
+import { AnalyticsSwitch, FeedbackLayer, TellButton } from './FeedbackSheet'; // [feedback hook]
+import { trackCardPick } from '../telemetry'; // [analytics hook]
 import { createSaveStore } from './saveStore';
 import { Switch, toggleSetting, type SettingKey } from './settings';
 import './GameUi.css';
@@ -158,6 +160,7 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
     hub.controls?.quit();
   };
   const pickCard = (i: number) => {
+    trackCardPick(offer?.cards[i]); // [analytics hook]
     setOffer(null);
     buzz(bridgeRef.current, store.current?.settings.haptics ?? true, 'light');
     hub.controls?.choose(i);
@@ -211,6 +214,7 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
         />
       )}
       {screen === 'results' && ended && <Results ended={ended} onAgain={start} onStall={toStall} />}
+      <FeedbackLayer hub={hub} screen={screen} /> {/* [feedback hook] */}
     </div>
   );
 }
@@ -417,9 +421,11 @@ function Pause({
         <button type="button" className="gu-btn gu-btn--wide" data-testid="ui-quit" onClick={onQuit}>
           End run
         </button>
+        <TellButton />
         <div className="gu-switches">
           <Switch label="Sound" on={sound} onClick={() => onToggle('sfx')} />
           <Switch label="Haptics" on={haptics} onClick={() => onToggle('haptics')} />
+          <AnalyticsSwitch />
         </div>
       </section>
     </div>
@@ -482,6 +488,9 @@ function Results({ ended, onAgain, onStall }: { ended: Ended; onAgain: () => voi
           </button>
         </div>
       </section>
+      <div className="fb-results-tell">
+        <TellButton />
+      </div>
     </div>
   );
 }

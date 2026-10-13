@@ -29,6 +29,7 @@
     "expo-updates": "~57.0.24",
     "expo-web-browser": "~57.0.3",
     "phaser": "^4.2.1",
+    "posthog-js": "^1.438.7",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",

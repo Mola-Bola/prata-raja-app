@@ -38,3 +38,15 @@ The plan line under a note is `feedback.plan` (set with `plan` or `reply --plan`
 ## Building and shipping
 Set `status <id> building` when you start; follow `docs/CONTRACTS.md`; keep `bash scripts/check.sh --web` green; commit with the note ids. Ship through `app-ship` (`akit ship -- node scripts/ship-cloud.mjs …`, docs/UPDATES.md). A shipped release marks its notes `shipped`; the author then taps "Looks good" (`done`) or "Still not right" (back to `new`).
 Tests never touch a real database: e2e calls to `scripts/feedback.mjs` set `PRATA_RAJA_TARGET=local`.
+
+## Notes written inside the game
+"Tell Kannan" is also on the game's pause sheet and results screen (`src/game/ui/FeedbackSheet.tsx`; the stall hub can call `openFeedback()`). The game needs no account, so a note goes to the `game-feedback` edge function (`supabase/functions/game-feedback`, deployed with `--no-verify-jwt` like `updates`). It checks the note's shape and size, allows 6 notes per device and 120 in all per hour, and files it in `feedback` under ONE system profile named "In-game" (an auth user on the reserved `.invalid` domain with no password, so nobody can sign in as it; its id is `private_config.game_feedback_author`, made on the first note). Anonymous sign-ins stay off.
+
+What you see in the inbox (`digest`, `show`):
+- **Family notes: triage.** The author is not an admin, so a game note is triaged like any family note (approve it, or `plan … --ask`).
+- `screen` reads "Game: run, wave 7"; `kind` is bug, idea or change (the Balance and Art chips are `change`; the chip is kept as a tag, and every game note has the tag `in-game`).
+- `params` carries the typed name (`from`), the anonymous `device_id`, the run seed, wave, level and build (`breads`, `dips` as "id:level"), the screen and the runtime; `platform`, `app_version`, `update_id` and `device` are filled as for any note.
+- A note's id is made once by the game and kept across Retry, so a lost answer never files it twice.
+
+Redeploy after changing the function: `TMPDIR=$HOME/.supabase-tmp/ SUPABASE_ACCESS_TOKEN="$(cat ~/.cell/supabase-token)" supabase functions deploy game-feedback --project-ref nzxgskzmofddxyjocduq --no-verify-jwt`. Tests: `supabase/functions/game-feedback/__tests__`, `src/game/__tests__/feedback.test.ts`, `e2e/web/feedback.spec.ts` (the function is mocked there; never file test notes in the cloud inbox without closing them: `status <id> not_now`).
+
