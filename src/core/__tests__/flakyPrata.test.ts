@@ -133,6 +133,66 @@ describe('Flaky Kosong Kitchen experiment', () => {
     if (dip !== 'teh-tarik') expect(wrong.w.events.filter(e => e.t === 'status')).toEqual([]);
   });
 
+  it('resolves lethal shared targets identically across coarse/fine steps (review P2)', () => {
+    const setup = () => {
+      const c = fixture();
+      c.p.stats.dmgPct = 4;
+      const shot = c.w.projectiles[0];
+      const st = { ...CONTENT.breads.kosong.levels[4] };
+      Object.assign(shot, { x: 0, y: 48, vx: 0, vy: 900, radius: st.radius, dmg: st.dmg,
+        hopsLeft: st.hops, stats: st });
+      spawnEnemy(c, CONTENT.enemies.roach, 0, { y: 100 });
+      spawnEnemy(c, CONTENT.enemies.mosquito, -Math.sin(0.35) * 24, { y: 100 + Math.cos(0.35) * 24 });
+      c.w.enemies[0].def = { ...c.w.enemies[0].def, radius: 32 };
+      c.w.enemies[1].def = { ...c.w.enemies[1].def, radius: 14.4 };
+      c.w.enemies[1].hp = 6;
+      return c;
+    };
+    const a = setup(), b = setup(); fly(a, 1 / 60); fly(b, 1 / 60, 1 / 600);
+    const damage = (c: Ctx) => c.w.events.filter(e => e.t === 'hit').reduce((n, e) => n + e.dmg, 0);
+    expect(damage(a)).toBe(150);
+    expect(damage(a)).toBe(damage(b));
+    expect(a.w.events).toEqual(b.w.events);
+    expect(a.rng.state).toBe(b.rng.state);
+    expect(a.w.projectiles.filter(s => s.flake)).toHaveLength(b.w.projectiles.filter(s => s.flake).length);
+    expect(a.w.projectiles[0].hit).toEqual(b.w.projectiles[0].hit);
+    expect(a.w.projectiles.filter(s => s.flake)).toHaveLength(4);
+    expect(Math.atan2(a.w.projectiles[1].vx, a.w.projectiles[1].vy)).toBeCloseTo(-0.35, 12);
+    expect(Math.atan2(a.w.projectiles[2].vx, a.w.projectiles[2].vy)).toBeCloseTo(0.35, 12);
+    expect(a.w.enemies.map(e => [e.hp, e.state])).toEqual(b.w.enemies.map(e => [e.hp, e.state]));
+  });
+
+  it('lets an earlier child kill beat a later separated parent contact', () => {
+    const setup = () => {
+      const c = fixture(true, [], 2);
+      enemy(c, 0, 100); enemy(c, 50, 100);
+      const victim = enemy(c, -Math.sin(0.35) * 70, 100 + Math.cos(0.35) * 70);
+      victim.hp = 6;
+      return c;
+    };
+    const a = setup(), b = setup(); fly(a, 0.5); fly(b, 0.5, 0.001);
+    expect(a.w.events).toEqual(b.w.events);
+    expect(a.rng.state).toBe(b.rng.state);
+    expect(a.w.projectiles[0].hit).toEqual([a.w.enemies[0].uid, a.w.enemies[1].uid]);
+    expect(a.w.events.filter(e => e.t === 'hit').map(e => e.dmg)).toEqual([100, 80, 10]);
+    expect(a.w.projectiles.filter(s => s.flake)).toHaveLength(4);
+    expect(a.w.enemies[2].state).toBe('dead');
+  });
+
+  it('handles simultaneous zero-time contacts and expiry without making another child generation', () => {
+    const c = fixture(true, [], 8);
+    for (let i = 0; i < 8; i++) enemy(c, 0, 0);
+    const expiring = { ...c.w.projectiles[0], uid: c.w.nextUid++, x: 0, ttl: 0, hit: [] };
+    c.w.projectiles.push(expiring);
+    fly(c, 0.5);
+    expect(c.w.projectiles[0].hit).toHaveLength(8);
+    expect(c.w.projectiles.filter(s => s.flake)).toHaveLength(6);
+    expect(c.w.projectiles[0].flakesShed).toBe(6);
+    expect(expiring.ttl).toBe(-1);
+    expect(expiring.hit).toEqual([]);
+    expect(c.w.projectiles.every(s => s.ttl === -1)).toBe(true);
+  });
+
   it('accelerates Teh activation as well as its hit counter', () => {
     const off = fixture(false, ['teh-tarik']), on = fixture(true, ['teh-tarik']);
     for (const c of [off, on]) {

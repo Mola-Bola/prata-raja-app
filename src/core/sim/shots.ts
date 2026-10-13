@@ -114,14 +114,13 @@ function spawnFragments(c: Ctx, s: Projectile, e: Enemy, left: number): void {
 }
 
 /** Two cropped pieces continue along the incoming heading; ricochet damage/cadence stays intact. */
-function spawnFlakes(c: Ctx, s: Projectile, e: Enemy, left: number): void {
+function spawnFlakes(c: Ctx, s: Projectile, e: Enemy): void {
   if (!c.w.flakyKosong || s.breadId !== 'kosong' || s.flake || (s.flakesShed ?? 0) >= 6) return;
   const st = s.stats as BreadStats;
   const damage = s.dmg * 0.1;
   const fst: BreadStats = { ...st, fragments: 0, hops: 0, pierce: 0, homing: 0, stun: 0, knockback: 0, dmg: damage };
   const heading = Math.atan2(s.vx, s.vy);
   s.flakesShed = (s.flakesShed ?? 0) + 2;
-  const first = c.w.projectiles.length;
   for (const angle of [heading - 0.35, heading + 0.35]) {
     const f: Projectile = {
       uid: newUid(c), owner: 'player', sprite: s.sprite, breadId: s.breadId, motion: 'straight',
@@ -132,7 +131,6 @@ function spawnFlakes(c: Ctx, s: Projectile, e: Enemy, left: number): void {
     };
     c.w.projectiles.push(f);
   }
-  for (let i = first; i < first + 2; i++) flyStraight(c, c.w.projectiles[i], left);
 }
 
 /** One straight-shot hit: shield block / pierce / hop / fragments / done. Returns true when the shot flies on (pierced or hopped). */
@@ -143,7 +141,7 @@ function straightHit(c: Ctx, s: Projectile, e: Enemy, left: number): boolean {
     s.ttl = -1;
     return false;
   }
-  spawnFlakes(c, s, e, left);
+  spawnFlakes(c, s, e);
   if (s.pierceLeft > 0) {
     s.pierceLeft--;
     return true;
@@ -338,13 +336,52 @@ function updateOrbit(c: Ctx, s: Projectile): void {
   }
 }
 
+/** Kitchen Kosong parents and their children share a contact clock: a later child kill cannot erase an earlier hop. */
+function flyFlakyKosong(c: Ctx): void {
+  let left = c.dt;
+  while (left > TIME_EPS) {
+    const shots = c.w.projectiles.filter(s => {
+      if (s.owner !== 'player' || s.breadId !== 'kosong' || s.motion !== 'straight' || s.ttl < 0) return false;
+      if (s.ttl - s.t <= TIME_EPS) { s.ttl = -1; return false; }
+      return true;
+    });
+    if (!shots.length) return;
+    let used = left;
+    for (const s of shots) used = Math.min(used, Math.max(0, s.ttl - s.t));
+    let shot: Projectile | null = null;
+    let enemy: Enemy | null = null;
+    for (const s of shots) {
+      const bx = s.x + s.vx * used, by = s.y + s.vy * used;
+      const e = firstTouched(c, s, s.x, s.y, bx, by);
+      if (!e) continue;
+      const at = used * contactAt(s.x, s.y, bx, by, e.x, e.y, s.radius + e.def.radius);
+      if (!shot || at < used) { used = at; shot = s; enemy = e; }
+    }
+    for (const s of shots) {
+      s.x += s.vx * used;
+      s.y += s.vy * used;
+      s.t += used;
+    }
+    left -= used;
+    if (shot && enemy) straightHit(c, shot, enemy, left);
+    for (const s of shots) {
+      if (s.ttl >= 0 && (s.t >= s.ttl - TIME_EPS || s.y > OUT_Y || s.y < OUT_NEAR_Y || Math.abs(s.x) > OUT_X)) s.ttl = -1;
+    }
+  }
+}
+
 export function updatePlayerShots(c: Ctx): void {
   const list = c.w.projectiles;
-  const n = list.length; // fragments born during the pass already flew their share of it
+  const n = list.length; // ordinary fragments born during the pass already flew their share of it
+  let flakyFlown = false;
   for (let i = 0; i < n; i++) {
     const s = list[i];
     if (s.owner !== 'player' || s.ttl < 0) continue;
     s.spin += SPIN_RATE * c.dt;
+    if (c.w.flakyKosong && s.breadId === 'kosong' && s.motion === 'straight') {
+      if (!flakyFlown) { flyFlakyKosong(c); flakyFlown = true; }
+      continue;
+    }
     switch (s.motion) {
       case 'straight':
         flyStraight(c, s, c.dt);
