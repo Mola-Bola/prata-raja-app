@@ -1,6 +1,9 @@
 # Prata Raja — handoff (rolling; replace the top block when state changes)
 
-## 13 Oct 2026 — live 0.2.2 (runtime 1, OTA + web); lead = Claude Opus desk
+## 13 Oct 2026 — live 0.3.0 (runtime 1, OTA + web); lead = Claude Opus desk
+
+- **0.3.0** (main `9fb4c17`): `sol/s3` merged (Codex resolved 8 conflicts + wired recipe book, chapter select, evolve cards, background2; report `docs/reviews/s3-integration-report.md`). Codex review 2xP2 fixed (legacy wins seed boss attempts → ch.2 unlocks for 0.2.x saves; starter foods are known recipes). e2e 36/36, 712 vitest. Balance ch1 63/42/24, ch2 62/32/10 (night solo near its floor; watch the Baron fight on a phone). Live-verified hub + recipe book (locked to L6; locked sheet still says "Coming soon" — reword next patch).
+- **Next:** owner answers to the DEPTH questions → 0.3.1 prologue + mynah/drain rat (art waiting, HANDOFF item 5) → ROADMAP 0.3.2/0.4. All builders on Codex until Claude weekly resets (14 Oct ~17:00 Sydney). Worktrees `~/prata-raja-{s2,fb,feel,depth,s3}` are merged and can be removed.
 
 - **0.2.2** (main `2a74924`): feel pass by Codex on `sol/feel` (report `docs/reviews/feel-pass-report.md`): boss telegraph/approach (~37 s fights), readable far pests + damage numbers, throw motion, mob lunges, card repeat damping + staggered reveal, missed breads fade, wave gaps, far-end spawns, UI ghosting. Codex review P2 (lob aim past boss holdY) fixed with a test. e2e 33/33, balance 62/43/23. Live-verified at 375x812.
 - **DEPTH/ROADMAP merged** (`docs/DEPTH.md`, `docs/ROADMAP.md`, `docs/OWNER-SUMMARY-DEPTH.md`, research teardown-builds-poe-bl2 + fair-monetisation); owner has the summary + 3 questions (which build first: hot tawa / loaded murtabak / bouncing appam; food details before art; chapters 3-5 places).
