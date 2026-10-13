@@ -1,6 +1,6 @@
 # Builds: rotis are weapons, dips are gems (owner direction, 13 Oct 2026)
 
-Broad picture, not a spec. Sessions own the details: fill gaps, expand, prototype, tune with the bot, ship in slices. Supersedes the build parts of `docs/DEPTH.md` where they differ (DEPTH stays as background research and examples). Never pay-to-win: every power is earned by playing.
+**Exploratory, not firm.** The owner wants to *feel* this playstyle first and steer in-line; everything below is a starting hypothesis to prototype, play and reshape. Broad picture, not a spec. Sessions own the details: fill gaps, expand, prototype, tune with the bot, ship in slices. Supersedes the build parts of `docs/DEPTH.md` where they differ (DEPTH stays as background research and examples). Never pay-to-win: every power is earned by playing.
 
 ## 1. The three layers
 | Layer | PoE analogue | Prata Raja | Lives |
@@ -44,6 +44,7 @@ Four families, each with its own stat type and flavour of minor skill:
 - **Drinks = flasks** in the tiffin: Teh Tarik (haste), Kopi O (crit), Bandung (heal), Milo Dinosaur (shield), Sirap Bandung, Limau (cleanse); charges refill from kills; drink uniques later.
 
 ## 5. Order (broad, sessions refine)
+0. **Test Kitchen first (malleable base):** a sandbox mode reachable from the stall (and `?kitchen=1` on web) where the owner can pick any roti, put any dips in its katori at any tier/spice, add gear/drinks, choose a wave or boss, and tweak key numbers live, all data-driven so a new roti/dip/rule is a content row, not a code change. Polish the base feel while building it. Use it to try ideas before they become progression; nothing here is earned or saved to the real save.
 1. Dip families + tags + "only matching tags get the link bonus" (data + rules; existing links become the first katori).
 2. Dip tiers: simmer levels + overnight quality + collection screen in the stall.
 3. Katori slots (2 → 3) and the thali tray; roti mastery mini-trees for 3 rotis (Murtabak, Roti Bomb, Appam first).
