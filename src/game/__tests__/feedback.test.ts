@@ -187,7 +187,7 @@ describe('the sheet', () => {
     expect(run(sending, { type: 'text', text: 'changed' })).toBe(sending);
     expect(run(sending, { type: 'send', id: 'n2' })).toBe(sending);
     const sent = run(sending, { type: 'sent' });
-    expect(run(sent, { type: 'chip', chip: 'idea' })).toBe(sent);
+    expect(run(sent, { type: 'chip', chip: 'feel' })).toBe(sent);
     expect(run(sent, { type: 'fail', reason: 'offline' })).toBe(sent);
   });
 

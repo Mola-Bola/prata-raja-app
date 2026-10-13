@@ -118,7 +118,7 @@ function Sheet({ screen, run, screenshot }: Opened) {
   const identity = useSyncExternalStore(device.subscribe, device.get, () => null);
   const secretSaved = useSyncExternalStore(device.subscribe, device.secretSaved, () => false);
   const deviceId = identity?.id ?? '';
-  const pendingNote = useRef<NotePayload | null>(null);
+  const [pendingNote, setPendingNote] = useState<NotePayload | null>(null);
   const [tab, setTab] = useState<'write' | 'notes'>('write');
   const [notesOpened, setNotesOpened] = useState(false);
   const [notesBusy, setNotesBusy] = useState(false);
@@ -148,7 +148,7 @@ function Sheet({ screen, run, screenshot }: Opened) {
 
   const preview = buildNote({ id: '', deviceId, deviceSecret: identity?.secret, screenshot, chip: s.chip, text: s.text, from: s.from, info: getInfo(), screen, run });
 
-  const displayedNote = pendingNote.current?.id === s.noteId ? pendingNote.current : preview;
+  const displayedNote = pendingNote?.id === s.noteId ? pendingNote : preview;
 
   const send = async () => {
     if (!identity || !canSend(s) || busy || inFlight.current) return;
@@ -156,8 +156,9 @@ function Sheet({ screen, run, screenshot }: Opened) {
     const id = s.noteId ?? uuid();
     dispatch({ type: 'send', id });
     device.update({ from: s.from });
-    if (pendingNote.current?.id !== id) pendingNote.current = { ...preview, id };
-    const result = await sendNote(pendingNote.current);
+    const note = pendingNote?.id === id ? pendingNote : { ...preview, id };
+    setPendingNote(note);
+    const result = await sendNote(note);
     inFlight.current = false;
     if (!alive.current) return;
     if (result.ok) {
