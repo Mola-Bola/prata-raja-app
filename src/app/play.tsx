@@ -2,12 +2,13 @@ import { lazy, Suspense, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { recoverChunk } from '@/features/offline/chunkRecovery';
 import { appInfo } from '@/game/appInfo';
 import { bridge } from '@/game/bridge';
 import { GAME_BG } from '@/game/config';
 
 // Loaded on demand, so the sign-in and everyday screens don't download the game engine (web: a separate chunk).
-const GameRoot = lazy(() => import('@/game/GameRoot'));
+const GameRoot = lazy(() => import('@/game/GameRoot').catch(error => { recoverChunk(error); throw error; }));
 
 /** The game, full screen, no account needed. The game itself is a DOM component (src/game/GameRoot.tsx). */
 export default function Play() {

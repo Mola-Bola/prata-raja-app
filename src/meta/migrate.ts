@@ -3,6 +3,8 @@ import { DIPS } from '../content/dips';
 import { CHAPTERS } from '../content/chapters';
 import { freshSave, parseSave } from '../core/save';
 import { AFFIX_POOLS, GEAR_BASES, RARITY_INFO } from './gear';
+import { chooseSignature } from './signature';
+import { CONTENT } from '../content';
 import { unlocksForXp } from './stall';
 import { MATERIALS, RARITIES, SLOTS, TRAINING_IDS, UNLOCK_FLAGS, type GearBaseId, type GearItem, type Rarity, type SaveV2 } from './types';
 
@@ -14,7 +16,7 @@ const calendarDay = (value: unknown): string | null => typeof value === 'string'
 
 export function freshSaveV2(): SaveV2 {
   return {
-    ...freshSave(), v: 2, prologueSeen: false, stallXp: 0, unlockedBreads: [], unlockedDips: [], bossAttempts: {}, inventory: [], equipped: {},
+    ...freshSave(), v: 2, prologueSeen: false, signatureBread: 'kosong', stallXp: 0, unlockedBreads: [], unlockedDips: [], bossAttempts: {}, inventory: [], equipped: {},
     training: { wrist: 0, stamina: 0, flip: 0 },
     materials: { flour: 0, ghee: 0, egg: 0, onion: 0, spice: 0, sugar: 0, milk: 0 },
     streak: { day: 0, lastClaimDay: null, windowStartDay: null, restDaysUsed: 0 },
@@ -88,6 +90,6 @@ export function parseSaveV2(json: unknown): SaveV2 {
   if (Array.isArray(raw.pendingChests)) for (const uid of raw.pendingChests) {
     if (typeof uid === 'string' && seen.has(uid) && !save.pendingChests.includes(uid)) save.pendingChests.push(uid);
   }
-  return save;
+  return chooseSignature(save, raw.signatureBread, CONTENT);
   } catch { return fresh; }
 }

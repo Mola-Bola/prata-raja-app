@@ -260,7 +260,18 @@
   left: 0;
   right: 0;
   bottom: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 8px;
+  pointer-events: none;
   padding: 12px calc(var(--safe-right) + 18px) calc(var(--safe-bottom) + 20px) calc(var(--safe-left) + 18px);
+}
+
+.sh-footer > .gu-btn:not(.sh-start) {
+  min-height: 48px;
+  min-width: 0;
+  padding: 8px 6px;
+  font-size: 14px;
 }
 
 /* Hide immediately while the sheet fades in, keeping the footer space and focus return. */
@@ -269,6 +280,8 @@
 }
 
 .sh-start {
+  grid-column: 1 / -1;
+  grid-row: 1;
   min-height: 64px;
   font-size: 26px;
 }

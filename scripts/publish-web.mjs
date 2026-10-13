@@ -8,6 +8,7 @@ import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, 
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { retainWebChunks } from './retain-web-chunks.mjs';
 import { addPwaTags } from './web-pwa.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -63,6 +64,8 @@ if (!existsSync(join(REPO_DIR, '.git'))) {
 
 // Another checkout may have published since this copy was cloned: start from the remote's main, or the push is rejected.
 if (ok('git', ['fetch', '-q', 'origin', 'main'], { cwd: REPO_DIR })) ok('git', ['reset', '-q', '--hard', 'origin/main'], { cwd: REPO_DIR });
+
+retainWebChunks(BUILD, REPO_DIR);
 
 // 3. Replace contents, commit, push (to the PUBLIC built-files repo only).
 for (const f of readdirSync(REPO_DIR)) if (f !== '.git') rmSync(join(REPO_DIR, f), { recursive: true, force: true });

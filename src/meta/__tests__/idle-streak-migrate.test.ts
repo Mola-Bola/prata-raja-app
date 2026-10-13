@@ -179,7 +179,7 @@ describe('migrate', () => {
   it('a fresh save has every SaveV2 field and no progress', () => {
     expect(Object.keys(freshSaveV2()).sort()).toEqual([
       'bestWave', 'bossAttempts', 'chestPity', 'equipped', 'gold', 'idle', 'inventory', 'lastPlayed', 'materials', 'pendingChests', 'prologueSeen', 'runs',
-      'settings', 'stallXp', 'streak', 'totalKills', 'training', 'unlockedBreads', 'unlockedDips', 'unlocks', 'v', 'wins',
+      'settings', 'signatureBread', 'stallXp', 'streak', 'totalKills', 'training', 'unlockedBreads', 'unlockedDips', 'unlocks', 'v', 'wins',
     ]);
     expect(freshSaveV2()).toMatchObject({ v: 2, gold: 0, stallXp: 0, inventory: [], equipped: {}, unlocks: {}, training: { wrist: 0, stamina: 0, flip: 0 } });
   });

@@ -15,5 +15,7 @@ export function computeLoadout(save: SaveV2, content: Content): Loadout {
       stats[key] = (stats[key] ?? 0) + value;
     }
   }
-  return { stats, ...(save.unlocks.secondReroll ? { rerolls: 2 } : {}), ...runPools(save, content), ...(content.breads.kosong ? { startBread: content.breads.kosong.id } : {}) };
+  const pools = runPools(save, content);
+  const signature = save.unlocks.signature && pools.breadPool.includes(save.signatureBread) ? save.signatureBread : undefined;
+  return { stats, ...(signature ? { signatureBread: signature } : {}), ...(save.unlocks.secondReroll ? { rerolls: 2 } : {}), ...pools, ...(content.breads.kosong ? { startBread: signature ?? content.breads.kosong.id } : {}) };
 }

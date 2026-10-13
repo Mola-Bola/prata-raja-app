@@ -22,7 +22,7 @@ describe('stall', () => {
   it('has the specified feature and slot unlocks', () => {
     expect(UNLOCK_TABLE.map(u => u.flags)).toEqual([
       ['gear', 'towel'], ['training', 'headband'], ['secondReroll'], ['apron'],
-      ['gloves', 'recipeBook'], ['slippers'], ['chefsSpecial'],
+      ['gloves', 'recipeBook'], ['slippers'], ['chefsSpecial'], ['signature'],
     ]);
     for (const u of UNLOCK_TABLE) {
       const xp = LEVEL_THRESHOLDS[u.level - 1];
@@ -32,9 +32,10 @@ describe('stall', () => {
       }
     }
   });
-  it('reports the next named unlock and distance, and no invented L9/L10 unlock', () => {
+  it('reports the next named unlock and distance, and the signature unlock at L9', () => {
     expect(nextUnlock(140)).toEqual({ level: 2, xpRequired: 150, xpRemaining: 10, flags: ['gear', 'towel'] });
     expect(nextUnlock(150)?.level).toBe(3);
+    expect(nextUnlock(2400)).toEqual({ level: 9, xpRequired: 3100, xpRemaining: 700, flags: ['signature'] });
     expect(nextUnlock(3100)).toBeNull(); expect(nextUnlock(3900)).toBeNull();
   });
   it('pays XP on all runs including zero-wave deaths', () => {

@@ -103,8 +103,8 @@ function spawnFragments(c: Ctx, s: Projectile, e: Enemy, left: number): void {
   for (let i = 0; i < n; i++) {
     const a = a0 + (2 * Math.PI * i) / n;
     const f: Projectile = {
-      uid: newUid(c), owner: 'player', sprite: s.sprite, breadId: s.breadId, motion: 'straight', x: e.x, y: e.y,
-      vx: Math.sin(a) * FRAGMENT_SPEED, vy: Math.cos(a) * FRAGMENT_SPEED, z: 0, t: 0, ttl: FRAGMENT_TTL, dmg: st.fragmentDmg,
+      uid: newUid(c), owner: 'player', sprite: s.loaded ? 'breads/egg-telur' : s.sprite, breadId: s.breadId, motion: 'straight', x: e.x, y: e.y,
+      vx: Math.sin(a) * FRAGMENT_SPEED, vy: Math.cos(a) * FRAGMENT_SPEED, z: 0, t: 0, ttl: s.loaded ? 0.9 : FRAGMENT_TTL, dmg: st.fragmentDmg,
       radius: FRAGMENT_RADIUS * (1 + c.p.stats.sizePct), pierceLeft: 0, hopsLeft: 0, hit: [e.uid], returning: false,
       targetUid: null, tx: 0, ty: 0, stats: fst, spin: 0,
     };
@@ -117,7 +117,7 @@ function spawnFragments(c: Ctx, s: Projectile, e: Enemy, left: number): void {
 function straightHit(c: Ctx, s: Projectile, e: Enemy, left: number): boolean {
   const st = s.stats as BreadStats;
   s.hit.push(e.uid);
-  if (hitEnemy(c, e, s.dmg, st, s.pierceLeft <= 0, s.guaranteedCrit)) {
+  if (hitEnemy(c, e, s.dmg, st, s.pierceLeft <= 0, s.guaranteedCrit, s.breadId)) {
     s.ttl = -1;
     return false;
   }
@@ -141,6 +141,7 @@ function straightHit(c: Ctx, s: Projectile, e: Enemy, left: number): boolean {
       return true;
     }
   }
+  if (s.loaded) emit(c, { t: 'blast', x: e.x, y: e.y, radius: 85, color: null });
   if (st.fragments > 0) spawnFragments(c, s, e, left);
   s.ttl = -1;
   return false;
@@ -194,7 +195,7 @@ function land(c: Ctx, s: Projectile): void {
   const n = w.enemies.length; // enemies born from these kills (splitters) are not caught by the same blast
   for (let i = 0; i < n; i++) {
     const e = w.enemies[i];
-    if (alive(e) && dist(s.tx, s.ty, e.x, e.y) <= s.radius + e.def.radius) hitEnemy(c, e, s.dmg, st, false, s.guaranteedCrit);
+    if (alive(e) && dist(s.tx, s.ty, e.x, e.y) <= s.radius + e.def.radius) hitEnemy(c, e, s.dmg, st, false, s.guaranteedCrit, s.breadId);
   }
   if (st.zoneTime > 0) {
     w.zones.push({ uid: newUid(c), x: s.tx, y: s.ty, radius: s.radius, dps: st.zoneDps, time: st.zoneTime, sprite: 'fx/smoke', ...(st.zoneEffect ? { effect: st.zoneEffect, effectT: 0 } : {}) });
@@ -232,7 +233,7 @@ function flyWave(c: Ctx, s: Projectile, dt: number): void {
     }
     if (!best) break;
     s.hit.push(best.uid);
-    hitEnemy(c, best, s.dmg, st, false, s.guaranteedCrit);
+    hitEnemy(c, best, s.dmg, st, false, s.guaranteedCrit, s.breadId);
   }
   s.t += (y1 - y0) / s.vy;
   s.y = y1;
@@ -271,7 +272,7 @@ function flyBoomerang(c: Ctx, s: Projectile, dt: number): void {
     const by = ay + s.vy * slice;
     for (let e = firstTouched(c, s, ax, ay, bx, by); e; e = firstTouched(c, s, ax, ay, bx, by)) {
       s.hit.push(e.uid);
-      if (hitEnemy(c, e, s.dmg, st, true, s.guaranteedCrit)) {
+      if (hitEnemy(c, e, s.dmg, st, true, s.guaranteedCrit, s.breadId)) {
         s.ttl = -1;
         return;
       }
@@ -310,7 +311,7 @@ function updateOrbit(c: Ctx, s: Projectile): void {
     for (let k = 0; k < h.length; k += 2) if (h[k] === e.uid) cooling = true;
     if (cooling) continue;
     h.push(e.uid, now);
-    hitEnemy(c, e, s.dmg, st, false, s.guaranteedCrit);
+    hitEnemy(c, e, s.dmg, st, false, s.guaranteedCrit, s.breadId);
   }
 }
 
