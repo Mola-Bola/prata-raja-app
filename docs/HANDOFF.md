@@ -1,11 +1,12 @@
 # Prata Raja — handoff (rolling; replace the top block when state changes)
 
-## 13 Oct 2026 — live 0.2.0 (runtime 1, OTA + web); lead = Claude Opus desk (new session)
+## 13 Oct 2026 — live 0.2.1 (runtime 1, OTA + web); lead = Claude Opus desk
 
-- **Shipped 0.2.0** from main `0ac3018` (merge of `s2/stall`): stall hub, playtest fixes, boss CC immunity, plus this session's fixes: Extra reroll (stall L4) now really gives 2 rerolls; Codex review of meta/save/core → P1 save writes overlapping across GameUi remounts (fixed: one read/write chain per key in `saveStore.ts`), P2 overlapping freeze+stun shortened immunity (fixed in `status.ts`). 572 vitest, e2e 29/29. Live web verified at 375x812: bot win paid +414 coins, hub renders.
-- **In flight:** (1) Sonnet integrator merging `main` into `s2/feedback` in `~/prata-raja-fb` (recipe in its report §5; adds a hub "Tell Kannan" button) → then lead: add `EXPO_PUBLIC_POSTHOG_HOST/KEY` to `.env.production` (values in `eas.json`), merge, verify a real feedback row + PostHog events, ship **0.2.1**. (2) Haiku agent reading the owner's 13 Oct screen recordings (`Prata Raja refs/screen-20261013-*.mp4`, 5 clips) → report at `/private/tmp/claude-501/owner-refs-2026-10-13/REPORT.md`, to be copied into `docs/research/owner-refs-2026-10-13.md` and folded into the feel pass.
-- Open decisions kept as the integrator left them: hpPerWave 0.15 (global), coin economy (~400/win; training maxes in ~10-15 runs), `docs/CONTENT.md` CC text stale.
-- Next after 0.2.1: feel pass → 0.3.0 (S3 `sol/s3`) → DEPTH via Codex (unchanged list below).
+- **0.2.0** (main `0ac3018`): S2 stall hub + playtest fixes + boss CC immunity; Extra reroll works; Codex P1 (save chain across remounts) + P2 (CC overlap) fixed.
+- **0.2.1** (main `26c4afc`): `s2/feedback` merged (Tell Kannan in pause/results/hub → `game-feedback` fn → `public.feedback`; PostHog via `fam-relay` worker, replay + errors). `.env.production` has the PostHog lines. Live-verified: relay `/i/v0/e/` hit, a real note `b3d70fb8` landed in the digest (closed wont_do). Chest pity copy now "Rare guaranteed in N chests". app.json now 0.2.1 (the sheet showed "v0.2.0" in 0.2.1).
+- **Owner direction (13 Oct, see BACKLOG top):** not pay-to-win, less Archero; PoE-style layered builds (persistent gear/tree/drinks + in-run cards chaining off them); easy start, deep end; monetisation later and fair (cosmetics, supporter pass, convenience, buy-once all OK; never power); new foods as skills: murtabak, appam, idli, vadai.
+- **In flight:** Codex (`gpt-6.1-sol`, high, web search) in `~/prata-raja-depth` (branch `sol/depth`) writing `docs/research/teardown-builds-poe-bl2.md`, `docs/research/fair-monetisation.md`, `docs/DEPTH.md`, `docs/ROADMAP.md`, `docs/OWNER-SUMMARY-DEPTH.md`; brief `/private/tmp/claude-501/pr/depth-brief.md`, log `/private/tmp/claude-501/pr/depth.out`. Next: review, merge to main, send the owner summary.
+- **Feel pass inputs ready:** `docs/research/owner-refs-2026-10-13.md` (Archero refs + the owner's 0.2.0 playtest: boss telegraph, boss approach, tiny pests/numbers at range, card repeats, landed breads, button ghosting, wave gaps) + BACKLOG feel list. Then 0.3.0 (`sol/s3`).
 
 ## 12 Oct 2026, ~20:45 — live 0.1.1 (runtime 1); lead = Claude Opus desk, Codex may take over
 
