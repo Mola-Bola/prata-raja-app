@@ -18,7 +18,7 @@ const BREAD_LINES: Record<BreadId, string> = {
   appam: 'Bounces between pests',
   idli: 'Volley of mini idli',
   vadai: 'Orbiting vadai guard you',
-  'golden-ghee-chakra': 'Ricochets through 6 foes',
+  'golden-ghee-chakra': 'Bounces off 6 pests',
   'tarik-lance': 'Fast, endless pierce',
   'inferno-bomb': 'Blast leaves burning zone',
   'half-boiled-halo': 'Homing bits heal on hit',
