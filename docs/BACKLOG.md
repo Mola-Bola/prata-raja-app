@@ -5,7 +5,7 @@
 - **Owner direction 13 Oct (live feedback on 0.2.0):** it feels very Archero-like now; make it our own. **Never pay-to-win**, progression never gated by dollars (Archero "mining money" is the anti-goal). Monetisation only later if the game picks up, and fair (cosmetics/convenience/support, never power caps). Build depth like **Path of Exile** (DoT, AoE, Spark, Volatile Dead, Spellslinger, Cyclone, potion/flask builds; gear + skills + potions working hand in hand, crazy unique combos), with progression lessons from **Borderlands 2** and **MapleStory**: something to do at every step, unique combinations. Owner will give item specifics later; we expand. Research + roadmap → `docs/DEPTH.md`, `docs/ROADMAP.md` (design docs merged).
 
 ## Shipped
-- **0.4.6:** roti tags, dip families and visible matching-link bonuses in Kitchen/cards;884units and source CI passed. Live fit labels verified; full post-ship verifier running. Owner-pairing race test corrected without production changes.
+- **0.4.6:** roti tags, dip families and visible matching-link bonuses in Kitchen/cards;884units and source CI passed. Live fit labels verified;52browser tests and300seed balance passed. Independent review found short-offer Reroll clipping at320x480; fix39 pending. Owner-pairing race test corrected without production changes.
 - **0.4.5:** small-phone stall footer no longer blocks the chest hotspot;20focused browser cases and873units passed. Full post-ship50browser/300seed/review verification passed.
 - **0.4.4:** Test Kitchen with existing content, seed/wave selection and live knobs; sandbox feedback context; reopened-note status and verifier retry fixes. 873-test gate and source CI passed; post-ship balance/review passed;49/50browser cases passed and the stall overlap failure is fixed in0.4.5.
 - **0.4.3:** fleet machinery and in-game feedback categories, snapshots, private notes, threads and status. Owner device pairing remains pending.
@@ -18,7 +18,7 @@
 - **0.4.0–0.4.1:** owner-delegated first spectacular build, loaded Murtabak; signature choice, Fish Curry/Condensed Milk/Mint links, heat Roti Bomb and bouncing Appam.
 
 ## Open items and remaining polish
-- Ordered work: verify0.4.6 → finish independently measured knockback (ledger33; stun fixture correction pending) → Teh Tarik visual feedback and separate flaky-prata damage prototype → dip progression and attack-window polish → jobs/drinks (ROADMAP 0.5). Decomp damage/RNG/boss-data refactors are optional later architecture.
+- Ordered work: fix0.4.6 short-offer clipping (39) → ship measured knockback (33) and Teh cup cue (37) → finish optional flaky-prata Kitchen prototype (38) → dip progression and attack-window polish → jobs/drinks (ROADMAP 0.5). Decomp damage/RNG/boss-data refactors are optional later architecture.
 - Chef's Special and family leaderboard remain previews/future scope.
 - World-tier scenes are sliced but unwired; worn-gear layers and Grade Inspector gameplay remain future work.
 - Counter staging: extra contact shadows, rendered bowl tray/bread basket and subtle rendered tawa steam are not implemented. Fixed bowl/bread slots already shipped; do not rebuild them as missing work.
