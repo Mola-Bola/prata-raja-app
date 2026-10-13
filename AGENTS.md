@@ -51,3 +51,6 @@ Cell (`~/cell`) is the engine: `akit` (shared feedback CLI and ship gate), the r
 - Notes come in through the in-app "Tell Kannan" tab (table `feedback`). `node scripts/feedback.mjs digest` shows what is open; `plan`, `reply`, `status` move a note on (it wraps `akit feedback`).
 - Short sessions: one round per session, handed over through `round-handoff`. Screenshots are expensive: only changed screens, shrunk with `sips -Z 900`; prefer Playwright testID assertions.
 - Models: Opus plans, merges and judges; Sonnet subagents implement; Codex (`~/cell/runner/bin/codex-run.sh review <brief>`) reviews.
+
+## Fleet mode (13 Oct 2026, owner direction)
+Read `docs/FLEET.md`: fast-lane OTAs (typecheck + unit tests + akit check, stamp "fast lane: post-ship review queued <ledger id>"), full e2e/balance/review after the ship, ledger claims with owned files before coding, Jev for closed-choice triage. Hard stops unchanged (native/APK, DB migrations, secrets, pay-to-win).
