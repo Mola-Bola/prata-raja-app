@@ -1,3 +1,4 @@
+import { dipBonusLabel, dipFamilyLabel, dipMatchesBread, isLinkableDip, tagLabels } from '@/core/dipLinks';
 // Level-up card text and art keys: pure data, no React or DOM (the test runs it under Node).
 // Every line is at most 8 words and 25 characters (__tests__/cardText.test.ts). Names and sprites come from CONTENT.
 import { CONTENT } from '@/content';
@@ -55,6 +56,9 @@ const PASSIVE_LINES: Partial<Record<PassiveId, string>> = {
 export type CardFrame = 'ui/card' | 'ui/card-rare' | 'ui/card-epic';
 
 export type CardView = {
+  family?: string;
+  fit?: string;
+  bonus?: string;
   name: string;
   line: string;
   /** Linked dip effects are rendered beside their original link line. */
@@ -94,11 +98,12 @@ export function cardView(card: Card): CardView {
     case 'dip': {
       const d = CONTENT.dips[card.id as DipId];
       const view = item(d.name, DIP_LINES[d.id], d.sprite, 'ui/card-epic', card.level, d.levels.length);
-      if (!card.linkedBread) return { ...view, scope: 'All breads' };
+      const metadata = { family: dipFamilyLabel(d), fit: isLinkableDip(d) ? `Fits: ${tagLabels(d.matchingTags!)}` : undefined };
+      if (!card.linkedBread) return { ...view, ...metadata, scope: 'All breads' };
       const linked = CONTENT.breads[card.linkedBread];
       const name = CONTENT.breads[linked.evolvedFrom?.bread ?? linked.id].name;
       const scope = `Linked to ${name}`;
-      return { ...view, effect: view.line, line: scope.length <= 25 ? scope : `Link: ${name}`, scope, label: `${view.label}. Linked to ${name}; ${d.id === 'condensed-milk' ? 'longer Sticky and Sugar Crash' : d.id === 'mint-chutney' ? 'longer chill and freeze' : 'stronger burn'} on this bread only.` };
+      return { ...view, ...metadata, bonus: dipBonusLabel(d, linked), effect: view.line, line: scope.length <= 25 ? scope : `Link: ${name}`, scope, label: `${view.label}. Linked to ${name}; ${!dipMatchesBread(d, linked) ? 'ordinary effect; No tag bonus' : d.id === 'condensed-milk' ? 'longer Sticky and Sugar Crash' : d.id === 'mint-chutney' ? 'longer chill and freeze' : 'stronger burn'} on this bread only.` };
     }
     case 'passive': {
       const d = CONTENT.passives[card.id as PassiveId];

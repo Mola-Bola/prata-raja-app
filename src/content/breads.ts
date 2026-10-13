@@ -26,6 +26,7 @@ type EvolutionId = 'golden-ghee-chakra' | 'tarik-lance' | 'inferno-bomb' | 'half
 const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   kosong: {
     id: 'kosong',
+    tags: ['thrown', 'crisp'],
     name: 'Kosong',
     flavor: 'Plain, honest, and it never leaves the tawa.',
     sprite: 'breads/kosong',
@@ -41,6 +42,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   tissue: {
     id: 'tissue',
+    tags: ['thrown', 'pierce', 'crisp'],
     name: 'Tissue',
     flavor: 'Paper-thin and sharp enough to poke a cockroach.',
     sprite: 'breads/tissue',
@@ -56,6 +58,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   'roti-bomb': {
     id: 'roti-bomb',
+    tags: ['lob', 'area', 'heat'],
     name: 'Roti Bomb',
     flavor: 'Lands soft, explodes loud, clears the whole row.',
     sprite: 'breads/roti-bomb',
@@ -72,6 +75,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   'egg-telur': {
     id: 'egg-telur',
+    tags: ['thrown', 'stuffed'],
     name: 'Egg (Telur)',
     flavor: 'One egg in, three fragments out. Breakfast economics.',
     sprite: 'breads/egg-telur',
@@ -88,6 +92,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   thosai: {
     id: 'thosai',
+    tags: ['area', 'crisp'],
     name: 'Thosai',
     flavor: 'Wide and golden, sweeps the whole counter clean.',
     sprite: 'breads/thosai',
@@ -103,6 +108,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   chapati: {
     id: 'chapati',
+    tags: ['thrown'],
     name: 'Chapati',
     flavor: 'It always comes back, like a regular customer.',
     sprite: 'breads/chapati',
@@ -118,6 +124,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   naan: {
     id: 'naan',
+    tags: ['lob', 'area'],
     name: 'Naan',
     flavor: 'Slow to fly, heavy to land, impossible to ignore.',
     sprite: 'breads/naan',
@@ -133,6 +140,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   'garlic-naan': {
     id: 'garlic-naan',
+    tags: ['lob', 'area'],
     name: 'Garlic Naan',
     flavor: 'The smell lingers, and so do the enemies.',
     sprite: 'breads/garlic-naan',
@@ -149,6 +157,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   murtabak: {
     id: 'murtabak',
+    tags: ['thrown', 'stuffed'],
     name: 'Murtabak',
     flavor: 'Stuffed heavy, lands heavier. Nobody stands after.',
     sprite: 'breads/murtabak',
@@ -164,6 +173,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   appam: {
     id: 'appam',
+    tags: ['thrown', 'bounce'],
     name: 'Appam',
     flavor: 'Bowl-shaped and bouncy, passes the hot potato along.',
     sprite: 'breads/appam',
@@ -179,6 +189,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   idli: {
     id: 'idli',
+    tags: ['thrown'],
     name: 'Idli',
     flavor: 'Little steamed rounds, many of them, all at once.',
     sprite: 'breads/idli',
@@ -194,6 +205,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   vadai: {
     id: 'vadai',
+    tags: ['orbit', 'crisp'],
     name: 'Vadai',
     flavor: 'Round and humming, guards Kannan like a bodyguard.',
     sprite: 'breads/vadai',

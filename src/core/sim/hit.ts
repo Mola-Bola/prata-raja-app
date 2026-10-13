@@ -1,3 +1,4 @@
+import { dipMatchesBread } from '../dipLinks';
 // Damage rules: a bread hit on an enemy, dip chain/sambal side effects, DoT bookkeeping, kills, XP and gold.
 import { rollHit, xpToNext } from '../stats';
 import { applyCc, applyHitEffect, dmgTakenMul, hasStatus, onBreadHit } from '../status';
@@ -65,7 +66,8 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
       if (linkedBase !== hitBase) continue;
     }
     const base = def.levels[d.level - 1];
-    const fx = !d.linkedBread ? base
+    const bonus = d.linkedBread && dipMatchesBread(def, w.content.breads[d.linkedBread]);
+    const fx = !bonus ? base
       : base.type === 'burn' ? { ...base, dps: base.dps * 1.25, time: base.time * 1.25 }
         : base.type === 'sugar' ? { ...base, slowTime: base.slowTime * 1.25, crashStun: base.crashStun * 1.25 }
           : base.type === 'chill' ? { ...base, time: base.time * 1.25, freezeTime: base.freezeTime * 1.25 } : base;
