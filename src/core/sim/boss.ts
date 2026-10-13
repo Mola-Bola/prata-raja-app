@@ -139,6 +139,7 @@ export function updateBoss(c: Ctx, e: Enemy): void {
   const d = e.def as BossDef;
   const cd = e.cooldowns;
   const st = cdGet(e, ST);
+  const slow = speedMul(e);
   if (st === 0) {
     if (e.y > e.holdY + 0.5) {
       e.state = 'walk';
@@ -159,13 +160,13 @@ export function updateBoss(c: Ctx, e: Enemy): void {
   }
   const a = attackOf(e);
   if (st === 1) {
-    if (a.kind === 'charge') e.x += clamp(cdGet(e, mark(0)) - e.x, -LINE_UP_SPEED * c.dt, LINE_UP_SPEED * c.dt);
+    if (a.kind === 'charge') e.x += clamp(cdGet(e, mark(0)) - e.x, -LINE_UP_SPEED * slow * c.dt, LINE_UP_SPEED * slow * c.dt);
     e.t -= c.dt;
     if (e.t <= 0) execute(c, e, d, a);
   } else if (st === 2 && a.kind === 'charge') {
     const lane = cdGet(e, mark(0));
-    e.x += clamp(lane - e.x, -CHARGE_SLIDE * c.dt, CHARGE_SLIDE * c.dt);
-    e.y -= a.speed * c.dt;
+    e.x += clamp(lane - e.x, -CHARGE_SLIDE * slow * c.dt, CHARGE_SLIDE * slow * c.dt);
+    e.y -= a.speed * slow * c.dt;
     if (e.y <= FIELD.reachY) {
       e.y = FIELD.reachY;
       emit(c, { t: 'blast', x: lane, y: 0, radius: a.laneWidth / 2, color: null });
@@ -174,7 +175,7 @@ export function updateBoss(c: Ctx, e: Enemy): void {
     }
   } else {
     // returning to holdY after a charge
-    e.y += Math.max(200, d.speed * 4) * c.dt;
+    e.y += Math.max(200, d.speed * 4) * slow * c.dt;
     if (e.y >= e.holdY) {
       e.y = e.holdY;
       e.state = 'hold';

@@ -686,6 +686,42 @@ describe('bosses', () => {
     expect(t2.w.player.hp).toBe(100);
   });
 
+  it.each(['freeze', 'stun', 'sugarSlow'] as const)('%s slows boss charge movement and return without pausing its tell', (id) => {
+    const atk: BossAttack = { kind: 'charge', id: 'c', name: 'C', tell: 0.5, cooldown: 100, laneWidth: 100, dmg: 25, speed: 1000 };
+    const slowed = id === 'sugarSlow' ? 0.7 : 0.6;
+    const travel = (state: number, statuses: Enemy['statuses']) => {
+      const { w, e } = setup(atk);
+      e.x = -250;
+      e.y = state === 3 ? 100 : 500;
+      e.t = 0.5;
+      e.cooldowns = { _st: state, _cur: 0, _n: 1, _m0: 250 };
+      e.statuses = statuses;
+      const y = e.y;
+      play(w, 0.1);
+      return { x: e.x + 250, y: Math.abs(e.y - y), tell: e.t };
+    };
+    for (const state of [1, 2, 3]) {
+      const free = travel(state, []);
+      const held = travel(state, [{ id, time: 5, stacks: 1, dps: 0, amount: 0.3 }]);
+      expect(held.x, `state ${state} lane movement`).toBeCloseTo(free.x * slowed);
+      expect(held.y, `state ${state} street movement`).toBeCloseTo(free.y * slowed);
+      expect(held.tell, `state ${state} tell timer`).toBeCloseTo(free.tell);
+      if (state === 1) expect(held.tell).toBeCloseTo(0.4);
+    }
+  });
+
+  it('a frozen boss still completes its charge, deals its usual damage, and returns to fighting range', () => {
+    const atk: BossAttack = { kind: 'charge', id: 'c', name: 'C', tell: 0.5, cooldown: 100, laneWidth: 100, dmg: 25, speed: 1000 };
+    const { w, e } = setup(atk);
+    e.statuses = [{ id: 'freeze', time: 10, stacks: 1, dps: 0, amount: 0 }];
+    const events = play(w, 4);
+    expect(of(events, 'bossTell')).toHaveLength(1);
+    expect(of(events, 'playerHit')).toEqual([{ t: 'playerHit', dmg: 25, source: 'boss' }]);
+    expect(e.y).toBe(500);
+    expect(e.state).toBe('hold');
+    expect(e.statuses.some(status => status.id === 'freeze')).toBe(true);
+  });
+
   it('rain: marks the counter (one at Kannan), hits only the marks he stands in', () => {
     const atk: BossAttack = { kind: 'rain', id: 'r', name: 'R', tell: 0.5, cooldown: 100, marks: 1, markWidth: 60, dmg: 18 };
     const { w } = setup(atk);
