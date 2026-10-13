@@ -10,14 +10,15 @@ function fixture() {
   const base = mkdtempSync(join(tmpdir(), 'pipeline-test-'));
   const root = join(base, 'repo');
   mkdirSync(join(root, 'scripts'), { recursive: true });
-  for (const file of ['pipeline.mjs', 'slice.sh', 'release.sh']) cpSync(join(source, file), join(root, 'scripts', file));
+  for (const file of ['pipeline.mjs', 'slice.sh', 'release.sh', 'verify-fleet.mjs']) cpSync(join(source, file), join(root, 'scripts', file));
+  writeFileSync(join(root, 'scripts/verify-fleet.mjs'), 'export async function queueVerification() { return {id: \"test\", ledgerId: 1}; } export async function startVerification() {}');
   const pipeline = join(root, 'scripts/pipeline.mjs');
   writeFileSync(pipeline, readFileSync(pipeline, 'utf8')
     .replace("const store = '/private/tmp/claude-501/slices';", `const store = ${JSON.stringify(join(base, 'slices'))};`)
     .replace('setTimeout(r, ms)', 'setTimeout(r, 0)')); // Exercise retries without five-minute waits.
   mkdirSync(join(root, 'node_modules'));
   writeFileSync(join(root, '.env'), 'LOCAL_ONLY=1\n');
-  writeFileSync(join(root, '.gitignore'), '.env\nnode_modules\n.akit\n.pages-repo\n');
+  writeFileSync(join(root, '.gitignore'), '.env\nnode_modules\n.akit\n.pages-repo\n.fleet\n');
   writeFileSync(join(root, 'app.json'), '{"expo":{"version":"0.4.1","runtimeVersion":"1"}}');
   writeFileSync(join(root, 'package.json'), '{"version":"0.4.1"}');
   writeFileSync(join(root, 'package-lock.json'), '{"version":"0.4.1","packages":{"":{"version":"0.4.1"}}}');
@@ -98,12 +99,29 @@ globalThis.fetch = async () => ({ ok: true, text: async () => 'published\\n' });
   Object.assign(env, { PIPELINE_CI_ARGS: join(base, 'ci-args.txt') });
   const report = join(base, 'slices', name);
   writeFileSync(join(base, 'brief.md'), 'Implement change; write a report.');
-  const call = (script: string, ...args: string[]) => spawnSync('bash', [`scripts/${script}.sh`, ...args], { cwd: root, env, encoding: 'utf8' });
-  return { base, root, name, report, git, call, env, close: () => { rmSync(base, { recursive: true, force: true }); rmSync(report, { recursive: true, force: true }); } };
+  const call = (script: string, ...args: string[]) => spawnSync('bash', [`scripts/${script}.sh`, ...args, '--full'], { cwd: root, env, encoding: 'utf8' });
+  const fast = (script: string, ...args: string[]) => spawnSync('bash', [`scripts/${script}.sh`, ...args], { cwd: root, env, encoding: 'utf8' });
+  return { base, root, name, report, git, call, fast, env, close: () => { rmSync(base, { recursive: true, force: true }); rmSync(report, { recursive: true, force: true }); } };
 }
 
 // Git/process fixtures can exceed Vitest's default timeout on a loaded Mac.
 describe('pipeline', { timeout: 60_000 }, () => {
+  it('fast lane defers review, pins its stamp and publishes only web', () => {
+    const f = fixture();
+    try {
+      Object.assign(f.env, { PIPELINE_OPEN_P1: '1', PIPELINE_REVIEW_CAPTURE: join(f.base, 'review.txt') });
+      expect(f.fast('slice', f.name, join(f.base, 'brief.md')).status).toBe(0);
+      expect(readFileSync(join(f.report, 'REPORT.md'), 'utf8')).toContain('deferred until after ship');
+      expect(existsSync(join(f.base, 'review.txt'))).toBe(false);
+      const release = f.fast('release', 'Fast', '--branch', `sol/${f.name}`);
+      expect(release.status, release.stderr).toBe(0);
+      const stamp = readFileSync(join(f.root, `.akit/reviewed-${f.git('rev-parse', 'HEAD')}`), 'utf8');
+      expect(stamp).toContain('fast lane: post-ship review queued 1');
+      const dry = f.fast('release', 'Fast', '--branch', `sol/${f.name}`, '--dry-run');
+      expect(dry.stdout).toContain('publish-web.mjs --label <selected-label>');
+      expect(dry.stdout).not.toContain('ship-cloud.mjs --label');
+    } finally { f.close(); }
+  });
   it('shares ship label semantics and handles numeric ordering/minor bumps', () => {
     expect(chooseLabel('0.4.1', ['0.4.9', '0.4.10', 'junk'])).toBe('0.4.11');
     expect(chooseLabel('0.5.0', ['0.4.10'])).toBe('0.5.0');
