@@ -1,10 +1,12 @@
 # Prata Raja backlog
 
-13 Oct 2026 evening; verified live 0.4.2. Owner notes are intent, not spec. Current implementation order is in [ROADMAP](ROADMAP.md).
+13 Oct 2026 evening; published live 0.4.4; full post-ship verification running. Owner notes are intent, not spec. Current implementation order is in [ROADMAP](ROADMAP.md).
 
 - **Owner direction 13 Oct (live feedback on 0.2.0):** it feels very Archero-like now; make it our own. **Never pay-to-win**, progression never gated by dollars (Archero "mining money" is the anti-goal). Monetisation only later if the game picks up, and fair (cosmetics/convenience/support, never power caps). Build depth like **Path of Exile** (DoT, AoE, Spark, Volatile Dead, Spellslinger, Cyclone, potion/flask builds; gear + skills + potions working hand in hand, crazy unique combos), with progression lessons from **Borderlands 2** and **MapleStory**: something to do at every step, unique combinations. Owner will give item specifics later; we expand. Research + roadmap → `docs/DEPTH.md`, `docs/ROADMAP.md` (design docs merged).
 
 ## Shipped
+- **0.4.4:** Test Kitchen with existing content, seed/wave selection and live knobs; sandbox feedback context; reopened-note status and verifier retry fixes. 873-test gate and source CI passed; full post-ship checks pending.
+- **0.4.3:** fleet machinery and in-game feedback categories, snapshots, private notes, threads and status. Owner device pairing remains pending.
 - **0.4.2:** counter readiness/throw motion and dip effect plus explicit link scope; live HTML verified.
 - **0.2.0:** stall hub, boss CC safety, counter-first targeting, breach/HP cues, short card copy and title layout.
 - **0.2.1 (s2/feedback):** in-game Tell Kannan, PostHog analytics/replay/errors and chest pity copy.
@@ -14,7 +16,7 @@
 - **0.4.0–0.4.1:** owner-delegated first spectacular build, loaded Murtabak; signature choice, Fish Curry/Condensed Milk/Mint links, heat Roti Bomb and bouncing Appam.
 
 ## Open items and remaining polish
-- Ordered work: fleet/feedback → Test Kitchen → dip families/tags → independently measured knockback and attack-window polish → jobs/drinks (ROADMAP 0.5). Decomp damage/RNG/boss-data refactors are optional later architecture.
+- Ordered work: finish 0.4.4 verification/fix-forward → dip families/tags → independently measured knockback and attack-window polish → jobs/drinks (ROADMAP 0.5). Decomp damage/RNG/boss-data refactors are optional later architecture.
 - Chef's Special and family leaderboard remain previews/future scope.
 - World-tier scenes are sliced but unwired; worn-gear layers and Grade Inspector gameplay remain future work.
 - Counter staging: extra contact shadows, rendered bowl tray/bread basket and subtle rendered tawa steam are not implemented. Fixed bowl/bread slots already shipped; do not rebuild them as missing work.
@@ -36,4 +38,4 @@ Chapters become recognisable Singapore food spots with living ambient detail (sw
 - Real-phone notch/haptics/FPS and replay bandwidth pass outstanding.
 - Economy pacing awaits owner playtest evidence; worn-gear art not wired.
 - Date-only lastPlayed acceptance; legacy zero-run prologue once is accepted.
-- In-game owner identity/status/thread polish is the next fleet product slice.
+- In-game owner identity/status/threads are implemented; owner device pairing and real-browser taps remain outstanding.
