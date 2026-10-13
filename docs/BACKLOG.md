@@ -1,5 +1,7 @@
 # Prata Raja backlog
 
+
+- **Owner direction 13 Oct (live feedback on 0.2.0):** it feels very Archero-like now; make it our own. **Never pay-to-win**, progression never gated by dollars (Archero "mining money" is the anti-goal). Monetisation only later if the game picks up, and fair (cosmetics/convenience/support, never power caps). Build depth like **Path of Exile** (DoT, AoE, Spark, Volatile Dead, Spellslinger, Cyclone, potion/flask builds; gear + skills + potions working hand in hand, crazy unique combos), with progression lessons from **Borderlands 2** and **MapleStory**: something to do at every step, unique combinations. Owner will give item specifics later; we expand. Research + roadmap → `docs/DEPTH.md`, `docs/ROADMAP.md` (Codex, branch `sol/depth`).
 Owner notes are intent, not spec. Each line says where it lands.
 
 ## Owner playtest, 12 Oct (0.1.1 on APK + web)
