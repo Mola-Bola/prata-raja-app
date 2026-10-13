@@ -1,3 +1,4 @@
+import { isLinkableDip, MAX_LINKED_DIPS } from './dipLinks';
 // In-memory experiments only. Callers must keep these worlds out of progression/save handlers.
 import { MAX_BREADS, MAX_DIPS } from './cards';
 import { createRun, startRunWave } from './sim';
@@ -6,8 +7,7 @@ import type { BreadId, Content, DipId, World } from './types';
 
 export const KITCHEN_MAX_BREADS = MAX_BREADS;
 export const KITCHEN_MAX_DIPS = MAX_DIPS;
-export const KITCHEN_MAX_LINKED_DIPS = 2;
-export const KITCHEN_LINKABLE_DIPS: readonly DipId[] = ['fish-curry', 'condensed-milk', 'mint-chutney'];
+export const KITCHEN_MAX_LINKED_DIPS = MAX_LINKED_DIPS;
 
 /** Absolute knobs: damage/throwSpeed multipliers; crit/moveFire fractions. */
 export type KitchenTuning = { hp: number; damage: number; throwSpeed: number; crit: number; moveFire: number };
@@ -21,7 +21,7 @@ export type KitchenConfig = {
   /** Actual 1-based wave in the selected chapter, including boss waves. */
   wave: number;
   breads: { id: BreadId; level: number }[];
-  /** Omitted linkedBread means all breads; only KITCHEN_LINKABLE_DIPS support a target. */
+  /** Omitted linkedBread means all breads; only dips with matching tags support a target. */
   dips: { id: DipId; level: number; linkedBread?: BreadId }[];
   tuning?: Partial<KitchenTuning>;
 };
@@ -77,7 +77,7 @@ export function createKitchenRun(config: KitchenConfig, content: Content): World
   for (const dip of config.dips) {
     const def = content.dips[dip.id];
     if (!def || !Number.isInteger(dip.level) || dip.level < 1 || dip.level > Math.min(5, def.levels.length)) throw new Error(`Invalid kitchen dip or level: ${dip.id}`);
-    if (dip.linkedBread && (!KITCHEN_LINKABLE_DIPS.includes(dip.id) || !config.breads.some((b) => b.id === dip.linkedBread))) throw new Error('Linked dip requires a supported dip and selected bread');
+    if (dip.linkedBread && (!isLinkableDip(def) || !config.breads.some((b) => b.id === dip.linkedBread))) throw new Error('Linked dip requires a supported dip and selected bread');
   }
   const world = createRun({ seed: config.seed, content, chapterId: config.chapterId });
   world.player.breads = config.breads.map((b) => ({ ...b, cd: 0.4, volleyLeft: 0, volleyT: 0 }));

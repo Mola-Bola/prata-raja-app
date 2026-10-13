@@ -1,3 +1,4 @@
+import { dipMatchesBread, isLinkableDip, MAX_LINKED_DIPS } from './dipLinks';
 // Level-up cards: what is offered and what a pick does.
 // OWNER: swarm builder "cards".
 import type { Rng } from './rng';
@@ -7,13 +8,13 @@ import type { BreadId, Card, Content, DipId, Loadout, PassiveId, Player } from '
 export const MAX_BREADS = 4;
 export const MAX_DIPS = 4;
 const MAX_LEVEL = 5;
-const LINKABLE_DIPS = ['fish-curry', 'condensed-milk', 'mint-chutney'];
 
 function dipLink(player: Player, id: string, content: Content, signature?: BreadId): BreadId | undefined {
   const owned = player.dips.find(d => d.id === id);
   if (owned) return owned.linkedBread;
-  if (!signature || !LINKABLE_DIPS.includes(id) || player.dips.filter(d => d.linkedBread).length >= 2) return;
-  return player.breads.find(b => b.id === signature || content.breads[b.id].evolvedFrom?.bread === signature)?.id;
+  if (!signature || !isLinkableDip(content.dips[id as DipId]) || player.dips.filter(d => d.linkedBread).length >= MAX_LINKED_DIPS) return;
+  const target = player.breads.find(b => b.id === signature || content.breads[b.id].evolvedFrom?.bread === signature);
+  return target && dipMatchesBread(content.dips[id as DipId], content.breads[target.id]) ? target.id : undefined;
 }
 
 function evolutionReady(player: Player, def: Content['breads'][BreadId], content: Content): boolean {

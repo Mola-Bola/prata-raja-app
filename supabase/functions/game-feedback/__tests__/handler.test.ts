@@ -11,9 +11,11 @@ const auth = { device_id: DEVICE, device_secret: SECRET };
 const note = { ...auth, id: ID, chip: 'direction', body: 'Make dips clearer' };
 
 // In-memory PostgREST boundary fake: filters, count, unique insert and projection inputs remain visible to tests.
-function fixture(code: string | undefined = CODE) {
+function fixture(code: string | undefined = CODE, firstOwnerDevice?: string) {
   const tables: Record<string, any[]> = { feedback: [], feedback_messages: [], private_config: [] };
   const uploads: unknown[] = [];
+  let releaseOtherOwner!: () => void;
+  const firstOwnerInserted = new Promise<void>((resolve) => { releaseOtherOwner = resolve; });
   const admin = { storage: { from: () => ({ upload: async (...args: unknown[]) => { uploads.push(args); return {}; } }) }, from: (table: string) => {
     let filters: ((row: any) => boolean)[] = [], single = false, head = false, limit = Infinity;
     let operation = 'select', values: any, order: string | undefined, ascending = true;
@@ -28,12 +30,15 @@ function fixture(code: string | undefined = CODE) {
       maybeSingle: () => { single = true; return query; },
       insert: (input: any) => { operation = 'insert'; values = input; return query; },
       update: (input: any) => { operation = 'update'; values = input; return query; },
-      then: (resolve: (value: unknown) => unknown, reject: (error: unknown) => unknown) => Promise.resolve().then(() => {
+      then: (resolve: (value: unknown) => unknown, reject: (error: unknown) => unknown) => Promise.resolve().then(async () => {
         if (operation === 'insert') {
           const rows = Array.isArray(values) ? values : [values];
+          // Force either race winner without relying on asynchronous hash completion order.
+          if (table === 'private_config' && firstOwnerDevice && rows[0].value !== firstOwnerDevice) await firstOwnerInserted;
           const key = table === 'private_config' ? 'key' : 'id';
           if (rows.some((row) => tables[table].some((old) => old[key] === row[key]))) return { error: { code: '23505' } };
           tables[table].push(...rows.map((row) => ({ created_at: new Date().toISOString(), ...row })));
+          if (table === 'private_config') releaseOtherOwner();
           return {};
         }
         let rows = tables[table].filter((row) => filters.every((f) => f(row)));
@@ -112,15 +117,19 @@ describe('game feedback handler capability boundary', () => {
     expect(JSON.stringify(f.tables.private_config)).not.toContain(CODE);
   });
 
-  it('redeems a code atomically once, including concurrent distinct devices', async () => {
-    const f = fixture();
-    const results = await Promise.all([
-      f.send({ action: 'owner', ...auth, code: CODE }),
-      f.send({ action: 'owner', ...auth, device_id: OTHER, code: CODE }),
-    ]);
+  it.each([undefined, DEVICE, OTHER])('redeems a code atomically once with concurrent devices (first insert: %s)', async (firstOwnerDevice) => {
+    const f = fixture(CODE, firstOwnerDevice);
+    const requests = [auth, { ...auth, device_id: OTHER }].map((device) => ({ action: 'owner', ...device, code: CODE }));
+    const results = await Promise.all(requests.map(f.send));
     expect(results.map((r) => r.status).sort()).toEqual([200, 409]);
+    const winner = requests[results.findIndex((r) => r.status === 200)];
+    const loser = requests[results.findIndex((r) => r.status === 409)];
+    if (firstOwnerDevice) expect(winner.device_id).toBe(firstOwnerDevice);
+    expect((await f.send(winner)).status).toBe(200);
+    expect((await f.send(loser)).status).toBe(409);
+    expect(await f.send({ ...winner, action: 'list' })).toMatchObject({ status: 200, body: { owner: true } });
+    expect(await f.send({ ...loser, action: 'list' })).toMatchObject({ status: 200, body: { owner: false } });
     expect(f.tables.private_config).toHaveLength(2);
-    expect((await f.send({ action: 'owner', ...auth, device_id: OTHER, code: CODE })).status).toBe(409);
     expect((await fixture('').send({ action: 'owner', ...auth, code: CODE })).status).toBe(503);
   });
 

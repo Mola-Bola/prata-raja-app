@@ -22,7 +22,7 @@ const ZERO: BreadStats = {
   armourPierce: 0, homing: 0,
 };
 const mkBread = (id: BreadId, motion: BreadMotion, target: BreadTarget, st: Partial<BreadStats>): BreadDef => ({
-  id, name: id, flavor: '', sprite: `breads/${id}`, motion, target, unlock: id === 'kosong' ? 'starter' : 'rc-test',
+  id, tags: [], name: id, flavor: '', sprite: `breads/${id}`, motion, target, unlock: id === 'kosong' ? 'starter' : 'rc-test',
   levels: Array.from({ length: 5 }, () => ({ ...ZERO, ...st })),
 });
 const STRAIGHT = { dmg: 10, cooldown: 0.8, speed: 900, radius: 14, range: 950 };
@@ -39,7 +39,7 @@ const BREADS: Partial<Record<BreadId, BreadDef>> = {
   idli: mkBread('idli', 'straight', 'nearest', { ...STRAIGHT, dmg: 3, cooldown: 1, speed: 950, radius: 8, count: 4, volleyGap: 0.1 }),
   vadai: mkBread('vadai', 'orbit', 'none', { dmg: 3, cooldown: 0, speed: 180, radius: 16, count: 1, orbitRadius: 140, orbitHitGap: 0.5 }),
 };
-const mkDip = (id: DipId, levels: DipDef['levels'][number][]): DipDef => ({ id, name: id, flavor: '', sprite: `dips/${id}`, color: '#112233', unlock: 'rc-test', levels });
+const mkDip = (id: DipId, levels: DipDef['levels'][number][]): DipDef => ({ id, family: 'special', name: id, flavor: '', sprite: `dips/${id}`, color: '#112233', unlock: 'rc-test', levels });
 const NOOP: DipDef['levels'][number] = { type: 'healOnKill', hp: 0 };
 const DIPS: Partial<Record<DipId, DipDef>> = {
   'fish-curry': mkDip('fish-curry', Array(5).fill({ type: 'burn', dps: 10, time: 2 })),
