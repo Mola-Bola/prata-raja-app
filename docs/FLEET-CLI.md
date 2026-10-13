@@ -17,11 +17,11 @@ node scripts/fleet.mjs workers 3
 
 `add`, `claim`, and `status` return JSON rows. `claim` returns null when unavailable. Claims use `BEGIN IMMEDIATE`: directories overlap their descendants, and a task waits for dependencies to be shipped or verified. Globs and parent traversal are rejected. Claimed, building, ready, and failed tasks retain ownership until the lead ships/drops them or deliberately reopens them with a decision note. Terminal verified/dropped rows cannot reopen; record a new row. Status updates and decision notes are durable; the lead is responsible for shipped/verified decisions.
 
-By default every mutation regenerates the **common root** `docs/LEDGER.md` under the same write lock. `render` repairs a stale snapshot after an interrupted process. The database is authoritative; the Markdown view is for review and commits.
+Interactive CLI mutations regenerate the **common root** `docs/LEDGER.md` under the same write lock. `render` repairs a stale snapshot after an interrupted process. The database is authoritative; the Markdown view is for review and commits.
 
 Workers invoke `scripts/slice.sh` using unique task/attempt names and ports, with no merge or ship step. Each loop handles at most ten tasks, stops on its first failure, and kills its slice process group after an hour. Ready rows await lead review; failed rows retain ownership so unfinished branches cannot race another task. A process or machine crash may leave building claims: inspect its process/worktree/report before marking failed, dropping, or reopening with a reason. No automatic stale-claim takeover. Dry run lists pending contracts without claiming or building them.
 
-Release/background callers use `openLedger(repositoryPath, { render: false })` to avoid dirtying the shipping checkout. The lead runs `render` and commits the snapshot after shipping.
+Workers and release/background callers use `openLedger(repositoryPath, { render: false })` to avoid dirtying the shipping checkout. The lead runs `render` and commits the snapshot after shipping.
 
 JavaScript integration:
 
@@ -29,13 +29,15 @@ JavaScript integration:
 import { openLedger } from './fleet.mjs';
 const ledger = openLedger(repositoryPath);
 try {
-  const row = ledger.add({ source: 'verifier', intent: 'Check release', brief: 'Run post-ship checks', owned: ['verification/0.4.3'], priority: 100 });
+  const row = ledger.addClaimed({ source: 'verifier', intent: 'Check release', brief: 'Run post-ship checks', owned: ['verification/unique-job-id'], priority: 100 }, 'verifier');
   ledger.status(row.id, 'verified', { note: 'Checks passed', release: '0.4.3', result: { ok: true } });
 } finally { ledger.close(); }
 ```
 
-Exported methods: `add(task)`, `list()`, `claim(worker, id?)`, `status(id, state, {note, branch, release, result}?)`, `render()`, `close()`. Exported `workers(cwd, {count, maxTasks, timeoutMs, dryRun})` accepts bounded loop settings. Use synthetic `verification/<release>` ownership for check-only rows; verifier regressions get concrete source ownership and high priority. Workers execute trusted lead briefs; ledger claims are coordination, not a filesystem security sandbox.
+Exported methods: `add(task)`, `addClaimed(task, worker)` (atomic insertion and reservation), `list()`, `claim(worker, id?)`, `status(id, state, {note, branch, release, result}?)`, `render()`, `close()`. Exported `workers(cwd, {count, maxTasks, timeoutMs, dryRun})` accepts bounded loop settings. Verifier jobs use unique `verification/<job-id>` ownership and atomic reservation; failed-publish attempts cannot block retries. Investigation rows are atomically reserved to the lead, who determines actual source ownership before creating a worker task. Ordinary build workers cannot claim these investigation rows. Workers execute trusted lead briefs; ledger claims are coordination, not a filesystem security sandbox.
 
 `node scripts/fleet.mjs triage <id>` explicitly calls the configured Jev overlap judge and records its advisory as a decision note; it never overrides atomic path checks or changes status. Run only when that service's usage is authorized. No Jev calls happen automatically. Missing configuration requires lead judgement.
 
 Before marking a slice ready, the worker requires a successful result pinned to the branch HEAD, an ancestor base, and a Git diff entirely inside its owned paths (including deleted and renamed paths). Include the worker report path in the original ownership contract when the brief asks for a committed report.
+
+Workers pass `FLEET_LEDGER_ID` into slices; results keep that identity. Ownership failures invalidate the pipeline result as well as marking the row failed. Release checks every linked row is ready and repeats the owned-path check against the exact pinned diff before merging. Background workers never regenerate tracked Markdown; run `node scripts/fleet.mjs render` and commit the snapshot after release.

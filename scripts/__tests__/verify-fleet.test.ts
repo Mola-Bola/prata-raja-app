@@ -14,7 +14,7 @@ it('durable verifier refuses unshipped jobs, pins commits and files failures', (
     cpSync(resolve('scripts/verify-fleet.mjs'), join(root, 'scripts/verify-fleet.mjs'));
     writeFileSync(join(root, '.gitignore'), 'node_modules\n');
     writeFileSync(join(root, 'scripts/pipeline.mjs'), `export async function checks(){return process.env.VERIFIER_PASS === '1'} export async function review(){return process.env.VERIFIER_PASS === '1' ? [] : [{priority:'P1',detail:'a regression'}]}`);
-    writeFileSync(join(root, 'scripts/fleet.mjs'), `import {appendFileSync} from 'node:fs'; export function openLedger(root){return {claim(){return {id:1}},add(row){appendFileSync(root+'/.git/ledger.log',JSON.stringify(row)+'\\n');return {id:1}},status(...args){appendFileSync(root+'/.git/ledger.log',JSON.stringify(args)+'\\n')},close(){}}}`);
+    writeFileSync(join(root, 'scripts/fleet.mjs'), `import {appendFileSync} from 'node:fs'; export function openLedger(root){return {addClaimed(row){appendFileSync(root+'/.git/ledger.log',JSON.stringify(row)+'\\n');return {id:1}},status(...args){appendFileSync(root+'/.git/ledger.log',JSON.stringify(args)+'\\n')},close(){}}}`);
     const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
     git('init', '-q'); git('add', '-A'); git('-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','fixture');
     const head = git('rev-parse', 'HEAD');

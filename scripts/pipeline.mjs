@@ -158,7 +158,9 @@ async function slice() {
   if (existsSync(dir) || existsSync(cwd)) throw new Error('Slice name/worktree already exists; use a new name');
   mkdirSync(store, { recursive: true });
   mkdirSync(dir); // Claim the name atomically when parallel slices start together.
-  const state = { name, branch, cwd, base: git(['rev-parse', 'main']), head: null, ok: false, mode: full ? 'full' : 'fast', port, ownedDirectories: [dir] };
+  const ledgerId = process.env.FLEET_LEDGER_ID ? Number(process.env.FLEET_LEDGER_ID) : null;
+  if (ledgerId !== null && (!Number.isSafeInteger(ledgerId) || ledgerId < 1)) throw new Error('Invalid FLEET_LEDGER_ID');
+  const state = { ledgerId, name, branch, cwd, base: git(['rev-parse', 'main']), head: null, ok: false, mode: full ? 'full' : 'fast', port, ownedDirectories: [dir] };
   let green = false, initial = [], findings = [], fixed = false, issue = 'Incomplete', ci = 'not queried (local result not green)';
   try {
     await freePort(port);
@@ -220,6 +222,62 @@ async function slice() {
   if (!state.ok) throw new Error(`Slice failed: ${dir}/REPORT.md`);
 }
 
+// Accept completed bounded agent work without rerunning a code-generation worker.
+async function verifySlice() {
+  const [name, baseRef] = positional;
+  if (!name || !/^[a-z0-9][a-z0-9-]*$/.test(name) || !/^[a-f0-9]{7,40}$/.test(baseRef ?? '') || positional.length !== 2 || minor) throw new Error('Usage: pipeline.mjs verify-slice <name> <base-sha> [--full] [--dry-run]');
+  const cwd = join(dirname(root), `prata-raja-${name}`), branch = `sol/${name}`, dir = join(store, name);
+  const base = git(['rev-parse', `${baseRef}^{commit}`]);
+  const head = git(['rev-parse', branch]);
+  onBranch(cwd, branch); assertHead(cwd, head);
+  git(['merge-base', '--is-ancestor', base, head]);
+  const ledgerId = process.env.FLEET_LEDGER_ID ? Number(process.env.FLEET_LEDGER_ID) : null;
+  if (ledgerId !== null && (!Number.isSafeInteger(ledgerId) || ledgerId < 1)) throw new Error('Invalid FLEET_LEDGER_ID');
+  const port = Number(process.env.PORT ?? 9492);
+  if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Invalid PORT');
+  step(`Verify existing ${branch} in ${cwd} at ${head}; ${full ? 'web checks + review' : 'quick checks; review deferred'}; push and record ${dir}`);
+  if (dry) return;
+  if (existsSync(join(dir, 'result.json'))) {
+    const previous = JSON.parse(readFileSync(join(dir, 'result.json'), 'utf8'));
+    if (previous.cwd !== cwd || previous.branch !== branch || previous.base !== base) throw new Error('Result directory belongs to another slice');
+  }
+  mkdirSync(dir, { recursive: true });
+  const state = { name, cwd, branch, base, head, ledgerId, mode: full ? 'full' : 'fast', port, ok: false, findings: [], ownedDirectories: [dir, join(dir, 'logs')] };
+  // The pre-existing worktree is not ours to delete during release cleanup.
+  const resultPath = join(dir, 'result.json'), candidatePath = join(dir, 'candidate.json');
+  json(resultPath, state);
+  let db, row, issue = 'Incomplete', ci = 'not queried';
+  try {
+    if (ledgerId !== null) {
+      const fleet = await import('./fleet.mjs');
+      db = fleet.openLedger(root, { render: false });
+      const claimed = db.list().find((r) => r.id === ledgerId);
+      if (!claimed || !['claimed', 'building', 'ready', 'failed'].includes(claimed.status) || (claimed.branch && claimed.branch !== branch)) throw new Error('Ledger row does not own this active slice');
+      row = claimed;
+      json(candidatePath, { ...state, ok: true });
+      fleet.validateResult(root, row, name, candidatePath);
+    }
+    if (!await checks(cwd, dir, port, full)) throw new Error('Slice checks failed');
+    assertHead(cwd, head);
+    state.findings = full ? await review(cwd, dir, base, head, 'review') : [];
+    assertHead(cwd, head);
+    if (blocking(state.findings)) throw new Error('Review has open P0/P1');
+    git(['push', '-u', 'origin', branch], cwd);
+    ci = ciStatus(branch, head, cwd);
+    assertHead(cwd, head);
+    state.ok = true; issue = 'None blocking';
+  } catch (error) { issue = error.message; }
+  finally {
+    rmSync(candidatePath, { force: true });
+    json(resultPath, state);
+    writeFileSync(join(dir, 'REPORT.md'), `# Slice ${name}\nBranch: ${branch}\nHEAD: ${head}\nBase: ${base}\nChecks: ${read(join(dir, 'check.log')).split('\n').filter((l) => /^[✓✗-]/.test(l)).join('; ') || 'not completed'}\nReview: ${full ? JSON.stringify(state.findings) : 'deferred until after ship'}\nCI: ${ci}\nRemaining issues: ${issue}\nResult: ${state.ok ? 'PASS' : 'FAIL'}\n`);
+    try {
+      if (row && ['claimed', 'building', 'ready', 'failed'].includes(row.status)) db.status(ledgerId, state.ok ? 'ready' : 'failed', { branch, result: { report: resultPath, base, head }, note: issue });
+    } finally { db?.close(); }
+  }
+  if (!state.ok) throw new Error(`Slice verification failed: ${issue}; ${dir}/REPORT.md`);
+}
+
 async function release() {
   const [notes, ...options] = positional;
   const branches = [];
@@ -247,7 +305,10 @@ async function release() {
     writeFileSync(join(lock, 'owner'), `pid=${process.pid} root=${root}\n`);
     mkdirSync(store, { recursive: true });
     mkdirSync(releaseDir);
-    const slices = branches.map((branch) => {
+    const fleet = existsSync(join(root, 'scripts/fleet.mjs')) ? await import('./fleet.mjs') : null;
+    const db = fleet?.openLedger(root, { render: false });
+    let slices;
+    try { slices = branches.map((branch) => {
       if (!/^sol\/[a-z0-9][a-z0-9-]*$/.test(branch)) throw new Error(`Not a slice branch: ${branch}`);
       const dir = join(store, branch.slice(4));
       const result = JSON.parse(readFileSync(join(dir, 'result.json'), 'utf8'));
@@ -257,8 +318,13 @@ async function release() {
       if (!worktrees.some((w) => w.includes(`worktree ${result.cwd}\n`) && w.includes(`branch refs/heads/${branch}`))) throw new Error(`Worktree mismatch: ${branch}`);
       clean(result.cwd);
       onBranch(result.cwd, branch);
+      const row = db?.list().find((r) => r.branch === branch);
+      if (row || result.ledgerId || branch.startsWith('sol/fleet-')) {
+        if (!row || row.id !== result.ledgerId || row.status !== 'ready') throw new Error(`Fleet slice is not ready in the ledger: ${branch}`);
+        fleet.validateResult(root, row, branch.slice(4), join(dir, 'result.json'));
+      }
       return { ...result, dir };
-    });
+    }); } finally { db?.close(); }
     // Keep slice changes in scope even when retrying after a failed merged release.
     const mainHead = git(['rev-parse', 'HEAD']);
     const base = git(['merge-base', '--octopus', mainHead, ...slices.map((s) => s.base)]);
@@ -345,5 +411,6 @@ async function release() {
 if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) try {
   if (process.argv[2] === 'slice') await slice();
   else if (process.argv[2] === 'release') await release();
-  else throw new Error('Expected slice or release');
+  else if (process.argv[2] === 'verify-slice') await verifySlice();
+  else throw new Error('Expected slice, verify-slice or release');
 } catch (error) { console.error(error.message); process.exitCode = 1; }

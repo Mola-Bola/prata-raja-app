@@ -93,7 +93,7 @@ Jobs and logs survive worktree cleanup and reboot in
 detached worktree, local `.env` only, shared node_modules, and an available unique
 port. It runs `check.sh --web`, `BALANCE_SEEDS=300` balance tests and a read-only
 structured Codex review. Failures/findings create a high-priority investigation
-row (without dirtying the shipping checkout; the lead regenerates `docs/LEDGER.md` after shipping); passing all three marks the verification row verified. Failed worktrees and
+row reserved to the lead (without dirtying the shipping checkout; the lead regenerates `docs/LEDGER.md` after shipping); passing all three marks the verification row verified. Failed worktrees and
 logs are kept for diagnosis.
 
 Recover a queued/failed/interrupted job without publishing again:
@@ -107,3 +107,29 @@ verifier leaves `running/pid`; check the process is dead before removing that lo
 and retrying. Never remove a live verifier's lock. Retry creates a new worktree;
 existing failure evidence stays intact. Review findings and infrastructure errors
 are investigation requests, not automatically established gameplay regressions.
+
+Release labels now advance from the greatest of the source version and recorded
+cloud labels. A web-only release does not create an OTA database row, so its source
+version prevents the next web release reusing the label. Verification rows are
+reserved atomically and have job-specific ownership, allowing a fresh publish
+attempt after a failed publish without an old queue row blocking it. Fleet-linked
+slices carry `FLEET_LEDGER_ID`; release requires their ledger row to be ready and
+rechecks the exact changed files against that row's ownership before any merge.
+
+## Verify an existing agent worktree
+
+For bounded subagent work that already exists on `sol/<name>` in the sibling
+`prata-raja-<name>` worktree, create a genuine pipeline result without running
+code generation again:
+
+```bash
+FLEET_LEDGER_ID=6 PORT=9606 node scripts/pipeline.mjs verify-slice feedback-ui <base-sha> --dry-run
+FLEET_LEDGER_ID=6 PORT=9606 node scripts/pipeline.mjs verify-slice feedback-ui <base-sha>
+```
+
+Use the agreed ancestor commit as the base. The command requires a clean worktree,
+checks claimed ownership, runs quick checks (or `--full` web checks and review),
+rejects concurrent HEAD changes, pushes, and writes the ordinary pinned pipeline
+report. Only then does it mark the linked row ready. Failed checks mark that row
+failed and keep the report. It neither edits game code nor merges nor ships.
+A pre-existing agent worktree is preserved after release; the lead owns cleanup.

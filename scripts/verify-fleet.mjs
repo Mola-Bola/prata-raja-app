@@ -20,8 +20,7 @@ export async function queueVerification(root, { base, head, label }) {
   mkdirSync(dir, { recursive: true });
   const db = await ledger(root);
   let row;
-  try { row = db.add({ source: 'verifier', intent: `Verify web release ${label}`, brief: `Pinned ${base}..${head}; full web, 300-seed balance and read-only review`, owned: [`verification/${label}`] });
-    if (!db.claim(`verifier-${id}`, row.id)) throw new Error('Unable to reserve verification row');
+  try { row = db.addClaimed({ source: 'verifier', intent: `Verify web release ${label}`, brief: `Pinned ${base}..${head}; full web, 300-seed balance and read-only review`, owned: [`verification/${id}`] }, `verifier-${id}`);
   }
   finally { db.close(); }
   const job = { id, ledgerId: row.id, root: resolve(root), base, head, label, status: 'awaiting-ship', attempts: 0 };
@@ -85,7 +84,7 @@ export async function runVerification(root, id) {
     const db = await ledger(root);
     try {
       if (failed && !job.regressionId) {
-        const row = db.add({ source: 'verifier', intent: `Investigate release ${job.label} verification failure`, brief: `Evidence: ${dir}/result.json; pinned ${job.head}. Fix forward; do not assume infrastructure failure is a game regression.`, owned: [`regression/${job.label}`], priority: 1000 });
+        const row = db.addClaimed({ source: 'verifier', intent: `Investigate release ${job.label} verification failure`, brief: `Evidence: ${dir}/result.json; pinned ${job.head}. Fix forward; do not assume infrastructure failure is a game regression.`, owned: [`regression/${job.id}`], priority: 1000 }, 'lead');
         job.regressionId = row.id; save(file, job);
       }
       db.status(job.ledgerId, job.status, { release: job.label, result: join(dir, 'result.json'), note: failed ? `Investigation ${job.regressionId}; see durable evidence` : 'Web + 300-seed balance + read-only review passed' });

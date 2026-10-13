@@ -47,6 +47,26 @@ describe('fleet ledger', () => {
     expect(cli(root, 'claim', 'other').id).toBe(2);
     expect(readFileSync(join(root, 'docs/LEDGER.md'), 'utf8')).toContain('Lead integrated');
   });
+  it('reserves lead/verifier rows atomically without exposing build work', () => {
+    const root=repo();
+    const code=`import {openLedger} from ${JSON.stringify('file://'+script)};
+      const db=openLedger(${JSON.stringify(root)},{render:false});
+      db.addClaimed({source:'verifier',intent:'check',brief:'verify',owned:['verification/job1']},'verifier');
+      db.addClaimed({source:'verifier',intent:'investigate',brief:'triage',owned:['regression/job1']},'lead');
+      try {db.addClaimed({source:'test',intent:'overlap',brief:'bad',owned:['verification/job1']},'other');} catch {}
+      console.log(JSON.stringify({rows:db.list(),claim:db.claim('builder')}));db.close();`;
+    const out=JSON.parse(execFileSync(process.execPath,['--input-type=module','-e',code],{encoding:'utf8'}));
+    expect(out.rows).toHaveLength(2);
+    expect(out.rows.map((r: any)=>r.status)).toEqual(['claimed','claimed']);
+    expect(out.claim).toBeNull();
+  });
+  it('invalidates a previously passing report after ownership fails', () => {
+    const root=repo(), path=join(root,'result.json');
+    writeFileSync(path,JSON.stringify({ok:true,head:'pinned'}));
+    const code=`import {invalidateResult} from ${JSON.stringify('file://'+script)};invalidateResult('test','unowned path',${JSON.stringify(path)});`;
+    execFileSync(process.execPath,['--input-type=module','-e',code]);
+    expect(JSON.parse(readFileSync(path,'utf8'))).toEqual({ok:false,head:'pinned',ownershipFailure:'unowned path'});
+  });
   it('blocks dependencies and rejects path escapes and unknown dependencies', () => {
     const root = repo();
     const first = add(root, ['src/a.ts']);
@@ -67,9 +87,11 @@ describe('fleet ledger', () => {
     add(root, ['src/a.ts']);
     add(root, ['src/b.ts']);
     add(root, ['src/c.ts']);
+    const before = readFileSync(join(root, 'docs/LEDGER.md'), 'utf8');
     const code = `import { workers } from ${JSON.stringify('file://' + script)}; console.log(JSON.stringify(await workers(${JSON.stringify(root)}, {count:2,maxTasks:3,timeoutMs:2000})));`;
     const out = execFileSync(process.execPath, ['--input-type=module', '-e', code], { cwd: root, encoding: 'utf8' });
     expect(JSON.parse(out).flat()).toHaveLength(2);
+    expect(readFileSync(join(root, 'docs/LEDGER.md'), 'utf8')).toBe(before);
     expect(cli(root, 'list').map((r: any) => r.status)).toEqual(['failed', 'failed', 'open']);
     const calls = readFileSync(join(root, 'invocations'), 'utf8').trim().split('\n');
     expect(calls).toHaveLength(2);
