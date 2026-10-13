@@ -1,10 +1,11 @@
 # Prata Raja — handoff (rolling; replace the top block when state changes)
 
-## 13 Oct 2026 — live 0.4.0 (runtime 1, OTA + web); lead = Claude Opus desk
+## 13 Oct 2026 — live 0.4.1 (runtime 1, OTA + web); lead = Claude Opus desk
+
+- **0.4.1** (main `4800350`): heat Roti Bomb + bouncing Appam signatures, Condensed Milk + Mint links (report `docs/reviews/signature2-report.md`). **Rule change:** a running freeze/stun is never extended or chained (`applyCc`), fixing a linked-Mint freeze-lock (Codex P1); ch.2 contact damage 1.35→0.8 (ch2 63/36/12). e2e 44/44, 749 vitest. Worktrees: only main remains.
 
 - **0.4.0** (main `17bc7e1`): signature bread (stall sheet), Fish Curry links to it, loaded Murtabak, offers lean to the signature, web chunk-404 recovery (publish keeps old `_expo/static`, one-time reload). Report `docs/reviews/signature-report.md`. e2e 42/42, 738 vitest, ch1 57/44/23, Murtabak solo 13%.
 - **Disk:** Mac at ~1.5 GB free (196/228 GB). Merged worktrees removed. Clean `/private/tmp/claude-501/*-logs` after checks; owner asked to free space.
-- **In flight: 0.4.1** on Codex in `~/prata-raja-sig2` (branch `sol/signature2`): two more signature links per ROADMAP 0.4. Brief `/private/tmp/claude-501/pr/sig2-brief.md`, log `sig2b.out`.
 
 - **0.3.1** (main `551ac82`): prologue comic (first launch, skip, replay in settings), mynah thief + drain rat, story/pest art sliced (report `docs/reviews/prologue-report.md`). e2e 40/40, balance 57/44/23. Accepted review P2: legacy saves with runs=0 may see the skippable comic once.
 - **In flight: 0.4.0 slice 1** on Codex in `~/prata-raja-sig` (branch `sol/signature`): signature bread + one linked dip + spectacular Murtabak + web chunk-404 fix (blank page right after a Pages publish). Brief `/private/tmp/claude-501/pr/sig-brief.md`, log `sig.out`. Lead commits, runs check.sh --web, Codex review, ships.
