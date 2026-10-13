@@ -1,6 +1,6 @@
 # Prata Raja: Content Compendium (v1, 2026-10-12)
 
-> Design v1; `src/content` is the source of truth. Not reflected here: 0.2.0 boss CC immunity (freeze/stun → slow), elite half CC and 3 s post-CC immunity; 0.4.1 rule that a running freeze/stun is never extended or chained.
+> Design v1 with shipped-rule corrections (13 Oct 2026); `src/content` and `src/core` remain authoritative. Chapters 3–5 and daily engagement below are proposals, not shipped mechanics.
 
 
 Drafted by a Haiku agent, edited by the lead for the stall-defense view (owner pick A). Numbers are first-pass; the balance sim tunes them. Distances are field units (SPEC §3.2: field 540 wide × 1000 deep, counter at y=0).
@@ -13,11 +13,17 @@ Kannan, a cheerful Tamil-Singaporean prata cook at a kopitiam stall, zones out o
 |---|---|
 | Plain Prata (Kosong) | 10 dmg, 0.8 s cooldown, 900 px/s, single target |
 | Walker, wave 1 | 20 HP, 60 px/s, 5 contact dps |
-| Enemy HP | base × (1 + 0.12 × (wave − 1)); walker at wave 10 = 42 HP |
+| Enemy HP | base × (1 + hpPerWave × (wave − 1)); hpPerWave = 0.15 in chapter 1, 0.21 in chapter 2 |
 | Kannan | 100 HP base; crit 5% chance, ×1.5 dmg |
 | Levels | Breads 1–5; dips 1–5 |
 
 Conventions: dmg is per hit at L1. cd is seconds between casts. IDs are kebab-case. Quoted status names are placeholders.
+
+## Shipped crowd control and card limits
+
+Bosses never stop for freeze/stun: those statuses apply a 40% slow where movement uses status speed. Elites get half duration. After freeze/stun ends, 3 seconds of CC immunity prevents chaining. A running freeze or stun cannot be extended or replaced by either kind.
+
+Card effect lines are capped at 8 words and 25 characters (`src/game/ui/cardText.ts`); linked/all-bread scope is rendered separately.
 
 ## Draft decisions (check these)
 
@@ -119,8 +125,8 @@ One per chapter. HP is base at wave 1, then the wave formula applies. Telegraph 
 
 | id | name | chapter | HP (base) | phases | attacks (telegraphed) | weak to |
 |---|---|---|---|---|---|---|
-| king-cockroach | King Cockroach | 1 (mini-boss) | 450 | 2 (wings out at 50%) | Tawa Slam: ring AoE (1 s tell) · Scuttle Charge: dash line (0.8 s tell) · Brood Call: 3 Scuttle Roaches (2 s tell) | Burn, pierce |
-| burger-baron | The Burger Baron | 2 | 1400 | 3 (66%, 33%) | Patty Toss: 3 lobbed patties (1.2 s tell) · Sauce Fountain: 3 lines (1 s tell) · Combo Rush: lane dash (0.8 s tell) | Chill, knockback |
+| king-cockroach | King Cockroach | 1 (mini-boss) | 480 | 2 (wings out at 50%) | Tawa Slam: ring AoE (1 s tell) · Scuttle Charge: dash line (0.8 s tell) · Brood Call: 3 Scuttle Roaches (2 s tell) · Antenna Volley: 5 shots (0.9 s tell) | Burn, pierce |
+| burger-baron | The Burger Baron | 2 | 2500 | 3 (66%, 33%) | Patty Toss: 3 lobbed patties (1.2 s tell) · Sauce Fountain: 3 lines (1 s tell) · Combo Rush: lane dash (0.8 s tell) | Chill, knockback |
 | monsoon-cloud | Monsoon Cloud | 3 | 2200 | 2 (storm at 50%: strikes twice as often) | Rain Curtain: all −30% speed for 6 s (3 s tell) · Lightning Strike: marked lanes (1 s tell) · Flood Surge: water sweeps one half, slide to the dry side (1.5 s tell) | Chain (Masala) |
 | durian-emperor | Durian Emperor | 4 | 3000 | 3 (75%, 50%, 25%) | Spike Rain: 6 durians drop (1 s tell each) · Stink Cloud: DoT zone, −20% crit for 5 s (2 s tell) · Thorn Roll: charges the top row (1.2 s tell) | Burn (Sambal), chill |
 | rent-hike-spirit | Rent Hike Spirit | 5 | 2500 + 5% per minute alive | 2 (50%: Eviction Notice) | Rent Bill: paper lines sweep (1 s tell) · Deposit Claw: homing claw (0.9 s tell) · Eviction Notice: summons 4 Scuttle Roaches (2 s tell) | Multi-hit (Idli, Appam), fast kills |
