@@ -7,6 +7,8 @@ import type { DipDef, DipId } from '../core/types';
 export const DIPS: Record<DipId, DipDef> = {
   'fish-curry': {
     id: 'fish-curry',
+    family: 'curry',
+    matchingTags: ['lob', 'heat', 'stuffed'],
     name: 'Fish Curry',
     flavor: 'Hot enough to make even the flies sweat.',
     sprite: 'dips/fish-curry',
@@ -22,6 +24,8 @@ export const DIPS: Record<DipId, DipDef> = {
   },
   'condensed-milk': {
     id: 'condensed-milk',
+    family: 'special',
+    matchingTags: ['thrown', 'orbit', 'bounce', 'sweet'],
     name: 'Condensed Milk',
     flavor: 'Sweet, sticky, and a little bit too much.',
     sprite: 'dips/condensed-milk',
@@ -37,6 +41,8 @@ export const DIPS: Record<DipId, DipDef> = {
   },
   'mint-chutney': {
     id: 'mint-chutney',
+    family: 'chutney',
+    matchingTags: ['thrown', 'area', 'crisp'],
     name: 'Mint Chutney',
     flavor: 'Cool as a fan at five a.m., sharp as a whistle.',
     sprite: 'dips/mint-chutney',
@@ -52,6 +58,7 @@ export const DIPS: Record<DipId, DipDef> = {
   },
   masala: {
     id: 'masala',
+    family: 'special',
     name: 'Masala',
     flavor: 'One spark hops to a friend, then another.',
     sprite: 'dips/masala',
@@ -67,6 +74,7 @@ export const DIPS: Record<DipId, DipDef> = {
   },
   'mutton-curry': {
     id: 'mutton-curry',
+    family: 'curry',
     name: 'Mutton Curry',
     flavor: 'Falls apart on contact, like slow-cooked mutton.',
     sprite: 'dips/mutton-curry',
@@ -82,6 +90,7 @@ export const DIPS: Record<DipId, DipDef> = {
   },
   'chicken-curry': {
     id: 'chicken-curry',
+    family: 'curry',
     name: 'Chicken Curry',
     flavor: 'Stack the fragrance, stack the damage, stack the luck.',
     sprite: 'dips/chicken-curry',
@@ -97,6 +106,7 @@ export const DIPS: Record<DipId, DipDef> = {
   },
   sambal: {
     id: 'sambal',
+    family: 'sambar',
     name: 'Sambal',
     flavor: 'Bang, bang, bang, and the whole queue catches fire.',
     sprite: 'dips/sambal',
@@ -112,6 +122,7 @@ export const DIPS: Record<DipId, DipDef> = {
   },
   'teh-tarik': {
     id: 'teh-tarik',
+    family: 'special',
     name: 'Teh Tarik',
     flavor: 'Pull it high, pour it fast, keep the rhythm.',
     sprite: 'dips/teh-tarik',
@@ -127,6 +138,7 @@ export const DIPS: Record<DipId, DipDef> = {
   },
   ghee: {
     id: 'ghee',
+    family: 'special',
     name: 'Ghee',
     flavor: 'Golden spin, the smell of a busy breakfast.',
     sprite: 'dips/ghee',
@@ -142,6 +154,7 @@ export const DIPS: Record<DipId, DipDef> = {
   },
   dhal: {
     id: 'dhal',
+    family: 'dhal',
     name: 'Dhal',
     flavor: 'Every kill fills the bowl a little more.',
     sprite: 'dips/dhal',

@@ -26,3 +26,5 @@
 .kt-slot { display: grid; grid-template-columns: minmax(0,1fr) 64px; gap: 8px; }
 .kt-dip { display: grid; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--edge); }
 .kt-help { margin: 0; font-size: 14px; line-height: 1.35; }
+
+.kt-tags { grid-column: 1/-1; }

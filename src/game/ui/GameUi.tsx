@@ -400,6 +400,7 @@ function CardButton({ card, index, onPick }: { card: Card; index: number; onPick
     <button
       type="button"
       className="gu-card"
+      data-kind={card.kind}
       disabled={!revealed}
       data-revealed={revealed}
       data-testid={`ui-card-${index}`}
@@ -417,6 +418,9 @@ function CardButton({ card, index, onPick }: { card: Card; index: number; onPick
         )}
         <span className="gu-card-line">{v.effect ?? v.line}</span>
         {v.scope && <span className="gu-card-scope">{v.scope}</span>}
+        {v.family && <span className="gu-card-meta">{v.family}</span>}
+        {v.fit && <span className="gu-card-meta">{v.fit}</span>}
+        {v.bonus && <span className="gu-card-meta">{v.bonus}</span>}
       </span>
     </button>
   );

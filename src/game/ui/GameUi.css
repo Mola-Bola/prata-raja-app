@@ -500,6 +500,11 @@
   animation-delay: calc(var(--i, 0) * 150ms);
 }
 
+.gu-card[data-kind="dip"] {
+  aspect-ratio: auto;
+  padding: 12px 7px;
+}
+
 .gu-card[data-revealed="false"] {
   visibility: hidden;
 }
@@ -551,7 +556,8 @@
   hyphens: auto;
 }
 
-.gu-card-scope {
+.gu-card-scope,
+.gu-card-meta {
   font: 800 12px/1.25 Nunito, system-ui, sans-serif;
   overflow-wrap: break-word;
 }

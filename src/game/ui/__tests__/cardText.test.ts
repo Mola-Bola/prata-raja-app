@@ -101,3 +101,16 @@ describe('level-up card text', () => {
     expect(pipText(2, 2)).toBe('●●');
   });
 });
+
+ it('exposes real family, fit and bonus while keeping the effect and scope', () => {
+  const good = cardView({ kind: 'dip', id: 'fish-curry', level: 1, linkedBread: 'inferno-bomb' });
+  expect(good.family).toBe('Curries · Spice');
+  expect(good.fit).toBe('Fits: Lob · Heat · Stuffed');
+  expect(good.bonus).toBe('+25% tag bonus');
+  const wrong = cardView({ kind: 'dip', id: 'fish-curry', level: 1, linkedBread: 'kosong' });
+  expect(wrong.bonus).toBe('No tag bonus');
+  expect(wrong.label).toContain('ordinary effect; No tag bonus');
+  expect(wrong.effect).toBe('Burns over time');
+  expect(wrong.scope).toBe('Linked to Kosong');
+  expect(cardView({ kind: 'dip', id: 'masala', level: 1 }).family).toBe('Specials · Mixed');
+ });

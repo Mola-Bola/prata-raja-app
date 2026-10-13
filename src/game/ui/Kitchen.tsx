@@ -1,8 +1,9 @@
+import { dipBonusLabel, dipFamilyLabel, isLinkableDip, MAX_LINKED_DIPS, tagLabels } from '@/core/dipLinks';
 import { useEffect, useRef, useState } from 'react';
 
 import { brandWords } from '@/brand';
 import { CONTENT } from '@/content';
-import { DEFAULT_KITCHEN_TUNING, KITCHEN_LIMITS, KITCHEN_LINKABLE_DIPS, kitchenBreadLevelCap, type KitchenConfig, type KitchenTuning } from '@/core/kitchen';
+import { DEFAULT_KITCHEN_TUNING, KITCHEN_LIMITS, kitchenBreadLevelCap, type KitchenConfig, type KitchenTuning } from '@/core/kitchen';
 import type { BreadId, DipId } from '@/core/types';
 
 import type { Hub, HubEvents } from '../hub';
@@ -114,14 +115,16 @@ export function Kitchen({ hub, ready, onStart, onExit }: { hub: Hub; ready: bool
         {Array.from({ length: 4 }, (_, i) => { const b = config.breads[i]; return <div className="kt-slot" key={i}>
           <label>Roti {i + 1}<select data-testid={`kitchen-bread-${i}`} value={b?.id ?? ''} onChange={e => changeBread(i, e.target.value)}><option value="">Empty</option>{Object.values(CONTENT.breads).map(def => <option key={def.id} value={def.id} disabled={config.breads.some((other, j) => j !== i && (CONTENT.breads[other.id].evolvedFrom?.bread ?? other.id) === (def.evolvedFrom?.bread ?? def.id))}>{def.name}{def.evolvedFrom ? ' · evolved' : ''}</option>)}</select></label>
           <label>Level<select data-testid={`kitchen-bread-level-${i}`} disabled={!b} value={b?.level ?? 1} onChange={e => setConfig(c => ({ ...c, breads: c.breads.map((item, j) => j === i ? { ...item, level: Number(e.target.value) } : item) }))}>{Array.from({ length: b ? kitchenBreadLevelCap(CONTENT, b.id) : 1 }, (_, n) => <option key={n} value={n + 1}>L{n + 1}</option>)}</select></label>
+          {b && <p className="kt-help kt-tags" data-testid={`kitchen-tags-${i}`}>{tagLabels(CONTENT.breads[b.id].tags)}</p>}
         </div>; })}
         <h3>Dips · up to four, two links</h3>
         {Array.from({ length: 4 }, (_, i) => { const d = config.dips[i]; return <div className="kt-dip" key={i}><div className="kt-slot">
           <label>Dip {i + 1}<select data-testid={`kitchen-dip-${i}`} value={d?.id ?? ''} onChange={e => changeDip(i, e.target.value)}><option value="">Empty</option>{Object.values(CONTENT.dips).map(def => <option key={def.id} value={def.id} disabled={config.dips.some((other, j) => j !== i && other.id === def.id)}>{def.name}</option>)}</select></label>
           <label>Level<select data-testid={`kitchen-dip-level-${i}`} disabled={!d} value={d?.level ?? 1} onChange={e => setConfig(c => ({ ...c, dips: c.dips.map((item, j) => j === i ? { ...item, level: Number(e.target.value) } : item) }))}>{[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>L{n}</option>)}</select></label></div>
-          {d && <label>Applies to<select data-testid={`kitchen-link-${i}`} value={d.linkedBread ?? ''} disabled={!KITCHEN_LINKABLE_DIPS.includes(d.id)} onChange={e => setConfig(c => ({ ...c, dips: c.dips.map((item, j) => j === i ? { id: item.id, level: item.level, ...(e.target.value ? { linkedBread: e.target.value as BreadId } : {}) } : item) }))}><option value="">All rotis</option>{config.breads.map(b => <option key={b.id} value={b.id} disabled={!d.linkedBread && config.dips.filter(other => other.linkedBread).length >= 2}>{CONTENT.breads[b.id].name}</option>)}</select></label>}
+          {d && <p className="kt-help" data-testid={`kitchen-fit-${i}`}>{dipFamilyLabel(CONTENT.dips[d.id])}<br />{CONTENT.dips[d.id].matchingTags && <>Fits: {tagLabels(CONTENT.dips[d.id].matchingTags!)}<br /></>}{dipBonusLabel(CONTENT.dips[d.id], d.linkedBread ? CONTENT.breads[d.linkedBread] : undefined)}</p>}
+          {d && <label>Applies to<select data-testid={`kitchen-link-${i}`} value={d.linkedBread ?? ''} disabled={!isLinkableDip(CONTENT.dips[d.id])} onChange={e => setConfig(c => ({ ...c, dips: c.dips.map((item, j) => j === i ? { id: item.id, level: item.level, ...(e.target.value ? { linkedBread: e.target.value as BreadId } : {}) } : item) }))}><option value="">All rotis</option>{config.breads.map(b => <option key={b.id} value={b.id} disabled={!d.linkedBread && config.dips.filter(other => other.linkedBread).length >= MAX_LINKED_DIPS}>{CONTENT.breads[b.id].name}</option>)}</select></label>}
         </div>; })}
-        <p className="kt-help">Only Fish Curry, Condensed Milk and Mint Chutney can target a roti. Other dips apply to all. Evolutions have one level.</p>
+        <p className="kt-help">Only {Object.values(CONTENT.dips).filter(isLinkableDip).map(d => d.name).join(', ')} can target a roti. Other dips apply to all. Evolutions have one level.</p>
         {error && <p role="alert">{error}</p>}
         <button type="button" className="gu-btn gu-btn--primary gu-btn--wide" data-testid="kitchen-start" disabled={!ready || !config.breads.length || !Number.isInteger(config.seed) || config.seed < 0 || config.seed > 0xffffffff} onClick={start}>{running ? 'Start fresh test' : 'Start taste test'}</button>
         <TellButton />

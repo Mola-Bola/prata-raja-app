@@ -20,6 +20,9 @@ export const FIELD = {
 
 // ── Ids ──────────────────────────────────────────────────────────────────────
 
+export type RotiTag = 'thrown' | 'lob' | 'bounce' | 'area' | 'pierce' | 'heat' | 'stuffed' | 'sweet' | 'crisp' | 'orbit';
+export type DipFamily = 'chutney' | 'curry' | 'dhal' | 'sambar' | 'special';
+
 export type BreadId =
   | 'kosong' | 'tissue' | 'roti-bomb' | 'egg-telur' | 'thosai' | 'chapati'
   | 'naan' | 'garlic-naan' | 'murtabak' | 'appam' | 'idli' | 'vadai'
@@ -101,6 +104,7 @@ export type BreadStats = {
 };
 
 export type BreadDef = {
+  tags: readonly RotiTag[];
   id: BreadId;
   evolvedFrom?: { bread: BreadId; partner: { kind: 'dip' | 'passive'; id: string } };
   name: string;
@@ -128,6 +132,9 @@ export type HitEffect =
   | { type: 'healOnKill'; hp: number };
 
 export type DipDef = {
+  family: DipFamily;
+  /** Present only on dips that support a targeted link. */
+  matchingTags?: readonly RotiTag[];
   id: DipId;
   name: string;
   flavor: string;
