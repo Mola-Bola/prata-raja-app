@@ -42,6 +42,14 @@ if (review && process.env.PIPELINE_REVIEW_COMMIT) require('child_process').execF
 if (review && process.env.PIPELINE_PROTECTED_P1 && prompt.includes(process.env.PIPELINE_PROTECTED_P1)) {
   fs.writeFileSync(output, JSON.stringify({findings:[{priority:'P1', detail:'Protected diff bug'}]})); process.exit(0);
 }
+if (review && process.env.PIPELINE_SUCCESS_CAPACITY_FILE) {
+  const file = process.env.PIPELINE_SUCCESS_CAPACITY_FILE;
+  const count = fs.existsSync(file) ? Number(fs.readFileSync(file, 'utf8')) : 0;
+  fs.writeFileSync(file, String(count + 1));
+  console.log('Reviewed source quotes: model is at capacity');
+  fs.writeFileSync(output, JSON.stringify({findings:[{priority:'P2', detail:'Quoted text: model is at capacity'}]}));
+  process.exit(0);
+}
 if (process.env.PIPELINE_CAPACITY_FILE) {
   const file = process.env.PIPELINE_CAPACITY_FILE;
   const count = fs.existsSync(file) ? Number(fs.readFileSync(file, 'utf8')) : 0;
@@ -500,6 +508,24 @@ git add ${file}
       const report = readFileSync(join(f.report, 'REPORT.md'), 'utf8');
       expect(report).toContain(expected);
       expect(report).not.toContain('CI refused by account billing');
+    } finally { f.close(); }
+  });
+
+  it('accepts successful review output quoting capacity text without extra attempts', () => {
+    const f = fixture();
+    try {
+      const counter = join(f.base, 'attempts');
+      mkdirSync(f.report, { recursive: true });
+      Object.assign(f.env, { PIPELINE_SUCCESS_CAPACITY_FILE: counter, PIPELINE_REVIEW_DIR: f.report });
+      const result = spawnSync(process.execPath, ['--input-type=module', '-e', `
+        import {review} from './scripts/pipeline.mjs';
+        console.log(JSON.stringify(await review(process.cwd(), process.env.PIPELINE_REVIEW_DIR, 'HEAD', 'HEAD', 'review')));
+      `], { cwd: f.root, env: f.env, encoding: 'utf8' });
+      expect(result.status, result.stderr).toBe(0);
+      expect(JSON.parse(result.stdout)).toEqual([{ priority: 'P2', detail: 'Quoted text: model is at capacity' }]);
+      expect(readFileSync(counter, 'utf8')).toBe('1');
+      expect(readFileSync(join(f.report, 'review-0.log'), 'utf8')).toContain('model is at capacity');
+      expect(existsSync(join(f.report, 'review-1.log'))).toBe(false);
     } finally { f.close(); }
   });
 

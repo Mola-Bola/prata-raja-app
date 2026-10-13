@@ -105,8 +105,9 @@ async function codex(cwd, dir, phase, prompt, review = false) {
     let result;
     try { result = spawnSync('codex', [...argv, '-'], { cwd, input: prompt, stdio: ['pipe', fd, fd] }); }
     finally { closeSync(fd); }
-    const capacity = /model is at capacity/i.test(read(log) + read(output));
-    if (!capacity && !result.error && result.status === 0 && read(output).trim()) return read(output);
+    const text = read(output);
+    if (!result.error && result.status === 0 && text.trim()) return text;
+    const capacity = /model is at capacity/i.test(read(log) + text);
     if (!capacity || attempt === 4) throw new Error(`Codex ${phase} failed; see ${log}`);
     step(`Codex at capacity; retry ${attempt + 1}/4 in five minutes.`);
     await sleep(300000);
