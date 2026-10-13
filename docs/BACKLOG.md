@@ -6,6 +6,7 @@ Owner notes are intent, not spec. Each line says where it lands.
 - **In 0.2.0:** bosses can't be perma-frozen (freeze/stun → slow on bosses, half CC on elites, 3 s immunity after any CC); counter attackers are target #1; breach warning (red pulse on the counter edge + "!" + HP flash); card text ≤ 8 words; title start button no longer covers the hero.
 - **In flight (s2/feedback):** "Tell Kannan" feedback inside the game → factory inbox; PostHog analytics + session replay (with canvas) + error tracking inside the game.
 - **Feel pass right after 0.2.0 (owner: "the throwing looks cheap"; damage numbers, hit feedback and mob attacks matter most now):**
+  - Owner refs 13 Oct (Archero 2): staggered level-up card reveal over a dimmed arena, red/yellow damage-number tiers clustered over the target, aura rings at true radius, cyan chain arcs, DANGER band on boss. See `docs/research/owner-refs-2026-10-13.md`.
   - Throw motion: anticipation → release → follow-through with tweened arm/body (plus a rendered throw sequence for Kannan), the prata leaving his actual hand, spin + motion trail + perspective shrink, a puff at release.
   - Damage and hits: bigger bouncy numbers with outline, crits louder (yellow, bigger, "!"), DoT ticks merged so they don't spam, a real hit reaction on enemies (flash, squash, small knockback hop).
   - Mobs attack at the counter: lunge / bite / slam per kind, impact spark on the steel, small shake, HP pill reacts.
