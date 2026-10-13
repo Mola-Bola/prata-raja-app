@@ -313,6 +313,14 @@ describe('crowd control: bosses, elites and the immunity after it', () => {
     expect(CC_IMMUNITY).toBe(3);
   });
 
+  it('overlapping freeze and stun: immunity starts when the last one ends, for the full 3 s', () => {
+    const e = enemy({ statuses: [st('freeze', { time: 2 }), st('stun', { time: 0.4 })] });
+    tickStatuses(e, 0.5, 0);
+    expect(hasStatus(e, 'ccImmune')).toBe(false); // still frozen
+    tickStatuses(e, 1.5, 0);
+    expect(get(e, 'ccImmune')?.time).toBeCloseTo(CC_IMMUNITY, 10);
+  });
+
   it('a freeze and a stun that end together start one immunity, and other statuses ending start none', () => {
     const both = enemy({ statuses: [st('freeze', { time: 0.1 }), st('stun', { time: 0.1 })] });
     tickStatuses(both, 0.2, 0);

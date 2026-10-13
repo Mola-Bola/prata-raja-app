@@ -141,8 +141,8 @@ export function tickStatuses(e: Enemy, dt: number, dotPct: number): number {
       if (s.id === 'freeze' || s.id === 'stun') ccEnded = true;
     }
   }
-  // Whatever just stopped it (or slowed a boss) cannot do so again for CC_IMMUNITY: no freeze-lock, no stun-lock.
-  if (ccEnded && !find(e, 'ccImmune')) e.statuses.push(fresh('ccImmune', CC_IMMUNITY));
+  // Once the last freeze/stun ends (overlapping ones count as one), whatever just stopped it (or slowed a boss) cannot do so again for CC_IMMUNITY: no freeze-lock, no stun-lock.
+  if (ccEnded && !hasStatus(e, 'freeze') && !hasStatus(e, 'stun') && !find(e, 'ccImmune')) e.statuses.push(fresh('ccImmune', CC_IMMUNITY));
   return dot;
 }
 

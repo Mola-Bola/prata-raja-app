@@ -1,10 +1,17 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SAVE_KEY } from '@/core/save';
 import { freshSaveV2 } from '@/meta/migrate';
 import type { SaveV2 } from '@/meta/types';
 
-import { createSaveStore } from '../saveStore';
+import type * as SaveStoreModule from '../saveStore';
+
+// A fresh module per test: the read/write chain is shared per key at module level, and tests leave writes unfinished.
+let createSaveStore: typeof SaveStoreModule.createSaveStore;
+beforeEach(async () => {
+  vi.resetModules();
+  ({ createSaveStore } = await import('../saveStore'));
+});
 
 /** A bridge whose writes finish when the test says so, and which notices two writes at once. */
 function fakeIo(stored: string | null = null) {
@@ -159,5 +166,24 @@ describe('save store', () => {
     await a.flush();
     const b = createSaveStore({ load: async () => f.log[0], save: async () => {} });
     expect(await b.load()).toEqual({ ...freshSaveV2(), gold: 12, stallXp: 190, unlocks: { gear: true, towel: true } });
+  });
+
+  it('a store made after a remount reads only after the old store writes land, and is never overwritten by them', async () => {
+    const f = fakeIo();
+    const shared = { ...f.io, load: vi.fn(async () => f.log.at(-1) ?? null) };
+    const old = createSaveStore(shared);
+    await old.load();
+    old.commit(gold(5));
+    const fresh = createSaveStore(shared);
+    const loading = fresh.load();
+    await tick();
+    expect(fresh.current).toBeNull(); // still waiting for the old write
+    f.writes[0].done();
+    expect((await loading).gold).toBe(5);
+    fresh.commit(gold(9));
+    await tick();
+    f.writes[1].done();
+    await fresh.flush();
+    expect(JSON.parse(f.log.at(-1)!).gold).toBe(9);
   });
 });

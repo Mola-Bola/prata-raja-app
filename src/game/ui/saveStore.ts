@@ -10,6 +10,19 @@ import type { Bridge } from '../bridgeTypes';
 
 type Io = Pick<Bridge, 'load' | 'save'>;
 
+// Every read and write of a key goes through one chain shared by all stores, so a store made after a remount reads only
+// after the old store's pending writes have landed, and an old write can never land on top of the new store's progress.
+const chains = new Map<string, { tail: Promise<unknown>; busy: number }>();
+function serial<T>(key: string, op: () => Promise<T>): Promise<T> {
+  const c = chains.get(key) ?? { tail: Promise.resolve(), busy: 0 };
+  chains.set(key, c);
+  // Nothing pending: start now (same tick), so a lone store behaves exactly as if there were no chain.
+  const run = c.busy ? c.tail.then(op) : new Promise<T>((resolve) => resolve(op()));
+  c.busy++;
+  c.tail = run.catch(() => undefined).finally(() => c.busy--);
+  return run;
+}
+
 export type SaveStore = {
   /** The newest save: null until load() has succeeded. */
   readonly current: SaveV2 | null;
@@ -43,7 +56,7 @@ export function createSaveStore(io: Io, key: string = SAVE_KEY): SaveStore {
       while (current && current !== written) {
         const snapshot = current;
         try {
-          await io.save(key, JSON.stringify(snapshot));
+          await serial(key, () => io.save(key, JSON.stringify(snapshot)));
         } catch (e) {
           console.warn('[save] write failed', e);
           if (!failed) {
@@ -79,7 +92,7 @@ export function createSaveStore(io: Io, key: string = SAVE_KEY): SaveStore {
       return failed;
     },
     async load() {
-      const json = await io.load(key);
+      const json = await serial(key, () => io.load(key));
       if (current) return current; // progress already in memory is newer than what was read
       current = written = parseSaveV2(json);
       notify();
