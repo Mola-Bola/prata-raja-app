@@ -211,6 +211,7 @@ for (const [w, h] of [
 }
 
 test('every level-up card line takes three lines at most on a 360 px phone', async ({ page }) => {
+  test.setTimeout(120_000);
   await page.setViewportSize({ width: 360, height: 640 });
   const errors = watch(page);
   await page.goto('/play?seed=3');
@@ -223,6 +224,7 @@ test('every level-up card line takes three lines at most on a 360 px phone', asy
     const all = [
       ...Object.values(c.breads).map((b) => ({ kind: b.evolvedFrom ? 'evolve' : 'bread', id: b.id, level: b.evolvedFrom ? 1 : 2 })),
       ...Object.keys(c.dips).map((id) => ({ kind: 'dip', id, level: 2 })),
+      ...Object.values(c.breads).flatMap((bread) => ['fish-curry', 'condensed-milk', 'mint-chutney'].map((id) => ({ kind: 'dip', id, level: 2, linkedBread: bread.id }))),
       ...Object.keys(c.passives).map((id) => ({ kind: 'passive', id, level: 2 })),
       { kind: 'heal', id: '', level: 1 },
       { kind: 'gold', id: '', level: 1 },
@@ -231,7 +233,7 @@ test('every level-up card line takes three lines at most on a 360 px phone', asy
   });
   const expectedCount = await page.evaluate(() => {
     const c = window.__world!.content;
-    return Object.keys(c.breads).length + Object.keys(c.dips).length + Object.keys(c.passives).length + 2;
+    return Object.keys(c.breads).length * 4 + Object.keys(c.dips).length + Object.keys(c.passives).length + 2;
   });
   expect(cards).toHaveLength(expectedCount);
   const wrapped: string[] = [];
@@ -242,16 +244,46 @@ test('every level-up card line takes three lines at most on a 360 px phone', asy
     const rows = await page.evaluate(() =>
       Array.from(document.querySelectorAll<HTMLElement>('.gu-card')).map((c) => {
         const line = c.querySelector<HTMLElement>('.gu-card-line')!;
-        return { text: line.textContent ?? '', lines: Math.round(line.getBoundingClientRect().height / parseFloat(getComputedStyle(line).lineHeight)), overflow: c.scrollHeight - c.clientHeight };
+        const scope = c.querySelector<HTMLElement>('.gu-card-scope');
+        return { text: line.textContent ?? '', lines: Math.round(line.getBoundingClientRect().height / parseFloat(getComputedStyle(line).lineHeight)), scopeLines: scope ? Math.round(scope.getBoundingClientRect().height / parseFloat(getComputedStyle(scope).lineHeight)) : 0, overflow: c.scrollHeight - c.clientHeight };
       }),
     );
     for (const r of rows) {
       if (r.lines > 3) wrapped.push(`${r.lines} lines: ${r.text}`);
+      if (r.scopeLines > 3) wrapped.push(`${r.scopeLines} scope lines: ${r.text}`);
       if (r.overflow > 1) wrapped.push(`overflows its card: ${r.text}`);
     }
   }
   expect(wrapped).toEqual([]);
   expect(errors).toEqual([]);
+});
+
+test('dip cards show effects and distinct scopes on narrow and wider phones', async ({ page }) => {
+  await page.goto('/play?seed=3');
+  await tid(page, 'ui-start').click();
+  await tid(page, 'story-skip').click();
+  await page.waitForFunction(() => !!window.__world);
+  const offer = [
+    { kind: 'dip', id: 'fish-curry', level: 1, linkedBread: 'inferno-bomb' },
+    { kind: 'dip', id: 'condensed-milk', level: 3, linkedBread: 'murtabak' },
+    { kind: 'dip', id: 'mint-chutney', level: 2 },
+  ];
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 640 });
+    await page.evaluate((cards) => window.__hub!.emit('levelUp', { offer: cards as never, rerolls: 1, level: 3 }), offer);
+    for (const [i, effect, scope] of [
+      [0, 'Burns over time', 'Linked to Roti Bomb'],
+      [1, 'Slows, then Sugar Crash', 'Linked to Murtabak'],
+      [2, 'Chills; 3 chills freeze', 'All breads'],
+    ] as const) {
+      const button = tid(page, `ui-card-${i}`);
+      await expect(button).toBeVisible();
+      await expect(button.locator('.gu-card-line')).toHaveText(effect);
+      await expect(button.locator('.gu-card-scope')).toHaveText(scope);
+      await expect(button).toHaveAccessibleName(new RegExp(effect));
+    }
+    expect(await page.locator('.gu-card').evaluateAll(cards => cards.every(card => card.scrollHeight <= card.clientHeight + 1 && card.scrollWidth <= card.clientWidth + 1))).toBe(true);
+  }
 });
 
 test('an enemy biting at the counter shows the danger cue, and every hit flashes the HP pill', async ({ page }) => {

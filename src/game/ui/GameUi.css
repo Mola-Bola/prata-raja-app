@@ -551,6 +551,11 @@
   hyphens: auto;
 }
 
+.gu-card-scope {
+  font: 800 12px/1.25 Nunito, system-ui, sans-serif;
+  overflow-wrap: break-word;
+}
+
 /* Under 360 px wide the three cards stack, each one a row: art left, text right. */
 @container gu (max-width: 359px) {
   .gu-cards {
