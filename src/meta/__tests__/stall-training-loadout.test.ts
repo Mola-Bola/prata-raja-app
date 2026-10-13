@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../../content';
 import { makeRng } from '../../core/rng';
 import { computeStats } from '../../core/stats';
+import { createRun } from '../../core/sim';
 import { itemStats, rollItem } from '../gear';
 import { computeLoadout } from '../loadout';
 import { freshSaveV2 } from '../migrate';
@@ -72,6 +73,12 @@ describe('training', () => {
 describe('loadout', () => {
   it('returns zero additive bonuses for a fresh save and the existing starter bread', () => {
     expect(computeLoadout(freshSaveV2(), CONTENT)).toEqual({ stats: {}, startBread: 'kosong' });
+  });
+  it('stall level 4 (Extra reroll) gives the run two rerolls', () => {
+    const save = freshSaveV2(); save.unlocks = { ...save.unlocks, secondReroll: true };
+    expect(computeLoadout(save, CONTENT).rerolls).toBe(2);
+    expect(createRun({ seed: 1, content: CONTENT, loadout: computeLoadout(save, CONTENT) }).rerolls).toBe(2);
+    expect(createRun({ seed: 1, content: CONTENT }).rerolls).toBe(1);
   });
   it('adds equipped gear and training once, and feeds existing computeStats', () => {
     const save = freshSaveV2(); save.stallXp = 3900; save.unlocks = unlocksForXp(save.stallXp);

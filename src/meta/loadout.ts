@@ -14,5 +14,5 @@ export function computeLoadout(save: SaveV2, content: Content): Loadout {
       stats[key] = (stats[key] ?? 0) + value;
     }
   }
-  return { stats, ...(content.breads.kosong ? { startBread: content.breads.kosong.id } : {}) };
+  return { stats, ...(save.unlocks.secondReroll ? { rerolls: 2 } : {}), ...(content.breads.kosong ? { startBread: content.breads.kosong.id } : {}) };
 }

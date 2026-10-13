@@ -394,7 +394,7 @@ export type RunResult = {
 };
 
 /** Permanent bonuses from the stall (gear, training) applied at run start. S1 passes {}. */
-export type Loadout = { stats?: Partial<PlayerStats>; startBread?: BreadId };
+export type Loadout = { stats?: Partial<PlayerStats>; startBread?: BreadId; /** Level-up rerolls per run (default 1). */ rerolls?: number };
 
 export type World = {
   /** Field x of the wave director's last spawn (keeps spawn spacing replayable). */
