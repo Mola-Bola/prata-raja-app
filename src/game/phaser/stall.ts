@@ -7,9 +7,10 @@ import { CONTENT } from '@/content';
 import type { OwnedBread, OwnedDip, Player, RunPhase } from '@/core/types';
 
 import { ART_COUNTER, COUNTER_LIP_ROWS, counterAt, type Layout } from './layout';
-import { D, HAZARD, WHITE } from './look';
+import { D, ELITE_TINT, HAZARD, WHITE } from './look';
 import type { Img, ImagePool } from './pools';
 import { addCrop, addImage, setImage } from './tex';
+import { tehCue, type TehCue } from './tehCue';
 
 type Slot = { img: Img; id: string; level: number; pop: number; cd: number; throwT: number };
 
@@ -53,6 +54,7 @@ export class Stall {
   private prevX = 0;
   private dips: Slot[] = [];
   private breads: Slot[] = [];
+  private teh: TehCue = tehCue({ remaining: 0, elapsed: 0, scale: 1, warm: false }, 0);
   private tint = 0xffffff;
   private at = { x: 0, y: 0, rot: 0 };
 
@@ -100,6 +102,7 @@ export class Stall {
   reset(): void {
     this.sync(this.dips, [], 'dips', DIP_SPOTS.length);
     this.sync(this.breads, [], 'breads', MAX_BREADS);
+    this.teh = tehCue(this.teh, 0);
     this.prevX = 0;
     this.hitT = 0;
     this.throwT = 0;
@@ -191,6 +194,8 @@ export class Stall {
       this.sync(this.dips, p.dips, 'dips', DIP_SPOTS.length);
       this.sync(this.breads, p.breads, 'breads', MAX_BREADS);
     }
+    const haste = p?.dips.some((d) => d.id === 'teh-tarik') ? p.buffs.find((b) => b.id === 'haste')?.time ?? 0 : 0;
+    this.teh = tehCue(this.teh, haste, phase === 'wave', calm);
     this.animate(this.dips, dt, true);
     this.animate(this.breads, dt, false, calm);
   }
@@ -213,6 +218,7 @@ export class Stall {
         s.level = o.level;
         s.cd = dir === 'breads' ? (o as OwnedBread).cd : 0;
         s.throwT = 0;
+        s.img.clearTint();
         setImage(s.img, sprite);
         s.pop = POP_TIME;
         this.place(slots, dir === 'dips');
@@ -262,12 +268,15 @@ export class Stall {
   private animate(slots: Slot[], dt: number, dips: boolean, calm = false): void {
     for (let i = 0; i < slots.length; i++) {
       const s = slots[i];
-      if (dips && s.pop <= 0) continue;
+      const tea = dips && s.id === 'teh-tarik';
+      if (dips && s.pop <= 0 && !tea) continue;
       s.pop = Math.max(0, s.pop - dt);
       const q = 1 - s.pop / POP_TIME;
       // Overshoot pop: 0 -> 1.25 -> 1.
       const k = q < 0.6 ? (q / 0.6) * 1.25 : 1.25 - 0.25 * ((q - 0.6) / 0.4);
-      const size = this.sizeOf(s, dips) * k;
+      // Keep the existing add/upgrade pop intact; haste takes over once the cup settles.
+      const size = this.sizeOf(s, dips) * k * (tea && s.pop <= 0 ? this.teh.scale : 1);
+      if (tea) s.img.setTint(this.teh.warm ? ELITE_TINT : WHITE);
       s.throwT = Math.max(0, s.throwT - dt);
       const compression = calm || s.pop > 0 ? 0 : s.throwT / BREAD_THROW_TIME;
       s.img.setScale(size * (1 + 0.08 * compression), size * (1 - 0.16 * compression));
