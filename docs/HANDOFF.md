@@ -1,6 +1,11 @@
 # Prata Raja — handoff (rolling; replace the top block when state changes)
 
-## 13 Oct 2026 — live 0.2.1 (runtime 1, OTA + web); lead = Claude Opus desk
+## 13 Oct 2026 — live 0.2.2 (runtime 1, OTA + web); lead = Claude Opus desk
+
+- **0.2.2** (main `2a74924`): feel pass by Codex on `sol/feel` (report `docs/reviews/feel-pass-report.md`): boss telegraph/approach (~37 s fights), readable far pests + damage numbers, throw motion, mob lunges, card repeat damping + staggered reveal, missed breads fade, wave gaps, far-end spawns, UI ghosting. Codex review P2 (lob aim past boss holdY) fixed with a test. e2e 33/33, balance 62/43/23. Live-verified at 375x812.
+- **DEPTH/ROADMAP merged** (`docs/DEPTH.md`, `docs/ROADMAP.md`, `docs/OWNER-SUMMARY-DEPTH.md`, research teardown-builds-poe-bl2 + fair-monetisation); owner has the summary + 3 questions (which build first: hot tawa / loaded murtabak / bouncing appam; food details before art; chapters 3-5 places).
+- **In flight: 0.3.0** — Codex in `~/prata-raja-s3` resolving the `git merge main` conflicts (merge IN PROGRESS, 8 files) + wiring recipe book, chapter select, evolve cards, background2. Brief `/private/tmp/claude-501/pr/s3-brief.md`, log `/private/tmp/claude-501/pr/s3.out`. Codex sandbox can't write .git: lead commits (`git add -A && git commit`), runs check.sh --web, reviews, merges, ships.
+- Claude weekly usage 95% until 14 Oct ~17:00 Sydney: keep volume on Codex.
 
 - **0.2.0** (main `0ac3018`): S2 stall hub + playtest fixes + boss CC immunity; Extra reroll works; Codex P1 (save chain across remounts) + P2 (CC overlap) fixed.
 - **0.2.1** (main `26c4afc`): `s2/feedback` merged (Tell Kannan in pause/results/hub → `game-feedback` fn → `public.feedback`; PostHog via `fam-relay` worker, replay + errors). `.env.production` has the PostHog lines. Live-verified: relay `/i/v0/e/` hit, a real note `b3d70fb8` landed in the digest (closed wont_do). Chest pity copy now "Rare guaranteed in N chests". app.json now 0.2.1 (the sheet showed "v0.2.0" in 0.2.1).
