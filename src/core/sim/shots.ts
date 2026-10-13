@@ -22,6 +22,7 @@ const WAVE_REACH = 20;
 const CATCH_RADIUS = 30;
 /** Time slices shorter than this are rounding dust. */
 const TIME_EPS = 1e-9;
+const FLAKY_CONTACT_EPS = 1e-7; // Rounding dust at a shared, inclusive range boundary.
 
 /** Where along the segment a->b (0 = a, 1 = b) it first touches a circle of radius r at (ex, ey); 0 when it starts inside; -1 never. */
 function contactAt(ax: number, ay: number, bx: number, by: number, ex: number, ey: number, r: number): number {
@@ -41,12 +42,12 @@ function contactAt(ax: number, ay: number, bx: number, by: number, ex: number, e
 }
 
 /** The un-hit enemy the segment a->b touches first (ties: the earlier in the list), or null. */
-function firstTouched(c: Ctx, s: Projectile, ax: number, ay: number, bx: number, by: number): Enemy | null {
+function firstTouched(c: Ctx, s: Projectile, ax: number, ay: number, bx: number, by: number, slop = 0): Enemy | null {
   let best: Enemy | null = null;
   let bt = 2;
   for (const e of c.w.enemies) {
     if (!alive(e) || s.hit.includes(e.uid)) continue;
-    const t = contactAt(ax, ay, bx, by, e.x, e.y, s.radius + e.def.radius);
+    const t = contactAt(ax, ay, bx, by, e.x, e.y, s.radius + e.def.radius + slop);
     if (t >= 0 && t < bt) {
       best = e;
       bt = t;
@@ -339,10 +340,13 @@ function updateOrbit(c: Ctx, s: Projectile): void {
 /** Kitchen Kosong parents and their children share a contact clock: a later child kill cannot erase an earlier hop. */
 function flyFlakyKosong(c: Ctx): void {
   let left = c.dt;
-  while (left > TIME_EPS) {
+  for (const s of c.w.projectiles) {
+    if (s.owner === 'player' && s.breadId === 'kosong' && s.motion === 'straight' && s.ttl - s.t <= 0) s.ttl = -1;
+  }
+  for (;;) {
     const shots = c.w.projectiles.filter(s => {
       if (s.owner !== 'player' || s.breadId !== 'kosong' || s.motion !== 'straight' || s.ttl < 0) return false;
-      if (s.ttl - s.t <= TIME_EPS) { s.ttl = -1; return false; }
+      if (s.ttl - s.t <= 0 && !firstTouched(c, s, s.x, s.y, s.x, s.y, FLAKY_CONTACT_EPS)) { s.ttl = -1; return false; }
       return true;
     });
     if (!shots.length) return;
@@ -352,11 +356,12 @@ function flyFlakyKosong(c: Ctx): void {
     let enemy: Enemy | null = null;
     for (const s of shots) {
       const bx = s.x + s.vx * used, by = s.y + s.vy * used;
-      const e = firstTouched(c, s, s.x, s.y, bx, by);
+      const e = firstTouched(c, s, s.x, s.y, bx, by, FLAKY_CONTACT_EPS);
       if (!e) continue;
-      const at = used * contactAt(s.x, s.y, bx, by, e.x, e.y, s.radius + e.def.radius);
+      const at = used * contactAt(s.x, s.y, bx, by, e.x, e.y, s.radius + e.def.radius + FLAKY_CONTACT_EPS);
       if (!shot || at < used) { used = at; shot = s; enemy = e; }
     }
+    if (!shot && used <= 0) return;
     for (const s of shots) {
       s.x += s.vx * used;
       s.y += s.vy * used;
@@ -365,7 +370,7 @@ function flyFlakyKosong(c: Ctx): void {
     left -= used;
     if (shot && enemy) straightHit(c, shot, enemy, left);
     for (const s of shots) {
-      if (s.ttl >= 0 && (s.t >= s.ttl - TIME_EPS || s.y > OUT_Y || s.y < OUT_NEAR_Y || Math.abs(s.x) > OUT_X)) s.ttl = -1;
+      if (s.ttl >= 0 && (s.y > OUT_Y || s.y < OUT_NEAR_Y || Math.abs(s.x) > OUT_X) && !firstTouched(c, s, s.x, s.y, s.x, s.y, FLAKY_CONTACT_EPS)) s.ttl = -1;
     }
   }
 }

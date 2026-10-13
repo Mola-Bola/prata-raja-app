@@ -193,6 +193,24 @@ describe('Flaky Kosong Kitchen experiment', () => {
     expect(c.w.projectiles.every(s => s.ttl === -1)).toBe(true);
   });
 
+  it('resolves every tied contact at flake expiry, including exact frame-end contacts', () => {
+    const setup = () => {
+      const c = fixture();
+      const prototype = c.w.projectiles[0];
+      c.w.projectiles = [-30, 30].map(x => ({ ...prototype, uid: c.w.nextUid++, x, y: 0,
+        vx: 0, vy: 600, t: 0, ttl: 0.2, radius: 4, hopsLeft: 0, flake: true, hit: [] }));
+      for (const x of [-30, 30]) enemy(c, x, 128);
+      return c;
+    };
+    for (const total of [0.2, 0.25]) {
+      const a = setup(), b = setup(); fly(a, total); fly(b, total, 0.001);
+      expect(a.w.events.filter(e => e.t === 'hit')).toHaveLength(2);
+      expect(a.w.events).toEqual(b.w.events);
+      expect(a.w.enemies.map(e => e.hp)).toEqual(b.w.enemies.map(e => e.hp));
+      expect(a.w.projectiles.map(s => s.hit)).toEqual(b.w.projectiles.map(s => s.hit));
+    }
+  });
+
   it('accelerates Teh activation as well as its hit counter', () => {
     const off = fixture(false, ['teh-tarik']), on = fixture(true, ['teh-tarik']);
     for (const c of [off, on]) {

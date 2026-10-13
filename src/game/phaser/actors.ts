@@ -689,14 +689,14 @@ export class Actors {
       v.texMax = Math.max(v.disc.img.width, v.disc.img.height);
       if (s.flake) {
         const img = v.disc.img;
-        img.setCrop(img.width * 0.32, img.height * 0.26, img.width * 0.34, img.height * 0.2);
+        img.setCrop(img.width * 0.32, img.height * 0.4, img.width * 0.34, img.height * 0.2);
       }
       if (s.motion === 'wave') {
         // The thosai roll lies diagonal in its art: turn it level, then the container stretches it across the street.
         v.disc.img.setRotation(0.7);
         v.dia = 0;
       } else {
-        v.dia = Math.max(SHOT_MIN_U, 2 * s.radius * SHOT_FIT);
+        v.dia = s.flake ? SHOT_MIN_U * 0.75 / 0.34 : Math.max(SHOT_MIN_U, 2 * s.radius * SHOT_FIT);
         // A flying bread leaves a soft swoosh behind it (the thick end is the head, so it trails when turned to the heading).
 
       }
