@@ -59,7 +59,11 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
   for (const d of p.dips) {
     if (e.state === 'dead') break; // a cascade (chain -> sambal) already finished it: no effects on a corpse
     const def = w.content.dips[d.id];
-    if (d.linkedBread && d.linkedBread !== breadId) continue;
+    if (d.linkedBread) {
+      const linkedBase = w.content.breads[d.linkedBread].evolvedFrom?.bread ?? d.linkedBread;
+      const hitBase = breadId && (w.content.breads[breadId].evolvedFrom?.bread ?? breadId);
+      if (linkedBase !== hitBase) continue;
+    }
     const base = def.levels[d.level - 1];
     const fx = d.linkedBread && base.type === 'burn' ? { ...base, dps: base.dps * 1.25, time: base.time * 1.25 } : base;
     for (const ev of applyHitEffect(fx, e)) emit(c, ev);

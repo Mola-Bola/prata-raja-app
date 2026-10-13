@@ -69,6 +69,25 @@ describe('signature rules', () => {
     expect(c.p.dips[0].linkedBread).toBe('crusher-murtabak');
   });
 
+  it.each([false, true])('links both bread ids after evolution when Fish Curry is picked after evolution: %s', (pickAfter) => {
+    const c = context();
+    if (!pickAfter) applyCard(c.p, { kind: 'dip', id: 'fish-curry', level: 1 }, CONTENT, loadout);
+    c.p.breads[0].level = 5;
+    c.p.dips.push({ id: 'chicken-curry', level: 5 });
+    applyCard(c.p, { kind: 'evolve', id: 'crusher-murtabak', level: 1 }, CONTENT, loadout);
+    if (pickAfter) applyCard(c.p, { kind: 'dip', id: 'fish-curry', level: 1 }, CONTENT, loadout);
+    const base = CONTENT.dips['fish-curry'].levels[0];
+    if (base.type !== 'burn') throw new Error('Fish Curry must burn');
+    for (const id of ['murtabak', 'crusher-murtabak', 'kosong', undefined] as const) {
+      const target = enemy(c);
+      hitEnemy(c, target, 1, null, false, false, id);
+      const burn = target.statuses.find(s => s.id === 'burn');
+      if (id === 'murtabak' || id === 'crusher-murtabak') {
+        expect(burn).toMatchObject({ dps: base.dps * 1.25, time: base.time * 1.25 });
+      } else expect(burn).toBeUndefined();
+    }
+  });
+
   it('loads every fourth successful serving, one payload with extra dough, and children never split again', () => {
     const c = context();
     enemy(c);

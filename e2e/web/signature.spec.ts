@@ -8,15 +8,18 @@ test('choose a signature, persist it, and start a level-one Murtabak run', async
   await page.route('**/auth/v1/**', route => route.fulfill({ json: {} }));
   await page.addInitScript(key => {
     if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify({
-      v: 2, prologueSeen: true, stallXp: 3100, unlockedBreads: ['murtabak'], bossAttempts: {},
+      v: 2, runs: 1, wins: 0, bestWave: 2, prologueSeen: true, stallXp: 3100, unlockedBreads: ['murtabak'], bossAttempts: {},
     }));
   }, SAVE_KEY);
   await page.goto('/play?seed=11');
+  await expect(page.getByTestId('ui-start')).toHaveText('Open the stall');
+  await page.getByTestId('ui-start').click();
   await page.getByTestId('stall-signature').click();
   await page.getByTestId('signature-murtabak').click();
   await expect(page.getByTestId('signature-murtabak')).toHaveAttribute('aria-pressed', 'true');
   await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key)!).signatureBread, SAVE_KEY)).toBe('murtabak');
   await page.reload();
+  await page.getByTestId('ui-start').click();
   await expect(page.getByTestId('stall-signature')).toContainText('Murtabak');
   await page.getByTestId('stall-start').click();
   await expect.poll(() => page.evaluate(() => window.__world?.player.breads.map(b => ({ id: b.id, level: b.level })))).toEqual([{ id: 'murtabak', level: 1 }]);

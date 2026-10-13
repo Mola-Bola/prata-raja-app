@@ -529,7 +529,7 @@ for (const [w, h, inset] of SCREENS) {
     }
     // The label pills stay on screen, clear of each other and of the Start button, and are comfortable to hit (48 px with padding).
     const labels = await page.evaluate(() =>
-      Array.from(document.querySelectorAll<HTMLElement>('.sh-label')).map((el) => {
+      Array.from(document.querySelectorAll<HTMLElement>('.sh-label, [data-testid="stall-signature"]')).map((el) => {
         const r = el.getBoundingClientRect();
         return { id: el.dataset.testid!, x: r.x, y: r.y, r: r.right, b: r.bottom };
       }),
@@ -551,7 +551,7 @@ for (const [w, h, inset] of SCREENS) {
     const stolen = await page.evaluate(() => {
       const bad: string[] = [];
       const owner = (x: number, y: number) => document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-testid^="stall-"]')?.dataset.testid;
-      for (const el of document.querySelectorAll<HTMLElement>('.sh-label')) {
+      for (const el of document.querySelectorAll<HTMLElement>('.sh-label, [data-testid="stall-signature"]')) {
         const r = el.getBoundingClientRect();
         for (const [x, y] of [[0.5, 0.5], [0.1, 0.2], [0.9, 0.2], [0.1, 0.8], [0.9, 0.8]]) {
           const got = owner(r.x + r.width * x, r.y + r.height * y);
