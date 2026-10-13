@@ -1,12 +1,12 @@
 // Enemy behaviour per step: statuses and knockback, the walk/hold/attack state machine for every archetype, and enemy shots.
 import { isDisabled, speedMul, tickStatuses } from '../status';
+import { remainingKnockback } from '../knockback';
 import { FIELD, type Enemy } from '../types';
 import { bossPhase, updateBoss } from './boss';
 import { alive, cdGet, clamp, dist, ELITE_CONTACT, emit, enemyShot, enemySpeed, hurtPlayer, MAX_ENEMY_Y, type Ctx } from './ctx';
 import { DOT_BURN, DOT_SUGAR, dotDamage, flushDot, killEnemy } from './hit';
 import { spawnEnemy } from './spawn';
 
-const KNOCK_SPEED = 600;
 /** Slack for "at the counter" (the walk clamps enemies to reachY; a shove moves them well off it). */
 const AT_COUNTER = 0.5;
 const CONTACT_EVERY = 0.5;
@@ -195,9 +195,10 @@ export function updateEnemies(c: Ctx): void {
     e.age += dt;
     if (e.flash > 0) e.flash = Math.max(0, e.flash - dt);
     if (e.knock > 0) {
-      const move = Math.min(e.knock, KNOCK_SPEED * dt);
+      const remaining = remainingKnockback(e.knock, dt);
+      const move = e.knock - remaining;
       e.y = Math.min(e.y + move, MAX_ENEMY_Y);
-      e.knock -= move;
+      e.knock = remaining;
     }
     if (e.statuses.length > 0 || cdGet(e, '_da') > 0) {
       const burning = e.statuses.some((s) => s.id === 'burn');
