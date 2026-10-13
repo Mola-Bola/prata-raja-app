@@ -2,12 +2,12 @@
 
 > CI works again for Prata Raja: `Mola-Bola/prata-raja-app` was made public on 13 Oct (owner OK; secret scan of all branches clean), so its Actions run free; first run green (quick 1m28s, pgTAP 1m55s). Other Mola-Bola repos stay private and billing-blocked.
 
-Prata Raja is built by a **Codex fleet** that runs itself. The owner keeps one **main Codex session** for talking to them; everything else is delegated. Audience is the owner (and family test phones): not public. Speed of iteration beats ceremony.
+Prata Raja is built by a **Codex fleet** that runs itself. The owner keeps one **main Codex session** for talking to them; everything else is delegated. The owner is the sole playtester; browser web is the primary target. Speed of iteration beats ceremony.
 
 ## Roles
 - **Main session (Comms + lead):** the only one that talks to the owner. Turns owner notes (chat + in-game) into ledger rows, sets priorities, spawns and stops worker sessions, merges and ships, reports ~5 lines with what to tap. Model: `gpt-6.1-sol` high for planning/review.
 - **Worker sessions:** `codex exec` in their own worktree (`~/prata-raja-<name>`, branch `sol/<name>`), each may use its own sub-agents. Model by task: Sol medium for builds/integration; cheaper/faster models for content, copy, slicing, research; Sol high for independent reviews. Codex Cloud (Codex is connected to GitHub) for heavy or long jobs so the Mac stays free.
-- **Background verifier:** after every ship, runs the full checks (`check.sh --web`, 300-seed balance, read-only Codex review of the shipped diff) and files any regression as a top ledger row; fix forward with another quick OTA.
+- **Background verifier:** after every ship, runs the full checks (`check.sh --web`, 300-seed balance, read-only Codex review of the shipped diff) and files any regression as a top ledger row; fix forward with another quick web release.
 
 ## The ledger (single source of truth, prevents overlaps/reversals)
 - `.fleet/ledger.db` (SQLite via `node:sqlite`, atomic claims) + a human view `docs/LEDGER.md` regenerated on change. Rows: id, source (owner chat / in-game note id / audit / verifier), intent (one line), **owned files/areas**, depends-on, status (open → claimed → building → shipped → verified / dropped), worker, branch, release, **decision notes** (why, what was rejected).
@@ -16,8 +16,8 @@ Prata Raja is built by a **Codex fleet** that runs itself. The owner keeps one *
 
 ## Shipping: fast lane by default
 - **Web-only shipping (owner, 13 Oct):** ship the web build alone: `SKIP_DB=1 ~/cell/akit/akit check` → stamp → `~/cell/akit/akit ship -- node scripts/publish-web.mjs --label "$(node scripts/ship-cloud.mjs --next-label)"`. No Android OTA/APK unless the owner asks (they play in the browser only; same feel, fastest loop, half the build work).
-- Ship an OTA as soon as a slice works: `npx tsc --noEmit` + `npx vitest run` (or the touched tests) → `SKIP_DB=1 ~/cell/akit/akit check` → stamp `.akit/reviewed-<sha>` with "fast lane: post-ship review queued <ledger id>" → `~/cell/akit/akit ship -- node scripts/ship-cloud.mjs --notes "…"`. Batch small slices into one OTA when they land close together; several OTAs a day is fine.
-- Full e2e, balance and reviews run **after** the ship (background verifier) and in CI (once GitHub billing is fixed). Regressions → quick fix-forward OTA; a bad build can be rolled back by shipping the previous label's commit.
+- Ship web as soon as a slice works: `npx tsc --noEmit` + `npx vitest run` (or the touched tests) → `SKIP_DB=1 ~/cell/akit/akit check` → stamp `.akit/reviewed-<sha>` with "fast lane: post-ship review queued <ledger id>" → `~/cell/akit/akit ship -- node scripts/publish-web.mjs --label <selected-label>`. Batch small slices into one web release when they land close together; several releases a day is fine.
+- Full e2e, balance and reviews run **after** the ship (background verifier) and in CI (working for this public repository). Regressions → quick fix-forward web release; a bad build can be rolled back by shipping the previous label's commit.
 - Hard stops still apply: no native/runtime changes or new native modules without the owner (APK); no database migrations without the normal applied-and-fingerprinted path; never print secrets; never pay-to-win.
 - Push main after every ship; push worker branches; read `gh run list -R Mola-Bola/prata-raja-app -L 3`.
 
