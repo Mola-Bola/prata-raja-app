@@ -1,5 +1,15 @@
 # Prata Raja — handoff (rolling; replace the top block when state changes)
 
+## 13 Oct 2026 — 0.4.2 polish candidate (Codex round 1; release verification pending)
+
+- Owner direction: small continuous polish rounds; Archero-style controls are provisional. Durable steering is in `DIRECTION.md`.
+- Candidate branch: `codex/polish-round-1`, worktree `/Users/molabola/Documents/Codex/prata-raja-round-1`. Counter breads show cooldown/readiness and a short throw compression; reduced motion disables the new compression and orbiting Vadai stays steady. Dip cards retain their effect beside an explicit linked/all-bread scope. Existing card data contract/assertions preserved.
+- Verification: first integrated gate passed 754 unit tests + 45 Playwright checks; final compatibility correction passed 8 card tests, typecheck and assertion guard. Final release gate pending. Independent Sol review found no blocking issues; no manual browser/phone inspection (local browser access declined).
+- **Do not merge combat experiment:** `codex/polish-combat-1` at `5a4a12e`, worktree `/Users/molabola/Documents/Codex/prata-raja-combat-1`. 138 focused tests pass, but 300-seed before/after fails two balance gates (ch1 two-bread 39.33%, ch2 four-bread 67%). It is excluded from the candidate; report retained in that branch.
+- Claude's `docs/research/decomp-mechanisms.md` incorporated. Next experiment: decelerating knockback preserving total displacement, then independently test lunge/recovery and attacker budgets. Swept contacts/hit tracking already exist; no wholesale damage/RNG rewrite. See BACKLOG.
+- `sol/pipeline` remains separate work owned by the other desk; do not overwrite it. This round uses the existing check/akit ship gates. Source push and CI inspection required; latest CI refused before starting because of GitHub billing.
+- Hourly continuation could not be created: automation tool requires approval unavailable in this session. No scheduled rounds are active from this request.
+
 ## 13 Oct 2026 — live 0.4.1 (runtime 1, OTA + web); lead = Claude Opus desk
 
 - **0.4.1** (main `4800350`): heat Roti Bomb + bouncing Appam signatures, Condensed Milk + Mint links (report `docs/reviews/signature2-report.md`). **Rule change:** a running freeze/stun is never extended or chained (`applyCc`), fixing a linked-Mint freeze-lock (Codex P1); ch.2 contact damage 1.35→0.8 (ch2 63/36/12). e2e 44/44, 749 vitest. Worktrees: only main remains.
