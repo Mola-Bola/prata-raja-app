@@ -52,3 +52,11 @@ supabase/.temp/
 # Throwaway tech-spike output (screenshots, scratch exports)
 .spike/
 .vitest/
+
+# Codex scratch files (lead removes existing tracked copies)
+.codex-brief.md
+.codex.done
+.codex.log
+
+# Shared local fleet state and worker scratch
+.fleet/

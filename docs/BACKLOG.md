@@ -1,27 +1,27 @@
 # Prata Raja backlog
 
+13 Oct 2026 evening; verified live 0.4.2. Owner notes are intent, not spec. Current implementation order is in [ROADMAP](ROADMAP.md).
 
-- **Desk call 13 Oct (owner delegated):** first spectacular build = **loaded Murtabak** (DEPTH "Last Order Loader" line); chapter 3-5 places decided at 0.6. Fix the locked recipe sheet "Coming soon" wording.
-- **Owner direction 13 Oct (live feedback on 0.2.0):** it feels very Archero-like now; make it our own. **Never pay-to-win**, progression never gated by dollars (Archero "mining money" is the anti-goal). Monetisation only later if the game picks up, and fair (cosmetics/convenience/support, never power caps). Build depth like **Path of Exile** (DoT, AoE, Spark, Volatile Dead, Spellslinger, Cyclone, potion/flask builds; gear + skills + potions working hand in hand, crazy unique combos), with progression lessons from **Borderlands 2** and **MapleStory**: something to do at every step, unique combinations. Owner will give item specifics later; we expand. Research + roadmap → `docs/DEPTH.md`, `docs/ROADMAP.md` (Codex, branch `sol/depth`).
-Owner notes are intent, not spec. Each line says where it lands.
+- **Owner direction 13 Oct (live feedback on 0.2.0):** it feels very Archero-like now; make it our own. **Never pay-to-win**, progression never gated by dollars (Archero "mining money" is the anti-goal). Monetisation only later if the game picks up, and fair (cosmetics/convenience/support, never power caps). Build depth like **Path of Exile** (DoT, AoE, Spark, Volatile Dead, Spellslinger, Cyclone, potion/flask builds; gear + skills + potions working hand in hand, crazy unique combos), with progression lessons from **Borderlands 2** and **MapleStory**: something to do at every step, unique combinations. Owner will give item specifics later; we expand. Research + roadmap → `docs/DEPTH.md`, `docs/ROADMAP.md` (design docs merged).
 
-## Owner playtest, 12 Oct (0.1.1 on APK + web)
-- **In 0.2.0:** bosses can't be perma-frozen (freeze/stun → slow on bosses, half CC on elites, 3 s immunity after any CC); counter attackers are target #1; breach warning (red pulse on the counter edge + "!" + HP flash); card text ≤ 8 words; title start button no longer covers the hero.
-- **In flight (s2/feedback):** "Tell Kannan" feedback inside the game → factory inbox; PostHog analytics + session replay (with canvas) + error tracking inside the game.
-- **Feel pass right after 0.2.0 (owner: "the throwing looks cheap"; damage numbers, hit feedback and mob attacks matter most now):**
-  - Owner refs 13 Oct (Archero 2): staggered level-up card reveal over a dimmed arena, red/yellow damage-number tiers clustered over the target, aura rings at true radius, cyan chain arcs, DANGER band on boss. See `docs/research/owner-refs-2026-10-13.md`.
-  - Throw motion: anticipation → release → follow-through with tweened arm/body (plus a rendered throw sequence for Kannan), the prata leaving his actual hand, spin + motion trail + perspective shrink, a puff at release.
-  - Damage and hits: bigger bouncy numbers with outline, crits louder (yellow, bigger, "!"), DoT ticks merged so they don't spam, a real hit reaction on enemies (flash, squash, small knockback hop).
-  - Mobs attack at the counter: lunge / bite / slam per kind, impact spark on the steel, small shake, HP pill reacts.
-- **Next, first in the S3 renderer pass (owner clips 19:53-19:55):** the fight happens too far away — pests stay tiny at the horizon, spawn in rows and die up there while mid-street stays empty. Fix: emerge from the street's far end with a short fade-in and wander into the road; flatter perspective (view.far ~0.42) so far pests read bigger; spawn depth nearer mid-street so most of the fight is visible; re-check balance with the bot.
-- **S3 fold-ins (renderer + art):**
-  - Pests visibly attack at the counter (lunge / bite / swing with an impact on the steel), not just stand there.
-  - Dip bowls and collected breads sit naturally on the counter: fixed slots in perspective, contact shadows, maybe a bowl tray and a bread basket rendered to match.
-  - Steam rising from the tawa (rendered wisps, subtle).
-  - Spawns come from the far end of the street and wander/curve into the road; never out of the buildings, never marching in straight columns (match the projection to the art's street width at the horizon).
-- **Design pass (lead + Codex), then build:**
-  - Themed card borders and text: banana leaf (common) · steel thali (rare) · brass kolam (epic) · rangoli (evolutions), replacing the generic purple/gold gems.
-  - On-theme dip powers with their own mechanics (masala's chain and mint's freeze feel generic; condensed-milk "diabetes" is the bar to match).
+## Shipped
+- **0.4.2:** counter readiness/throw motion and dip effect plus explicit link scope; live HTML verified.
+- **0.2.0:** stall hub, boss CC safety, counter-first targeting, breach/HP cues, short card copy and title layout.
+- **0.2.1 (s2/feedback):** in-game Tell Kannan, PostHog analytics/replay/errors and chest pity copy.
+- **0.2.2 feel pass:** throw anticipation/release/trails, outlined merged damage numbers, hit reactions, counter lunges, readable far pests, street projection/arrival fades, wave gaps, offer damping and staggered reveal. S3 retained these fold-ins.
+- **0.3.0 S3:** recipes/evolutions/night chapter and content sprite keys for counter breads; bowls and bread stacks occupy fixed counter slots (`phaser/stall.ts`).
+- **0.3.1:** prologue, mynah/drain rat and locked recipe copy. Verified in `StallHub.tsx`: “Cook evolved breads here from stall level 6.” The sole `Coming soon` in `src` is the Chef's Special preview (`stall/sheets.tsx`), not recipes.
+- **0.4.0–0.4.1:** owner-delegated first spectacular build, loaded Murtabak; signature choice, Fish Curry/Condensed Milk/Mint links, heat Roti Bomb and bouncing Appam.
+
+## Open items and remaining polish
+- Ordered work: fleet/feedback → Test Kitchen → dip families/tags → independently measured knockback and attack-window polish → jobs/drinks (ROADMAP 0.5). Decomp damage/RNG/boss-data refactors are optional later architecture.
+- Chef's Special and family leaderboard remain previews/future scope.
+- World-tier scenes are sliced but unwired; worn-gear layers and Grade Inspector gameplay remain future work.
+- Counter staging: extra contact shadows, rendered bowl tray/bread basket and subtle rendered tawa steam are not implemented. Fixed bowl/bread slots already shipped; do not rebuild them as missing work.
+- Street staging: projection and arrival fade shipped; curved wandering/less regular spawn patterns remain polish, to be balanced with the bot.
+- Themed card borders: banana leaf / steel thali / brass kolam / rangoli; further food-specific dip mechanics (Masala especially). Signature links shipped, but the full theme/mechanics proposal has not.
+- Owner refs remain `docs/research/owner-refs-2026-10-13.md`; phone checks govern further motion, hit feedback and counter polish.
+- Chapter 3–5 places are to be decided at 0.6; owner food/filling/drink specifics remain open.
 
 ## Later: real places (owner, 12 Oct)
 Chapters become recognisable Singapore food spots with living ambient detail (swaying lanterns, ceiling fans, steam, birds, a crowd that moves): e.g. Kopitiam Street → Newton Food Centre at night → Tekka Centre → Lau Pa Sat's satay street → Gluttons Bay finale. Stylised and respectful; no real stall names or logos.
@@ -31,3 +31,9 @@ Chapters become recognisable Singapore food spots with living ambient detail (sw
 - **13 Oct, experimental branch:** `codex/polish-combat-1` (`5a4a12e`) applies existing slows to all boss movement but fails two balance gates (chapter 1 two-bread 39.33%; chapter 2 four-bread 67%). Do not merge or ship it as a bug fix without separately resolving the gameplay/balance consequences; retain the report as evidence.
 - **Tawa Heat (12 Oct):** an endurance/rage meter that rises the longer you hold the stall — the tawa burns hotter and hotter and boosts damage. Sketch: hits/kills add heat; getting hit or sliding sheds it (rewards the stop-to-throw rhythm); tiers add damage and throw speed; full heat triggers a short "Tawa Blaze" burst, then settles back to half. Shown on the tawa itself (glow, steam → flames, Kannan sweating), not as a bar. Fits the feel pass or S3; tune with the bot.
 - **Hawker heroes (12 Oct):** more heroes beyond Kannan, each fighting with their own dish: a bak chor mee stall guy (noodle whips, meatball bombs), a nasi kandar fella (curry-splash waves, papadum shields), a chicken rice uncle (drumstick boomerangs, rice-ball scatter, chilli-sauce burn). "Teaming up": unlockable heroes to pick per run, and/or a neighbour stall that fires its dish alongside Kannan as an assist. Same contracts (breads/dips are per-hero data), new art per hero.
+
+## QA debts (13 Oct)
+- Real-phone notch/haptics/FPS and replay bandwidth pass outstanding.
+- Economy pacing awaits owner playtest evidence; worn-gear art not wired.
+- Date-only lastPlayed acceptance; legacy zero-run prologue once is accepted.
+- In-game owner identity/status/thread polish is the next fleet product slice.

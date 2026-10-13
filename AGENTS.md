@@ -23,7 +23,9 @@ bash scripts/check.sh       # tsc, lint, unit tests, database tests (one line pe
 
 Run `bash scripts/check.sh` before declaring any task done (`SKIP_DB=1` skips the database tests when the local Supabase isn't up; `--web [specs…]` adds a web build and the Playwright suite).
 CI: `.github/workflows/check.yml` runs the same checks on every PR (tsc, lint, vitest, assert-guard, gitleaks; the pgTAP job only when `supabase/**` changed) and `e2e-nightly.yml` runs `check.sh --web` nightly when main moved. Source of truth is `~/cell/starter/.github/workflows/`. No required checks (personal account, no Pro): a red run is a signal to fix, not a gate.
-CI duty (every builder, Claude or Codex): push your finished slice branch, then read `gh run list -R Mola-Bola/prata-raja-app -L 3`; a run that fails in seconds is an account problem (billing/minutes), not your code: report it to the lead instead of ignoring it. Checks also run on `sol/**` and `s*/**` pushes. The lead pushes `main` after every merge or ship.
+CI duty (every builder, Claude or Codex): push your finished slice branch, then read `gh run list -R Mola-Bola/prata-raja-app -L 3`; a run that fails in seconds is an account problem (billing/minutes), not your code: report it to the lead instead of ignoring it. Checks also run on `sol/**`, `s*/**`, `codex/**` and `polish/**` pushes. The lead pushes `main` after every merge or ship.
+
+GitHub Actions now run for this public source repository; the latest main run is green. Builders push their own finished branch and inspect its CI run. Codex commits in its own worktree when the pipeline grants Git writable roots; otherwise the lead commits.
 
 ## Navigation & Routing
 
@@ -52,8 +54,8 @@ Cell (`~/cell`) is the engine: `akit` (shared feedback CLI and ship gate), the r
 - Read `DIRECTION.md` first in every round or inbox run: it is the owner's standing steering and overrides defaults here.
 - Notes come in through the in-app "Tell Kannan" tab (table `feedback`). `node scripts/feedback.mjs digest` shows what is open; `plan`, `reply`, `status` move a note on (it wraps `akit feedback`).
 - Short sessions: one round per session, handed over through `round-handoff`. Screenshots are expensive: only changed screens, shrunk with `sips -Z 900`; prefer Playwright testID assertions.
-- Models: Opus plans, merges and judges; Sonnet subagents implement; Codex (`~/cell/runner/bin/codex-run.sh review <brief>`) reviews.
+- Models: fleet lead/review uses Sol high; bounded implementation uses Sol medium. Read-only reviews may receive a diff through stdin. See `docs/FLEET.md`.
 
 ## Fleet mode (13 Oct 2026, owner direction)
-**Web-only shipping (owner, 13 Oct):** ship the web build alone: `SKIP_DB=1 ~/cell/akit/akit check` → stamp → `~/cell/akit/akit ship -- node scripts/publish-web.mjs --label "$(node scripts/ship-cloud.mjs --next-label)"`. No Android OTA/APK unless the owner asks (they play in the browser only; same feel, fastest loop, half the build work).
-Read `docs/FLEET.md`: fast-lane OTAs (typecheck + unit tests + akit check, stamp "fast lane: post-ship review queued <ledger id>"), full e2e/balance/review after the ship, ledger claims with owned files before coding, Jev for closed-choice triage. Hard stops unchanged (native/APK, DB migrations, secrets, pay-to-win).
+**Web-only shipping:** `SKIP_DB=1 ~/cell/akit/akit check` → pinned-HEAD review stamp → `~/cell/akit/akit ship -- node scripts/publish-web.mjs --label <selected-label>`. No Android OTA/APK unless the owner asks.
+Read `docs/FLEET.md`: ledger claims with owned files before coding; fast lane with full e2e/balance/review after shipping; Jev closed-choice triage. Hard stops unchanged (native/APK, DB migrations, secrets, pay-to-win).

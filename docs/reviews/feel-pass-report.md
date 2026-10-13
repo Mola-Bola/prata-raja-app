@@ -1,5 +1,8 @@
 # Feel pass — sol/feel, 13 Oct 2026
 
+Status: superseded — shipped in 0.2.2.
+
+
 Implementation ready; commits and browser verification blocked by session permissions.
 
 1. Boss telegraphs: pooled atlas strips, thicker white/vermillion edges, pulsing landing rings; counter flash and small hit shake.

@@ -12,7 +12,7 @@ Content tables: `docs/CONTENT.md` (copied from `~/cell/docs/plans/2026-10-12-pra
 **Success**
 - S1: the owner plays a full daydream (10 waves + boss) from a link on their phone and wants another run.
 - S2: the APK on the family group with over-the-air updates; the stall meta loop gives a reason to return tomorrow.
-- Factory: hours from "go" to S1 and to S2, and Claude/Codex usage, logged at the end of `docs/PLAN.md`.
+- Factory: hours from "go" to S1 and to S2, and Claude/Codex usage, recorded in `docs/HANDOFF.md`.
 
 ## 2. The game in one breath
 

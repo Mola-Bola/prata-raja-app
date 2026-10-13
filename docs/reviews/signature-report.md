@@ -1,5 +1,8 @@
 # Signature slice — sol/signature
 
+Status: superseded — shipped in 0.4.0.
+
+
 - Signature unlocks at stall L9 (the next free UNLOCK_TABLE level).
 - Stall → Signature chooses a known base bread; saveStore persists the pure meta update.
 - Legacy/missing/invalid choices default to Kosong; gear, training and recipes remain intact.

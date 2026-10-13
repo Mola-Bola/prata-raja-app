@@ -1,5 +1,8 @@
 # S2 integration report (branch `s2/stall`)
 
+Status: superseded — shipped in 0.2.0.
+
+
 Written 12 Oct 2026 by the S2 integration engineer, for the lead who takes over. Everything below is in the worktree
 `~/prata-raja-s2`, committed on `s2/stall`. Nothing is merged into main, pushed or shipped.
 

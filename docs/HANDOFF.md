@@ -1,72 +1,28 @@
-# Prata Raja — handoff (rolling; replace the top block when state changes)
+# Prata Raja — handoff
 
-> CI works again for Prata Raja: `Mola-Bola/prata-raja-app` was made public on 13 Oct (owner OK; secret scan of all branches clean), so its Actions run free; first run green (quick 1m28s, pgTAP 1m55s). Other Mola-Bola repos stay private and billing-blocked.
+## 13 Oct 2026 — verified live 0.4.2; Codex fleet lead
 
-## 13 Oct 2026 — 0.4.2 polish candidate (Codex round 1; release verification pending)
+- Live: https://mola-bola.github.io/prata-raja/ . Pages commit `3225b4c355d578f0cb4188b4084c6ce9b1b5062c` is built with no error. Live HTML exactly matches `.pages-build/index.html` (SHA256 `f811a89c1261f53cc4871d1b17c4346a8923114cd8fc3cd5345031d6edbea02b`). Source release `62b4d90`; runtime 1.
+- 0.4.2 adds counter bread readiness/throw feedback and dip effect plus linked/all-bread scope. Release gate: 755 unit tests, typecheck/lint/brand passed. Earlier integrated browser gate: 45 checks before the final card-data compatibility correction; no later browser or real-phone pass claimed.
+- Starting main `86d2946` equals origin/main and was clean. Pipeline is merged (`cf33196`). `sol/hygiene` cleanup is being integrated with current facts. Fleet ledger, Jev helper and web fast-lane/background verifier are in bounded worker branches; lead owns integration.
+- Source repository `Mola-Bola/prata-raja-app` is public with owner approval; current main Actions run `38392841711` succeeded. Other private repositories' billing status does not block this app.
+- Feedback digest is empty. Only the owner tests, primarily in the browser. Web-only shipping; no APK/Android OTA without a new owner request. See `DIRECTION.md`, `docs/FLEET.md`, `docs/HANDOVER-CODEX.md`.
+- Preserve `codex/polish-combat-1` at `5a4a12e`: boss movement slow experiment fails two 300-seed gates (ch1 two-bread 39.33%; ch2 four-bread 67%). Do not merge, loosen tests or retune unrelated content to admit it.
+- Next: finish fleet and feedback steering loop → Test Kitchen → dip families/tags → measured decelerating knockback (same displacement), then separately lunge/recovery or attacker budgets → jobs/drinks. Damage/RNG rewrites are optional later architecture.
+- No scheduled continuation has been established. Finished older worktrees are retained pending clean-state verification; run `git worktree list` for current workers.
 
-- Owner direction: small continuous polish rounds; Archero-style controls are provisional. Durable steering is in `DIRECTION.md`.
-- Candidate branch: `codex/polish-round-1`, worktree `/Users/molabola/Documents/Codex/prata-raja-round-1`. Counter breads show cooldown/readiness and a short throw compression; reduced motion disables the new compression and orbiting Vadai stays steady. Dip cards retain their effect beside an explicit linked/all-bread scope. Existing card data contract/assertions preserved.
-- Verification: first integrated gate passed 754 unit tests + 45 Playwright checks; final compatibility correction passed 8 card tests, typecheck and assertion guard. Final release gate pending. Independent Sol review found no blocking issues; no manual browser/phone inspection (local browser access declined).
-- **Do not merge combat experiment:** `codex/polish-combat-1` at `5a4a12e`, worktree `/Users/molabola/Documents/Codex/prata-raja-combat-1`. 138 focused tests pass, but 300-seed before/after fails two balance gates (ch1 two-bread 39.33%, ch2 four-bread 67%). It is excluded from the candidate; report retained in that branch.
-- Claude's `docs/research/decomp-mechanisms.md` incorporated. Next experiment: decelerating knockback preserving total displacement, then independently test lunge/recovery and attacker budgets. Swept contacts/hit tracking already exist; no wholesale damage/RNG rewrite. See BACKLOG.
-- `sol/pipeline` remains separate work owned by the other desk; do not overwrite it. This round uses the existing check/akit ship gates. Source push and CI inspection required; latest CI refused before starting because of GitHub billing.
-- Hourly continuation could not be created: automation tool requires approval unavailable in this session. No scheduled rounds are active from this request.
+## QA debt
+- No real-phone/browser-device pass yet (notch, haptics, FPS). Prior localhost browser access was denied; do not bypass it. Analytics replay bandwidth remains a playtest consideration.
+- Economy pacing needs playtest evidence (~400 coins/win, training maxes in 10–15 runs); gear-look art is not wired.
+- `save.ts` accepts date-only lastPlayed values. Legacy zero-run saves may see the skippable prologue once (accepted).
+- Owner identity and threaded game feedback remain to implement with existing server security and migration gates.
+- Owner-only backup task: copy `~/Backups/prata-raja-secrets-2026-10-12/` off the Mac.
 
-## 13 Oct 2026 — live 0.4.1 (runtime 1, OTA + web); lead = Claude Opus desk
-
-- **0.4.1** (main `4800350`): heat Roti Bomb + bouncing Appam signatures, Condensed Milk + Mint links (report `docs/reviews/signature2-report.md`). **Rule change:** a running freeze/stun is never extended or chained (`applyCc`), fixing a linked-Mint freeze-lock (Codex P1); ch.2 contact damage 1.35→0.8 (ch2 63/36/12). e2e 44/44, 749 vitest. Worktrees: only main remains.
-
-- **0.4.0** (main `17bc7e1`): signature bread (stall sheet), Fish Curry links to it, loaded Murtabak, offers lean to the signature, web chunk-404 recovery (publish keeps old `_expo/static`, one-time reload). Report `docs/reviews/signature-report.md`. e2e 42/42, 738 vitest, ch1 57/44/23, Murtabak solo 13%.
-- **Disk:** Mac at ~1.5 GB free (196/228 GB). Merged worktrees removed. Clean `/private/tmp/claude-501/*-logs` after checks; owner asked to free space.
-
-- **0.3.1** (main `551ac82`): prologue comic (first launch, skip, replay in settings), mynah thief + drain rat, story/pest art sliced (report `docs/reviews/prologue-report.md`). e2e 40/40, balance 57/44/23. Accepted review P2: legacy saves with runs=0 may see the skippable comic once.
-- **In flight: 0.4.0 slice 1** on Codex in `~/prata-raja-sig` (branch `sol/signature`): signature bread + one linked dip + spectacular Murtabak + web chunk-404 fix (blank page right after a Pages publish). Brief `/private/tmp/claude-501/pr/sig-brief.md`, log `sig.out`. Lead commits, runs check.sh --web, Codex review, ships.
-
-- **0.3.0** (main `9fb4c17`): `sol/s3` merged (Codex resolved 8 conflicts + wired recipe book, chapter select, evolve cards, background2; report `docs/reviews/s3-integration-report.md`). Codex review 2xP2 fixed (legacy wins seed boss attempts → ch.2 unlocks for 0.2.x saves; starter foods are known recipes). e2e 36/36, 712 vitest. Balance ch1 63/42/24, ch2 62/32/10 (night solo near its floor; watch the Baron fight on a phone). Live-verified hub + recipe book (locked to L6; locked sheet still says "Coming soon" — reword next patch).
-- **Next:** owner answers to the DEPTH questions → 0.3.1 prologue + mynah/drain rat (art waiting, HANDOFF item 5) → ROADMAP 0.3.2/0.4. All builders on Codex until Claude weekly resets (14 Oct ~17:00 Sydney). Worktrees `~/prata-raja-{s2,fb,feel,depth,s3}` are merged and can be removed.
-
-- **0.2.2** (main `2a74924`): feel pass by Codex on `sol/feel` (report `docs/reviews/feel-pass-report.md`): boss telegraph/approach (~37 s fights), readable far pests + damage numbers, throw motion, mob lunges, card repeat damping + staggered reveal, missed breads fade, wave gaps, far-end spawns, UI ghosting. Codex review P2 (lob aim past boss holdY) fixed with a test. e2e 33/33, balance 62/43/23. Live-verified at 375x812.
-- **DEPTH/ROADMAP merged** (`docs/DEPTH.md`, `docs/ROADMAP.md`, `docs/OWNER-SUMMARY-DEPTH.md`, research teardown-builds-poe-bl2 + fair-monetisation); owner has the summary + 3 questions (which build first: hot tawa / loaded murtabak / bouncing appam; food details before art; chapters 3-5 places).
-- **In flight: 0.3.0** — Codex in `~/prata-raja-s3` resolving the `git merge main` conflicts (merge IN PROGRESS, 8 files) + wiring recipe book, chapter select, evolve cards, background2. Brief `/private/tmp/claude-501/pr/s3-brief.md`, log `/private/tmp/claude-501/pr/s3.out`. Codex sandbox can't write .git: lead commits (`git add -A && git commit`), runs check.sh --web, reviews, merges, ships.
-- Claude weekly usage 95% until 14 Oct ~17:00 Sydney: keep volume on Codex.
-
-- **0.2.0** (main `0ac3018`): S2 stall hub + playtest fixes + boss CC immunity; Extra reroll works; Codex P1 (save chain across remounts) + P2 (CC overlap) fixed.
-- **0.2.1** (main `26c4afc`): `s2/feedback` merged (Tell Kannan in pause/results/hub → `game-feedback` fn → `public.feedback`; PostHog via `fam-relay` worker, replay + errors). `.env.production` has the PostHog lines. Live-verified: relay `/i/v0/e/` hit, a real note `b3d70fb8` landed in the digest (closed wont_do). Chest pity copy now "Rare guaranteed in N chests". app.json now 0.2.1 (the sheet showed "v0.2.0" in 0.2.1).
-- **Owner direction (13 Oct, see BACKLOG top):** not pay-to-win, less Archero; PoE-style layered builds (persistent gear/tree/drinks + in-run cards chaining off them); easy start, deep end; monetisation later and fair (cosmetics, supporter pass, convenience, buy-once all OK; never power); new foods as skills: murtabak, appam, idli, vadai.
-- **In flight:** Codex (`gpt-6.1-sol`, high, web search) in `~/prata-raja-depth` (branch `sol/depth`) writing `docs/research/teardown-builds-poe-bl2.md`, `docs/research/fair-monetisation.md`, `docs/DEPTH.md`, `docs/ROADMAP.md`, `docs/OWNER-SUMMARY-DEPTH.md`; brief `/private/tmp/claude-501/pr/depth-brief.md`, log `/private/tmp/claude-501/pr/depth.out`. Next: review, merge to main, send the owner summary.
-- **Feel pass inputs ready:** `docs/research/owner-refs-2026-10-13.md` (Archero refs + the owner's 0.2.0 playtest: boss telegraph, boss approach, tiny pests/numbers at range, card repeats, landed breads, button ghosting, wave gaps) + BACKLOG feel list. Then 0.3.0 (`sol/s3`).
-
-## 12 Oct 2026, ~20:45 — live 0.1.1 (runtime 1); lead = Claude Opus desk, Codex may take over
-
-**Live:** web https://mola-bola.github.io/prata-raja/ · APK https://nzxgskzmofddxyjocduq.supabase.co/storage/v1/object/public/updates/apk/prata-raja-0.1.0.apk (OTA brings it to the latest) · Firebase App Distribution `app.prataraja` → group `family`.
-**Infra:** Supabase `prata-raja` (`nzxgskzmofddxyjocduq`, ap-southeast-2; DB password `~/.cell/prata-raja-db.env`) · EAS `@uzzzy/prata-raja` · release key `~/.prata-raja-secrets/` (backup `~/Backups/prata-raja-secrets-2026-10-12/`, owner to copy off the Mac) · repos `Mola-Bola/prata-raja-app` (private), `Mola-Bola/prata-raja` (Pages) · inbox runner registered (`~/cell/runner/apps.json`, playbook `~/cell/runner/playbooks/prata-raja.md`, triage-first).
-**Design:** `docs/SPEC.md`, `docs/WORLD.md` (stall-as-progress, worn gear, daydream map, place-true pests, themed powers, motion-comic story), `docs/BACKLOG.md` (owner notes → slices), `docs/CONTENT.md`, `docs/research/*` (+ `docs/research/data/**`, legit sources only), reviews in `docs/reviews/`.
-
-**In flight (check `git worktree list`; each worktree has node_modules symlinked):**
-1. `~/prata-raja-s2` (branch `s2/stall`): S2 stall hub (Codex's `sol/hub` merged) + owner playtest fixes (counter attackers first, breach cue, ≤8-word cards, title button) + boss CC immunity + rulings (tokens → coins, no pay before wave 2, in-run gold paid, settings cog, Phaser sleeps off-run). A Sonnet integrator was finishing. **Next:** confirm `npx tsc --noEmit && npx vitest run` and the Playwright `e2e/web/stall.spec.ts` + `play.spec.ts` pass there, commit, merge into main, `akit check`, ship OTA **0.2.0**.
-2. `~/prata-raja-fb` (branch `s2/feedback`): in-game "Tell Kannan" feedback into `public.feedback` + PostHog analytics/session replay (canvas)/errors inside the DOM component. **Next:** merge after 0.2.0 (expect small conflicts in GameUi/GameRoot hook points), verify a real feedback row + PostHog events, ship **0.2.1**.
-3. `~/prata-raja-s3` (branch `sol/s3`, commits 047f5d9, 33d676b): S3 logic by Codex (8 evolutions, recipes + run pools, chapter 2 "hawker-night" with 12 enemies + Burger Baron, unlock after 3 boss attempts; 543 tests) + its art. **Next:** after 0.2.x, merge and wire the UI: recipe book sheet, chapter select via `chapterUnlocked`, evolve card visuals (`ui/card-epic` + `evolutions/<id>`), `scene/background2` in the renderer → **0.3.0**.
-4. Research → design: 5 teardowns `docs/research/teardown-*.md` + data pulls. **Next:** synthesise `docs/DEPTH.md` (moderate build depth: dips linked to specific breads like PoE supports, Kannan job tiers, a few keystones, gear set bonuses, hawker-named affixes) — good Codex task; owner reviews a short summary.
-5. Art waiting to be used (`~/cell/.design/prata-raja-2026-10-12/s1/raw/`): story-1..6 (prologue motion comic), world-tiers (stall at L1/5/10), gear-looks (worn gear rarities), pests-new (mynah thief, drain rat, Grade Inspector boss). Slice with `slice_s1.py`'s method into `assets/game/**`, then `python3 scripts/pack_atlas.py`.
-6. Owner reference clips arrive in Google Drive `My Drive/Claude/Prata Raja refs/` (synced at `~/Library/CloudStorage/GoogleDrive-duclongschlong@gmail.com/My Drive/Claude/Prata Raja refs/`): analyse frame by frame (`ffmpeg -vf "fps=2,scale=240:-1,tile=8x2"` → images) for timing/layout/feel only; fold into the feel pass.
-
-**Handoff from the 12 Oct lead session (~21:00) — read before acting:**
-- Builders still running when the lead left (they commit on their own branches, never merge/ship): the S2 integrator writes `~/prata-raja-s2/docs/reviews/s2-integration-report.md`; the feedback/PostHog builder writes `~/prata-raja-fb/docs/reviews/feedback-telemetry-report.md`. If a report is missing, inspect `git -C <worktree> status/log/diff` and run its checks before deciding anything.
-- Research for the DEPTH synthesis (some may still be landing): `docs/research/teardown-{archero,habby,vs-brotato-oss,ballpit-terraria,maple-poe}.md` and `docs/research/data/**` (+ `data/SOURCES.md` with each source's terms; MapleStory sources from client extraction are flagged, don't use them). Hand the synthesis to Codex with the five files' paths and the BACKLOG/WORLD goals; ask for `docs/DEPTH.md` ≤ 200 lines + a 10-line owner summary.
-- Ways of working that paid off today: contracts first (`src/core/types.ts`, `src/game/hub.ts`) then parallel builders that each own files + tests; Haiku for modules/content/UI/slicing/balance/research, Sonnet for sim/renderer/integration, Codex for art sheets, isolated logic in worktrees and **diff-pasted reviews** (`codex exec -m gpt-6.1-sol -c model_reasoning_effort=medium -s read-only --ephemeral - < prompt.md`; found 6 + 12 real bugs for ~60k tokens). Bot balance: `BALANCE_SEEDS=300 npx vitest run src/core/__tests__/balance.test.ts` (S1 targets: 4-bread 55-75% win, 2-bread 40-60%, solo 10-25%).
-- Owner preferences in practice: ~5-line reports with what to tap; the owner sends screen recordings (silent; read them with ffmpeg frame grids); notes are intent, not spec; rendered art only; ask only for tools/access/phone taps. Owner still to do: copy `~/Backups/prata-raja-secrets-2026-10-12/` off the Mac.
-
-**Next, in order:** ship 0.2.0 → 0.2.1 (feedback + PostHog) → **feel pass** (throw motion, damage numbers, mob attack animations, spawns from the street's far end + flatter perspective, tawa steam, bowls/breads seated on the counter; see BACKLOG) → 0.3.0 (S3) → DEPTH design → story prologue + mynah/drain rat → S4 (Chef's Special + family leaderboard). Owner ideas parked in BACKLOG: Tawa Heat meter, hawker heroes roster, real Singapore places per chapter.
+## History
+0.2.0 stall/meta + boss CC safety; 0.2.1 feedback/telemetry; 0.2.2 feel pass; 0.3.0 recipes/evolutions/night chapter; 0.3.1 prologue/new pests; 0.4.0 signature/Fish Curry/web chunk recovery; 0.4.1 Milk/Mint links, heat Bomb and bouncing Appam. Historical reports in `docs/reviews/`.
 
 ## How to ship
-**CI (13 Oct):** `.github/workflows/check.yml` (tsc, lint, vitest, guards, gitleaks; pgTAP when `supabase/**` changes) runs on pushes to `main` and slice branches (`sol/**`, `s*/**`); `e2e-nightly.yml` runs the web e2e nightly. **Every builder (Claude or Codex) pushes its finished branch and checks `gh run list -R Mola-Bola/prata-raja-app -L 3`; the lead pushes `main` after each merge/ship.** As of 13 Oct all Mola-Bola Actions jobs are refused by GitHub billing ("recent account payments have failed or your spending limit needs to be increased") — owner fixes in github.com/settings/billing; until then local `check.sh` stays the gate. Budget: 2,000 free Linux min/month shared by all private apps: keep full e2e nightly, not per push.
-```
-SKIP_DB=1 ~/cell/akit/akit check                      # clean tree required; never write logs inside the repo
-echo "reviewed: <what>" > .akit/reviewed-$(git rev-parse HEAD)
-~/cell/akit/akit ship -- node scripts/ship-cloud.mjs --notes "<what changed>"          # OTA + web
-~/cell/akit/akit ship -- node scripts/ship-cloud.mjs --apk --cloud --notes "…"        # only for native changes (runtime bump!)
-```
-Native set in runtime 1: expo-haptics, expo-sqlite kv, Expo's built-in DOM WebView. Any new native module = runtime 2 + new APK (EAS free plan: 15 builds/month across all apps).
+Use `docs/PIPELINE.md` and `docs/FLEET.md`. Only the lead merges and ships. Gate a clean pinned commit with `SKIP_DB=1 ~/cell/akit/akit check`, stamp that commit, then `~/cell/akit/akit ship -- node scripts/publish-web.mjs --label <selected-label>`. Push main after merge/ship and inspect CI. Full web/balance/review verification follows fast-lane releases and reports regressions for fix-forward.
 
 ## How it is built (what worked)
 - Lead writes contracts first (`src/core/types.ts`, JSDoc'd stubs, `src/game/hub.ts`), then parallel builders each own files + tests: Haiku for modules/content/UI/slicing/balance, Sonnet for sim/renderer/integration, Codex (`gpt-6.1-sol`, medium) for art sheets, self-contained modules in a worktree, and **diff-pasted reviews** (core: 6 findings for 22k tokens; sim: 12 for 40k).

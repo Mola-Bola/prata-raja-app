@@ -1,5 +1,8 @@
 # S3 integration — sol/s3, 13 Oct 2026
 
+Status: superseded — shipped in 0.3.0.
+
+
 ## Conflict resolutions
 - Resolved all eight files; no conflict markers remain. Index intentionally untouched; lead must stage the resolutions.
 - Cards keep S3 recipe pools, guaranteed eligible evolutions and slot replacement, plus main's distinct picks and last-two-offer repeat damping.
