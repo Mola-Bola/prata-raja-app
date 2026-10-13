@@ -1,5 +1,12 @@
 # Prata Raja — handoff (rolling; replace the top block when state changes)
 
+## 13 Oct 2026 — live 0.2.0 (runtime 1, OTA + web); lead = Claude Opus desk (new session)
+
+- **Shipped 0.2.0** from main `0ac3018` (merge of `s2/stall`): stall hub, playtest fixes, boss CC immunity, plus this session's fixes: Extra reroll (stall L4) now really gives 2 rerolls; Codex review of meta/save/core → P1 save writes overlapping across GameUi remounts (fixed: one read/write chain per key in `saveStore.ts`), P2 overlapping freeze+stun shortened immunity (fixed in `status.ts`). 572 vitest, e2e 29/29. Live web verified at 375x812: bot win paid +414 coins, hub renders.
+- **In flight:** (1) Sonnet integrator merging `main` into `s2/feedback` in `~/prata-raja-fb` (recipe in its report §5; adds a hub "Tell Kannan" button) → then lead: add `EXPO_PUBLIC_POSTHOG_HOST/KEY` to `.env.production` (values in `eas.json`), merge, verify a real feedback row + PostHog events, ship **0.2.1**. (2) Haiku agent reading the owner's 13 Oct screen recordings (`Prata Raja refs/screen-20261013-*.mp4`, 5 clips) → report at `/private/tmp/claude-501/owner-refs-2026-10-13/REPORT.md`, to be copied into `docs/research/owner-refs-2026-10-13.md` and folded into the feel pass.
+- Open decisions kept as the integrator left them: hpPerWave 0.15 (global), coin economy (~400/win; training maxes in ~10-15 runs), `docs/CONTENT.md` CC text stale.
+- Next after 0.2.1: feel pass → 0.3.0 (S3 `sol/s3`) → DEPTH via Codex (unchanged list below).
+
 ## 12 Oct 2026, ~20:45 — live 0.1.1 (runtime 1); lead = Claude Opus desk, Codex may take over
 
 **Live:** web https://mola-bola.github.io/prata-raja/ · APK https://nzxgskzmofddxyjocduq.supabase.co/storage/v1/object/public/updates/apk/prata-raja-0.1.0.apk (OTA brings it to the latest) · Firebase App Distribution `app.prataraja` → group `family`.
