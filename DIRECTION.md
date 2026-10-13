@@ -2,6 +2,8 @@
 Standing steering from the owner. Every round and inbox run reads this first. Newest at the top. Retire a line by moving it to "Retired".
 
 ## Active
+- 2026-10-13: **Sessions lead in every domain.** Take charge: fill gaps, expand the owner's ideas into options, pick one and execute (design, art, code, balance, QA, research, ops) in small shippable rounds; record decisions here or in BACKLOG; report ~5 lines with what to tap. Ask the owner only for tools, access, phone taps or spend.
+- 2026-10-13: **Rotis are main weapons; dips are tiered gems.** Major builds form around a roti (tags, katori link slots, roti mastery); dips (chutneys, curries, dhal, sambar) are PoE-style support gems with their own minor skill, a flavour stat type, levels ("simmer") and quality ("aged overnight"). Gear and dip enhancements stay in hawker theme. Broad picture: `docs/BUILDS.md` (sessions own the details). Never pay-to-win.
 - 2026-10-13: Iterate in small playable rounds, polishing visuals, physics, animation, mechanics and skill clarity. Owner supplies high-level intentions and may change direction. The current Archero-style move/stop-to-fire loop is a prototype for finding the feel, not a permanent design constraint. Keep rules in the deterministic core and presentation separate; use bounded parallel workers, integrate and verify each round, and report what changed and what to try.
 - 2026-10-12: Prata Raja was started from the Cell starter (brand preset: oleh). Oleh's round-5 look ("Sunday market": Fredoka headings, Nunito body, big choice cards, sheets) is the design baseline for every app, adjusted to each app's character in `src/ui/brand.ts`.
 
