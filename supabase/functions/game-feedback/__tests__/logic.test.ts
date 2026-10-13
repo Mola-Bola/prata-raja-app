@@ -45,9 +45,10 @@ describe('the chips and the feedback_kind enum', () => {
     for (const kind of Object.values(CHIP_KIND)) expect(kinds).toContain(kind);
   });
 
-  it('is the same list as the game sheet, with the same limits', () => {
+  it('accepts exactly the current chips plus legacy compatibility, with the same limits', () => {
     expect(Object.keys(CHIP_KIND).sort()).toEqual(['art', 'balance', 'bug', 'direction', 'feel', 'idea']);
     for (const chip of CHIPS) expect(Object.keys(CHIP_KIND)).toContain(chip.id);
+    expect(Object.keys(CHIP_KIND).sort()).toEqual([...new Set([...CHIPS.map((c) => c.id), 'art', 'balance'])].sort());
     expect(LIMITS.body).toBe(BODY_MAX);
     expect(LIMITS.from).toBe(FROM_MAX);
   });
