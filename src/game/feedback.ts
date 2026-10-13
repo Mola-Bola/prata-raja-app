@@ -183,7 +183,7 @@ export const FAIL_TEXT: Record<FailReason, string> = {
   rejected: 'That note didn’t go through. Try shortening it.',
   server: 'Something broke on our side. Try again in a moment.',
   unconfigured: 'Notes aren’t switched on in this build.',
-  unavailable: 'My notes isn’t available on this server yet. You can still send a note.',
+  unavailable: 'My notes isn’t available on this server yet.',
 };
 
 /** POST the note. Never throws: every outcome is a SendResult. text/plain keeps it a "simple" request (no CORS preflight). */
@@ -265,7 +265,7 @@ export async function pairOwner(pair: DevicePair, code: string, opts: RequestOpt
 export function noteStatus(note: Pick<SavedNote, 'status' | 'shipped_in'>): string {
   const labels = brandWords.statusLabels;
   const known: Record<string, string> = { new: labels.received, needs_info: labels.question, proposed: labels.planReady, approved: labels.planned, in_progress: labels.building, shipped: labels.shipped, done: labels.done, wont_do: labels.not_now, duplicate: labels.merged };
-  return note.shipped_in ? `${brandWords.statusShort.shipped} in ${note.shipped_in}` : known[note.status] ?? 'Status pending';
+  return note.status === 'shipped' && note.shipped_in ? `${brandWords.statusShort.shipped} in ${note.shipped_in}` : known[note.status] ?? 'Status pending';
 }
 
 // ── The sheet's state ────────────────────────────────────────────────────────────────────────────────────────────

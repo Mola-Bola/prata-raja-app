@@ -7,6 +7,7 @@ import type { AppInfo } from '../appInfo';
 import {
   BODY_MAX,
   listNotes,
+  noteStatus,
   pairOwner,
   replyToNote,
   validScreenshot,
@@ -311,5 +312,18 @@ describe('private note actions', () => {
     const screenshot = 'data:image/jpeg;base64,/9j/2Q==';
     expect(build({ screenshot, deviceSecret: pair.device_secret })).toMatchObject({ screenshot, device_secret: pair.device_secret });
     expect(build({ screenshot: null })).not.toHaveProperty('screenshot');
+  });
+});
+
+describe('noteStatus', () => {
+  it('shows a release only while a note is shipped, preserving its current status after reopening', () => {
+    expect(noteStatus({ status: 'shipped', shipped_in: '0.4.3' })).toBe('Shipped in 0.4.3');
+    for (const status of ['new', 'in_progress', 'done', 'wont_do']) {
+      expect(noteStatus({ status, shipped_in: '0.4.3' })).toBe(noteStatus({ status, shipped_in: null }));
+    }
+    expect(noteStatus({ status: 'new', shipped_in: '0.4.3' })).toBe('Received');
+    expect(noteStatus({ status: 'in_progress', shipped_in: '0.4.3' })).toBe('Building');
+    expect(noteStatus({ status: 'done', shipped_in: '0.4.3' })).toBe('Done');
+    expect(noteStatus({ status: 'wont_do', shipped_in: '0.4.3' })).toBe('Not now');
   });
 });
