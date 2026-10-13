@@ -10,7 +10,7 @@ function fixture() {
   const base = mkdtempSync(join(tmpdir(), 'pipeline-test-'));
   const root = join(base, 'repo');
   mkdirSync(join(root, 'scripts'), { recursive: true });
-  for (const file of ['pipeline.mjs', 'slice.sh', 'release.sh', 'verify-fleet.mjs']) cpSync(join(source, file), join(root, 'scripts', file));
+  for (const file of ['pipeline.mjs', 'slice.sh', 'release.sh', 'verify-fleet.mjs', 'fleet.mjs']) cpSync(join(source, file), join(root, 'scripts', file));
   writeFileSync(join(root, 'scripts/verify-fleet.mjs'), 'export async function queueVerification() { return {id: \"test\", ledgerId: 1}; } export async function startVerification() {}');
   const pipeline = join(root, 'scripts/pipeline.mjs');
   writeFileSync(pipeline, readFileSync(pipeline, 'utf8')
@@ -89,7 +89,7 @@ import { syncBuiltinESMExports } from 'node:module';
 net.createServer = () => ({ once() { return this; }, listen(_port, _host, cb) { cb(); }, close(cb) { cb(); } });
 syncBuiltinESMExports();
 globalThis.fetch = async () => ({ ok: true, text: async () => 'published\\n' });`);
-  const env = { ...process.env, PATH: `${bin}:${process.env.PATH}`, NODE_OPTIONS: `--import=${join(base, 'fetch.mjs')}`, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1', GIT_AUTHOR_NAME: 'Test', GIT_COMMITTER_NAME: 'Test', GIT_AUTHOR_EMAIL: 'test@example.invalid', GIT_COMMITTER_EMAIL: 'test@example.invalid' };
+  const env = { ...process.env, FLEET_LEDGER_ID: '', PATH: `${bin}:${process.env.PATH}`, NODE_OPTIONS: `--import=${join(base, 'fetch.mjs')}`, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1', GIT_AUTHOR_NAME: 'Test', GIT_COMMITTER_NAME: 'Test', GIT_AUTHOR_EMAIL: 'test@example.invalid', GIT_COMMITTER_EMAIL: 'test@example.invalid' };
   const git = (...args: string[]) => execFileSync('git', args, { cwd: root, env, encoding: 'utf8' }).trim();
   git('init', '-q', '-b', 'main'); git('add', '-A'); git('commit', '-qm', 'fixture');
   const remote = join(base, 'origin.git');
@@ -122,10 +122,52 @@ describe('pipeline', { timeout: 60_000 }, () => {
       expect(dry.stdout).not.toContain('ship-cloud.mjs --label');
     } finally { f.close(); }
   });
+  it('release rejects failed ledger rows even with a passing pipeline report', () => {
+    const f = fixture();
+    try {
+      expect(f.fast('slice', f.name, join(f.base, 'brief.md')).status).toBe(0);
+      const path = join(f.report, 'result.json');
+      const result = JSON.parse(readFileSync(path, 'utf8'));
+      result.ledgerId = 1;
+      writeFileSync(path, JSON.stringify(result));
+      const update = (status: string, owned = ['src', 'docs']) => execFileSync(process.execPath, ['--input-type=module', '-e', `
+        import {openLedger} from './scripts/fleet.mjs';
+        const db=openLedger(process.cwd(),{render:false});
+        if(!db.list().length) db.addClaimed({source:'test',intent:'slice',brief:'build',owned:${JSON.stringify(owned)}},'test');
+        db.status(1,'${status}',{branch:'sol/${f.name}'}); db.close();
+      `], {cwd:f.root, env:f.env});
+      update('failed');
+      expect(f.fast('release', 'Test', '--branch', `sol/${f.name}`).stderr).toContain('not ready in the ledger');
+      expect(f.git('rev-parse', 'HEAD')).toBe(result.base);
+      update('ready');
+      expect(f.fast('release', 'Test', '--branch', `sol/${f.name}`).status).toBe(0);
+    } finally { f.close(); }
+  });
+  it('release enforces source ownership again for a ready ledger row', () => {
+    const f = fixture();
+    try {
+      expect(f.fast('slice', f.name, join(f.base, 'brief.md')).status).toBe(0);
+      const path=join(f.report,'result.json');
+      const result=JSON.parse(readFileSync(path,'utf8'));
+      result.ledgerId=1; writeFileSync(path,JSON.stringify(result));
+      execFileSync(process.execPath,['--input-type=module','-e', `
+        import {openLedger} from './scripts/fleet.mjs';
+        const db=openLedger(process.cwd(),{render:false});
+        db.addClaimed({source:'test',intent:'slice',brief:'build',owned:['unrelated']},'test');
+        db.status(1,'ready',{branch:'sol/${f.name}'});db.close();
+      `],{cwd:f.root,env:f.env});
+      const release=f.fast('release','Test','--branch',`sol/${f.name}`);
+      expect(release.stderr).toContain('unowned paths');
+      expect(f.git('rev-parse','HEAD')).toBe(result.base);
+      expect(existsSync(join(f.root,'.akit/shipped'))).toBe(false);
+    } finally { f.close(); }
+  });
   it('shares ship label semantics and handles numeric ordering/minor bumps', () => {
     expect(chooseLabel('0.4.1', ['0.4.9', '0.4.10', 'junk'])).toBe('0.4.11');
-    expect(chooseLabel('0.5.0', ['0.4.10'])).toBe('0.5.0');
-    expect(chooseLabel('0.4.1', [])).toBe('0.4.1');
+    expect(chooseLabel('0.5.0', ['0.4.10'])).toBe('0.5.1');
+    expect(chooseLabel('0.4.3', ['0.4.2'])).toBe('0.4.4');
+    expect(chooseLabel('0.4.9', ['0.4.2'])).toBe('0.4.10');
+    expect(chooseLabel('0.4.1', [])).toBe('0.4.2');
     expect(chooseLabel('0.4.1', ['0.4.10'], true)).toBe('0.5.0');
   });
   it('dry runs have no writes; fixes failing checks/P1, then ships and cleans only verified slices', () => {

@@ -49,7 +49,8 @@ export function openLedger(cwd = process.cwd(), { render: renderOnChange = true 
     try { const value = fn(); if (renderOnChange) render(); db.exec('COMMIT'); return value; }
     catch (error) { db.exec('ROLLBACK'); throw error; }
   }
-  function add(task) {
+  function add(task, worker) {
+    if (worker !== undefined && (typeof worker !== 'string' || !worker.trim())) throw new Error('worker is required');
     for (const key of ['source', 'intent', 'brief']) if (typeof task[key] !== 'string' || !task[key].trim()) throw new Error(`${key} is required`);
     const owned = paths(task.owned);
     const deps = task.dependsOn ?? [];
@@ -58,9 +59,11 @@ export function openLedger(cwd = process.cwd(), { render: renderOnChange = true 
     if (!Number.isSafeInteger(priority)) throw new Error('Invalid priority');
     return transaction(() => {
       if (deps.some(id => !get(id))) throw new Error('Unknown dependency');
+      if (worker && (deps.some(id => !['shipped', 'verified'].includes(get(id)?.status)) || list().some(r => held.has(r.status) && overlaps(owned, r.owned)))) throw new Error('Reservation blocked by ownership or dependency');
       const now = new Date().toISOString();
       const decisions = task.decision ? [{ at: now, note: String(task.decision) }] : [];
       const result = db.prepare('INSERT INTO tasks(source,intent,brief,owned,depends_on,priority,decisions,created,updated) VALUES(?,?,?,?,?,?,?,?,?)').run(task.source, task.intent, task.brief, JSON.stringify(owned), JSON.stringify(deps), priority, JSON.stringify(decisions), now, now);
+      if (worker) db.prepare("UPDATE tasks SET status='claimed',worker=? WHERE id=?").run(worker, result.lastInsertRowid);
       return get(result.lastInsertRowid);
     });
   }
@@ -90,13 +93,13 @@ export function openLedger(cwd = process.cwd(), { render: renderOnChange = true 
       return get(row.id);
     });
   }
-  return { root, dir, add, list, claim, status, render: () => transaction(() => { render(); return null; }), close: () => db.close() };
+  return { root, dir, add: task => add(task), addClaimed: (task, worker = '') => add(task, worker), list, claim, status, render: () => transaction(() => { render(); return null; }), close: () => db.close() };
 }
 
 export function validateResult(cwd, row, name, reportPath = `/private/tmp/claude-501/slices/${name}/result.json`) {
   const report = JSON.parse(readFileSync(reportPath, 'utf8'));
   const expectedCwd = join(dirname(resolve(cwd)), `prata-raja-${name}`);
-  if (!report.ok || report.name !== name || report.branch !== `sol/${name}` || report.cwd !== expectedCwd ||
+  if ((row.id !== undefined && report.ledgerId !== row.id) || !report.ok || report.name !== name || report.branch !== `sol/${name}` || report.cwd !== expectedCwd ||
       !/^[a-f0-9]{40}$/.test(report.base ?? '') || !/^[a-f0-9]{40}$/.test(report.head ?? '') ||
       git(expectedCwd, ['rev-parse', 'HEAD']) !== report.head || git(cwd, ['rev-parse', report.branch]) !== report.head) throw new Error('Missing, failed or stale pinned slice result');
   git(cwd, ['merge-base', '--is-ancestor', report.base, report.head]);
@@ -106,9 +109,19 @@ export function validateResult(cwd, row, name, reportPath = `/private/tmp/claude
   return { report: reportPath, base: report.base, head: report.head, changed };
 }
 
+export function invalidateResult(name, reason, reportPath = `/private/tmp/claude-501/slices/${name}/result.json`) {
+  let report;
+  try { report = JSON.parse(readFileSync(reportPath, 'utf8')); } catch { return; }
+  report.ok = false;
+  report.ownershipFailure = reason;
+  const temporary = `${reportPath}.${process.pid}.tmp`;
+  writeFileSync(temporary, JSON.stringify(report, null, 2) + '\n');
+  renameSync(temporary, reportPath);
+}
+
 export async function workers(cwd, { count = 3, maxTasks = 10, timeoutMs = 3600000, dryRun = false } = {}) {
   if (![count, maxTasks, timeoutMs].every(Number.isSafeInteger) || count < 1 || count > 4 || maxTasks < 1 || timeoutMs < 1) throw new Error('Invalid worker bounds');
-  const ledger = openLedger(cwd);
+  const ledger = openLedger(cwd, { render: false });
   // Dry runs are previews: they never acquire claims or change existing task status.
   if (dryRun) { const plan = ledger.list().filter(r => r.status === 'open').map(r => ({ id: r.id, owned: r.owned, command: ['bash', 'scripts/slice.sh', `fleet-${r.id}`, '<generated brief>', '--dry-run'] })); ledger.close(); return plan; }
   try {
@@ -125,7 +138,7 @@ export async function workers(cwd, { count = 3, maxTasks = 10, timeoutMs = 36000
         writeFileSync(brief, `${row.brief}\n\nOwned paths only: ${row.owned.join(', ')}.\nNever merge or ship. Source: ${row.source}.\nBefore editing, write .fleet/claim.json with id ${row.id}, owned paths and intent.\n`);
         ledger.status(row.id, 'building', { branch: `sol/${name}` });
         const outcome = await new Promise(resolveResult => {
-          const child = spawn('bash', [join(cwd, 'scripts/slice.sh'), name, brief], { cwd, detached: true, stdio: 'inherit', env: { ...process.env, PORT: String(port) } });
+          const child = spawn('bash', [join(cwd, 'scripts/slice.sh'), name, brief], { cwd, detached: true, stdio: 'inherit', env: { ...process.env, PORT: String(port), FLEET_LEDGER_ID: String(row.id) } });
           let timedOut = false;
           const timer = setTimeout(() => { timedOut = true; try { process.kill(-child.pid, 'SIGKILL'); } catch {} }, timeoutMs);
           child.once('error', error => { clearTimeout(timer); resolveResult({ code: null, error: error.message }); });
@@ -133,7 +146,10 @@ export async function workers(cwd, { count = 3, maxTasks = 10, timeoutMs = 36000
         });
         if (outcome.code === 0) {
           try { Object.assign(outcome, validateResult(cwd, row, name)); }
-          catch (error) { outcome.code = 1; outcome.error = error.message; }
+          catch (error) {
+            outcome.code = 1; outcome.error = error.message;
+            try { invalidateResult(name, error.message); } catch (invalidationError) { outcome.error += `; unable to invalidate report: ${invalidationError.message}`; }
+          }
         }
         ledger.status(row.id, outcome.code === 0 ? 'ready' : 'failed', { result: outcome, note: `Slice ${name}; lead must inspect pipeline report before integration` });
         completed.push({ id: row.id, ...outcome });

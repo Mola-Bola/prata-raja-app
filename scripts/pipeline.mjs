@@ -158,7 +158,9 @@ async function slice() {
   if (existsSync(dir) || existsSync(cwd)) throw new Error('Slice name/worktree already exists; use a new name');
   mkdirSync(store, { recursive: true });
   mkdirSync(dir); // Claim the name atomically when parallel slices start together.
-  const state = { name, branch, cwd, base: git(['rev-parse', 'main']), head: null, ok: false, mode: full ? 'full' : 'fast', port, ownedDirectories: [dir] };
+  const ledgerId = process.env.FLEET_LEDGER_ID ? Number(process.env.FLEET_LEDGER_ID) : null;
+  if (ledgerId !== null && (!Number.isSafeInteger(ledgerId) || ledgerId < 1)) throw new Error('Invalid FLEET_LEDGER_ID');
+  const state = { ledgerId, name, branch, cwd, base: git(['rev-parse', 'main']), head: null, ok: false, mode: full ? 'full' : 'fast', port, ownedDirectories: [dir] };
   let green = false, initial = [], findings = [], fixed = false, issue = 'Incomplete', ci = 'not queried (local result not green)';
   try {
     await freePort(port);
@@ -247,7 +249,10 @@ async function release() {
     writeFileSync(join(lock, 'owner'), `pid=${process.pid} root=${root}\n`);
     mkdirSync(store, { recursive: true });
     mkdirSync(releaseDir);
-    const slices = branches.map((branch) => {
+    const fleet = existsSync(join(root, 'scripts/fleet.mjs')) ? await import('./fleet.mjs') : null;
+    const db = fleet?.openLedger(root, { render: false });
+    let slices;
+    try { slices = branches.map((branch) => {
       if (!/^sol\/[a-z0-9][a-z0-9-]*$/.test(branch)) throw new Error(`Not a slice branch: ${branch}`);
       const dir = join(store, branch.slice(4));
       const result = JSON.parse(readFileSync(join(dir, 'result.json'), 'utf8'));
@@ -257,8 +262,13 @@ async function release() {
       if (!worktrees.some((w) => w.includes(`worktree ${result.cwd}\n`) && w.includes(`branch refs/heads/${branch}`))) throw new Error(`Worktree mismatch: ${branch}`);
       clean(result.cwd);
       onBranch(result.cwd, branch);
+      const row = db?.list().find((r) => r.branch === branch);
+      if (row || result.ledgerId || branch.startsWith('sol/fleet-')) {
+        if (!row || row.id !== result.ledgerId || row.status !== 'ready') throw new Error(`Fleet slice is not ready in the ledger: ${branch}`);
+        fleet.validateResult(root, row, branch.slice(4), join(dir, 'result.json'));
+      }
       return { ...result, dir };
-    });
+    }); } finally { db?.close(); }
     // Keep slice changes in scope even when retrying after a failed merged release.
     const mainHead = git(['rev-parse', 'HEAD']);
     const base = git(['merge-base', '--octopus', mainHead, ...slices.map((s) => s.base)]);
