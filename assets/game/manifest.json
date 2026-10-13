@@ -570,5 +570,53 @@
   "scene/background2": {
     "w": 1080,
     "h": 1919
+  },
+  "story/prologue-1": {
+    "w": 941,
+    "h": 1672
+  },
+  "story/prologue-2": {
+    "w": 941,
+    "h": 1672
+  },
+  "story/prologue-3": {
+    "w": 941,
+    "h": 1672
+  },
+  "story/prologue-4": {
+    "w": 941,
+    "h": 1672
+  },
+  "story/prologue-5": {
+    "w": 941,
+    "h": 1672
+  },
+  "story/prologue-6": {
+    "w": 941,
+    "h": 1672
+  },
+  "enemies/mynah-thief": {
+    "w": 256,
+    "h": 199
+  },
+  "enemies/drain-rat": {
+    "w": 256,
+    "h": 233
+  },
+  "bosses/grade-inspector": {
+    "w": 506,
+    "h": 512
+  },
+  "scene/hub-tier-1": {
+    "w": 556,
+    "h": 936
+  },
+  "scene/hub-tier-5": {
+    "w": 552,
+    "h": 936
+  },
+  "scene/hub-tier-10": {
+    "w": 556,
+    "h": 936
   }
 }

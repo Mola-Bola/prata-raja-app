@@ -10,7 +10,7 @@ export function spawnEnemy(c: Ctx, def: EnemyDef | BossDef, x: number, opts: { y
   const { w, rng } = c;
   const elite = opts.elite ?? false;
   const boss = opts.boss ?? false;
-  const y = opts.y ?? SPAWN_Y + rng.range(0, 40);
+  const y = opts.y ?? (def.drain?.y ?? SPAWN_Y) + rng.range(0, 40);
   const scale = waveHpScale(w.chapter, Math.max(1, w.wave)) * (elite ? 3 : 1);
   const hp = def.hp * scale;
   const cd: Record<string, number> = { bx: x, ph: rng.range(0, Math.PI * 2), _mt: 0 };

@@ -38,6 +38,7 @@ test('title, start, drag, pick a card, pause, quit', async ({ page }) => {
   // Nothing in the game box can scroll (the canvas used to leave 4 px under itself, and a focus then shifted every screen).
   expect(await page.evaluate(() => { const r = document.querySelector('[data-testid="game-root"]')!; return r.scrollHeight - r.clientHeight; })).toBe(0);
   await tid(page, 'ui-start').click();
+  await tid(page, 'story-skip').click();
   await page.waitForFunction(() => !!window.__world, null, { timeout: 60_000 });
   expect(await page.evaluate(() => window.__game!.loop.running)).toBe(true); // the run woke it
   await expect(page.getByText(/Wave 1\/10/)).toBeVisible();
@@ -104,6 +105,7 @@ test('the page going hidden holds the run and opens the pause sheet; the fonts c
   page.on('request', (r) => /fonts\.(googleapis|gstatic)\.com/.test(r.url()) && fontServices.push(r.url()));
   await page.goto('/play');
   await tid(page, 'ui-start').click();
+  await tid(page, 'story-skip').click();
   await page.waitForFunction(() => !!window.__world, null, { timeout: 60_000 });
   // The overlay's typefaces are bundled: all five Fredoka and Nunito faces load from the app itself, nothing from a font service.
   const faces = await page.evaluate(async () => {
@@ -202,6 +204,7 @@ for (const [w, h] of [
     expect(logo.y + logo.height).toBeLessThan(0.45 * h);
     if (w === 390) await shot(page, 's2-title');
     await tid(page, 'ui-start').click();
+  await tid(page, 'story-skip').click();
     await page.waitForFunction(() => !!window.__world, null, { timeout: 60_000 });
     expect(errors).toEqual([]);
   });
@@ -212,6 +215,7 @@ test('every level-up card line takes three lines at most on a 360 px phone', asy
   const errors = watch(page);
   await page.goto('/play?seed=3');
   await tid(page, 'ui-start').click();
+  await tid(page, 'story-skip').click();
   await page.waitForFunction(() => !!window.__world, null, { timeout: 60_000 });
   // Every card there is, three at a time, as the level-up sheet shows them.
   const cards = await page.evaluate(() => {
@@ -255,6 +259,7 @@ test('an enemy biting at the counter shows the danger cue, and every hit flashes
   const errors = watch(page);
   await page.goto('/play?seed=3');
   await tid(page, 'ui-start').click();
+  await tid(page, 'story-skip').click();
   await page.waitForFunction(() => !!window.__world && window.__world.time > 0.5, null, { timeout: 60_000 });
   const marks = () =>
     page.evaluate(() => {

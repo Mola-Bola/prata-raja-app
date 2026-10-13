@@ -63,3 +63,9 @@ CHAPTERS.push({
     ...(wave.boss ? { boss: 'burger-baron' } : {}),
   })),
 });
+
+// The street's place-true pests enter gradually; the night keeps its own roster.
+for (const [i, wave] of CHAPTERS[0].waves.entries()) {
+  if (i >= 2 && !wave.boss) wave.mix['mynah-thief'] = 0.6;
+  if (i >= 3 && !wave.boss) wave.mix['drain-rat'] = 0.5;
+}

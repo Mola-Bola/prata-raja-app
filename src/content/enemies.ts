@@ -2,6 +2,16 @@ import type { EnemyDef } from '../core/types';
 
 // Chapter 1 skins (Kopitiam Street). Ids are the skin slugs that waves, splits and summons reference; kind is the archetype.
 export const ENEMIES: Record<string, EnemyDef> = {
+  'mynah-thief': {
+    id: 'mynah-thief', name: 'Mynah Thief', kind: 'flyer', sprite: 'enemies/mynah-thief',
+    hp: 14, speed: 170, contactDps: 0, xp: 2.6, radius: 32,
+    zigzag: { amp: 45, period: 1.4 }, stealGold: 3, weakTo: 'Catch before escape',
+  },
+  'drain-rat': {
+    id: 'drain-rat', name: 'Drain Rat', kind: 'swarm', sprite: 'enemies/drain-rat',
+    hp: 6, speed: 110, contactDps: 2, xp: 1.3, radius: 22, cloud: 3,
+    drain: { y: 520, halfWidth: 110 }, weakTo: 'Sweep the pack',
+  },
   'sugar-ant': {
     id: 'sugar-ant',
     name: 'Sugar Ant',

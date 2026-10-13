@@ -32,6 +32,7 @@ async function mockFeedback(page: Page, fail = 0): Promise<Note[]> {
 async function startRunAndPause(page: Page) {
   await page.goto('/play');
   await tid(page, 'ui-start').click();
+  await tid(page, 'story-skip').click();
   await page.waitForFunction(() => !!window.__world, null, { timeout: 60_000 });
   await tid(page, 'ui-pause').click();
   await expect(tid(page, 'ui-resume')).toBeVisible();

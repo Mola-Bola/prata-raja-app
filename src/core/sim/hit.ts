@@ -169,6 +169,8 @@ export function killEnemy(c: Ctx, e: Enemy, wasBurning?: boolean): void {
   const { w, p } = c;
   const burning = wasBurning ?? hasStatus(e, 'burn');
   e.state = 'dead';
+  w.gold += cdGet(e, '_stolenGold');
+  e.cooldowns._stolenGold = 0;
   flushDot(c, e, true);
   w.kills++;
   if (e.boss) w.bossKills++;

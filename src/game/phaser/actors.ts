@@ -331,7 +331,7 @@ export class Actors {
         clk = e.state === 'walk' ? (e.cooldowns._mt ?? e.age) : e.age;
         v.clock = clk;
       }
-      const A = ANIM[v.kind];
+      const A = e.def.drain ? ANIM.runner : ANIM[v.kind];
       const walking = e.state === 'walk';
       const amp = disabled ? 0 : walking ? 1 : e.state === 'attack' ? 0.7 : 0.35;
       v.vx += ((e.x - v.px) / STEP - v.vx) * Math.min(1, dt * 10);
@@ -342,7 +342,7 @@ export class Actors {
       let smx = 1;
       let smy = 1;
       let lift = 0;
-      if (v.kind === 'flyer' || v.kind === 'swarm') {
+      if (v.kind === 'flyer' || (v.kind === 'swarm' && !e.def.drain)) {
         const f = 0.5 + 0.5 * Math.sin((clk * TAU) / A.period + v.phase);
         smx = 1 - A.sq * f * (disabled ? 0 : 1);
         smy = 1 + A.sq * 0.35 * f * (disabled ? 0 : 1);
@@ -378,6 +378,17 @@ export class Actors {
         smx *= 1 + 0.022 * br;
         smy *= 1 + 0.03 * br;
         hop *= 0.6;
+      }
+      if (e.def.drain) {
+        const emerge = Math.min(1, e.age / 0.45);
+        smy *= 0.3 + 0.7 * (1 - (1 - emerge) ** 2);
+      }
+      if (e.def.stealGold) {
+        const escaping = e.state === 'escape';
+        v.lean += ((escaping ? 1 : 0) - v.lean) * Math.min(1, dt * 8);
+        lift += v.lean * bh * 0.25;
+        rot += v.lean * 0.2;
+        v.body.setFlipX(escaping);
       }
       v.attacking = e.state === 'attack' && !disabled;
       let attackY = 0;

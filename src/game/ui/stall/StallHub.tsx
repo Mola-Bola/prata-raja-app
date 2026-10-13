@@ -17,7 +17,7 @@ import './Stall.css';
 
 export type { Art } from './StallProgress';
 
-export function StallHub({ save, commit, onStart, art }: { save: SaveV2; commit: Commit; onStart: (chapterId: string) => void; art: Art }) {
+export function StallHub({ save, commit, onStart, onStory, art }: { save: SaveV2; commit: Commit; onStart: (chapterId: string) => void; onStory: () => void; art: Art }) {
   // A sheet is a prop's panel, or the settings cog's.
   const [panel, setPanel] = useState<Panel | 'settings' | 'chapters' | null>(null);
   const [now, setNow] = useState(() => new Date());
@@ -100,6 +100,7 @@ export function StallHub({ save, commit, onStart, art }: { save: SaveV2; commit:
       {panel === 'settings' && (
         <Sheet title="Settings" onClose={() => setPanel(null)}>
           <SettingsSheet save={save} commit={commit} />
+          <button type="button" className="gu-btn" data-testid="settings-story" onClick={onStory}>Story</button>
         </Sheet>
       )}
       {panel && panel !== 'settings' && panel !== 'chapters' && spot && (
@@ -108,6 +109,7 @@ export function StallHub({ save, commit, onStart, art }: { save: SaveV2; commit:
             <div className="sh-locked" data-testid="stall-locked">
               <img src={art('ui/lock')} alt="" />
               <p>Unlocks at stall level {unlockLevel(spot.flag!)}</p>
+              {panel === 'recipes' && <p>Cook evolved breads here from stall level 6.</p>}
               {panel === 'special' && <PreviewSheet kind={panel} art={art} />}
             </div>
           ) : (

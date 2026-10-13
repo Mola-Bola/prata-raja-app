@@ -62,9 +62,11 @@ export function spawnTick(world: World, dt: number, rng: Rng): SpawnRequest[] {
     world.budgetLeft -= ENEMY_COST[kind];
     if (kind === 'swarm') {
       // One pick = one cloud. Centres sit ±CLOUD_SPREAD inside the field, so members never need clamping.
-      const cx = rng.range(-(SPAWN_X - CLOUD_SPREAD), SPAWN_X - CLOUD_SPREAD);
+      const spread = world.content.enemies[id].drain ? 25 : CLOUD_SPREAD;
+      const width = world.content.enemies[id].drain?.halfWidth ?? (SPAWN_X - CLOUD_SPREAD);
+      const cx = rng.range(-width, width);
       const n = world.content.enemies[id].cloud ?? 6;
-      for (let i = 0; i < n; i++) out.push({ enemyId: id, elite: false, x: cx + rng.range(-CLOUD_SPREAD, CLOUD_SPREAD), boss: false });
+      for (let i = 0; i < n; i++) out.push({ enemyId: id, elite: false, x: cx + rng.range(-spread, spread), boss: false });
       world.lastSpawnX = cx;
     } else {
       let x = rng.range(-SPAWN_X, SPAWN_X);

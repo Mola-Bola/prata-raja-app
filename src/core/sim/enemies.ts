@@ -64,6 +64,26 @@ function walk(c: Ctx, e: Enemy): void {
   }
 }
 
+/** A mynah raids the tip jar once, then flies back up the street; it can still be killed in flight. */
+function updateThief(c: Ctx, e: Enemy): void {
+  if (e.state === 'escape') {
+    e.y += enemySpeed(e) * 1.5 * c.dt;
+    e.cooldowns._mt = cdGet(e, '_mt') + c.dt * speedMul(e);
+    e.x = lateralX(e);
+    if (e.y >= MAX_ENEMY_Y) e.state = 'dead'; // escaped: no kill, XP or refund
+    return;
+  }
+  // Never run contact(), even if an old state already has it at the counter.
+  if (e.state !== 'attack') walk(c, e);
+  if (e.state === 'attack') {
+    const gold = Math.min(c.w.gold, e.def.stealGold ?? 0);
+    c.w.gold -= gold;
+    e.cooldowns._stolenGold = gold;
+    e.state = 'escape';
+    emit(c, { t: 'theft', uid: e.uid, x: e.x, y: e.y, gold });
+  }
+}
+
 /** Shooters and healers walk to their holdY, then park. True once parked. */
 function holdAt(c: Ctx, e: Enemy): boolean {
   if (e.y > e.holdY) {
@@ -197,6 +217,10 @@ export function updateEnemies(c: Ctx): void {
     if (isDisabled(e)) continue;
     if (e.boss) {
       updateBoss(c, e);
+      continue;
+    }
+    if (e.def.stealGold) {
+      updateThief(c, e);
       continue;
     }
     switch (e.def.kind) {

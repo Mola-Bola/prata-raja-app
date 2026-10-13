@@ -487,6 +487,13 @@ export class RunScene extends Phaser.Scene {
         case 'enemyShot':
           this.actors.fired(ev.uid);
           break;
+        case 'theft': {
+          const v = this.actors.viewOf(ev.uid);
+          if (v && ev.gold > 0) this.fx.spawn('ui/coins', v.sx, v.sy, D.fxTop, 0.7, 22 * this.l.u, 12 * this.l.u)
+            .to(v.sx, v.sy - 50 * this.l.u).fade(1, 0);
+          this.sfx('throw');
+          break;
+        }
         case 'splat': {
           const P = this.proj.at(ev.x, FIELD.reachY + 14);
           const u = this.l.u;

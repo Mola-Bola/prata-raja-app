@@ -10,7 +10,7 @@ type Rect = { x: number; y: number; w: number; h: number };
 type Atlas = { frames: Record<string, { frame: Rect }>; meta: { size: { w: number; h: number } } };
 
 const manifest = read('assets/game/manifest.json') as Record<string, unknown>;
-const expected = Object.keys(manifest).filter((name) => !name.startsWith('scene/')).sort();
+const expected = Object.keys(manifest).filter((name) => !name.startsWith('scene/') && !name.startsWith('story/')).sort();
 const atlases = readdirSync(ROOT + 'assets/game-atlas')
   .filter((f) => /^atlas-\d+\.json$/.test(f))
   .sort()
@@ -21,7 +21,7 @@ const padded = (r: Rect): Rect => ({ x: r.x - 2, y: r.y - 2, w: r.w + 4, h: r.h 
 const overlaps = (a: Rect, b: Rect) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 
 describe('texture atlases', () => {
-  it('holds every non-scene manifest entry as a frame in exactly one atlas', () => {
+  it('holds every non-scene/non-story manifest entry as a frame in exactly one atlas', () => {
     const names = atlases.flatMap((a) => Object.keys(a.frames)).sort();
     expect(names).toEqual(expected);
   });

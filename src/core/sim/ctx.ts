@@ -53,7 +53,7 @@ export function enemySpeed(e: Enemy, slow = speedMul(e)): number {
   return s;
 }
 /** How fast an enemy is closing in along y (for aim leading). */
-export const approachSpeed = (e: Enemy): number => (e.state === 'walk' ? enemySpeed(e) * (e.boss ? 4 : 1) : 0);
+export const approachSpeed = (e: Enemy): number => e.state === 'escape' ? -enemySpeed(e) * 1.5 : e.state === 'walk' ? enemySpeed(e) * (e.boss ? 4 : 1) : 0;
 
 /** Hurt Kannan with a shot, blast or boss attack. Shots can be dodged (stats.dodge). Returns true if it landed. */
 export function hurtPlayer(c: Ctx, base: number, source: 'shot' | 'boss' | 'explode'): boolean {

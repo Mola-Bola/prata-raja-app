@@ -200,6 +200,10 @@ export type EnemyDef = {
   dash?: { go: number; rest: number; boost: number };
   /** Flyer zigzag amplitude (u) and period (s). */
   zigzag?: { amp: number; period: number };
+  /** Reaches the counter, steals run gold once, then retreats without contact damage. */
+  stealGold?: number;
+  /** A small pack emerges mid-street, clustered around one drain. */
+  drain?: { y: number; halfWidth: number };
   weakTo?: string;
 };
 
@@ -279,8 +283,8 @@ export type Enemy = {
   maxHp: number;
   shield: number;
   statuses: Status[];
-  /** walk: approaching; hold: parked (shooter/healer/boss); attack: at the counter; fuse: exploder ticking. */
-  state: 'walk' | 'hold' | 'attack' | 'fuse' | 'dead';
+  /** walk: approaching; hold: parked (shooter/healer/boss); attack: at the counter; fuse: exploder ticking; escape: a thief flying away. */
+  state: 'walk' | 'hold' | 'attack' | 'fuse' | 'escape' | 'dead';
   /** Generic per-state timer (s). */
   t: number;
   /** Seconds since spawn (zigzag phase etc.). */
@@ -379,6 +383,7 @@ export type GameEvent =
   | { t: 'enemyShot'; uid: number }
   | { t: 'splat'; x: number }
   | { t: 'playerHit'; dmg: number; source: 'contact' | 'shot' | 'boss' | 'explode' }
+  | { t: 'theft'; uid: number; x: number; y: number; gold: number }
   | { t: 'dodge' }
   | { t: 'heal'; hp: number }
   | { t: 'xp'; amount: number; x: number; y: number }

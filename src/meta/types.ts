@@ -28,6 +28,7 @@ export type StreakState = {
 };
 export type SaveV2 = Omit<SaveV1, 'v'> & {
   v: 2;
+  prologueSeen: boolean;
   stallXp: number;
   unlockedBreads: BreadId[];
   unlockedDips: DipId[];

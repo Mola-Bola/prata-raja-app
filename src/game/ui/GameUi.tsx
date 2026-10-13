@@ -4,7 +4,7 @@
 // never imports it. It is the only writer of SAVE_KEY: every change to progress (the payout on runEnd, the stall's buys,
 // the Sound and Haptics toggles) goes through the save store (saveStore.ts).
 //
-// Flow: title -> (first launch) run 1 at once, no hub -> wake-up screen with the payout -> "Daydream again" or "Back to
+// Flow: title -> (first launch) prologue -> run 1, no hub -> wake-up screen with the payout -> "Daydream again" or "Back to
 // stall" -> the hub -> its Start button -> the next run, started with the gear and training the save holds.
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { CSSProperties } from 'react';
@@ -15,6 +15,7 @@ import { makeRng } from '@/core/rng';
 import type { Card, RunResult } from '@/core/types';
 import { chapterUnlocked } from '@/meta/chapters';
 import { computeLoadout } from '@/meta/loadout';
+import { finishPrologue, shouldShowPrologue } from '@/meta/story';
 import { applyRunResult } from '@/meta/runRewards';
 import type { SaveV2 } from '@/meta/types';
 
@@ -24,6 +25,7 @@ import type { Hub, HudState } from '../hub';
 import { cardView } from './cardText';
 import { AnalyticsSwitch, FeedbackLayer, TellButton } from './FeedbackSheet'; // [feedback hook]
 import { trackCardPick } from '../telemetry'; // [analytics hook]
+import { Prologue } from './Prologue';
 import { createSaveStore } from './saveStore';
 import { Switch, toggleSetting, type SettingKey } from './settings';
 import './GameUi.css';
@@ -31,7 +33,7 @@ import { Rewards, type Payout } from './stall/Rewards';
 import { StallHub } from './stall/StallHub';
 
 type UiBridge = Pick<Bridge, 'haptic' | 'save' | 'load'>;
-type Screen = 'title' | 'stall' | 'run' | 'results';
+type Screen = 'title' | 'stall' | 'run' | 'results' | 'story';
 type Offer = { n: number; cards: Card[]; rerolls: number; level: number };
 type Ended = { result: RunResult; line: string; tip: string; newBest: boolean; before: SaveV2; payout: Payout };
 type Banner = { n: number; text: string; boss: boolean };
@@ -53,6 +55,7 @@ function buzz(bridge: UiBridge, on: boolean, kind: HapticKind): void {
 export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
   const chapter = useRef(CONTENT.chapters[0].id);
   const [screen, setScreen] = useState<Screen>('title');
+  const replayingStory = useRef(false);
   const [runId, setRunId] = useState(0);
   const [offer, setOffer] = useState<Offer | null>(null);
   const [paused, setPaused] = useState(false);
@@ -175,10 +178,13 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
     setScreen('stall');
     hub.controls?.quit(); // the run is over: this only clears its frozen frame
   };
-  // The title's one button. The first launch goes straight into run 1 (no hub before it); after that it opens the stall.
+  // First-time players see the skippable story before run 1; returning players open the stall.
   const begin = () => {
     if (!save) return;
-    if (save.runs === 0) start();
+    if (shouldShowPrologue(save)) {
+      replayingStory.current = false;
+      setScreen('story');
+    } else if (save.runs === 0) start();
     else setScreen('stall');
   };
 
@@ -201,7 +207,12 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
           onRetry={() => setLoad((l) => ({ attempt: l.attempt + 1, failed: false }))}
         />
       )}
-      {screen === 'stall' && save && <StallHub save={save} commit={store.commit} onStart={start} art={art} />}
+      {screen === 'stall' && save && <StallHub save={save} commit={store.commit} onStart={start} onStory={() => { replayingStory.current = true; setScreen('story'); }} art={art} />}
+      {screen === 'story' && <Prologue onDone={() => {
+        store.commit(finishPrologue);
+        if (replayingStory.current) setScreen('stall');
+        else start();
+      }} />}
       {screen === 'run' && (
         <Hud key={runId} hub={hub} firstRun={save?.runs === 0} modal={!!offer || paused} onPause={pause} />
       )}

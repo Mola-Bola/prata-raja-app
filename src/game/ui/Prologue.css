@@ -1,0 +1,9 @@
+.gu-story { position: absolute; inset: 0; z-index: 40; pointer-events: auto; overflow: hidden; background: var(--ink); }
+.gu-story-panel { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: var(--ink); cursor: pointer; color: var(--ink); }
+.gu-story-art { width: 100%; height: 100%; object-fit: cover; animation: gu-story-pan 12s ease-in-out forwards; }
+.gu-story-art { transform-origin: 45% 40%; }
+.gu-story-caption { position: absolute; left: 18px; right: 18px; bottom: calc(72px + var(--safe-bottom)); font-size: clamp(17px, 5cqi, 22px); line-height: 1.35; border-radius: 22px; }
+.gu-story-hint { position: absolute; bottom: calc(20px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); font-size: 14px; white-space: nowrap; }
+.gu-story-skip { position: absolute; top: calc(16px + var(--safe-top)); right: calc(16px + var(--safe-right)); min-width: 70px; }
+@keyframes gu-story-pan { from { transform: scale(1.02) translate(-0.5%, 0); } to { transform: scale(1.1) translate(0.5%, -1%); } }
+@media (prefers-reduced-motion: reduce) { .gu-story-art { animation: none; } }

@@ -20,10 +20,30 @@
         "h": 466
       }
     },
-    "bosses/king-cockroach": {
+    "bosses/grade-inspector": {
       "frame": {
         "x": 2,
         "y": 965,
+        "w": 462,
+        "h": 470
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 22,
+        "y": 20,
+        "w": 462,
+        "h": 470
+      },
+      "sourceSize": {
+        "w": 506,
+        "h": 512
+      }
+    },
+    "bosses/king-cockroach": {
+      "frame": {
+        "x": 2,
+        "y": 1439,
         "w": 435,
         "h": 468
       },
@@ -40,30 +60,10 @@
         "h": 512
       }
     },
-    "gear/cooks-hairnet": {
-      "frame": {
-        "x": 1630,
-        "y": 244,
-        "w": 234,
-        "h": 170
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 11,
-        "y": 11,
-        "w": 234,
-        "h": 170
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 192
-      }
-    },
     "gear/denim-apron": {
       "frame": {
-        "x": 1738,
-        "y": 1404,
+        "x": 1570,
+        "y": 1646,
         "w": 222,
         "h": 238
       },
@@ -102,7 +102,7 @@
     },
     "gear/oil-splashed-apron": {
       "frame": {
-        "x": 944,
+        "x": 971,
         "y": 1162,
         "w": 228,
         "h": 238
@@ -120,29 +120,29 @@
         "h": 256
       }
     },
-    "gear/old-house-slippers": {
+    "gear/plain-headband": {
       "frame": {
-        "x": 1277,
-        "y": 1882,
-        "w": 236,
-        "h": 161
+        "x": 1773,
+        "y": 243,
+        "w": 234,
+        "h": 179
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 9,
-        "y": 9,
-        "w": 236,
-        "h": 161
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 179
       },
       "sourceSize": {
         "w": 256,
-        "h": 179
+        "h": 201
       }
     },
     "hub/chef-special": {
       "frame": {
-        "x": 1738,
+        "x": 1796,
         "y": 1646,
         "w": 201,
         "h": 238
@@ -162,8 +162,8 @@
     },
     "hub/recipe-book": {
       "frame": {
-        "x": 1508,
-        "y": 1640,
+        "x": 1716,
+        "y": 1404,
         "w": 226,
         "h": 238
       },
@@ -202,8 +202,8 @@
     },
     "hub/training": {
       "frame": {
-        "x": 1277,
-        "y": 1640,
+        "x": 1716,
+        "y": 1162,
         "w": 227,
         "h": 238
       },
@@ -282,8 +282,8 @@
     },
     "kannan/kannan-lean": {
       "frame": {
-        "x": 2,
-        "y": 1437,
+        "x": 441,
+        "y": 1439,
         "w": 512,
         "h": 459
       },
@@ -302,7 +302,7 @@
     },
     "kannan/kannan-release": {
       "frame": {
-        "x": 441,
+        "x": 468,
         "y": 965,
         "w": 499,
         "h": 450
@@ -342,8 +342,8 @@
     },
     "materials/ghee": {
       "frame": {
-        "x": 1738,
-        "y": 1162,
+        "x": 1340,
+        "y": 1640,
         "w": 226,
         "h": 238
       },
@@ -362,8 +362,8 @@
     },
     "materials/milk": {
       "frame": {
-        "x": 1882,
-        "y": 243,
+        "x": 1203,
+        "y": 1162,
         "w": 124,
         "h": 234
       },
@@ -402,8 +402,8 @@
     },
     "ui/card": {
       "frame": {
-        "x": 901,
-        "y": 1419,
+        "x": 1340,
+        "y": 1162,
         "w": 372,
         "h": 474
       },
@@ -422,7 +422,7 @@
     },
     "ui/card-epic": {
       "frame": {
-        "x": 518,
+        "x": 957,
         "y": 1419,
         "w": 379,
         "h": 474
@@ -437,26 +437,6 @@
       },
       "sourceSize": {
         "w": 417,
-        "h": 512
-      }
-    },
-    "ui/card-rare": {
-      "frame": {
-        "x": 1277,
-        "y": 1162,
-        "w": 340,
-        "h": 474
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 19,
-        "y": 19,
-        "w": 340,
-        "h": 474
-      },
-      "sourceSize": {
-        "w": 378,
         "h": 512
       }
     },
@@ -482,7 +462,7 @@
     },
     "ui/logo": {
       "frame": {
-        "x": 944,
+        "x": 971,
         "y": 426,
         "w": 934,
         "h": 732

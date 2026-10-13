@@ -14,7 +14,7 @@ const calendarDay = (value: unknown): string | null => typeof value === 'string'
 
 export function freshSaveV2(): SaveV2 {
   return {
-    ...freshSave(), v: 2, stallXp: 0, unlockedBreads: [], unlockedDips: [], bossAttempts: {}, inventory: [], equipped: {},
+    ...freshSave(), v: 2, prologueSeen: false, stallXp: 0, unlockedBreads: [], unlockedDips: [], bossAttempts: {}, inventory: [], equipped: {},
     training: { wrist: 0, stamina: 0, flip: 0 },
     materials: { flour: 0, ghee: 0, egg: 0, onion: 0, spice: 0, sugar: 0, milk: 0 },
     streak: { day: 0, lastClaimDay: null, windowStartDay: null, restDaysUsed: 0 },
@@ -44,7 +44,7 @@ export function parseSaveV2(json: unknown): SaveV2 {
   const raw = obj(JSON.parse(json));
   if (raw.v !== 1 && raw.v !== 2) return fresh;
   const base = parseSave(JSON.stringify({ ...raw, v: 1 }));
-  const save: SaveV2 = { ...fresh, ...base, v: 2 };
+  const save: SaveV2 = { ...fresh, ...base, v: 2, prologueSeen: raw.prologueSeen === true };
   if (raw.bossAttempts === undefined) {
     // Legacy wins prove attempts; reaching the boss wave proves at least one, not one per run.
     const attempts = Math.max(integer(base.wins), Number(base.bestWave >= CHAPTERS[0].waves.length));
