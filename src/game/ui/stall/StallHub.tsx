@@ -88,7 +88,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
           Start daydream
         </button>
         <button type="button" className="gu-btn" data-testid="stall-kitchen" onClick={onKitchen}>{brandWords.words.kitchen}</button>
-        <button type="button" className="gu-btn" data-testid="stall-tell" style={{ gridColumn: '1 / -1' }} onClick={openFeedback}>
+        <button type="button" className="gu-btn" data-testid="stall-tell" onClick={openFeedback}>
           Tell Kannan
         </button>
       </footer>

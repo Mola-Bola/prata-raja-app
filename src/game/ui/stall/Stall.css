@@ -261,7 +261,7 @@
   right: 0;
   bottom: 0;
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   pointer-events: none;
   padding: 12px calc(var(--safe-right) + 18px) calc(var(--safe-bottom) + 20px) calc(var(--safe-left) + 18px);
