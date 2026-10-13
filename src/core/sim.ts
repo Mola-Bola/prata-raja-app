@@ -46,6 +46,16 @@ export function createRun(opts: { seed: number; content: Content; chapterId?: st
   };
 }
 
+/** Start a fresh run at an actual 1-based chapter wave, using the ordinary director and spawn RNG.
+ *  Intended for in-memory sandboxes; never slices/reindexes content or resets an active run. */
+export function startRunWave(world: World, wave: number): void {
+  if (!Number.isInteger(wave) || wave < 1 || wave > world.chapter.waves.length) throw new Error('Invalid starting wave');
+  if (world.phase !== 'intro' || world.wave !== 0 || world.time !== 0) throw new Error('Starting wave requires a fresh run');
+  const rng = makeRng(world.rngState);
+  beginWave({ w: world, p: world.player, rng, dt: 0, m: null }, wave);
+  world.rngState = rng.state;
+}
+
 /** Advance by dt seconds (callers pass <= 1/30; split larger steps). Does nothing in 'levelup', 'won', 'lost'.
  *  A longer dt is cut into 1/30 s sub-steps (at most 5 s per call, so a stalled frame can never hang the game). */
 export function step(world: World, dt: number, input: RunInput): void {
