@@ -108,8 +108,8 @@ export function chestArt(rarity: Rarity): string {
 export function pityLines(save: SaveV2): string[] {
   const rare = 5 - save.chestPity.rare;
   const epic = 20 - save.chestPity.epic;
-  const chests = (n: number) => (n === 1 ? 'next chest' : `${n} chests`);
-  return [`Rare or better: ${chests(rare)}`, `Epic or better: ${chests(epic)}`];
+  const chests = (n: number) => (n === 1 ? 'the next chest' : `${n} chests`);
+  return [`Rare guaranteed in ${chests(rare)}`, `Epic guaranteed in ${chests(epic)}`];
 }
 
 /** What is waiting at each prop, for the badge on its label: a count or amount (string) or just "something" (true). */

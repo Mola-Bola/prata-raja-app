@@ -130,8 +130,8 @@ describe('stall display helpers', () => {
   });
 
   it('counts the chests left until the next guaranteed Rare+ and Epic+', () => {
-    expect(pityLines(freshSaveV2())).toEqual(['Rare or better: 5 chests', 'Epic or better: 20 chests']);
-    expect(pityLines({ ...freshSaveV2(), chestPity: { rare: 4, epic: 19, opened: 19 } })).toEqual(['Rare or better: next chest', 'Epic or better: next chest']);
+    expect(pityLines(freshSaveV2())).toEqual(['Rare guaranteed in 5 chests', 'Epic guaranteed in 20 chests']);
+    expect(pityLines({ ...freshSaveV2(), chestPity: { rare: 4, epic: 19, opened: 19 } })).toEqual(['Rare guaranteed in the next chest', 'Epic guaranteed in the next chest']);
   });
 });
 
