@@ -76,7 +76,7 @@ export function Kitchen({ hub, ready, onStart, onExit }: { hub: Hub; ready: bool
       <button type="button" className="gu-btn" data-testid="kitchen-exit" onClick={() => { hub.controls?.stopKitchen(); onExit(); }}>Stall</button>
     </header>
     <div className="kt-metrics" inert={setup} data-testid="kitchen-stats" aria-label="Test metrics">
-      <span>HP <b>{stats ? `${Math.ceil(stats.hp)}/${Math.ceil(stats.maxHp)}` : '—'}</b></span>
+      <span>HP <b>{stats ? `${Math.max(0, Math.ceil(stats.hp))}/${Math.ceil(stats.maxHp)}` : '—'}</b></span>
       <span>Wave <b>{stats?.wave ?? config.wave}</b></span><span>Time <b>{Math.floor(stats?.time ?? 0)}s</b></span>
       <span>Kills <b>{stats?.kills ?? 0}</b></span><span>Shown damage <b>{Math.round(stats?.damageShown ?? 0)}</b></span>
       <span>Shown / sec <b>{(stats?.damageShownPerSecond ?? 0).toFixed(1)}</b></span>

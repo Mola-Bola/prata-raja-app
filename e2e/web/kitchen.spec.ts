@@ -10,6 +10,12 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/auth/v1/**', route => route.fulfill({ json: {} }));
 });
 
+test('root kitchen shortcut preserves the query when launching the game', async ({ page }) => {
+  await page.goto('/?kitchen=1');
+  await expect(tid(page, 'kitchen-sheet')).toBeVisible();
+  await expect(page).toHaveURL(/\/play\?kitchen=1/);
+});
+
 test('URL kitchen selects real builds, live knobs and repeatable boss without writing a save', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -33,10 +39,10 @@ test('URL kitchen selects real builds, live knobs and repeatable boss without wr
   expect(await page.evaluate(() => ({ chapter: window.__world!.chapter.id, wave: window.__world!.wave, breads: window.__world!.player.breads.map(b => ({ id: b.id, level: b.level })), dips: window.__world!.player.dips.map(d => ({ id: d.id, level: d.level, linkedBread: d.linkedBread })) }))).toEqual({ chapter: 'hawker-night', wave: 10, breads: [{ id: 'golden-ghee-chakra', level: 1 }, { id: 'murtabak', level: 5 }], dips: [{ id: 'fish-curry', level: 5, linkedBread: 'murtabak' }, { id: 'dhal', level: 1, linkedBread: undefined }] });
   await expect(tid(page, 'kitchen-stats')).toContainText('Damage includes overkill');
   await tid(page, 'kitchen-live').click();
-  for (const [key, value] of [['hp', '250'], ['damage', '2'], ['throwSpeed', '2'], ['crit', '0.5'], ['moveFire', '1']]) {
-    await tid(page, `kitchen-tune-${key}`).fill(value);
+  for (const key of ['hp', 'damage', 'throwSpeed', 'crit', 'moveFire']) {
+    await tid(page, `kitchen-tune-${key}`).press('End');
   }
-  await expect.poll(() => page.evaluate(() => window.__world!.player.stats.maxHp)).toBe(250);
+  await expect.poll(() => page.evaluate(() => window.__world!.player.stats.maxHp)).toBe(10000);
   expect(await page.evaluate(() => window.__world!.player.stats.throwWhileMoving)).toBe(1);
   await tid(page, 'kitchen-pause').click();
   const time = await page.evaluate(() => window.__world!.time);
