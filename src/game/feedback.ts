@@ -38,6 +38,7 @@ export type RunSnapshot = {
   breads: string[];
   dips: string[];
   over: boolean;
+  flakyKosong?: boolean;
 };
 
 const owned = (xs: readonly { id: string; level: number }[]): string[] => xs.map((x) => `${x.id}:${x.level}`);
@@ -52,20 +53,23 @@ export function trackRun(hub: Hub): { read(): RunSnapshot | null; stop(): void }
   let end: RunResult | null = null;
   let kitchenWave: number | null = null;
   let kitchenOver = false;
+  let flakyKosong: boolean | undefined;
   const reset = (nextSeed: number | null) => {
     seed = nextSeed;
     hud = null;
     end = null;
     kitchenWave = null;
     kitchenOver = false;
+    flakyKosong = undefined;
   };
   const offs = [
     hub.on('runStart', (p) => {
       reset(p.seed);
     }),
-    hub.on('kitchenStart', (p) => reset(p.seed)),
+    hub.on('kitchenStart', (p) => { reset(p.seed); flakyKosong = p.flakyKosong; }),
     hub.on('kitchenStats', (stats) => {
       kitchenWave = stats.wave;
+      if (stats.flakyKosong !== undefined) flakyKosong = stats.flakyKosong;
     }),
     hub.on('kitchenEnd', ({ reason, stats }) => {
       if (reason === 'stopped') reset(null);
@@ -85,8 +89,8 @@ export function trackRun(hub: Hub): { read(): RunSnapshot | null; stop(): void }
     read() {
       if (seed === null) return null;
       if (end) return { seed, wave: end.wave, level: end.level, breads: owned(end.breads), dips: owned(end.dips), over: true };
-      if (hud) return { seed, wave: kitchenWave ?? hud.wave, level: hud.level, breads: owned(hud.breads), dips: owned(hud.dips), over: kitchenOver };
-      return { seed, wave: kitchenWave ?? 0, level: 1, breads: [], dips: [], over: kitchenOver };
+      if (hud) return { seed, wave: kitchenWave ?? hud.wave, level: hud.level, breads: owned(hud.breads), dips: owned(hud.dips), over: kitchenOver, ...(flakyKosong !== undefined ? { flakyKosong } : {}) };
+      return { seed, wave: kitchenWave ?? 0, level: 1, breads: [], dips: [], over: kitchenOver, ...(flakyKosong !== undefined ? { flakyKosong } : {}) };
     },
     stop: () => offs.forEach((off) => off()),
   };
@@ -107,6 +111,7 @@ export type NoteContext = {
   seed: number | null;
   breads: string[];
   dips: string[];
+  flaky_kosong?: boolean;
 };
 
 export type NotePayload = {
@@ -158,6 +163,7 @@ export function buildNote(i: {
       seed: run?.seed ?? null,
       breads: run?.breads ?? [],
       dips: run?.dips ?? [],
+      ...(i.screen === 'kitchen' && run?.flakyKosong !== undefined ? { flaky_kosong: run.flakyKosong } : {}),
     },
   };
 }

@@ -1,3 +1,4 @@
+import { writeFileSync } from 'node:fs';
 import { expect, type Page, test } from '@playwright/test';
 
 const SAVE_KEY = 'game:prata-raja/save';
@@ -92,4 +93,107 @@ test('stall kitchen keeps an existing save unchanged through loss, win, restart 
   await tid(page, 'ui-quit').click();
   await expect(tid(page, 'results')).toBeVisible();
   await expect.poll(async () => JSON.parse((await stored(page))!).runs).toBe(JSON.parse(before!).runs + 1);
+});
+
+
+test('Flaky Kosong is explicit, restartable and isolated from saves and the next Kitchen visit', async ({ page }) => {
+  await page.goto('/play?kitchen=1');
+  await expect(tid(page, 'kitchen-flaky')).not.toBeChecked();
+  const before = await stored(page);
+  await tid(page, 'kitchen-bread-level-0').selectOption('5');
+  await tid(page, 'kitchen-flaky').check();
+  await tid(page, 'kitchen-start').click();
+  await page.waitForFunction(() => window.__world?.flakyKosong === true);
+  await expect(tid(page, 'kitchen-stats')).toContainText('Experimental Flaky Kosong');
+  await tid(page, 'kitchen-restart').click();
+  await page.waitForFunction(() => window.__world?.flakyKosong === true && window.__world.time < 1);
+  await tid(page, 'kitchen-setup').click();
+  await tid(page, 'kitchen-flaky').uncheck();
+  await tid(page, 'kitchen-start').click();
+  await page.waitForFunction(() => window.__world != null && window.__world.flakyKosong === undefined);
+  await expect(tid(page, 'kitchen-stats')).not.toContainText('Experimental Flaky Kosong');
+  expect(await stored(page)).toBe(before);
+  await tid(page, 'kitchen-exit').click();
+  await tid(page, 'stall-kitchen').click();
+  await expect(tid(page, 'kitchen-flaky')).not.toBeChecked();
+  expect(await stored(page)).toBe(before);
+});
+
+// Paused, controlled scene frames exercise the real sim + renderer without a screenshot racing the 0.2s child lifetime.
+for (const width of [390, 320]) test(`Flaky Kosong moving pieces and pool reset at ${width}px`, async ({ page }, testInfo) => {
+  await page.setViewportSize({ width, height: 844 });
+  await page.goto('/play?kitchen=1');
+  await tid(page, 'kitchen-bread-level-0').selectOption('5');
+  await tid(page, 'kitchen-flaky').check();
+  await tid(page, 'kitchen-start').click();
+  await page.waitForFunction(() => window.__world?.flakyKosong === true);
+  await page.evaluate(() => {
+    const w = window.__world!;
+    const scene = window.__game!.scene.getScene('RunScene') as unknown as { paused: boolean; acc: number; hitStop: number; actors: { clear(): void }; frame(dt: number): void };
+    scene.paused = true; scene.acc = 0; scene.hitStop = 0; scene.actors.clear();
+    w.enemies = []; w.projectiles = []; w.events = []; w.budgetLeft = 0; w.waveTime = 0; w.time = 0;
+    w.player.breads.forEach(b => { b.cd = 1e6; }); w.player.stats.critChance = 0;
+    for (const y of [250, 450, 650]) w.enemies.push({ uid: w.nextUid++,
+      def: { ...w.content.enemies.roach, speed: 0, contactDps: 0, radius: 32 }, boss: false, elite: false,
+      x: 0, y, hp: 1e6, maxHp: 1e6, shield: 0, statuses: [], state: 'hold', t: 0, age: 0,
+      knock: 0, flash: 0, cooldowns: { bx: 0 }, phase: 0, holdY: y });
+    const st = w.content.breads.kosong.levels[4];
+    w.projectiles.push({ uid: w.nextUid++, owner: 'player', breadId: 'kosong', sprite: w.content.breads.kosong.sprite,
+      motion: 'straight', x: 0, y: 150, vx: 0, vy: 900, z: 0, t: 0, ttl: 2, dmg: st.dmg, radius: st.radius,
+      pierceLeft: 0, hopsLeft: st.hops, hit: [], returning: false, targetUid: null, tx: 0, ty: 0, stats: st, spin: 0 });
+    scene.frame(0);
+  });
+  const snapshots: unknown[] = [];
+  for (const [name, frames] of [['before', 0], ['first-impact', 5], ['fan-travel', 5], ['second-impact', 5]] as const) {
+    const snapshot = await page.evaluate(({ name, frames }) => {
+      const w = window.__world!;
+      type Image = { width: number; height: number; isCropped: boolean; _crop: { width: number; height: number } };
+      type Disc = { img: Image; cont: { scaleX: number; scaleY: number } };
+      const scene = window.__game!.scene.getScene('RunScene') as unknown as { acc: number; hitStop: number; frame(dt: number): void;
+        actors: { shotMap: Map<number, { disc: Disc; dia: number; texMax: number; px: number; py: number }> }; proj: { at(x: number, y: number): void; ppu: number; s: number } };
+      for (let i = 0; i < frames; i++) { scene.hitStop = 0; scene.frame(1 / 60); }
+      const shots = w.projectiles.map(s => {
+        const v = scene.actors.shotMap.get(s.uid);
+        if (!v?.disc) return { uid: s.uid, flake: s.flake, rendered: false };
+        const img = v.disc.img;
+        const alpha = Math.min(1, scene.acc / (1 / 60));
+        scene.proj.at(v.px + (s.x - v.px) * alpha, v.py + (s.y - v.py) * alpha);
+        return { uid: s.uid, flake: s.flake === true, x: s.x, y: s.y, flakesShed: s.flakesShed ?? 0,
+          cropped: img.isCropped, widthPx: (img.isCropped ? img._crop.width : img.width) * v.disc.cont.scaleX,
+          heightPx: (img.isCropped ? img._crop.height : img.height) * v.disc.cont.scaleY,
+          layerScale: v.disc.cont.scaleX * v.texMax / (v.dia * scene.proj.ppu * Math.max(0.55, scene.proj.s)) };
+      });
+      return { name, time: w.time, shots };
+    }, { name, frames });
+    snapshots.push(snapshot);
+    await page.screenshot({ path: testInfo.outputPath(`${width}-${name}.png`) });
+    if (name === 'first-impact') {
+      expect(snapshot.shots.filter(s => s.flake)).toHaveLength(2);
+      expect(snapshot.shots.filter(s => s.flake).every(s => 'cropped' in s && s.cropped)).toBe(true);
+      expect(snapshot.shots[0].layerScale).toBeCloseTo(0.84, 2);
+      expect(snapshot.shots.filter(s => s.flake).every(s => 'widthPx' in s && s.widthPx! >= 6)).toBe(true);
+    }
+    if (name === 'second-impact') expect(snapshot.shots[0].layerScale).toBeCloseTo(0.68, 2);
+  }
+  const evidence = testInfo.outputPath('controlled-motion.json');
+  writeFileSync(evidence, JSON.stringify(snapshots, null, 2));
+  await testInfo.attach('controlled-motion.json', { path: evidence, contentType: 'application/json' });
+  // Return the cropped discs, then fill the reused pool with ordinary Kosong: every image must be whole again.
+  const reused = await page.evaluate(() => {
+    const w = window.__world!;
+    type Img = { isCropped: boolean };
+    const scene = window.__game!.scene.getScene('RunScene') as unknown as { frame(dt: number): void;
+      actors: { clear(): void; shotMap: Map<number, { disc: { img: Img } }> } };
+    const cropped = [...scene.actors.shotMap.values()].map(v => v.disc.img).filter(img => img.isCropped);
+    scene.actors.clear(); w.projectiles = []; w.enemies = []; w.flakyKosong = undefined;
+    const st = w.content.breads.kosong.levels[4];
+    for (let i = 0; i < 10; i++) w.projectiles.push({ uid: w.nextUid++, owner: 'player', breadId: 'kosong', sprite: w.content.breads.kosong.sprite,
+      motion: 'straight', x: -180 + (i % 5) * 90, y: 350 + Math.floor(i / 5) * 100, vx: 0, vy: 900, z: 0, t: 0, ttl: 2, dmg: st.dmg, radius: st.radius,
+      pierceLeft: 0, hopsLeft: st.hops, hit: [], returning: false, targetUid: null, tx: 0, ty: 0, stats: st, spin: 0 });
+    scene.frame(0);
+    const images = [...scene.actors.shotMap.values()].map(v => v.disc.img);
+    return { reused: images.filter(img => cropped.includes(img)).length, cropped: images.filter(img => img.isCropped).length };
+  });
+  expect(reused.reused).toBeGreaterThan(0); expect(reused.cropped).toBe(0);
+  await page.screenshot({ path: testInfo.outputPath(`${width}-ordinary-pool-reset.png`) });
 });

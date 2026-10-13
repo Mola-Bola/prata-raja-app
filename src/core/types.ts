@@ -340,6 +340,9 @@ export type Projectile = {
   guaranteedCrit?: boolean;
   loaded?: boolean;
   charged?: boolean;
+  /** Kitchen-only cropped child, or number of layers shed by its original Kosong. */
+  flake?: boolean;
+  flakesShed?: number;
 };
 
 export type Zone = { uid: number; x: number; y: number; radius: number; dps: number; time: number; sprite: SpriteKey; effect?: HitEffect; effectT?: number };
@@ -426,6 +429,8 @@ export type RunResult = {
 export type Loadout = { stats?: Partial<PlayerStats>; startBread?: BreadId; signatureBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[]; /** Level-up rerolls per run (default 1). */ rerolls?: number };
 
 export type World = {
+  /** In-memory Kitchen experiment only; absent on ordinary runs. */
+  flakyKosong?: boolean;
   /** Field x of the wave director's last spawn (keeps spawn spacing replayable). */
   lastSpawnX?: number;
   seed: number;

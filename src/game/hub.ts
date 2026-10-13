@@ -31,10 +31,11 @@ export type KitchenStats = {
   damageShown: number;
   damageShownPerSecond: number;
   tuning: KitchenTuning;
+  flakyKosong?: boolean;
 };
 
 export type HubEvents = {
-  kitchenStart: { seed: number; tuning: KitchenTuning };
+  kitchenStart: { seed: number; tuning: KitchenTuning; flakyKosong?: boolean };
   kitchenStats: KitchenStats;
   kitchenEnd: { reason: 'won' | 'lost' | 'stopped'; stats: KitchenStats };
   /** About 10 times a second while a run is live. */

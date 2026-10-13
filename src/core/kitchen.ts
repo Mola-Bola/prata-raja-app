@@ -24,6 +24,8 @@ export type KitchenConfig = {
   /** Omitted linkedBread means all breads; only dips with matching tags support a target. */
   dips: { id: DipId; level: number; linkedBread?: BreadId }[];
   tuning?: Partial<KitchenTuning>;
+  /** Default-off prototype, never imported into ordinary runs or saves. */
+  flakyKosong?: boolean;
 };
 
 /** Evolved weapons have one playable tier even though their content repeats its stats five times. */
@@ -80,6 +82,7 @@ export function createKitchenRun(config: KitchenConfig, content: Content): World
     if (dip.linkedBread && (!isLinkableDip(def) || !config.breads.some((b) => b.id === dip.linkedBread))) throw new Error('Linked dip requires a supported dip and selected bread');
   }
   const world = createRun({ seed: config.seed, content, chapterId: config.chapterId });
+  if (config.flakyKosong === true) world.flakyKosong = true;
   world.player.breads = config.breads.map((b) => ({ ...b, cd: 0.4, volleyLeft: 0, volleyT: 0 }));
   world.player.dips = config.dips.map((d) => ({ ...d }));
   applyKitchenTuning(world, { ...DEFAULT_KITCHEN_TUNING, ...config.tuning });
