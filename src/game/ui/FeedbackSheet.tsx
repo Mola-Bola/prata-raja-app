@@ -148,6 +148,8 @@ function Sheet({ screen, run, screenshot }: Opened) {
 
   const preview = buildNote({ id: '', deviceId, deviceSecret: identity?.secret, screenshot, chip: s.chip, text: s.text, from: s.from, info: getInfo(), screen, run });
 
+  const displayedNote = pendingNote.current?.id === s.noteId ? pendingNote.current : preview;
+
   const send = async () => {
     if (!identity || !canSend(s) || busy || inFlight.current) return;
     inFlight.current = true;
@@ -239,7 +241,7 @@ function Sheet({ screen, run, screenshot }: Opened) {
             </label>
             {!secretSaved && <p className="fb-context">This device hasn’t saved its private note key. You can send a note, but its thread may be unavailable after reloading.</p>}
             <p className="fb-context" data-testid="feedback-context">
-              Goes with it: {contextLine(preview.context)}{preview.screenshot ? ' · game screenshot' : ''}
+              Goes with it: {contextLine(displayedNote.context)}{displayedNote.screenshot ? ' · game screenshot' : ''}
             </p>
             {s.phase === 'failed' && s.reason && (
               <p className="fb-status fb-status--bad" role="alert" data-testid="feedback-error">
