@@ -2,8 +2,9 @@
 // commit(update), which applies a pure src/meta update to the NEWEST save (so a double tap can never act on a stale copy).
 import { useState } from 'react';
 
+import { chooseSignature } from '@/meta/signature';
 import { CONTENT } from '@/content';
-import { canCook, cook, RECIPES, recipeKnown } from '@/meta/recipes';
+import { canCook, cook, RECIPES, recipeKnown, runPools } from '@/meta/recipes';
 import { makeRng } from '@/core/rng';
 import { openChest } from '@/meta/chests';
 import { equipItem, itemStats, RARITY_INFO, upgradeCost, upgradeItem } from '@/meta/gear';
@@ -294,4 +295,20 @@ export function SettingsSheet({ save, commit }: Pick<Ctx, 'save' | 'commit'>) {
       <Switch label="Haptics" on={save.settings.haptics} onClick={() => commit(toggleSetting('haptics'))} />
     </div>
   );
+}
+
+export function SignatureSheet({ save, commit, art }: Ctx) {
+  if (!save.unlocks.signature) return <p>Unlocks at stall level 9.</p>;
+  return <>
+    <p>Start each daydream with your favourite bread. Fish Curry links to it for a stronger burn.</p>
+    <div className="sh-inventory">
+      {runPools(save, CONTENT).breadPool.map(id => <button type="button" className="sh-tile" key={id}
+        data-testid={`signature-${id}`} aria-pressed={save.signatureBread === id}
+        onClick={() => commit(s => chooseSignature(s, id, CONTENT))}>
+        <img className="sh-item-art" src={art(CONTENT.breads[id].sprite)} alt="" />
+        <b>{CONTENT.breads[id].name}</b>
+        {id === 'murtabak' && <span>Every fourth throw bursts into filling.</span>}
+      </button>)}
+    </div>
+  </>;
 }

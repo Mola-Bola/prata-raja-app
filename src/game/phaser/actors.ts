@@ -697,6 +697,7 @@ export class Actors {
 
       }
     }
+    if (s.loaded) v.dia *= 1.65;
     // Three fading copies per moving bread, capped at 48 atlas images for the whole arena.
     if (!enemy && (s.motion === 'straight' || s.motion === 'boomerang' || s.motion === 'lob') && this.trailCount < 48) {
       for (let i = 0; i < 3; i++) v.trail.push({ img: this.imgs.get(s.sprite).setVisible(false), x: 0, y: 0, k: 1, spin: 0, t: 1 });

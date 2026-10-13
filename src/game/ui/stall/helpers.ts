@@ -36,7 +36,7 @@ export const HOTSPOTS: Record<Panel, Hotspot> = {
 export const PANELS = Object.keys(HOTSPOTS) as Panel[];
 
 export const UNLOCK_NAMES: Record<UnlockFlag, string> = {
-  gear: 'Gear', training: 'Training', secondReroll: 'Extra reroll', recipeBook: 'Recipe book',
+  signature: 'Signature', gear: 'Gear', training: 'Training', secondReroll: 'Extra reroll', recipeBook: 'Recipe book',
   chefsSpecial: 'Chef’s Special', towel: 'Towel', headband: 'Headband', apron: 'Apron', gloves: 'Gloves', slippers: 'Slippers',
 };
 export const titleCase = (name: string) => name.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());

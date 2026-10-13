@@ -1,7 +1,7 @@
 // Damage rules: a bread hit on an enemy, dip chain/sambal side effects, DoT bookkeeping, kills, XP and gold.
 import { rollHit, xpToNext } from '../stats';
 import { applyCc, applyHitEffect, dmgTakenMul, hasStatus, onBreadHit } from '../status';
-import type { BreadStats, Enemy, HitEffect } from '../types';
+import type { BreadId, BreadStats, Enemy, HitEffect } from '../types';
 import { cdGet, clamp, dirtyMods, dist, emit, HIT_FLASH, hurtable, mods, type Ctx } from './ctx';
 import { spawnEnemy } from './spawn';
 
@@ -21,7 +21,7 @@ function stun(c: Ctx, e: Enemy, time: number): void {
  *  (no dips, no crit) and the caller must stop the projectile. The bread's armourPierce share of that hit skips the
  *  shield and goes to hp. Returns true when the shield blocked.
  *  Otherwise: damage (crit roll), stun/knockback from the bread, every owned dip, Kannan's hit-buffs, kill check. */
-export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, shieldable: boolean, guaranteedCrit = false): boolean {
+export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, shieldable: boolean, guaranteedCrit = false, breadId?: BreadId): boolean {
   const { w, p } = c;
   if (shieldable && e.shield > 0) {
     const ap = clamp(st ? st.armourPierce : 0, 0, 1);
@@ -59,7 +59,9 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
   for (const d of p.dips) {
     if (e.state === 'dead') break; // a cascade (chain -> sambal) already finished it: no effects on a corpse
     const def = w.content.dips[d.id];
-    const fx = def.levels[d.level - 1];
+    if (d.linkedBread && d.linkedBread !== breadId) continue;
+    const base = def.levels[d.level - 1];
+    const fx = d.linkedBread && base.type === 'burn' ? { ...base, dps: base.dps * 1.25, time: base.time * 1.25 } : base;
     for (const ev of applyHitEffect(fx, e)) emit(c, ev);
     if (fx.type === 'chain') chain(c, e, fx, def.color);
   }

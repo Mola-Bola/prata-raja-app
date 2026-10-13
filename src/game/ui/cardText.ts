@@ -89,7 +89,11 @@ export function cardView(card: Card): CardView {
     }
     case 'dip': {
       const d = CONTENT.dips[card.id as DipId];
-      return item(d.name, DIP_LINES[d.id], d.sprite, 'ui/card-epic', card.level, d.levels.length);
+      const view = item(d.name, DIP_LINES[d.id], d.sprite, 'ui/card-epic', card.level, d.levels.length);
+      if (!card.linkedBread) return view;
+      const name = CONTENT.breads[card.linkedBread].name;
+      const line = `Linked to ${name}`;
+      return { ...view, line: line.length <= 25 ? line : `Link: ${name}`, label: `${view.label}. Linked to ${name}; stronger burn on this bread only.` };
     }
     case 'passive': {
       const d = CONTENT.passives[card.id as PassiveId];

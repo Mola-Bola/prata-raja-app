@@ -18,6 +18,9 @@ import { useReturnAfterSignIn } from '@/features/links/useReturnAfterSignIn';
 import { useStartupLink } from '@/features/links/useStartupLink';
 import { registerServiceWorker } from '@/features/offline/registerServiceWorker';
 
+import { installChunkRecovery } from '@/features/offline/chunkRecovery';
+
+installChunkRecovery();
 registerTranslation('en', en);
 SplashScreen.preventAutoHideAsync().catch(() => {});
 registerServiceWorker(); // web: opens with no connection

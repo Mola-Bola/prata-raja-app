@@ -206,9 +206,18 @@ function tryFire(c: Ctx, b: OwnedBread, def: BreadDef, st: BreadStats): boolean 
   const together = st.volleyGap <= 0 ? Math.max(1, st.count) : 1;
   const first = c.w.projectiles.length;
   if (!throwMembers(c, def, st, 0, together)) return false;
+  const signature = c.w.loadout?.signatureBread;
+  const loader = signature === 'murtabak' && (def.id === signature || def.evolvedFrom?.bread === signature);
+  if (st.critEvery || loader) b.casts = (b.casts ?? 0) + 1;
+  if (loader && b.casts! % 4 === 0) {
+    // Only one loaded payload per serving, even with Extra Dough; children cannot reload.
+    const shot = c.w.projectiles[first];
+    shot.loaded = true;
+    shot.dmg *= 8;
+    shot.stats = { ...st, fragments: 6, fragmentDmg: st.dmg * 1.5, homing: 2 };
+  }
   if (st.critEvery) {
-    b.casts = (b.casts ?? 0) + 1;
-    if (b.casts % st.critEvery === 0) for (let i = first; i < c.w.projectiles.length; i++) c.w.projectiles[i].guaranteedCrit = true;
+    if (b.casts! % st.critEvery === 0) for (let i = first; i < c.w.projectiles.length; i++) c.w.projectiles[i].guaranteedCrit = true;
   }
   if (st.volleyGap > 0 && st.count > 1) {
     b.volleyLeft = st.count - 1;

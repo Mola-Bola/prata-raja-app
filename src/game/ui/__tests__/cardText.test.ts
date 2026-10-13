@@ -36,6 +36,16 @@ describe('level-up card text', () => {
     expect(view.label).toContain('Evolve Tarik Lance');
   });
 
+  it('names linked bread on the card, including evolved links, within the phone text budget', () => {
+    for (const bread of Object.values(CONTENT.breads)) {
+      const view = cardView({ kind: 'dip', id: 'fish-curry', level: 1, linkedBread: bread.id });
+      expect(view.line).toContain(bread.name);
+      expect(view.line.length).toBeLessThanOrEqual(MAX_CHARS);
+      expect(view.label).toContain(`Linked to ${bread.name}; stronger burn on this bread only.`);
+    }
+    expect(cardView({ kind: 'dip', id: 'fish-curry', level: 1, linkedBread: 'murtabak' }).line).toBe('Linked to Murtabak');
+  });
+
   it('heal and gold lines are at most 8 words too', () => {
     for (const c of [card('heal', ''), card('gold', '')]) {
       expect(words(cardView(c).line), c.kind).toBeLessThanOrEqual(8);

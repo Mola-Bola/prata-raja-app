@@ -23,11 +23,12 @@ type Candidate = { card: Card; weight: number };
  *  owned dip below L5 (1.0) · new dip from dipPool when dips < MAX_DIPS (0.8)
  *  passive below its maxLevel, owned or new (0.7).
  *  Guarantee: when the player owns no dip and dipPool is non-empty, at least one card is a new dip.
+ *  A signature multiplies its bread/synergy weights by 1.6; linked Fish Curry names that bread.
  *  Pools default to every bread/dip whose unlock is 'starter'. Short of candidates: fill with
  *  { kind: 'heal', id: '', level: 1 } then { kind: 'gold', id: '', level: 1 }. Deterministic for a given rng state. */
 export function drawOffer(
   player: Player, content: Content, rng: Rng,
-  opts?: { n?: number; breadPool?: BreadId[]; dipPool?: DipId[]; recentOffers?: readonly Card[][] },
+  opts?: { n?: number; breadPool?: BreadId[]; dipPool?: DipId[]; recentOffers?: readonly Card[][]; signatureBread?: BreadId },
 ): Card[] {
   const n = opts?.n ?? 3;
   const breadPool = opts?.breadPool ?? Object.values(content.breads).filter((b) => b.unlock === 'starter').map((b) => b.id).sort();
@@ -53,6 +54,23 @@ export function drawOffer(
   for (const p of Object.values(content.passives).sort((a, b) => (a.id < b.id ? -1 : 1))) {
     const level = player.passives.find((o) => o.id === p.id)?.level ?? 0;
     if (level < p.maxLevel) cands.push({ card: { kind: 'passive', id: p.id, level: level + 1 }, weight: 0.7 });
+  }
+
+  const signature = opts?.signatureBread;
+  if (signature) {
+    const def = content.breads[signature];
+    const synergies = def.motion === 'orbit' || def.id === 'idli'
+      ? ['condensed-milk', 'chicken-curry', 'hot-tawa']
+      : def.motion === 'lob' || def.id === 'murtabak'
+        ? ['fish-curry', 'mutton-curry', 'big-dough', 'strong-wrists']
+        : ['ghee', 'teh-tarik', 'fast-flip', 'lucky-towel'];
+    for (const c of cands) {
+      if (c.card.id === signature || synergies.includes(c.card.id)) c.weight *= 1.6;
+      if (c.card.id === 'fish-curry') {
+        c.card.linkedBread = player.dips.find(d => d.id === 'fish-curry')?.linkedBread
+          ?? player.breads.find(b => b.id === signature || content.breads[b.id].evolvedFrom?.bread === signature)?.id;
+      }
+    }
   }
 
   const evolutions = Object.values(content.breads).filter(b => evolutionReady(player, b, content));
@@ -85,6 +103,7 @@ export function applyCard(player: Player, card: Card, content: Content, loadout?
     const def = content.breads[card.id as BreadId];
     if (!def || !evolutionReady(player, def, content)) return { gold: 0 };
     const owned = player.breads.find(b => b.id === def.evolvedFrom!.bread)!;
+    for (const dip of player.dips) if (dip.linkedBread === owned.id) dip.linkedBread = def.id;
     Object.assign(owned, { id: def.id, level: 1, volleyLeft: 0, volleyT: 0, casts: 0 });
   } else if (card.kind === 'bread') {
     const owned = player.breads.find((b) => b.id === card.id);
@@ -93,7 +112,11 @@ export function applyCard(player: Player, card: Card, content: Content, loadout?
   } else if (card.kind === 'dip') {
     const owned = player.dips.find((d) => d.id === card.id);
     if (owned) owned.level = card.level;
-    else player.dips.push({ id: card.id as DipId, level: 1 });
+    else {
+      const target = player.breads.find(b => b.id === loadout?.signatureBread || content.breads[b.id].evolvedFrom?.bread === loadout?.signatureBread);
+      const linkedBread = card.id === 'fish-curry' && loadout?.signatureBread && target && !player.dips.some(d => d.linkedBread) ? target.id : undefined;
+      player.dips.push({ id: card.id as DipId, level: 1, ...(linkedBread ? { linkedBread } : {}) });
+    }
   } else if (card.kind === 'passive') {
     const owned = player.passives.find((p) => p.id === card.id);
     if (owned) owned.level = card.level;

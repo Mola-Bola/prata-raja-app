@@ -331,12 +331,13 @@ export type Projectile = {
   /** Spin angle for the renderer (radians). */
   spin: number;
   guaranteedCrit?: boolean;
+  loaded?: boolean;
 };
 
 export type Zone = { uid: number; x: number; y: number; radius: number; dps: number; time: number; sprite: SpriteKey; effect?: HitEffect; effectT?: number };
 
 export type OwnedBread = { id: BreadId; level: number; cd: number; volleyLeft: number; volleyT: number; casts?: number };
-export type OwnedDip = { id: DipId; level: number };
+export type OwnedDip = { id: DipId; level: number; linkedBread?: BreadId };
 export type OwnedPassive = { id: PassiveId; level: number };
 
 /** Self-buffs from dips (haste, spin, stackDmg). */
@@ -362,6 +363,7 @@ export type Player = {
 };
 
 export type Card = {
+  linkedBread?: BreadId;
   kind: 'evolve' | 'bread' | 'dip' | 'passive' | 'heal' | 'gold';
   /** BreadId / DipId / PassiveId; '' for heal/gold. */
   id: string;
@@ -413,7 +415,7 @@ export type RunResult = {
 };
 
 /** Permanent bonuses from the stall (gear, training) applied at run start. S1 passes {}. */
-export type Loadout = { stats?: Partial<PlayerStats>; startBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[]; /** Level-up rerolls per run (default 1). */ rerolls?: number };
+export type Loadout = { stats?: Partial<PlayerStats>; startBread?: BreadId; signatureBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[]; /** Level-up rerolls per run (default 1). */ rerolls?: number };
 
 export type World = {
   /** Field x of the wave director's last spawn (keeps spawn spacing replayable). */

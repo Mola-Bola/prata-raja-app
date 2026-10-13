@@ -17,7 +17,7 @@ export const MATERIALS = ['flour', 'ghee', 'egg', 'onion', 'spice', 'sugar', 'mi
 export type Material = typeof MATERIALS[number];
 export const TRAINING_IDS = ['wrist', 'stamina', 'flip'] as const;
 export type TrainingId = typeof TRAINING_IDS[number];
-export const UNLOCK_FLAGS = ['gear', 'training', 'secondReroll', 'recipeBook', 'chefsSpecial', ...SLOTS] as const;
+export const UNLOCK_FLAGS = ['signature', 'gear', 'training', 'secondReroll', 'recipeBook', 'chefsSpecial', ...SLOTS] as const;
 export type UnlockFlag = typeof UNLOCK_FLAGS[number];
 export type ChestPity = { rare: number; epic: number; opened: number };
 export type StreakState = {
@@ -29,6 +29,7 @@ export type StreakState = {
 export type SaveV2 = Omit<SaveV1, 'v'> & {
   v: 2;
   prologueSeen: boolean;
+  signatureBread: BreadId;
   stallXp: number;
   unlockedBreads: BreadId[];
   unlockedDips: DipId[];
