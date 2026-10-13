@@ -11,7 +11,7 @@ import { D, HAZARD, WHITE } from './look';
 import type { Img, ImagePool } from './pools';
 import { addCrop, addImage, setImage } from './tex';
 
-type Slot = { img: Img; id: string; level: number; pop: number };
+type Slot = { img: Img; id: string; level: number; pop: number; cd: number; throwT: number };
 
 /** Where the build sits on the counter, as shares of the counter art's width and height. The plain steel at the left of the
  *  tawa holds the dip bowls (two columns, staggered); the plain steel at the right, below the plate, the pile of owned breads. */
@@ -25,6 +25,7 @@ const MAX_BREADS = 4;
 /** Kannan's throwing hand in the release pose, as shares of the sprite from its bottom centre (measured on the art). */
 const HAND = { x: 0.435, y: 0.69 };
 const POP_TIME = 0.4;
+const BREAD_THROW_TIME = 0.18;
 
 const pose = (n: string): string => `kannan/kannan-${n}`;
 
@@ -105,7 +106,7 @@ export class Stall {
     this.counter.clearTint();
   }
 
-  update(p: Player | null, phase: RunPhase | null, alpha: number, time: number, dt: number): void {
+  update(p: Player | null, phase: RunPhase | null, alpha: number, time: number, dt: number, calm = false): void {
     const l = this.l;
     this.hitT = Math.max(0, this.hitT - dt);
     this.throwT = Math.max(0, this.throwT - dt);
@@ -191,7 +192,7 @@ export class Stall {
       this.sync(this.breads, p.breads, 'breads', MAX_BREADS);
     }
     this.animate(this.dips, dt, true);
-    this.animate(this.breads, dt, false);
+    this.animate(this.breads, dt, false, calm);
   }
 
   // ── The build on the counter ───────────────────────────────────────────────────────────────────────────────
@@ -204,17 +205,25 @@ export class Stall {
       const sprite = dir === 'breads' ? CONTENT.breads[(o as OwnedBread).id].sprite : `${dir}/${o.id}`;
       let s = slots[i];
       if (!s) {
-        s = { img: this.imgs.get(sprite).setDepth(D.slot + i), id: o.id, level: o.level, pop: POP_TIME };
+        s = { img: this.imgs.get(sprite).setDepth(D.slot + i), id: o.id, level: o.level, pop: POP_TIME, cd: dir === 'breads' ? (o as OwnedBread).cd : 0, throwT: 0 };
         slots.push(s);
         this.place(slots, dir === 'dips');
       } else if (s.id !== o.id) {
         s.id = o.id;
+        s.level = o.level;
+        s.cd = dir === 'breads' ? (o as OwnedBread).cd : 0;
+        s.throwT = 0;
         setImage(s.img, sprite);
         s.pop = POP_TIME;
         this.place(slots, dir === 'dips');
       } else if (s.level !== o.level) {
         s.level = o.level;
         s.pop = POP_TIME;
+      }
+      if (dir === 'breads') {
+        const cd = (o as OwnedBread).cd;
+        if (o.id !== 'vadai' && cd > s.cd + 0.01) s.throwT = BREAD_THROW_TIME;
+        s.cd = cd;
       }
     }
   }
@@ -250,15 +259,22 @@ export class Stall {
     }
   }
 
-  private animate(slots: Slot[], dt: number, dips: boolean): void {
+  private animate(slots: Slot[], dt: number, dips: boolean, calm = false): void {
     for (let i = 0; i < slots.length; i++) {
       const s = slots[i];
-      if (s.pop <= 0) continue;
+      if (dips && s.pop <= 0) continue;
       s.pop = Math.max(0, s.pop - dt);
       const q = 1 - s.pop / POP_TIME;
       // Overshoot pop: 0 -> 1.25 -> 1.
       const k = q < 0.6 ? (q / 0.6) * 1.25 : 1.25 - 0.25 * ((q - 0.6) / 0.4);
-      s.img.setScale(this.sizeOf(s, dips) * k);
+      const size = this.sizeOf(s, dips) * k;
+      s.throwT = Math.max(0, s.throwT - dt);
+      const compression = calm || s.pop > 0 ? 0 : s.throwT / BREAD_THROW_TIME;
+      s.img.setScale(size * (1 + 0.08 * compression), size * (1 - 0.16 * compression));
+      if (!dips) {
+        // Cooling breads brighten as they become ready; Vadai orbits continuously.
+        s.img.setAlpha(s.id === 'vadai' ? 1 : 1 - 0.38 * Math.min(1, Math.max(0, s.cd) / 0.3));
+      }
     }
   }
 }

@@ -325,7 +325,7 @@ export class RunScene extends Phaser.Scene {
         else if (!this.levelUpOpen) this.openLevelUp(w);
       }
     }
-    this.stall.update(w ? w.player : null, w ? (this.wokeEarly ? 'lost' : w.phase) : null, alpha, this.uiTime, dt);
+    this.stall.update(w ? w.player : null, w ? (this.wokeEarly ? 'lost' : w.phase) : null, alpha, this.uiTime, dt, this.reduceMotion);
     // A shot leaves his raised hand and settles onto the field projection of its own lane.
     const home = this.proj.at(this.stall.fieldX, 0);
     this.actors.setHand(this.stall.handX - home.sx, this.stall.handY - home.sy);
