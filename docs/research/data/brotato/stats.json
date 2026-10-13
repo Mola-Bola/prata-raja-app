@@ -1,0 +1,53 @@
+{
+  "source": ["https://brotato.wiki.spellsandguns.com/Stats"],
+  "fetched": "2026-10-12",
+  "licence": "Footer 'Copyright Policy' link -> https://creativecommons.org/licenses/by-sa/4.0/ (CC BY-SA 4.0). No other licence sentence in the footer.",
+  "revision": "Stats page revision oldid 7813. Footer: 'This page was last edited on 6 December 2024, at 12:55.'",
+  "version_note": "Wiki patch pages end at Patch 1.1.2.0. News coverage reports game version 1.1.15 ('All Pain No Gain', 13 May 2026). This list may predate later stat changes; verify in-game before relying on it.",
+  "caveat": "Summarising fetch of the rendered page. Names and effects as stated; the page gives no default values.",
+  "primary": [
+    {"name": "Max HP", "effect": "damage you can take before dying", "limit": "none"},
+    {"name": "HP Regeneration", "effect": "heals 1 HP every n seconds; first point gives 0.20 HP/s, each further point adds 0.089 HP/s", "limit": "none"},
+    {"name": "Life Steal", "effect": "each attack has x% chance to heal 1 HP; triggers at most once per 0.1 s (max 10 HP/s); chance is added per weapon", "limit": "none stated"},
+    {"name": "Damage", "effect": "+1% all damage per point; does not affect Engineering structures", "limit": "none"},
+    {"name": "Melee Damage", "effect": "modifies base damage of melee-scaling weapons", "limit": "none"},
+    {"name": "Ranged Damage", "effect": "modifies base damage of ranged-scaling weapons", "limit": "none"},
+    {"name": "Elemental Damage", "effect": "modifies base damage of elemental-scaling weapons", "limit": "none"},
+    {"name": "Attack Speed", "effect": "+x% attack rate, including ranged weapons (not structures); diminishing returns", "limit": "max 12 attacks/s"},
+    {"name": "Crit Chance", "effect": "+x% crit chance per weapon", "limit": "max 100% on a hit; min 0% total"},
+    {"name": "Engineering", "effect": "boosts structure power (not other stats; specials still apply)", "limit": "none"},
+    {"name": "Range", "effect": "+x weapon range; increases melee cooldown", "limit": "none; weapon range minimum 25"},
+    {"name": "Armor", "effect": "reduces incoming damage by x%", "limit": "none"},
+    {"name": "Dodge", "effect": "x% chance to dodge attacks", "limit": "cap 60% (70% with Cryptid, 90% with Ghost)"},
+    {"name": "Speed", "effect": "+x% movement speed", "limit": "none; standstill at -100% or below"},
+    {"name": "Luck", "effect": "+x% item/consumable drop chance and better shop/level-up rarity", "limit": "none"},
+    {"name": "Harvesting", "effect": "earn x materials and XP per wave, growing 5% per activation (rounded up)", "limit": "none"}
+  ],
+  "dlc_primary": [
+    {"name": "Curse", "effect": "enemies may spawn cursed (+25% damage, +15% speed, +150% HP, +2% HP per Curse point, 33% extra materials); shop items may gain curse buffs; cannot be negative", "limit": "caps: 50% cursed enemies, 15% cursed items; HP scaling maxes at 300 Curse"}
+  ],
+  "secondary": [
+    {"name": "Consumable Heal", "effect": "changes healing from consumables"},
+    {"name": "% Materials Healing", "effect": "chance to heal 1 HP on picking up materials (Cute Monkey only)"},
+    {"name": "% XP Gain", "effect": "changes all XP earned"},
+    {"name": "% Pickup Range", "effect": "changes range for picking up materials and consumables"},
+    {"name": "% Items Price", "effect": "changes shop prices"},
+    {"name": "% Explosion Damage", "effect": "changes explosion damage"},
+    {"name": "% Explosion Size", "effect": "changes explosion size"},
+    {"name": "Bounces", "effect": "adds projectile bounces"},
+    {"name": "Piercing", "effect": "adds projectile pierces"},
+    {"name": "% Piercing Damage", "effect": "changes piercing damage falloff for projectiles"},
+    {"name": "% Damage against Bosses", "effect": "multiplies damage vs Bosses and Elites"},
+    {"name": "% Structure Attack Speed", "effect": "changes turret fire rate, Landmine spawns, and Garden consumable spawns"},
+    {"name": "Structure Range", "effect": "changes structure range (Builder only)"},
+    {"name": "% Burning Speed", "effect": "changes Burn tick rate"},
+    {"name": "Burning Spread", "effect": "increases Burn spread count"},
+    {"name": "Knockback", "effect": "changes knockback distance on hit"},
+    {"name": "% Double Material Chance", "effect": "chance to gain double materials on pickup"},
+    {"name": "Free Rerolls", "effect": "free rerolls at the start of each shop"},
+    {"name": "Trees", "effect": "increases Tree spawns"},
+    {"name": "% Enemies", "effect": "changes enemy spawn count"},
+    {"name": "% Enemy Speed", "effect": "changes enemy speed"},
+    {"name": "% Reroll Price", "effect": "changes reroll cost in shop and upgrades"}
+  ]
+}

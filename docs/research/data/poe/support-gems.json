@@ -1,0 +1,562 @@
+{
+  "source": [
+    "https://www.poewiki.net/w/api.php?action=cargoquery&format=json&tables=skill_gems&fields=_pageName=Page,skill_id,gem_tags,max_level,primary_attribute,is_vaal_skill_gem,support_gem_letter",
+    "https://www.poewiki.net/w/api.php?action=cargoquery&format=json&tables=skill&fields=_pageName=Page,skill_id,active_skill_name,is_support,stat_text,description&where=is_support='1'",
+    "https://www.poewiki.net/w/api.php?action=cargoquery&format=json&tables=skill_levels&fields=_pageName=Page,level,cost_multiplier,stat_text,mana_reservation_percent&where=level='20'",
+    "https://www.poewiki.net/wiki/Special:CargoTables/skill_gems",
+    "https://www.poewiki.net/wiki/Added_Fire_Damage_Support"
+  ],
+  "fetched": "2026-10-12",
+  "licence_note": "Wiki text is CC BY-NC-SA 3.0 (footer link licenses/by-nc-sa/3.0/). Game IP is owned by Grinding Gear Games. Internal design reference only.",
+  "notes": [
+    "Selection: 40 non-awakened, non-Vaal support gems across damage, area, projectile, duration, chain and pierce. Pierce has one standard support (Pierce Support). No other support in the data has 'Pierce' in its name or tags.",
+    "mana_multiplier_pct is taken from the wiki field skill_levels.cost_multiplier at level 20. Only 2 of 235 level-20 support rows carry that field (Arrogance Support 201; Awakened Enlighten Support 44), so none of the 40 has a stated mana multiplier.",
+    "Numbers are the wiki stat lines at level 20. Ranges shown as (a to b) are kept exactly as the source writes them; the source does not state the meaning of each end.",
+    "Patch/version of the data is the wiki state on 2026-10-12; the wiki does not pin a game version in these tables."
+  ],
+  "supports": [
+    {
+      "name": "Added Fire Damage Support",
+      "category": "damage",
+      "skill_id": "SupportAddedFireDamage",
+      "tags": [
+        "Fire",
+        "Physical",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "Gives supported skills extra Fire Damage equal to 39% of their Physical Damage.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Added_Fire_Damage_Support"
+    },
+    {
+      "name": "Added Cold Damage Support",
+      "category": "damage",
+      "skill_id": "SupportAddedColdDamage",
+      "tags": [
+        "Cold",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "Adds 152 to 228 Cold Damage to supported skills (level-20 stat line).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Added_Cold_Damage_Support"
+    },
+    {
+      "name": "Added Lightning Damage Support",
+      "category": "damage",
+      "skill_id": "SupportAddedLightningDamage",
+      "tags": [
+        "Lightning",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "Adds 19 to 358 Lightning Damage to supported skills (level-20 stat line; wide range).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Added_Lightning_Damage_Support"
+    },
+    {
+      "name": "Added Chaos Damage Support",
+      "category": "damage",
+      "skill_id": "SupportAddedChaosDamage",
+      "tags": [
+        "Chaos",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "Adds 154 to 231 Chaos Damage to supported skills (level-20 stat line).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Added_Chaos_Damage_Support"
+    },
+    {
+      "name": "Melee Physical Damage Support",
+      "category": "damage",
+      "skill_id": "SupportMeleePhysicalDamage",
+      "tags": [
+        "Melee",
+        "Physical",
+        "Support",
+        "Attack"
+      ],
+      "max_level": 20,
+      "modifies": "+49% more Melee Physical Damage; also +49% more damage with Bleeding and Poison from melee hits.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Melee_Physical_Damage_Support"
+    },
+    {
+      "name": "Brutality Support",
+      "category": "damage",
+      "skill_id": "SupportBrutality",
+      "tags": [
+        "Physical",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "+39% more Physical Damage.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Brutality_Support"
+    },
+    {
+      "name": "Increased Critical Damage Support",
+      "category": "damage",
+      "skill_id": "SupportIncreasedCriticalDamage",
+      "tags": [
+        "Critical",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "+138% to Critical Strike Multiplier.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Increased_Critical_Damage_Support"
+    },
+    {
+      "name": "Increased Critical Strikes Support",
+      "category": "damage",
+      "skill_id": "SupportIncreasedCriticalStrikes",
+      "tags": [
+        "Critical",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "+117% increased Critical Strike Chance.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Increased_Critical_Strikes_Support"
+    },
+    {
+      "name": "Elemental Damage with Attacks Support",
+      "category": "damage",
+      "skill_id": "SupportElementalDamageWithAttacks",
+      "tags": [
+        "Attack",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "Supported attack skills deal 34% more Elemental Damage.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Elemental_Damage_with_Attacks_Support"
+    },
+    {
+      "name": "Burning Damage Support",
+      "category": "damage",
+      "skill_id": "SupportBurningDamage",
+      "tags": [
+        "Fire",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "+34% more Burning Damage.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Burning_Damage_Support"
+    },
+    {
+      "name": "Combustion Support",
+      "category": "damage",
+      "skill_id": "SupportCombustion",
+      "tags": [
+        "Fire",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "+19% more Fire Damage.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Combustion_Support"
+    },
+    {
+      "name": "Cold Penetration Support",
+      "category": "damage",
+      "skill_id": "SupportColdPenetration",
+      "tags": [
+        "Cold",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "Penetrates 34% Cold Resistance.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Cold_Penetration_Support"
+    },
+    {
+      "name": "Fire Penetration Support",
+      "category": "damage",
+      "skill_id": "SupportFirePenetration",
+      "tags": [
+        "Fire",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "Penetrates 34% Fire Resistance.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Fire_Penetration_Support"
+    },
+    {
+      "name": "Controlled Destruction Support",
+      "category": "damage",
+      "skill_id": "SupportControlledDestruction",
+      "tags": [
+        "Spell",
+        "Critical",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "+39% more Spell Damage (attack skills or damaging spells).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Controlled_Destruction_Support"
+    },
+    {
+      "name": "Increased Area of Effect Support",
+      "category": "area",
+      "skill_id": "SupportIncreasedAreaOfEffect",
+      "tags": [
+        "Support",
+        "AoE"
+      ],
+      "max_level": 20,
+      "modifies": "+49% increased Area of Effect.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Increased_Area_of_Effect_Support"
+    },
+    {
+      "name": "Concentrated Effect Support",
+      "category": "area",
+      "skill_id": "SupportConcentratedEffect",
+      "tags": [
+        "Support",
+        "AoE"
+      ],
+      "max_level": 20,
+      "modifies": "+39% more Area Damage.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Concentrated_Effect_Support"
+    },
+    {
+      "name": "Melee Splash Support",
+      "category": "area",
+      "skill_id": "SupportMeleeSplash",
+      "tags": [
+        "Support",
+        "Melee",
+        "Attack",
+        "Strike",
+        "AoE"
+      ],
+      "max_level": 20,
+      "modifies": "+57% more Melee Splash Area of Effect; melee strikes splash around each target.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Melee_Splash_Support"
+    },
+    {
+      "name": "Pulverise Support",
+      "category": "area",
+      "skill_id": "SupportPulverise",
+      "tags": [
+        "AoE",
+        "Support",
+        "Melee",
+        "Attack"
+      ],
+      "max_level": 20,
+      "modifies": "+34% increased Area of Effect and +49% more Melee Area Damage (melee attacks only).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Pulverise_Support"
+    },
+    {
+      "name": "Blasphemy Support",
+      "category": "area",
+      "skill_id": "SupportBlasphemy",
+      "tags": [
+        "Support",
+        "Hex",
+        "Aura"
+      ],
+      "max_level": 20,
+      "modifies": "Turns supported curse (hex) skills into auras; +76% Area of Effect of supported curses.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Blasphemy_Support"
+    },
+    {
+      "name": "Spell Cascade Support",
+      "category": "area",
+      "skill_id": "SupportSpellCascade",
+      "tags": [
+        "AoE",
+        "Spell",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "-16% Area of Effect and -31% damage (stat line; cascade mechanics are in the skill description).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Spell_Cascade_Support"
+    },
+    {
+      "name": "Intensify Support",
+      "category": "area",
+      "skill_id": "SupportIntensify",
+      "tags": [
+        "AoE",
+        "Spell",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "+49% increased Area of Effect; supported spells gain Intensity on cast (up to 3). Stat line truncated in source.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Intensify_Support"
+    },
+    {
+      "name": "Fork Support",
+      "category": "projectile",
+      "skill_id": "SupportFork",
+      "tags": [
+        "Support",
+        "Projectile"
+      ],
+      "max_level": 20,
+      "modifies": "Projectiles fork into two on first hit and do not pierce; (-10 to 9)% more Projectile Damage (range as in source).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Fork_Support"
+    },
+    {
+      "name": "Greater Fork Support",
+      "category": "projectile",
+      "skill_id": "SupportGreaterFork",
+      "tags": [
+        "Exceptional",
+        "Support",
+        "Projectile"
+      ],
+      "max_level": 3,
+      "modifies": "Projectiles fork into two on the first two hits and do not pierce (description; no stat line).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Greater_Fork_Support"
+    },
+    {
+      "name": "Greater Multiple Projectiles Support",
+      "category": "projectile",
+      "skill_id": "SupportGreaterMultipleProjectiles",
+      "tags": [
+        "Support",
+        "Projectile"
+      ],
+      "max_level": 20,
+      "modifies": "Supported skills fire 4 additional projectiles; (35 to 26)% less Projectile Damage (range as in source).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Greater_Multiple_Projectiles_Support"
+    },
+    {
+      "name": "Multiple Projectiles Support",
+      "category": "projectile",
+      "skill_id": "SupportLesserMultipleProjectiles",
+      "tags": [
+        "Support",
+        "Projectile"
+      ],
+      "max_level": 20,
+      "modifies": "6% less Projectile Damage. Extra projectile count is not stated in the source text.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Multiple_Projectiles_Support"
+    },
+    {
+      "name": "Faster Projectiles Support",
+      "category": "projectile",
+      "skill_id": "SupportFasterProjectiles",
+      "tags": [
+        "Support",
+        "Projectile"
+      ],
+      "max_level": 20,
+      "modifies": "+69% increased Projectile Speed; +29% increased Projectile Damage.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Faster_Projectiles_Support"
+    },
+    {
+      "name": "Slower Projectiles Support",
+      "category": "projectile",
+      "skill_id": "SupportSlowerProjectiles",
+      "tags": [
+        "Support",
+        "Projectile"
+      ],
+      "max_level": 20,
+      "modifies": "-30% Projectile Speed; +19% more Projectile Damage.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Slower_Projectiles_Support"
+    },
+    {
+      "name": "Volley Support",
+      "category": "projectile",
+      "skill_id": "SupportVolley",
+      "tags": [
+        "Support",
+        "Projectile"
+      ],
+      "max_level": 20,
+      "modifies": "3% less Projectile Damage; projectiles fired from the user (not spirals).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Volley_Support"
+    },
+    {
+      "name": "Greater Volley Support",
+      "category": "projectile",
+      "skill_id": "SupportGreaterVolley",
+      "tags": [
+        "Support",
+        "Projectile"
+      ],
+      "max_level": 20,
+      "modifies": "21% less Projectile Damage; projectiles fired from the user (not spirals).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Greater_Volley_Support"
+    },
+    {
+      "name": "Pinpoint Support",
+      "category": "projectile",
+      "skill_id": "SupportPinpoint",
+      "tags": [
+        "Support",
+        "Projectile",
+        "Spell"
+      ],
+      "max_level": 20,
+      "modifies": "10% less Projectile Damage; player-cast projectile spells only.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Pinpoint_Support"
+    },
+    {
+      "name": "Point Blank Support",
+      "category": "projectile",
+      "skill_id": "SupportPointBlank",
+      "tags": [
+        "Projectile",
+        "Attack",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "+38% increased Projectile Damage.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Point_Blank_Support"
+    },
+    {
+      "name": "Iron Grip Support",
+      "category": "projectile",
+      "skill_id": "SupportIronGrip",
+      "tags": [
+        "Projectile",
+        "Physical",
+        "Support"
+      ],
+      "max_level": 20,
+      "modifies": "+38% increased Projectile Damage; strength's damage bonus also applies to physical projectile damage.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Iron_Grip_Support"
+    },
+    {
+      "name": "Barrage Support",
+      "category": "projectile",
+      "skill_id": "SupportBarrage",
+      "tags": [
+        "Bow",
+        "Attack",
+        "Support",
+        "Projectile"
+      ],
+      "max_level": 20,
+      "modifies": "44% less Damage; projectile attack skills using bows or wands.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Barrage_Support"
+    },
+    {
+      "name": "Less Duration Support",
+      "category": "duration",
+      "skill_id": "SupportLessDuration",
+      "tags": [
+        "Support",
+        "Duration"
+      ],
+      "max_level": 20,
+      "modifies": "+(10 to 19)% more Damage; (40 to 49)% less Skill Effect Duration (range as in source).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Less_Duration_Support"
+    },
+    {
+      "name": "More Duration Support",
+      "category": "duration",
+      "skill_id": "SupportMoreDuration",
+      "tags": [
+        "Support",
+        "Duration"
+      ],
+      "max_level": 20,
+      "modifies": "+39% more Skill Effect Duration.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/More_Duration_Support"
+    },
+    {
+      "name": "Efficacy Support",
+      "category": "duration",
+      "skill_id": "SupportEfficacy",
+      "tags": [
+        "Support",
+        "Duration"
+      ],
+      "max_level": 20,
+      "modifies": "+24% more Damage over Time; +24% increased Skill Effect Duration.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Efficacy_Support"
+    },
+    {
+      "name": "Cursed Ground Support",
+      "category": "duration",
+      "skill_id": "SupportCursedGround",
+      "tags": [
+        "AoE",
+        "Duration",
+        "Support",
+        "Hex"
+      ],
+      "max_level": 20,
+      "modifies": "Supported skills create Cursed Ground with base duration 34 s; stat line partly truncated in source.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Cursed_Ground_Support"
+    },
+    {
+      "name": "Chain Support",
+      "category": "chain",
+      "skill_id": "SupportChain",
+      "tags": [
+        "Support",
+        "Chaining",
+        "Projectile"
+      ],
+      "max_level": 20,
+      "modifies": "+2 chain; (30 to 11)% less Damage with Hits (range as in source).",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Chain_Support"
+    },
+    {
+      "name": "Greater Chain Support",
+      "category": "chain",
+      "skill_id": "SupportGreaterChain",
+      "tags": [
+        "Exceptional",
+        "Support",
+        "Chaining",
+        "Projectile"
+      ],
+      "max_level": 3,
+      "modifies": "+1 chain; 50% more chains; (0 to 30)% increased chaining range.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Greater_Chain_Support"
+    },
+    {
+      "name": "Pierce Support",
+      "category": "pierce",
+      "skill_id": "SupportPierce",
+      "tags": [
+        "Support",
+        "Projectile"
+      ],
+      "max_level": 20,
+      "modifies": "Projectiles from supported skills pierce (2 to 4) additional targets; (0 to 19)% more Projectile Damage.",
+      "mana_multiplier_pct": null,
+      "page": "https://www.poewiki.net/wiki/Pierce_Support"
+    }
+  ]
+}

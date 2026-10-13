@@ -1,0 +1,253 @@
+{
+  "source": [
+    "https://vampire.survivors.wiki/w/Evolution",
+    "https://vampire.survivors.wiki/w/Weapons"
+  ],
+  "fetched": "2026-10-12",
+  "licence": "CC BY-NC-SA 3.0 (vampire.survivors.wiki footer; see weapons.json).",
+  "caveat": "Read via summarising fetch of the rendered Evolution page. Base-game table is complete per the page text. DLC chains are kept as raw page rows because their two-to-two layouts were flattened and the pairings are ambiguous. Spot-check before use. Emerald Diorama rows use the format: base | passive | glimmer -> evolution; 'A / B' = both listed; '(x2)' = two copies listed.",
+  "conditions_general": "Per the page's mechanics section: the base weapon must be fully levelled, and the evolution must come from a qualifying treasure chest.",
+  "base_game": [
+    {
+      "base": "Whip",
+      "catalyst": "Hollow Heart",
+      "evolves_to": "Bloody Tear",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Magic Wand",
+      "catalyst": "Empty Tome",
+      "evolves_to": "Holy Wand",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Knife",
+      "catalyst": "Bracer",
+      "evolves_to": "Thousand Edge",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Axe",
+      "catalyst": "Candelabrador",
+      "evolves_to": "Death Spiral",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Cross",
+      "catalyst": "Clover",
+      "evolves_to": "Heaven Sword",
+      "conditions": "none stated"
+    },
+    {
+      "base": "King Bible",
+      "catalyst": "Spellbinder",
+      "evolves_to": "Unholy Vespers",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Fire Wand",
+      "catalyst": "Spinach",
+      "evolves_to": "Hellfire",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Garlic",
+      "catalyst": "Pummarola",
+      "evolves_to": "Soul Eater",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Santa Water",
+      "catalyst": "Attractorb",
+      "evolves_to": "La Borra",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Runetracer",
+      "catalyst": "Armor",
+      "evolves_to": "NO FUTURE",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Lightning Ring",
+      "catalyst": "Duplicator",
+      "evolves_to": "Thunder Loop",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Pentagram",
+      "catalyst": "Crown",
+      "evolves_to": "Gorgeous Moon",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Gatti Amari",
+      "catalyst": "Stone Mask",
+      "evolves_to": "Vicious Hunger",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Song of Mana",
+      "catalyst": "Skull O'Maniac",
+      "evolves_to": "Mannajja",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Shadow Pinion",
+      "catalyst": "Wings",
+      "evolves_to": "Valkyrie Turner",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Clock Lancet",
+      "catalyst": "Silver Ring or Gold Ring",
+      "evolves_to": "Infinite Corridor",
+      "conditions": "passive at max level"
+    },
+    {
+      "base": "Laurel",
+      "catalyst": "Metaglio Left or Metaglio Right",
+      "evolves_to": "Crimson Shroud",
+      "conditions": "passive at max level"
+    },
+    {
+      "base": "Bracelet",
+      "catalyst": null,
+      "evolves_to": "Bi-Bracelet",
+      "conditions": "no passive needed"
+    },
+    {
+      "base": "Bi-Bracelet",
+      "catalyst": null,
+      "evolves_to": "Tri-Bracelet",
+      "conditions": "no passive needed"
+    },
+    {
+      "base": "Pako Battiliar",
+      "catalyst": "Hollow Heart",
+      "evolves_to": "Mazo Familiar",
+      "conditions": "passive at max level"
+    },
+    {
+      "base": "Ammo Appalate",
+      "catalyst": "Bracer",
+      "evolves_to": "Gunastrophe",
+      "conditions": "passive at max level"
+    },
+    {
+      "base": "Unearthly Bolt",
+      "catalyst": "Tirajisú",
+      "evolves_to": "Spirit Disturbance",
+      "conditions": "passive at max level"
+    },
+    {
+      "base": "Flames of Misspell",
+      "catalyst": "Torrona's Box",
+      "evolves_to": "Ashes of Muspell",
+      "conditions": "passive at max level"
+    },
+    {
+      "base": "Glass Fandango",
+      "catalyst": "Wings",
+      "evolves_to": "Celestial Voulge",
+      "conditions": "passive at max level"
+    },
+    {
+      "base": "Penshin Fatcha",
+      "catalyst": null,
+      "evolves_to": "one of Tonno Subito, Tonnado, Tonn'omoto, Tonn'oddeeo, Tonne or Unsurpassed (player's choice)",
+      "conditions": "no passive needed"
+    },
+    {
+      "base": "Santa Javelin",
+      "catalyst": "Clover",
+      "evolves_to": "Seraphic Cry",
+      "conditions": "passive at max level"
+    },
+    {
+      "base": "Gaze of Gaea",
+      "catalyst": "Parm Aegis",
+      "evolves_to": "Embrace of Gaea",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Magi-Stone",
+      "catalyst": "Karoma's Mana",
+      "evolves_to": "Kyra-Stones",
+      "conditions": "none stated"
+    },
+    {
+      "base": "Phas3r",
+      "catalyst": "Empty Tome",
+      "evolves_to": "Photonstorm",
+      "conditions": "passive at max level"
+    },
+    {
+      "base": "Chaos Rune",
+      "catalyst": "Spellbinder",
+      "evolves_to": "Wicked Ruler",
+      "conditions": "passive at max level"
+    },
+    {
+      "base": "Penshin Fatcha (endless path)",
+      "catalyst": null,
+      "evolves_to": "Miracle of Multiplication",
+      "conditions": "page says 6+ evolutions required; exact pairing not clear from the flattened layout"
+    }
+  ],
+  "dlc_raw": {
+    "ode_to_castlevania_chain": [
+      "Tenebris Tonitrus / Keremet Bubbles | Armor (max level) | Keremet Morbus / Hex",
+      "Keremet Morbus / Hex | Skull O'Maniac (max level) | Nightmare / Refectio",
+      "Nightmare / Refectio | Clover (max level) | Sanctuary / Mace",
+      "Sanctuary / Mace | Hollow Heart | Stamazza / Star Flail",
+      "Stamazza / Star Flail | Pummarola (max level) | Moon Rod / Alucard Spear",
+      "Moon Rod / Alucard Spear | Wings | Thunderbolt Spear / Trident",
+      "Thunderbolt Spear / Trident | Duplicator (max level) | Gungnir-Souris / Iron Shield",
+      "Gungnir-Souris / Iron Shield | Parm Aegis | Dark Iron Shield / Guardian's Targe",
+      "Dark Iron Shield / Guardian's Targe | Pummarola | Sacred Beasts Tower Shield / Tyrfing",
+      "Sacred Beasts Tower Shield / Tyrfing | Spinach | Rune Sword / Alucart Sworb",
+      "Rune Sword / Alucart Sworb | none | Alucard Swords / Confodere",
+      "Alucard Swords / Confodere | none | Vol Confodere / Vol Confodere (listed twice on page; ambiguous)",
+      "Vol Confodere / Vol Confodere | none | Melio Confodere / Globus",
+      "Melio Confodere / Globus | Empty Tome (max level) | Nitesco / Optical Shot",
+      "Nitesco / Optical Shot | Karoma's Mana (max level) | Acerbatus / Sonic Dash",
+      "Acerbatus / Sonic Dash | Wings (max level) | Rapidus Fio / Luminatio",
+      "Rapidus Fio / Luminatio | Crown (max level) | Vol Luminatio / Umbra",
+      "Vol Luminatio / Umbra | Attractorb (max level) | Vol Umbra / Pocket Knife",
+      "Vol Umbra / Pocket Knife | Torrona's Box (max level) | Claimh Solais"
+    ],
+    "emerald_diorama_chain": [
+      "Fleuret | none | Crystalline Carve -> Dress Sword",
+      "Dress Sword | none | Shocking Rush -> Espada Ropera / Splashers",
+      "Espada Ropera / Splashers | Spellbinder | Dual Whirlwind -> Pursuant Blades / Super Missile",
+      "Super Missile | none | Ballistic Missiles -> Hydra Cannon (x2)",
+      "Hydra Cannon | none | Artificial Hailstorm -> Hyperion Bazooka / Twin Dragon",
+      "Hyperion Bazooka / Twin Dragon | Karoma's Mana | Gravedigger -> Gekkabijin / Punch",
+      "Gekkabijin / Punch | none | Raksha -> Pressure Point (x2)",
+      "Pressure Point | none | Shenlong Firefist -> Gilded Hand / Kick",
+      "Gilded Hand / Kick | Pummarola | Thunder Kick -> Triangle Kick / Spirit Rings",
+      "Spirit Rings | 5 passives (max level) | none -> Rings of Calamity / Saber Machine Gun",
+      "Saber Machine Gun | none | Shockwave -> Hecaton Machine Gun (x2)",
+      "Hecaton Machine Gun | none | Bombarding Fire -> Divergence / Eagle Gun",
+      "Divergence / Eagle Gun | Spinach | Falconfire -> Pendragon / Town Sword",
+      "Pendragon / Town Sword | none | Swallow Slice -> Lordstar (x2)",
+      "Lordstar | none | Airwave -> Dayblade / Sanguine Star",
+      "Dayblade / Sanguine Star | Stone Mask | Blood Rage -> Blood Chalice / Khukuri",
+      "Blood Chalice / Khukuri | Parm Aegis | Moonfall Slash -> Jetstream / Bullova",
+      "Jetstream / Bullova | Skull O'Maniac | Hell's Fury -> Falconwind / Glaive",
+      "Falconwind / Glaive | none | Divine Lancer -> Feather Spear (x2)",
+      "Feather Spear | none | Stardust -> Lohengrin / Flamberge",
+      "Lohengrin / Flamberge | none | Bull Crush -> Zweihander (x2)",
+      "Zweihander | none | Absetzen -> Galatyn / Emerald Rapture",
+      "Galatyn / Emerald Rapture | Crown | none -> Emerald Wave"
+    ],
+    "ante_chamber_chain": [
+      "Infernolatro | Outer Saboteur | NaneInferno / Gros Michel",
+      "NaneInferno / Gros Michel | Outer Saboteur | Cavendish / Fibonacci Spritz",
+      "Cavendish / Fibonacci Spritz | Outer Saboteur | Royal Flush / Celestial Booster",
+      "Royal Flush / Celestial Booster | Outer Saboteur | Negative Space"
+    ]
+  },
+  "excluded": "Unions (several bases combine into one union, no passive), Gifts and Morphs. Legacy of the Moonspell, Legacy of the Bloodmoon, Tides of the Foscari, Emergency Meeting and Operation Guns evolution tables were flattened and their pairings could not be resolved, so they are not listed here. Emergency Meeting and Operation Guns evolution targets do appear in weapons.json dlc_weapons."
+}

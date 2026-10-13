@@ -1,0 +1,30 @@
+{
+  "source": ["https://brotato.wiki.spellsandguns.com/Weapons"],
+  "fetched": "2026-10-12",
+  "licence": "Footer 'Copyright Policy' link -> https://creativecommons.org/licenses/by-sa/4.0/ (CC BY-SA 4.0).",
+  "revision": "Weapons page lastrevid 8469 (API touched 2026-09-22). Footer last-edit line not read.",
+  "version_note": "Wiki patch pages end at Patch 1.1.2.0; current game reported as 1.1.15 (May 2026). Verify values in-game.",
+  "caveat": "20-weapon sample from the read text: all melee rows (read to Wrench) plus the ranged rows read (to Ghost Scepter). Columns: tiers, scaling and numbers listed in tier order as the wiki shows them (for example II/III/IV). base_damage, attack_speed_s and range use the same ordering. Read via summarising fetch; spot-check.",
+  "weapons": [
+    {"name": "Anchor", "class": "melee", "tiers": "II-IV", "scaling": "Melee 100/125/150% + Curse 75/100/125%", "base_damage": "45/70/110", "attack_speed_s": "1.92/1.86/1.81", "range": "175/200/225"},
+    {"name": "Brick", "class": "melee", "tiers": "I-IV", "scaling": "Melee 50/65/80/100% + Engineering 50/65/80/100%", "base_damage": "30/60/90/120", "attack_speed_s": "1.39 (single value listed)", "range": "150"},
+    {"name": "Cacti Club", "class": "melee", "tiers": "I-IV", "scaling": "Melee 80/85/90/100%", "base_damage": "15/20/35/60", "attack_speed_s": "1.66/1.58/1.51/1.36", "range": "200"},
+    {"name": "Captain's Sword", "class": "melee", "tiers": "III-IV", "scaling": "Melee 100/125% + Curse 100/125%", "base_damage": "50/80", "attack_speed_s": "1.03/0.95", "range": "200"},
+    {"name": "Chainsaw", "class": "melee", "tiers": "III-IV", "scaling": "Melee/Engineering/Life Steal 75/100%", "base_damage": "10/20", "attack_speed_s": "0.53/0.56", "range": "175/200"},
+    {"name": "Circular Saw", "class": "melee", "tiers": "II-IV", "scaling": "Melee 100%", "base_damage": "10/15/25", "attack_speed_s": "0.72/0.67/0.62", "range": "175"},
+    {"name": "Excalibur", "class": "melee", "tiers": "IV", "scaling": "Melee 200% + Max HP 200%", "base_damage": "200", "attack_speed_s": "0.66", "range": "200"},
+    {"name": "Fist", "class": "melee", "tiers": "I-IV", "scaling": "Melee 100%", "base_damage": "8/16/32/64", "attack_speed_s": "0.78/0.73/0.69/0.59", "range": "150"},
+    {"name": "Flaming Brass Knuckles", "class": "melee", "tiers": "II-IV", "scaling": "Melee 100% + burn (Elemental 100%)", "base_damage": "20/40/80", "attack_speed_s": "0.73/0.69/0.59", "range": "150"},
+    {"name": "Hammer", "class": "melee", "tiers": "II-IV", "scaling": "Melee 150/175/200%", "base_damage": "40/75/120", "attack_speed_s": "1.67/1.59/1.50", "range": "175"},
+    {"name": "Spear", "class": "melee", "tiers": "I-IV", "scaling": "Melee 100%", "base_damage": "15/25/40/60", "attack_speed_s": "1.52/1.40/1.28/1.24", "range": "350/375/400/500"},
+    {"name": "Wrench", "class": "melee", "tiers": "I-IV", "scaling": "Melee 100%", "base_damage": "12/16/20/24", "attack_speed_s": "1.70/1.64/1.55/1.49", "range": "175"},
+    {"name": "Blunderbuss", "class": "ranged", "tiers": "II-IV", "scaling": "Ranged 110/135/170%", "base_damage": "22/45/70", "attack_speed_s": "5.2 (single value listed)", "range": "325/350/375"},
+    {"name": "Chain Gun", "class": "ranged", "tiers": "IV", "scaling": "Ranged 100% + Engineering 100%", "base_damage": "2x3", "attack_speed_s": "0.073", "range": "500"},
+    {"name": "Crossbow", "class": "ranged", "tiers": "I-IV", "scaling": "Ranged 50% + Range 10%", "base_damage": "10/12/15/18", "attack_speed_s": "1.13 (single value listed)", "range": "350"},
+    {"name": "Double Barrel Shotgun", "class": "ranged", "tiers": "I-IV", "scaling": "Ranged 80/85/90/100%", "base_damage": "3x4/6x4/9x4/9x6", "attack_speed_s": "1.37/1.28/1.20/1.20", "range": "350"},
+    {"name": "Fireball", "class": "elemental/ranged", "tiers": "II-IV", "scaling": "Elemental 25/50/75%", "base_damage": "5/10/20", "attack_speed_s": "1.12/1.03/0.87", "range": "400/450/500"},
+    {"name": "Flute", "class": "ranged", "tiers": "I-IV", "scaling": "Ranged 50% + Luck 10/15/20/25%", "base_damage": "6/8/11/15", "attack_speed_s": "1.03/0.95/0.87/0.78", "range": "300/325/350/375"},
+    {"name": "Gatling Laser", "class": "ranged", "tiers": "IV", "scaling": "Ranged 100%", "base_damage": "10", "attack_speed_s": "0.073", "range": "500"},
+    {"name": "Ghost Scepter", "class": "ranged", "tiers": "I-IV", "scaling": "Ranged 100%", "base_damage": "10/15/20/30", "attack_speed_s": "0.98/0.93/0.88/0.83", "range": "300/350/400/450"}
+  ]
+}

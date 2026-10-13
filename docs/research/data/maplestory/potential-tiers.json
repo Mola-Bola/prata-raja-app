@@ -1,0 +1,119 @@
+{
+  "source": [
+    "https://maplestorywiki.net/w/Potential"
+  ],
+  "fetched": "2026-10-12",
+  "page_last_edited": "12 October 2026",
+  "licence_note": "MapleStory Wiki footer: CC BY-NC-SA. Internal reference only.",
+  "notes": [
+    "Equipment starts with Rare Potential most of the time. A small chance starts at a higher rank (Potential page).",
+    "Each (Bonus) Potential has at most three random stat lines. The first line is usually a prime line; the second and third can be prime at a much lower chance.",
+    "Bonus Potential is a separate pool that stacks with regular Potential. It is available only on Regular and Interactive worlds (per page).",
+    "The Auto Enhancement System is not available in GMS (per page). Reset systems listed as KMS-only are not in GMS.",
+    "Retired Potential Stamps are not included."
+  ],
+  "ranks": [
+    {
+      "rank": "Rare",
+      "outline": "blue",
+      "order": 1
+    },
+    {
+      "rank": "Epic",
+      "outline": "purple",
+      "order": 2
+    },
+    {
+      "rank": "Unique",
+      "outline": "yellow",
+      "order": 3
+    },
+    {
+      "rank": "Legendary",
+      "outline": "green",
+      "order": 4
+    }
+  ],
+  "lines_per_item_max": 3,
+  "max_stat_percent_by_equipment_level": [
+    {
+      "equipment_level": "0-30",
+      "Rare": 1,
+      "Epic": 2,
+      "Unique": 3,
+      "Legendary": 6
+    },
+    {
+      "equipment_level": "31-70",
+      "Rare": 2,
+      "Epic": 4,
+      "Unique": 6,
+      "Legendary": 9
+    },
+    {
+      "equipment_level": "71-150",
+      "Rare": 3,
+      "Epic": 6,
+      "Unique": 9,
+      "Legendary": 12
+    },
+    {
+      "equipment_level": "151+",
+      "Rare": 4,
+      "Epic": 7,
+      "Unique": 10,
+      "Legendary": 13
+    }
+  ],
+  "max_stat_percent_meaning": "Largest percentage bonus a single line can roll for that rank and equipment level (page table \"Maximum Stat% Based on Equipment Level\").",
+  "rank_up_guaranteed_reset_counts": {
+    "note": "Resets needed for a guaranteed rank up, from the page table. KMS and MSEA only; not GMS.",
+    "columns": [
+      "KMS Potential Reset System / Black Cube / Prime Cube",
+      "MSEA Regular Cube",
+      "MSEA Choice Cube",
+      "KMS Bonus Potential Reset System",
+      "KMS White Cube / Prime Bonus Cube",
+      "MSEA Regular Additional Cube",
+      "MSEA Choice Additional Cube"
+    ],
+    "rows": [
+      {
+        "step": "Rare to Epic",
+        "values": [
+          10,
+          50,
+          20,
+          62,
+          31,
+          60,
+          60
+        ]
+      },
+      {
+        "step": "Epic to Unique",
+        "values": [
+          42,
+          150,
+          80,
+          152,
+          76,
+          150,
+          150
+        ]
+      },
+      {
+        "step": "Unique to Legendary",
+        "values": [
+          107,
+          1000,
+          200,
+          214,
+          214,
+          400,
+          400
+        ]
+      }
+    ]
+  }
+}

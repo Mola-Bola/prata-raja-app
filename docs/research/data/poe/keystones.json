@@ -1,0 +1,287 @@
+{
+  "source": [
+    "https://www.poewiki.net/w/api.php?action=cargoquery&format=json&tables=passive_skills&fields=_pageName=Page,name,is_keystone,stat_text,stat_text_raw&where=is_keystone='1'",
+    "https://www.poewiki.net/w/api.php?action=cargoquery&format=json&tables=passive_skills&fields=_pageName=Page,name,is_keystone,ascendancy_class,is_atlas_passive,is_expansion,is_genesis_passive,alternate_tree,descendancy_class,is_anointment_only,stat_text&where=is_keystone='1'",
+    "https://www.poewiki.net/wiki/Special:CargoTables/passive_skills"
+  ],
+  "fetched": "2026-10-12",
+  "licence_note": "Wiki text CC BY-NC-SA 3.0; game IP Grinding Gear Games. Internal reference only.",
+  "notes": [
+    "rule_change is the wiki stat line for the keystone, with wiki link markup removed and line breaks shown as \" / \". It is a stat summary, not a prose description.",
+    "Filter: main passive tree only. Excluded: atlas, expansion, genesis, anointment-only, alternate-tree (Abyss, Karui, Maraketh, Templar, Vaal, Eternal, Kalguuran) and ascendancy nodes. Counts excluded: {\"alternate-tree:AbyssGhastly\": 1, \"alternate-tree:AbyssHypnotic\": 1, \"alternate-tree:AbyssMurderous\": 1, \"alternate-tree:AbyssSearching\": 1, \"expansion\": 8, \"atlas\": 53, \"anointment-only\": 1, \"alternate-tree:Eternal\": 4, \"genesis\": 5, \"alternate-tree:Kalguuran\": 3, \"alternate-tree:Karui\": 4, \"alternate-tree:Maraketh\": 4, \"alternate-tree:Templar\": 4, \"alternate-tree:Vaal\": 4}.",
+    "Empty rule_change (null) means the wiki table has no stat line for that node: Mortal Conviction, Phase Acrobatics, Vaal Carnage, Vaal Dominion.",
+    "Duplicate wiki rows (variants) were collapsed by keystone name."
+  ],
+  "keystones": [
+    {
+      "name": "Acrobatics",
+      "rule_change": "Modifiers to Chance to Suppress Spell Damage instead apply to Chance to Dodge Spell Hits at 50% of their value / Maximum Chance to Dodge Spell Hits is 75%",
+      "wiki_page_key": "Passive Skill:Acrobatics1136"
+    },
+    {
+      "name": "Arrow Dancing",
+      "rule_change": "Evasion Rating is Doubled against Projectile Attacks / 25% less Evasion Rating against Melee Attacks",
+      "wiki_page_key": "Passive Skill:Arrow~dodging1183"
+    },
+    {
+      "name": "Avatar of Fire",
+      "rule_change": "50% of Physical, Cold and Lightning Damage Converted to Fire Damage / Deal no Non-Fire Damage",
+      "wiki_page_key": "Passive Skill:Avatar~of~fire1543"
+    },
+    {
+      "name": "Crimson Dance",
+      "rule_change": "You can inflict Bleeding on an Enemy up to 8 times / Your Bleeding does not deal extra Damage while the Enemy is moving and cannot be Aggravated / 50% less Damage with Bleeding",
+      "wiki_page_key": "Passive Skill:Bleed~stack~keystone2187"
+    },
+    {
+      "name": "Blood Magic",
+      "rule_change": "Removes all mana / 10% more maximum Life / Skills Cost Life instead of Mana / Skills Reserve Life instead of Mana",
+      "wiki_page_key": "Passive Skill:Blood~magic1143"
+    },
+    {
+      "name": "Call to Arms",
+      "rule_change": "Your Warcries do not grant Buffs or Charges to You / 100% more Warcry Duration",
+      "wiki_page_key": "Passive Skill:Call~to~arms~keystone2691"
+    },
+    {
+      "name": "Chaos Inoculation",
+      "rule_change": "Maximum Life becomes 1, Immune to Chaos Damage",
+      "wiki_page_key": "Passive Skill:Chaos~inoculation1141"
+    },
+    {
+      "name": "Conduit",
+      "rule_change": "Share Endurance, Frenzy and Power Charges with nearby party members",
+      "wiki_page_key": "Passive Skill:Conduit1135"
+    },
+    {
+      "name": "Perfect Agony",
+      "rule_change": "Damage over Time Multiplier for Ailments is equal to Critical Strike Multiplier / Critical Strikes do not deal extra Damage / Non-Critical Strikes cannot inflict Ailments",
+      "wiki_page_key": "Passive Skill:Damage~ailment~critical~keystone~2182"
+    },
+    {
+      "name": "Magebane",
+      "rule_change": "Dexterity provides no inherent bonus to Evasion Rating / +1% Chance to Suppress Spell Damage per 15 Dexterity",
+      "wiki_page_key": "Passive Skill:Deaden~keystone2849"
+    },
+    {
+      "name": "Eldritch Battery",
+      "rule_change": "Spend Energy Shield before Mana for Skill Mana Costs / Energy Shield protects Mana instead of Life / 50% less Energy Shield Recharge Rate",
+      "wiki_page_key": "Passive Skill:Eldritch~battery1142"
+    },
+    {
+      "name": "Bitter Frost",
+      "rule_change": "Enemies Chilled by your Hits have Cold Damage taken increased by Chill Effect / Enemies in your Chilling Areas have Cold Damage taken increased by Chill Effect / Cannot deal non-Cold Damage",
+      "wiki_page_key": "Passive Skill:Elementalist~cold~keystone~2990"
+    },
+    {
+      "name": "Voracious Flame",
+      "rule_change": "You can inflict an additional Ignite on each Enemy / Base Ignite Duration is 1 second / 25% less Damage with Ignite / Cannot deal non-Fire Damage",
+      "wiki_page_key": "Passive Skill:Elementalist~fire~keystone~2989~"
+    },
+    {
+      "name": "Roiling Tempest",
+      "rule_change": "25% more Maximum Lightning Damage / 50% less Minimum Lightning Damage / Cannot deal non-Lightning Damage",
+      "wiki_page_key": "Passive Skill:Elementalist~lightning~keystone~2991"
+    },
+    {
+      "name": "Elemental Equilibrium",
+      "rule_change": "Hits that deal Elemental Damage remove Exposure to those Elements and inflict Exposure to other Elements / Exposure inflicted this way applies -25% to Resistances",
+      "wiki_page_key": "Passive Skill:Elemental~equilibrium1177"
+    },
+    {
+      "name": "Elemental Overload",
+      "rule_change": "Skills that have dealt a Critical Strike in the past 8 seconds deal 40% more Elemental Damage with Hits and Ailments / Your Critical Strikes do not deal extra Damage / Ailments never count as being from Critical Strikes",
+      "wiki_page_key": "Passive Skill:Elemental~overload~keystone2152"
+    },
+    {
+      "name": "Divine Shield",
+      "rule_change": "Cannot Recover Energy Shield to above Armour / 3% of Physical Damage prevented from Hits Recently is Regenerated as Energy Shield per second",
+      "wiki_page_key": "Passive Skill:Energised~fortress~keystone2853"
+    },
+    {
+      "name": "Eternal Youth",
+      "rule_change": "50% less Life Regeneration Rate / 50% less maximum Total Life Recovery per Second from Leech / Energy Shield Recharge instead applies to Life",
+      "wiki_page_key": "Passive Skill:Eternal~youth~keytone2692"
+    },
+    {
+      "name": "Ghost Dance",
+      "rule_change": "Cannot Recover Energy Shield to above Evasion Rating / Every 2 seconds, gain a Ghost Shroud, up to a maximum of 3 / When Hit, lose a Ghost Shroud to Recover Energy Shield equal to 3% of your Evasion Rating",
+      "wiki_page_key": "Passive Skill:Ghost~dance~keystone2852~"
+    },
+    {
+      "name": "Ghost Reaver",
+      "rule_change": "Leech Energy Shield instead of Life / Maximum total Energy Shield Recovery per second from Leech is doubled / Cannot Recharge Energy Shield",
+      "wiki_page_key": "Passive Skill:Ghost~reaver1306"
+    },
+    {
+      "name": "Glancing Blows",
+      "rule_change": "Chance to Block Attack Damage is doubled / Chance to Block Spell Damage is doubled / You take 65% of Damage from Blocked Hits",
+      "wiki_page_key": "Passive Skill:Glancing~blows~keystone2693"
+    },
+    {
+      "name": "Hex Master",
+      "rule_change": "Your Hexes have infinite Duration / 20% less Effect of your Curses",
+      "wiki_page_key": "Passive Skill:Hex~zone~keystone2800~"
+    },
+    {
+      "name": "The Impaler",
+      "rule_change": "When your Hits Impale Enemies, also Impale other Enemies near them / Inflict 5 additional Impales on Enemies you Impale / For 5 seconds after you Impale Enemies, they cannot be Impaled again, and Impales cannot be Called from them",
+      "wiki_page_key": "Passive Skill:Impaler~keystone2780"
+    },
+    {
+      "name": "Iron Grip",
+      "rule_change": "Strength's Damage bonus applies to Projectile Attack Damage as well as Melee Damage",
+      "wiki_page_key": "Passive Skill:Iron~grip1181"
+    },
+    {
+      "name": "Iron Reflexes",
+      "rule_change": "Converts all Evasion Rating to Armour. Dexterity provides no bonus to Evasion Rating",
+      "wiki_page_key": "Passive Skill:Iron~reflexes1137"
+    },
+    {
+      "name": "Iron Will",
+      "rule_change": "Strength's Damage bonus applies to all Spell Damage as well",
+      "wiki_page_key": "Passive Skill:Iron~will~keystone2850"
+    },
+    {
+      "name": "Bloodsoaked Blade",
+      "rule_change": "Tinctures inflict Weeping Wounds instead of Mana Burn / Effects that interact with Mana Burn interact with Weeping Wounds instead",
+      "wiki_page_key": "Passive Skill:Keystone~bloodsoaked~blade"
+    },
+    {
+      "name": "Zealot's Oath",
+      "rule_change": "Life Regeneration is applied to Energy Shield instead",
+      "wiki_page_key": "Passive Skill:Keystone~life~regen~to~ES~regen1469"
+    },
+    {
+      "name": "Arsenal of Vengeance",
+      "rule_change": "Damaging Retaliation Skills become Usable every sixth Hit from Enemies instead",
+      "wiki_page_key": "Passive Skill:Keystone~retaliation~hits"
+    },
+    {
+      "name": "DAMAGE FROM MANA",
+      "rule_change": "1% increased Spell Damage while not on Low Mana",
+      "wiki_page_key": "Passive Skill:Mana~damage~keystone2169"
+    },
+    {
+      "name": "Mind Over Matter",
+      "rule_change": "40% of Damage is taken from Mana before Life",
+      "wiki_page_key": "Passive Skill:Mana~shield1544"
+    },
+    {
+      "name": "Minion Instability",
+      "rule_change": "Minions Explode when reduced to Low Life, dealing 33% of their Life as Fire Damage to surrounding Enemies",
+      "wiki_page_key": "Passive Skill:Minion~instability1133"
+    },
+    {
+      "name": "Mortal Conviction",
+      "rule_change": null,
+      "wiki_page_key": "Passive Skill:Mortal~conviction~keystone2348"
+    },
+    {
+      "name": "Necromantic Aegis",
+      "rule_change": "All bonuses from an Equipped Shield apply to your Minions instead of you",
+      "wiki_page_key": "Passive Skill:Necromantic~aegis1175"
+    },
+    {
+      "name": "Ancestral Bond",
+      "rule_change": "You can't deal Damage with Skills yourself / +1 to maximum number of Summoned Totems",
+      "wiki_page_key": "Passive Skill:Number~of~totems~allowed1269"
+    },
+    {
+      "name": "Pain Attunement",
+      "rule_change": "30% more Spell Damage when on Low Life",
+      "wiki_page_key": "Passive Skill:Pain~attunement1178"
+    },
+    {
+      "name": "Phase Acrobatics",
+      "rule_change": null,
+      "wiki_page_key": "Passive Skill:Phase~acrobatics1184"
+    },
+    {
+      "name": "Point Blank",
+      "rule_change": "Projectile Attack Hits deal up to 30% more Damage to targets at the start of their movement, dealing less Damage to targets as the projectile travels farther",
+      "wiki_page_key": "Passive Skill:Point~blank1182"
+    },
+    {
+      "name": "POWER CHARGE",
+      "rule_change": "3% more Spell Damage per Power Charge / Gain Power Charges instead of Frenzy Charges",
+      "wiki_page_key": "Passive Skill:Power~charge~keystone2172"
+    },
+    {
+      "name": "Solipsism",
+      "rule_change": "Intelligence provides no inherent bonus to Energy Shield / 2% reduced Duration of Elemental Ailments on you per 15 Intelligence",
+      "wiki_page_key": "Passive Skill:Resilience~keystone2851~"
+    },
+    {
+      "name": "Resolute Technique",
+      "rule_change": "Your hits can't be Evaded / Never deal Critical Strikes",
+      "wiki_page_key": "Passive Skill:Resolute~technique1138"
+    },
+    {
+      "name": "Lethe Shade",
+      "rule_change": "Take 50% less Damage over Time if you've started taking Damage over Time in the past second / 100% more Duration of Ailments on you",
+      "wiki_page_key": "Passive Skill:Respite~keystone2855"
+    },
+    {
+      "name": "Imbalanced Guard",
+      "rule_change": "100% chance to Defend with 200% of Armour / Maximum Damage Reduction for any Damage Type is 50%",
+      "wiki_page_key": "Passive Skill:Sacred~bastion~keystone2779"
+    },
+    {
+      "name": "Runebinder",
+      "rule_change": "-1 to maximum number of Summoned Totems / You can have an additional Brand Attached to an Enemy",
+      "wiki_page_key": "Passive Skill:Sigil~totem~keystone"
+    },
+    {
+      "name": "Supreme Ego",
+      "rule_change": "Auras from your Skills can only affect you / Aura Skills have 1% more Aura Effect per 2% of maximum Mana they Reserve / 40% more Mana Reservation of Aura Skills",
+      "wiki_page_key": "Passive Skill:Supreme~ego~keystone2696"
+    },
+    {
+      "name": "The Agnostic",
+      "rule_change": "Removes all Energy Shield / While not on Full Life, Sacrifice 20% of Mana per Second to Recover that much Life",
+      "wiki_page_key": "Passive Skill:The~agnostic~keystone2695"
+    },
+    {
+      "name": "Unwavering Stance",
+      "rule_change": "Cannot Evade enemy Attacks / Cannot be Stunned",
+      "wiki_page_key": "Passive Skill:Unwavering~stance1139"
+    },
+    {
+      "name": "Vaal Carnage",
+      "rule_change": null,
+      "wiki_page_key": "Passive Skill:Vaal~attack~keystone~2193"
+    },
+    {
+      "name": "Vaal Pact",
+      "rule_change": "Life Leech from Melee Damage is Instant / Cannot Recover Life other than from Leech",
+      "wiki_page_key": "Passive Skill:Vaal~pact1420"
+    },
+    {
+      "name": "Vaal Dominion",
+      "rule_change": null,
+      "wiki_page_key": "Passive Skill:Vaal~spell~keystone~2194"
+    },
+    {
+      "name": "Precise Technique",
+      "rule_change": "40% more Attack Damage if Accuracy Rating is higher than Maximum Life / Never deal Critical Strikes",
+      "wiki_page_key": "Passive Skill:Verdant~precision~keystone2858"
+    },
+    {
+      "name": "Versatile Combatant",
+      "rule_change": "-10% to maximum Chance to Block Attack Damage / -10% to maximum Chance to Block Spell Damage / +2% Chance to Block Spell Damage for each 1% Overcapped Chance to Block Attack Damage",
+      "wiki_page_key": "Passive Skill:Versatile~combatant~keystone2854"
+    },
+    {
+      "name": "Wicked Ward",
+      "rule_change": "Energy Shield Recharge is not interrupted by Damage if Recharge began Recently / 40% less Energy Shield Recharge Rate",
+      "wiki_page_key": "Passive Skill:Wicked~ward~keystone2342"
+    },
+    {
+      "name": "Wind Dancer",
+      "rule_change": "20% less Attack Damage taken if you haven't been Hit by an Attack Recently / 10% more chance to Evade Attacks if you have been Hit by an Attack Recently / 20% more Attack Damage taken if you have been Hit by an Attack Recently",
+      "wiki_page_key": "Passive Skill:Wind~dancer~keystone2694"
+    }
+  ]
+}

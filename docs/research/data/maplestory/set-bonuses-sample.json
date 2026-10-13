@@ -1,0 +1,526 @@
+{
+  "source": [
+    "https://maplestorywiki.net/w/Equipment_Set",
+    "https://maplestorywiki.net/w/Pitched_Boss_Set",
+    "https://maplestorywiki.net/w/Dawn_Boss_Set",
+    "https://maplestorywiki.net/w/Arcane_Umbra_Set_(Warrior)",
+    "https://maplestorywiki.net/w/AbsoLab_Set_(Warrior)",
+    "https://maplestorywiki.net/w/Root_Abyss_Set_(Warrior)"
+  ],
+  "fetched": "2026-10-12",
+  "licence_note": "MapleStory Wiki footer: CC BY-NC-SA. Set effects are game-stat facts. Internal reference only.",
+  "notes": [
+    "Set names come from the Equipment page list (about 200 set pages).",
+    "set_effect is the bonus granted at that piece count. cumulative is the wiki \"Cumulative Effects\" column: total bonus with all tiers up to that count.",
+    "Kritias Set and Eternal Hero Set pages were fetched, but their tier rows did not parse as a clean table, so they are left out.",
+    "Root Abyss and AbsoLab rows start at 3 pieces on the wiki table. No 2-piece row was captured for them."
+  ],
+  "sets": [
+    {
+      "name": "Pitched Boss Set",
+      "type": "Boss set",
+      "page": "https://maplestorywiki.net/w/Pitched_Boss_Set",
+      "page_last_edited": "4 June 2026",
+      "tiers": [
+        {
+          "pieces": 2,
+          "set_effect": [
+            "All Stats: +10",
+            "Max HP: +250",
+            "Weapon Attack: +10",
+            "Magic Attack: +10",
+            "Boss Damage: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +10",
+            "Max HP: +250",
+            "Weapon Attack: +10",
+            "Magic Attack: +10",
+            "Boss Damage: +10%"
+          ]
+        },
+        {
+          "pieces": 3,
+          "set_effect": [
+            "All Stats: +10",
+            "Max HP: +250",
+            "Weapon Attack: +10",
+            "Magic Attack: +10",
+            "Defense: +250",
+            "Ignored Enemy Defense: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +20",
+            "Max HP: +500",
+            "Weapon Attack: +20",
+            "Magic Attack: +20",
+            "Defense: +250",
+            "Boss Damage: +10%",
+            "Ignored Enemy Defense: +10%"
+          ]
+        },
+        {
+          "pieces": 4,
+          "set_effect": [
+            "All Stats: +15",
+            "Max HP: +375",
+            "Weapon Attack: +15",
+            "Magic Attack: +15",
+            "Critical Damage: +5%"
+          ],
+          "cumulative": [
+            "All Stats: +35",
+            "Max HP: +875",
+            "Weapon Attack: +35",
+            "Magic Attack: +35",
+            "Defense: +250",
+            "Boss Damage: +10%",
+            "Ignored Enemy Defense: +10%",
+            "Critical Damage: +5%"
+          ]
+        },
+        {
+          "pieces": 5,
+          "set_effect": [
+            "All Stats: +15",
+            "Max HP: +375",
+            "Weapon Attack: +15",
+            "Magic Attack: +15",
+            "Boss Damage: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +50",
+            "Max HP: +1,250",
+            "Weapon Attack: +50",
+            "Magic Attack: +50",
+            "Defense: +250",
+            "Boss Damage: +20%",
+            "Ignored Enemy Defense: +10%",
+            "Critical Damage: +5%"
+          ]
+        },
+        {
+          "pieces": 6,
+          "set_effect": [
+            "All Stats: +15",
+            "Max HP: +375",
+            "Weapon Attack: +15",
+            "Magic Attack: +15",
+            "Ignored Enemy Defense: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +65",
+            "Max HP: +1,625",
+            "Weapon Attack: +65",
+            "Magic Attack: +65",
+            "Defense: +250",
+            "Boss Damage: +20%",
+            "Ignored Enemy Defense: +19%",
+            "Critical Damage: +5%"
+          ]
+        },
+        {
+          "pieces": 7,
+          "set_effect": [
+            "All Stats: +15",
+            "Max HP: +375",
+            "Weapon Attack: +15",
+            "Magic Attack: +15",
+            "Critical Damage: +5%"
+          ],
+          "cumulative": [
+            "All Stats: +80",
+            "Max HP: +2,000",
+            "Weapon Attack: +80",
+            "Magic Attack: +80",
+            "Defense: +250",
+            "Boss Damage: +20%",
+            "Ignored Enemy Defense: +19%",
+            "Critical Damage: +10%"
+          ]
+        },
+        {
+          "pieces": 8,
+          "set_effect": [
+            "All Stats: +15",
+            "Max HP: +375",
+            "Weapon Attack: +15",
+            "Magic Attack: +15",
+            "Boss Damage: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +95",
+            "Max HP: +2,375",
+            "Weapon Attack: +95",
+            "Magic Attack: +95",
+            "Defense: +250",
+            "Boss Damage: +30%",
+            "Ignored Enemy Defense: +19%",
+            "Critical Damage: +10%"
+          ]
+        },
+        {
+          "pieces": 9,
+          "set_effect": [
+            "All Stats: +15",
+            "Max HP: +375",
+            "Weapon Attack: +15",
+            "Magic Attack: +15",
+            "Critical Damage: +5%"
+          ],
+          "cumulative": [
+            "All Stats: +110",
+            "Max HP: +2,750",
+            "Weapon Attack: +110",
+            "Magic Attack: +110",
+            "Defense: +250",
+            "Boss Damage: +30%",
+            "Ignored Enemy Defense: +19%",
+            "Critical Damage: +15%"
+          ]
+        },
+        {
+          "pieces": 10,
+          "set_effect": [
+            "All Stats: +20",
+            "Max HP: +500",
+            "Weapon Attack: +20",
+            "Magic Attack: +20",
+            "Boss Damage: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +130",
+            "Max HP: +3,250",
+            "Weapon Attack: +130",
+            "Magic Attack: +130",
+            "Defense: +250",
+            "Boss Damage: +40%",
+            "Ignored Enemy Defense: +19%",
+            "Critical Damage: +15%"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dawn Boss Set",
+      "type": "Boss set",
+      "page": "https://maplestorywiki.net/w/Dawn_Boss_Set",
+      "page_last_edited": "30 March 2026",
+      "tiers": [
+        {
+          "pieces": 2,
+          "set_effect": [
+            "All Stats: +10",
+            "Max HP: +250",
+            "Weapon Attack: +10",
+            "Magic Attack: +10",
+            "Boss Damage: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +10",
+            "Max HP: +250",
+            "Weapon Attack: +10",
+            "Magic Attack: +10",
+            "Boss Damage: +10%"
+          ]
+        },
+        {
+          "pieces": 3,
+          "set_effect": [
+            "All Stats: +10",
+            "Max HP: +250",
+            "Weapon Attack: +10",
+            "Magic Attack: +10"
+          ],
+          "cumulative": [
+            "All Stats: +20",
+            "Max HP: +500",
+            "Weapon Attack: +20",
+            "Magic Attack: +20",
+            "Boss Damage: +10%"
+          ]
+        },
+        {
+          "pieces": 4,
+          "set_effect": [
+            "All Stats: +10",
+            "Max HP: +250",
+            "Weapon Attack: +10",
+            "Magic Attack: +10",
+            "Defense: +100",
+            "Ignored Enemy Defense: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +30",
+            "Max HP: +750",
+            "Weapon Attack: +30",
+            "Magic Attack: +30",
+            "Defense: +100",
+            "Boss Damage: +10%",
+            "Ignored Enemy Defense: +10%"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Arcane Umbra Set (Warrior)",
+      "type": "Class set (Warrior)",
+      "page": "https://maplestorywiki.net/w/Arcane_Umbra_Set_(Warrior)",
+      "page_last_edited": "26 June 2026",
+      "tiers": [
+        {
+          "pieces": 2,
+          "set_effect": [
+            "Weapon Attack: +30",
+            "Magic Attack: +30",
+            "Boss Damage: +10%"
+          ],
+          "cumulative": [
+            "Weapon Attack: +30",
+            "Magic Attack: +30",
+            "Boss Damage: +10%"
+          ],
+          "note": "recovered from page text, not from table parse"
+        },
+        {
+          "pieces": 3,
+          "set_effect": [
+            "Weapon Attack: +30",
+            "Magic Attack: +30",
+            "Defense: +400",
+            "Ignored Enemy Defense: +10%"
+          ],
+          "cumulative": [
+            "Weapon Attack: +60",
+            "Magic Attack: +60",
+            "Defense: +400",
+            "Boss Damage: +10%",
+            "Ignored Enemy Defense: +10%"
+          ]
+        },
+        {
+          "pieces": 4,
+          "set_effect": [
+            "All Stats: +50",
+            "Weapon Attack: +35",
+            "Magic Attack: +35",
+            "Boss Damage: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +50",
+            "Weapon Attack: +95",
+            "Magic Attack: +95",
+            "Defense: +400",
+            "Boss Damage: +20%",
+            "Ignored Enemy Defense: +10%"
+          ]
+        },
+        {
+          "pieces": 5,
+          "set_effect": [
+            "Max HP: +2,000",
+            "Max MP: +2,000",
+            "Weapon Attack: +40",
+            "Magic Attack: +40",
+            "Boss Damage: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +50",
+            "Max HP: +2,000",
+            "Max MP: +2,000",
+            "Weapon Attack: +135",
+            "Magic Attack: +135",
+            "Defense: +200",
+            "Boss Damage: +30%",
+            "Ignored Enemy Defense: +10%"
+          ]
+        },
+        {
+          "pieces": 6,
+          "set_effect": [
+            "Max HP: +30%",
+            "Max MP: +30%",
+            "Weapon Attack: +30",
+            "Magic Attack: +30"
+          ],
+          "cumulative": [
+            "All Stats: +50",
+            "Max HP: +2,000",
+            "Max HP: +30%",
+            "Max MP: +2,000",
+            "Max MP: +30%",
+            "Weapon Attack: +165",
+            "Magic Attack: +165",
+            "Defense: +400",
+            "Boss Damage: +30%",
+            "Ignored Enemy Defense: +10%"
+          ]
+        },
+        {
+          "pieces": 7,
+          "set_effect": [
+            "Weapon Attack: +30",
+            "Magic Attack: +30",
+            "Ignored Enemy Defense: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +50",
+            "Max HP: +2,000",
+            "Max HP: +30%",
+            "Max MP: +2,000",
+            "Max MP: +30%",
+            "Weapon Attack: +195",
+            "Magic Attack: +195",
+            "Defense: +400",
+            "Boss Damage: +30%",
+            "Ignored Enemy Defense: +19%"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AbsoLab Set (Warrior)",
+      "type": "Class set (Warrior)",
+      "page": "https://maplestorywiki.net/w/AbsoLab_Set_(Warrior)",
+      "page_last_edited": "26 June 2026",
+      "tiers": [
+        {
+          "pieces": 3,
+          "set_effect": [
+            "All Stats: +30",
+            "Weapon Attack: +20",
+            "Magic Attack: +20",
+            "Boss Damage: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +30",
+            "Max HP: +1,500",
+            "Max MP: +1,500",
+            "Weapon Attack: +40",
+            "Magic Attack: +40",
+            "Boss Damage: +20%"
+          ]
+        },
+        {
+          "pieces": 4,
+          "set_effect": [
+            "Weapon Attack: +25",
+            "Magic Attack: +25",
+            "Defense: +200",
+            "Ignored Enemy Defense: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +30",
+            "Max HP: +1,500",
+            "Max MP: +1,500",
+            "Weapon Attack: +65",
+            "Magic Attack: +65",
+            "Defense: +200",
+            "Boss Damage: +20%",
+            "Ignored Enemy Defense: +10%"
+          ]
+        },
+        {
+          "pieces": 5,
+          "set_effect": [
+            "Weapon Attack: +30",
+            "Magic Attack: +30",
+            "Boss Damage: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +30",
+            "Max HP: +1,500",
+            "Max MP: +1,500",
+            "Weapon Attack: +95",
+            "Magic Attack: +95",
+            "Defense: +200",
+            "Boss Damage: +30%",
+            "Ignored Enemy Defense: +10%"
+          ]
+        },
+        {
+          "pieces": 6,
+          "set_effect": [
+            "Max HP: +20%",
+            "Max MP: +20%",
+            "Weapon Attack: +20",
+            "Magic Attack: +20"
+          ],
+          "cumulative": [
+            "All Stats: +30",
+            "Max HP: +1,500",
+            "Max HP: +20%",
+            "Max MP: +1,500",
+            "Max MP: +20%",
+            "Weapon Attack: +115",
+            "Magic Attack: +115",
+            "Defense: +200",
+            "Boss Damage: +30%",
+            "Ignored Enemy Defense: +10%"
+          ]
+        },
+        {
+          "pieces": 7,
+          "set_effect": [
+            "Weapon Attack: +20",
+            "Magic Attack: +20",
+            "Ignored Enemy Defense: +10%"
+          ],
+          "cumulative": [
+            "All Stats: +30",
+            "Max HP: +1,500",
+            "Max HP: +20%",
+            "Max MP: +1,500",
+            "Max MP: +20%",
+            "Weapon Attack: +135",
+            "Magic Attack: +135",
+            "Defense: +200",
+            "Boss Damage: +30%",
+            "Ignored Enemy Defense: +19%"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Root Abyss Set (Warrior)",
+      "type": "Class set (Warrior)",
+      "page": "https://maplestorywiki.net/w/Root_Abyss_Set_(Warrior)",
+      "page_last_edited": "26 June 2026",
+      "tiers": [
+        {
+          "pieces": 3,
+          "set_effect": [
+            "Max HP: +10%",
+            "Max MP: +10%",
+            "Weapon Attack: +50"
+          ],
+          "cumulative": [
+            "STR: +20",
+            "DEX: +20",
+            "Max HP: +1,000",
+            "Max HP: +10%",
+            "Max MP: +1,000",
+            "Max MP: +10%",
+            "Weapon Attack: +50"
+          ]
+        },
+        {
+          "pieces": 4,
+          "set_effect": [
+            "Boss Damage: +30%"
+          ],
+          "cumulative": [
+            "STR: +20",
+            "DEX: +20",
+            "Max HP: +1,000",
+            "Max HP: +10%",
+            "Max MP: +1,000",
+            "Max MP: +10%",
+            "Weapon Attack: +50",
+            "Boss Damage: +30%"
+          ]
+        }
+      ]
+    }
+  ]
+}
