@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { CONTENT } from '@/content';
-import { canCook, cook, RECIPES } from '@/meta/recipes';
+import { canCook, cook, RECIPES, recipeKnown } from '@/meta/recipes';
 import { makeRng } from '@/core/rng';
 import { openChest } from '@/meta/chests';
 import { equipItem, itemStats, RARITY_INFO, upgradeCost, upgradeItem } from '@/meta/gear';
@@ -250,7 +250,7 @@ export function RecipeSheet({ save, commit, art }: Ctx) {
       <p>Cook foods to add them to your daydreams.</p>
       {RECIPES.map(recipe => {
         const def = recipe.unlocks.kind === 'bread' ? CONTENT.breads[recipe.unlocks.id] : CONTENT.dips[recipe.unlocks.id];
-        const owned = recipe.unlocks.kind === 'bread' ? save.unlockedBreads.some(id => id === def.id) : save.unlockedDips.some(id => id === def.id);
+        const owned = recipeKnown(save, recipe);
         return (
           <section className="sh-detail" key={recipe.id}>
             <img className="sh-item-art" src={art(def.sprite)} alt="" />

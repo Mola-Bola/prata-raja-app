@@ -45,6 +45,11 @@ export function parseSaveV2(json: unknown): SaveV2 {
   if (raw.v !== 1 && raw.v !== 2) return fresh;
   const base = parseSave(JSON.stringify({ ...raw, v: 1 }));
   const save: SaveV2 = { ...fresh, ...base, v: 2 };
+  if (raw.bossAttempts === undefined) {
+    // Legacy wins prove attempts; reaching the boss wave proves at least one, not one per run.
+    const attempts = Math.max(integer(base.wins), Number(base.bestWave >= CHAPTERS[0].waves.length));
+    if (attempts) save.bossAttempts[CHAPTERS[0].id] = attempts;
+  }
   if (raw.v === 1) {
     save.idle.lastCollectedAt = date(base.lastPlayed);
     return save;

@@ -6,13 +6,16 @@ import type { RunResult } from '../../core/types';
 import { chapterUnlocked } from '../chapters';
 import { computeLoadout } from '../loadout';
 import { freshSaveV2, parseSaveV2 } from '../migrate';
-import { canCook, cook, RECIPES, runPools } from '../recipes';
+import { canCook, cook, RECIPES, recipeKnown, runPools } from '../recipes';
 import { applyRunResult } from '../runRewards';
 import { MATERIALS } from '../types';
 
 const result: RunResult = { chapterId: 'kopitiam-street', bossAttempted: true, won: false, wave: 10, kills: 0, bossKills: 0, time: 400, level: 8, gold: 0, breads: [], dips: [] };
 describe('recipes', () => {
-  it.each(RECIPES)('$id spends its exact costs once, records its unlock, and preserves the input', recipe => {
+  it.each(RECIPES.filter(recipe => {
+    const target = recipe.unlocks;
+    return (target.kind === 'bread' ? CONTENT.breads[target.id] : CONTENT.dips[target.id]).unlock !== 'starter';
+  }))('$id spends its exact costs once, records its unlock, and preserves the input', recipe => {
     const save = freshSaveV2(); save.unlocks.recipeBook = true;
     for (const material of MATERIALS) save.materials[material] = 10;
     const before = JSON.stringify(save);
@@ -22,10 +25,23 @@ describe('recipes', () => {
     for (const material of MATERIALS) expect(next.materials[material]).toBe(10 - (recipe.costs[material] ?? 0));
     const owned = recipe.unlocks.kind === 'bread' ? next.unlockedBreads : next.unlockedDips;
     expect(owned).toContain(recipe.unlocks.id);
+    expect(recipeKnown(next, recipe)).toBe(true);
     expect(canCook(next, recipe.id)).toBe(false);
     expect(cook(next, recipe.id)).toBe(next);
     expect(parseSaveV2(JSON.stringify(next))).toEqual(next);
     const pools = runPools(next, CONTENT);
+    expect(recipe.unlocks.kind === 'bread' ? pools.breadPool : pools.dipPool).toContain(recipe.unlocks.id);
+  });
+  it.each(['rc-roti-bomb', 'rc-condensed-milk'])('%s is already known and never spends ingredients', id => {
+    const save = freshSaveV2(); save.unlocks.recipeBook = true;
+    for (const material of MATERIALS) save.materials[material] = 10;
+    const recipe = RECIPES.find(r => r.id === id)!;
+    const before = JSON.stringify(save);
+    expect(recipeKnown(save, recipe)).toBe(true);
+    expect(canCook(save, id)).toBe(false);
+    expect(cook(save, id)).toBe(save);
+    expect(JSON.stringify(save)).toBe(before);
+    const pools = runPools(save, CONTENT);
     expect(recipe.unlocks.kind === 'bread' ? pools.breadPool : pools.dipPool).toContain(recipe.unlocks.id);
   });
   it('refuses unknown, locked and underfunded recipes without spending anything', () => {
@@ -60,6 +76,27 @@ describe('recipes', () => {
 });
 
 describe('chapter gates and night content', () => {
+  it.each([1, 2])('migrates legacy v%s wins so three victories unlock night', v => {
+    const save = parseSaveV2(JSON.stringify({ v, wins: 3, bestWave: 10, runs: 7 }));
+    expect(save.bossAttempts).toEqual({ 'kopitiam-street': 3 });
+    expect(chapterUnlocked(save, 'hawker-night')).toBe(true);
+    expect(parseSaveV2(JSON.stringify(save))).toEqual(save);
+  });
+  it.each([
+    { wins: 0, bestWave: 10, runs: 5, attempts: 1 },
+    { wins: 2, bestWave: 10, runs: 5, attempts: 2 },
+    { wins: 0, bestWave: 9, runs: 5, attempts: 0 },
+    { wins: -3, bestWave: '10', runs: 5, attempts: 0 },
+  ])('uses only proven legacy attempts: $wins wins, best wave $bestWave', ({ attempts, ...legacy }) => {
+    const save = parseSaveV2(JSON.stringify({ v: 2, ...legacy }));
+    expect(save.bossAttempts['kopitiam-street'] ?? 0).toBe(attempts);
+    expect(chapterUnlocked(save, 'hawker-night')).toBe(false);
+  });
+  it.each([{}, { 'kopitiam-street': 1, 'hawker-night': 2 }])('preserves explicit S3 attempts %j instead of inferring from totals', bossAttempts => {
+    const save = parseSaveV2(JSON.stringify({ v: 2, wins: 3, bestWave: 10, bossAttempts }));
+    expect(save.bossAttempts).toEqual(bossAttempts);
+    expect(chapterUnlocked(save, 'hawker-night')).toBe(false);
+  });
   it('counts wins and losses at the boss, opens night after three, and keeps chapters independent', () => {
     let save = freshSaveV2(); const now = new Date('2026-10-12T00:00:00Z');
     expect(chapterUnlocked(save, 'kopitiam-street')).toBe(true);
