@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 
-import { isStartLink } from '@/domain';
+import { startGamePath } from '@/domain';
 
 // Web: the address the page was opened with, read before the router can change it.
 const LAUNCH_URL = Platform.OS === 'web' ? (globalThis.location?.href ?? null) : null;
@@ -19,6 +19,7 @@ export function useLaunchIntoGame(ready: boolean) {
   useEffect(() => {
     if (!ready || done.current) return;
     done.current = true; // once, when the navigator first mounts
-    if (isStartLink(Platform.OS === 'web' ? LAUNCH_URL : Linking.getLinkingURL(), BASE)) router.replace('/play');
+    const path = startGamePath(Platform.OS === 'web' ? LAUNCH_URL : Linking.getLinkingURL(), BASE);
+    if (path) router.replace(path);
   }, [ready]);
 }

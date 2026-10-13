@@ -18,3 +18,10 @@ export function isStartLink(url: string | null | undefined, basePath = ''): bool
   if (base && (path === base || path.startsWith(`${base}/`))) path = path.slice(base.length);
   return path.replace(/\/+$/, '') === '';
 }
+
+/** Preserve only the Test Kitchen query switch; auth callbacks and page links keep their original destination. */
+export function startGamePath(url: string | null | undefined, basePath = ''): '/play' | '/play?kitchen=1' | null {
+  if (!isStartLink(url, basePath)) return null;
+  const query = url?.match(/\?([^#]*)/)?.[1];
+  return query && authCallbackParams(`?${query}`).kitchen === '1' ? '/play?kitchen=1' : '/play';
+}
