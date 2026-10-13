@@ -333,14 +333,17 @@ describe('lob, wave, boomerang, orbit', () => {
     for (const [def, isBoss, expected] of [[plain, false, 120], [tank, false, 30], [boss, true, 12]] as const) {
       const w = mkWorld(makeContent({ bosses: [boss] }), { breads: ['murtabak'] });
       const e = addEnemy(w, def, 0, 300, { boss: isBoss, state: isBoss ? 'hold' : 'walk', holdY: 300 });
-      play(w, 1.2); // thrown at 0.4 s, lands ~0.8 s, shove done 0.2 s later; the next throw is at 2.0 s
+      play(w, 1.2); // thrown at 0.4 s, lands ~0.8 s, full shove done 0.3 s later; the next throw is at 2.0 s
       expect(e.y - 300).toBeCloseTo(expected, 3);
     }
   });
 
   it('bread stun stops a walker in its tracks for the stun time', () => {
     const walker = mkEnemy('walker', 'walker', { hp: 1e6, speed: 60 });
-    const w = mkWorld(makeContent(), { breads: ['murtabak'] });
+    const content = makeContent();
+    const murtabak = content.breads.murtabak;
+    content.breads.murtabak = { ...murtabak, levels: murtabak.levels.map(st => ({ ...st, knockback: 0 })) };
+    const w = mkWorld(content, { breads: ['murtabak'] });
     const e = addEnemy(w, walker, 0, 500);
     let hitAt = -1;
     let ev: GameEvent[] = [];
@@ -351,9 +354,10 @@ describe('lob, wave, boomerang, orbit', () => {
     }
     expect(hitAt).toBeGreaterThan(0);
     expect(of(ev, 'status')).toEqual([{ t: 'status', uid: e.uid, status: 'stun' }]);
-    play(w, 0.26); // shove finished
+    expect(e.knock).toBe(0);
     const y = e.y;
     play(w, 0.1); // still stunned (0.4 s)
+    expect(e.knock).toBe(0);
     expect(e.y).toBe(y);
     play(w, 0.4); // stun over: walking again
     expect(e.y).toBeLessThan(y);

@@ -78,15 +78,26 @@ reports alone cannot establish that every underlying run/result is identical.
 
 ## Focused verification
 
-- `./node_modules/.bin/vitest run src/core/__tests__/knockback.test.ts --maxWorkers=1`
-  passes 18 tests: exact zero completion and full distance for 4/12/40/120/300
+- `./node_modules/.bin/vitest run src/core/__tests__/sim.test.ts src/core/__tests__/knockback.test.ts --maxWorkers=1 --configLoader runner`
+  passes 119 tests, including 19 knockback tests: exact zero completion and full distance for 4/12/40/120/300
   units at 30/60 Hz, declining step displacement before the final clipped step,
   timestep subdivision equivalence, active impulse addition, stationary-enemy
   integration, resistance/boss application, zero/invalid dt, large dt and clamp.
+  A stunned moving-speed fixture also receives exactly the shove displacement,
+  with no ordinary walking contribution while the shove is active.
 - `./node_modules/.bin/tsc --noEmit` passes.
-- The worker ran only focused tests and typecheck; the lead subsequently ran the
-  baseline/after 300-seed comparisons recorded above. No full suite, check.sh,
-  web export, browser test or release is claimed here. This report is not a
-  pinned pipeline result.
+- After the test isolation fix, `SKIP_DB=1 bash scripts/check.sh` passes:
+  typecheck, lint, brand checks and all 892 unit tests. Database checks were
+  skipped explicitly; no web export or browser tests ran.
+- Initial branch CI at `f8834df` exposed a stun test that assumed the 120-unit
+  shove had finished after 0.26 seconds. It now lasts 0.3 seconds. That test now
+  clones the Murtabak fixture with zero knockback and asserts no pending shove,
+  preserving the exact unchanged-position assertion during stun and resumed
+  walking after expiry. The separate real-Murtabak displacement test remains;
+  its stale 0.2-second timing comment is corrected to 0.3 seconds.
+- The lead ran the baseline/after 300-seed comparisons above. The subsequent
+  fix changes tests only; no gameplay parameters or measured mechanics changed.
+  No repeated balance run, web export, browser test or release ran here. This
+  report is not a pinned pipeline result.
 - Pending: lead release gates, independent review and visible player feel
   verification. Balance gates alone cannot establish improved feel.

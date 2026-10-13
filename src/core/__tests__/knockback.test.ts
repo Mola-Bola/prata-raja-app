@@ -98,4 +98,20 @@ describe('distance-based decelerating knockback', () => {
     expect(e.knock).toBe(0);
     expect(e.y).toBe(MAX_ENEMY_Y);
   });
+
+  it('a stunned walker receives the shove displacement without any walking contribution', () => {
+    const { c, e } = fixture(1 / 60, { knock: 120,
+      statuses: [{ id: 'stun', time: 1, stacks: 0, dps: 0, amount: 0 }] });
+    e.def = { ...e.def, speed: 60 };
+    let moved = 0;
+    for (let frame = 0; e.knock > 0 && frame < 100; frame++) {
+      const next = remainingKnockback(e.knock, c.dt);
+      moved += e.knock - next;
+      updateEnemies(c);
+      expect(e.statuses.some(s => s.id === 'stun')).toBe(true);
+      expect(e.y).toBeCloseTo(400 + moved, 10);
+    }
+    expect(e.knock).toBe(0);
+    expect(e.y).toBeCloseTo(520, 10);
+  });
 });
