@@ -204,9 +204,9 @@ test('private notes show shipped status and threads; reply retries and owner pai
   await expect(page.locator('[data-testid="feedback-sheet"]')).toHaveJSProperty('scrollWidth', await tid(page, 'feedback-sheet').evaluate(el => el.clientWidth));
 });
 
-test('an older server clearly reports that private notes are unavailable', async ({ page }) => {
+test('a malformed private-note response reports unavailability without confirming an owner', async ({ page }) => {
   test.setTimeout(150_000);
-  await mockFeedback(page); // Legacy success acknowledgement has no notes or owner fields.
+  await mockFeedback(page); // This malformed list response has no notes or owner fields; this is not a legacy-server compatibility test.
   await startRunAndPause(page);
   await tid(page, 'ui-tell').click();
   await tid(page, 'feedback-notes-tab').click();
