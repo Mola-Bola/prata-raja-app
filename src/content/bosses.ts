@@ -7,7 +7,7 @@ export const BOSSES: Record<string, BossDef> = {
     name: 'King Cockroach',
     kind: 'tank',
     sprite: 'bosses/king-cockroach',
-    hp: 800,
+    hp: 480,
     speed: 50,
     contactDps: 20,
     xp: 39,
@@ -18,7 +18,7 @@ export const BOSSES: Record<string, BossDef> = {
     phaseHaste: 0.35,
     holdY: 620,
     attacks: [
-      { kind: 'volley', id: 'antenna-volley', name: 'Antenna Volley', tell: 0.9, cooldown: 3.375, shots: 5, spread: 55, dmg: 18, projSpeed: 520, projSprite: 'fx/spark' },
+      { kind: 'volley', id: 'antenna-volley', name: 'Antenna Volley', tell: 0.9, cooldown: 3.375, shots: 5, spread: 55, dmg: 40, projSpeed: 520, projSprite: 'fx/spark' },
       { kind: 'charge', id: 'scuttle-charge', name: 'Scuttle Charge', tell: 1, cooldown: 5.25, laneWidth: 120, dmg: 45, speed: 900 },
       { kind: 'summon', id: 'brood-call', name: 'Brood Call', tell: 1.2, cooldown: 6.75, enemy: 'roach', count: 3 },
     ],

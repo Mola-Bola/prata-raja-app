@@ -307,10 +307,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  width: fit-content;
-  max-width: 86%;
-  margin-top: 10px;
-  padding: 6px 12px 6px 6px;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 8px;
+  padding: 4px 10px;
   border: 2.5px solid var(--edge);
   border-radius: 16px;
   background: var(--cream);
@@ -319,23 +319,28 @@
 
 .gu-boss img {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
 }
 
 .gu-boss-body {
+  flex: 1;
   display: grid;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
 }
 
 .gu-boss-name {
-  font: 600 15px/1.1 Fredoka, system-ui, sans-serif;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 600 13px/1.1 Fredoka, system-ui, sans-serif;
 }
 
 .gu-boss .gu-bar {
   flex: none;
-  width: 160px;
+  height: 8px;
+  width: auto;
 }
 
 /* On the counter's front edge, bottom-left, over the steel (the renderer draws the counter as a strip along the bottom edge:
@@ -492,7 +497,11 @@
   touch-action: manipulation;
   transition: transform 0.09s ease-out;
   animation: gu-pop 0.34s cubic-bezier(0.2, 0.8, 0.2, 1.2) backwards;
-  animation-delay: calc(var(--i, 0) * 60ms);
+  animation-delay: calc(var(--i, 0) * 150ms);
+}
+
+.gu-card[data-revealed="false"] {
+  visibility: hidden;
 }
 
 .gu-card:active {

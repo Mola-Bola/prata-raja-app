@@ -369,11 +369,18 @@ function LevelUp({ offer, onPick, onReroll }: { offer: Offer; onPick: (i: number
 }
 
 function CardButton({ card, index, onPick }: { card: Card; index: number; onPick: () => void }) {
+  const [revealed, setRevealed] = useState(index === 0);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setRevealed(true), index * 150);
+    return () => window.clearTimeout(timer);
+  }, [index]);
   const v = cardView(card);
   return (
     <button
       type="button"
       className="gu-card"
+      disabled={!revealed}
+      data-revealed={revealed}
       data-testid={`ui-card-${index}`}
       aria-label={v.label}
       style={{ '--i': index, borderImageSource: `url("${art(v.frame)}")` } as CSSProperties}

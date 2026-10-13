@@ -60,7 +60,7 @@ export const ELITE_SCALE = 1.15;
 export const SWARM_SCALE = 0.85;
 /** Thrown bread size = hit diameter x this (bread hit radii were scaled up 1.3x in src/content; the look stays as it was). */
 export const SHOT_FIT = 2.1 / 1.3;
-export const SHOT_MIN_U = 24;
+export const SHOT_MIN_U = 42;
 /** Lob (roti bomb, naan) sprite diameter in field units; the blast radius is not a sprite size. */
 export const LOB_U = 74;
 /** Enemy shot size in field units. */
@@ -104,7 +104,10 @@ export const ANIM: Record<EnemyKind, Anim> = {
 };
 
 // ── Limits (game-feel.md: readability budgets) ─────────────────────────────────────────────────────────────
-export const MAX_NUMBERS = 40;
+export const MAX_NUMBERS = 24;
+export const ENEMY_SCALE_FLOOR = 0.48;
+export const NUMBER_SCALE_FLOOR = 0.85;
+export const NUMBER_COLOR = { big: '#ff713d', chip: '#ffdf57' };
 export const MAX_PARTICLES = 160;
 export const TRAUMA_DECAY = 1.0;
 /** Shake offset at trauma 1 as a share of the screen width. */

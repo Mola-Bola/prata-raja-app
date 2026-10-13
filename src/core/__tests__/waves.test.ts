@@ -50,12 +50,16 @@ describe('startWave', () => {
 });
 
 describe('spawnTick', () => {
-  it('advances waveTime and spawnClock by dt', () => {
+  it('advances wave time and resets the gap clock only on a spawn', () => {
     const w = fakeWorld([wave()]);
     startWave(w, 1);
-    spawnTick(w, 0.25, makeRng(1));
+    const rng = makeRng(1);
+    expect(spawnTick(w, 0.25, rng)).toHaveLength(1);
     expect(w.waveTime).toBeCloseTo(0.25);
-    expect(w.spawnClock).toBeCloseTo(0.25);
+    expect(w.spawnClock).toBe(0);
+    expect(spawnTick(w, 0.001, rng)).toHaveLength(0);
+    expect(w.waveTime).toBeCloseTo(0.251);
+    expect(w.spawnClock).toBeCloseTo(0.001);
   });
 
   it('never overspends and stops within one cheapest cost of the budget', () => {
@@ -90,6 +94,36 @@ describe('spawnTick', () => {
     expect(half - 0.5 ** 0.85).toBeGreaterThanOrEqual(0);
     expect(half - 0.5 ** 0.85).toBeLessThan(0.01);
     expect(Math.abs(half - 0.55)).toBeLessThan(0.15); // spec band: about 55% at half time
+  });
+
+  it('fills quiet streets in waves 6–9 within 2.5s, spending only their existing budget', () => {
+    for (const n of [6, 7, 8, 9]) {
+      const w = fakeWorld(Array.from({ length: 9 }, () => wave({ budget: 42, duration: 30, mix: { tank: 1 } })));
+      startWave(w, n);
+      const rng = makeRng(n);
+      let gap = 0;
+      let spent = 0;
+      while (!waveDone(w)) {
+        gap += DT;
+        const requests = spawnTick(w, DT, rng);
+        if (requests.length > 0) {
+          expect(gap).toBeLessThanOrEqual(2.5 + DT * 2);
+          gap = 0;
+          spent += requests.length * ENEMY_COST.tank;
+        }
+      }
+      expect(spent).toBe(42);
+      expect(w.budgetLeft).toBe(0);
+    }
+  });
+
+  it('keeps busy late waves on the normal spend curve', () => {
+    const w = fakeWorld(Array.from({ length: 9 }, () => wave({ budget: 42, duration: 30, mix: { tank: 1 } })));
+    startWave(w, 8);
+    w.enemies = [enemy(), enemy(), enemy()];
+    const requests = spawnTick(w, 3, makeRng(8));
+    expect(requests).toHaveLength(1);
+    expect(w.budgetLeft).toBe(36);
   });
 
   it('keeps x inside ±230 and at least 40 u apart between single spawns', () => {

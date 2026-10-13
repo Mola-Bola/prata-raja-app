@@ -636,6 +636,19 @@ describe('bosses', () => {
     return { w, boss, e: spawnBoss(w, boss) };
   };
 
+  it('walks into fighting range in two seconds, without overshooting or skipping the tell', () => {
+    const { w, e } = setup({ kind: 'rain', id: 'r', name: 'R', tell: 1, cooldown: 100, marks: 1, markWidth: 60, dmg: 18 });
+    e.y = 1000;
+    e.state = 'walk';
+    e.def = { ...e.def, speed: 60 };
+    expect(of(play(w, 2), 'bossTell')).toHaveLength(0);
+    expect(e.y).toBeCloseTo(520);
+    const events = play(w, 0.2);
+    expect(e.y).toBe(500);
+    expect(of(events, 'bossTell')).toHaveLength(1);
+    expect(of(events, 'playerHit')).toHaveLength(0);
+  });
+
   it('volley: tells the landing spots, then fires a symmetric spread; only the shot aimed at Kannan hits', () => {
     const { w, e } = setup({ kind: 'volley', id: 'v', name: 'V', tell: 0.5, cooldown: 100, shots: 3, spread: 100, dmg: 10, projSpeed: 500, projSprite: 'fx/spark' });
     const ev = play(w, 2);
@@ -804,9 +817,12 @@ describe('run lifecycle', () => {
     step(w, DT, STILL);
     expect(JSON.stringify(w)).toBe(before);
 
+    const firstOffer = w.offer;
+    expect(w.recentOffers).toEqual([firstOffer]);
     const first = JSON.stringify(w.offer);
     expect(reroll(w)).toBe(true);
     expect(w.rerolls).toBe(0);
+    expect(w.recentOffers).toEqual([firstOffer, w.offer]);
     expect(w.offer).toHaveLength(3);
     expect(JSON.stringify(w.offer)).not.toBe(first);
     expect(reroll(w)).toBe(false);
@@ -832,10 +848,15 @@ describe('run lifecycle', () => {
     expect(w.phase).toBe('levelup');
     expect(w.pendingLevelUps).toBeGreaterThanOrEqual(2);
     const n = w.pendingLevelUps;
+    const firstOffer = w.offer;
     chooseCard(w, 0);
     expect(w.phase).toBe('levelup');
     expect(w.pendingLevelUps).toBe(n - 1);
     expect(w.offer).toHaveLength(3);
+    expect(w.recentOffers).toEqual([firstOffer, w.offer]);
+    const secondOffer = w.offer;
+    expect(reroll(w)).toBe(true);
+    expect(w.recentOffers).toEqual([secondOffer, w.offer]);
   });
 
   it('chooseCard keeps loadout stats (Kopi Break style recompute does not lose them)', () => {
@@ -1007,7 +1028,7 @@ describe('more rules', () => {
       return 900 - e.y;
     };
     const free = travelled(boss, true, []);
-    expect(free).toBeCloseTo(200, 0);
+    expect(free).toBeCloseTo(800, 0);
     expect(travelled(boss, true, frozen('freeze'))).toBeCloseTo(free * 0.6, 0);
     expect(travelled(boss, true, frozen('stun'))).toBeCloseTo(free * 0.6, 0);
     expect(travelled(walker, false, frozen('freeze'))).toBe(0);

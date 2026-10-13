@@ -44,7 +44,7 @@ export function makeLayout(w: number, h: number): Layout {
   const counterH = ART_COUNTER.h * cs;
   const counterTop = h * LANE.counter;
   // Enemies stand on the counter line, with the far lip of the counter hiding a few px of their feet.
-  const view = { ...makeView(w, h), horizonY: h * LANE.horizon, counterY: counterTop + 6 * u };
+  const view = { ...makeView(w, h, 0.42), horizonY: h * LANE.horizon, counterY: counterTop + 6 * u };
   // The background is placed so the street's vanishing point sits on the field's horizon: enemies then walk down the
   // road instead of through the sky. It is zoomed (never squeezed) until it covers the canvas plus the shake margin.
   const k = Math.max((w + 2 * margin) / ART_BG.w, (h - view.horizonY + margin) / ((1 - ART_BG.vy) * ART_BG.h));
@@ -84,6 +84,8 @@ export class Projector {
   sx = 0;
   sy = 0;
   s = 1;
+  /** Street width opens smoothly from the vanishing point to the fighting lanes. */
+  laneScale = 1;
   private f = 1;
 
   setLayout(l: Layout): void {
@@ -98,7 +100,9 @@ export class Projector {
     const d = Math.max(y - FIELD.reachY, -0.25 * this.f);
     const s = this.f / (this.f + d);
     this.s = s;
-    this.sx = v.width / 2 + x * s * this.ppu;
+    const road = Math.min(1, Math.max(0, (FIELD.depth - y) / 350));
+    this.laneScale = 0.15 + 0.85 * road * road * (3 - 2 * road);
+    this.sx = v.width / 2 + x * s * this.ppu * this.laneScale;
     this.sy = v.counterY - (v.counterY - v.horizonY) * ((1 - s) / (1 - v.far));
     return this;
   }
