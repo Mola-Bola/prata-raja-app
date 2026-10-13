@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Ship to PRODUCTION (cloud): phones anywhere get the update over the air; the web app on GitHub Pages is republished
 // (https://mola-bola.github.io/prata-raja/, built files only, see scripts/publish-web.mjs).
+//   node scripts/ship-cloud.mjs --next-label [--minor]  # read-only release preflight
 //   node scripts/ship-cloud.mjs --notes "What changed, in plain words" [--ids a,b] [--label 1.0.1] [--apk [--cloud [--eas-build <id>]] [--reuse-apk]] [--no-web]
 // JS-only changes: default. Native changes (new native module/permission/plugin/icon): bump expo.runtimeVersion, then
 // ship with --apk --cloud (the signed APK is built on EAS, uploaded to the cloud 'updates' bucket and Firebase App
@@ -16,6 +17,7 @@ import { join } from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 
 import { cloudEnv } from './cloud-env.mjs';
+import { chooseLabel } from './ship-label.mjs';
 import { contentTypeFor, updateIdFor } from './updates-server.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
@@ -27,12 +29,9 @@ const args = process.argv.slice(2);
 const flag = (n) => (args.includes(`--${n}`) ? (args[args.indexOf(`--${n}`) + 1] ?? 'true') : undefined);
 const has = (n) => args.includes(`--${n}`);
 const notes = flag('notes');
-if (!notes || notes.startsWith('--')) throw new Error('--notes "…" is required');
+if (!has('next-label') && (!notes || notes.startsWith('--'))) throw new Error('--notes "…" is required');
 const ids = (flag('ids') ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 const run = (cmd, a, opts = {}) => execFileSync(cmd, a, { cwd: ROOT, stdio: 'inherit', ...opts });
-// Builds use a private Metro cache: the shared one in $TMPDIR has served another checkout's route files (worktrees
-// share node_modules), which would ship the wrong screens.
-const BUILD_ENV = { CI: '1', TMPDIR: mkdtempSync(join(tmpdir(), 'prata-raja-ship-')) };
 
 // A bundle is for production when it carries the cloud's publishable key and not the Mac's test server. (Checking for
 // the cloud URL alone proves nothing: every bundle embeds the updates URL, which is on the same host.)
@@ -73,15 +72,12 @@ if (typeof runtime !== 'string') throw new Error('expo.runtimeVersion must be a 
 async function nextLabel() {
   if (flag('label')) return flag('label');
   const rows = await net(() => db.from('releases').select('label').order('created_at', { ascending: false }).limit(20));
-  const semver = rows.map((r) => r.label).filter((l) => /^\d+\.\d+\.\d+$/.test(l));
-  const base = appJson.expo.version;
-  if (!semver.length) return base;
-  const top = semver.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))[0];
-  const [ma, mi, pa] = top.split('.').map(Number);
-  const [bma, bmi] = base.split('.').map(Number);
-  return bma > ma || (bma === ma && bmi > mi) ? base : `${ma}.${mi}.${pa + 1}`;
+  return chooseLabel(appJson.expo.version, rows.map((r) => r.label), has('minor'));
 }
 const label = await nextLabel();
+if (has('next-label')) { console.log(label); process.exit(0); }
+// Private Metro cache prevents another worktree's routes from leaking into the build.
+const BUILD_ENV = { CI: '1', TMPDIR: mkdtempSync(join(tmpdir(), 'prata-raja-ship-')) };
 const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
 const kind = has('apk') ? 'apk' : 'ota';
 
