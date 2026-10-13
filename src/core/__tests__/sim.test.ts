@@ -240,6 +240,15 @@ describe('lob, wave, boomerang, orbit', () => {
     expect(far.hp).toBe(1e6);
   });
 
+  it('a lob at a walking boss aims no further than where the boss parks (holdY)', () => {
+    const kc: BossDef = { ...mkEnemy('kc', 'walker', { hp: 1e6, speed: 60, contactDps: 0 }), id: 'kc', phases: [], phaseHaste: 0, holdY: 620, attacks: [] };
+    const w = mkWorld(makeContent({ bosses: [kc] }), { breads: ['garlic-naan'] });
+    addEnemy(w, kc, 0, 900, { boss: true, state: 'walk', holdY: 620 });
+    for (let i = 0; i < 60 && !w.projectiles.length; i++) play(w, DT);
+    expect(w.projectiles.length).toBeGreaterThan(0);
+    expect(w.projectiles[0].ty).toBeGreaterThanOrEqual(620);
+  });
+
   it('cluster targeting bombs the biggest group, not the nearest loner', () => {
     const w = mkWorld(makeContent(), { breads: ['roti-bomb'] });
     const loner = addEnemy(w, BIG, 0, 200);

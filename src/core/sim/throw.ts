@@ -97,6 +97,10 @@ function clusterTargets(c: Ctx, range: number, blast: number, n: number): Enemy[
   return out;
 }
 
+/** Where e will be after t seconds closing at vs: never past the reach line, and a boss never past where it parks. */
+const predictY = (e: Enemy, vs: number, t: number): number =>
+  Math.max(FIELD.reachY, e.boss ? e.holdY : -Infinity, e.y - vs * t);
+
 /** Angle (0 = straight up the street, + = right) that meets the enemy: it walks toward Kannan while the shot flies. */
 function aimAngle(c: Ctx, e: Enemy, speed: number): number {
   const px = c.p.x;
@@ -104,7 +108,7 @@ function aimAngle(c: Ctx, e: Enemy, speed: number): number {
   let ty = e.y;
   let t = hyp(e.x - px, ty) / speed;
   for (let i = 0; i < 3; i++) {
-    ty = Math.max(FIELD.reachY, e.y - vs * t);
+    ty = predictY(e, vs, t);
     t = hyp(e.x - px, ty) / speed;
   }
   return Math.atan2(e.x - px, ty);
@@ -145,7 +149,7 @@ function spawnLob(c: Ctx, def: BreadDef, st: BreadStats, target: Enemy): void {
   const s = base(c, def, st, 'lob');
   const time = Math.max(0.05, st.lobTime);
   s.tx = clamp(target.x, -FIELD.halfWidth, FIELD.halfWidth);
-  s.ty = Math.max(FIELD.reachY, target.y - approachSpeed(target) * time);
+  s.ty = predictY(target, approachSpeed(target), time);
   s.vx = (s.tx - c.p.x) / time;
   s.vy = s.ty / time;
   s.ttl = time;
