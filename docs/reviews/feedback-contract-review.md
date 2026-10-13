@@ -25,3 +25,7 @@ The send mock now returns the real `{ok:true,id}` acknowledgement instead of `{}
 The sent-state immutability assertion changed its attempted chip from `art` to `idea`. The initial state already has chip `idea`, so this no longer attempts a different chip. Use `direction` or `feel` with the same `.toBe(sent)` assertion to preserve the old behavioral challenge. This file is owned by the UI worker; reported to the lead for correction, not edited here.
 
 No guard bypass, fabricated approval, removed assertion or raised timeout was introduced. Added browser tests have their own time budgets; existing test deadlines were not increased in the reviewed changes. Full integration and guard disposition remain the lead's release responsibilities.
+
+## Verification of the strengthened assertion
+
+On this branch's pre-UI base `40fbeb3`, full `SKIP_DB=1 bash scripts/check.sh` passed typecheck, lint and brand; unit tests reported **827 passed, 1 failed**. The sole failure is the new exact-union assertion: old UI IDs plus legacy IDs lack Direction and Feel. This demonstrates the newly closed coverage gap. Integrate the prepared UI and rerun; do not claim this branch's standalone suite is green. Database tests were skipped. Branch CI started normally (`38396027722`).
