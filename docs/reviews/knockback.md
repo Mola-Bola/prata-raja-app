@@ -1,6 +1,7 @@
 # Decelerating knockback experiment
 
-Status: ready for measurement after focused checks; not balanced or release-ready.
+Status: 300-seed balance gates pass; independent review and visible feel inspection
+remain pending. Not release-ready.
 Branch `sol/knockback`, baseline `ff15307`, ledger 33. Independent of the parked
 boss-slow experiment `codex/polish-combat-1` at `5a4a12e`, which is unchanged.
 
@@ -38,8 +39,42 @@ hit. This is the deliberate cost of avoiding new enemy state. Added impulses
 can raise speed abruptly, and continuous hits may stay near the cap.
 
 Longer shove timing can affect spacing, contact damage and ranged/boss timing
-even with equal displacement. It needs the separately scheduled baseline and
-after comparison plus a Kitchen feel check before integration/shipping.
+even with equal displacement. The measurements below show a small Murtabak
+signature win reduction, so equal displacement does not mean identical balance.
+A Kitchen feel check and independent review remain required before claiming
+that the deceleration feels better. There is no real-phone feel proof.
+
+## Measured comparison
+
+The lead ran the existing five balance tests with 300 seeds (1–300) for baseline
+`3adfbb9` in `prata-raja-stall-layout` and after `f8834df` in this worktree.
+Both completed successfully: baseline 83.09 seconds, after 85.64 seconds.
+The baseline has the same `src/core` and `src/content` as this experiment's
+`ff15307` base and live `e060e3a`; the source diffs are empty. The baseline/after
+reports use the same seeds, builds and policies.
+
+Evidence is in the common Git directory `.git/knockback-verification/`:
+`baseline-with-report.log`, `after-with-report.log`, and the `baseline.md*` /
+`after.md*` report files. `measurement.json` is an earlier manifest still marked
+`running`; the completed report logs establish the result, not that stale status.
+
+| Policy | Baseline | After | Observation |
+| --- | --- | --- | --- |
+| Chapter 1, up to four breads | 56% | 56% | Rounded report metrics identical |
+| Chapter 1, up to two breads | 44% | 44% | Rounded report metrics identical |
+| Chapter 1, solo Kosong | 21% | 21% | Rounded report metrics identical |
+| Chapter 2, four breads | 190/300 | 190/300 | Median wave 10 unchanged |
+| Chapter 2, two breads | 107/300 | 107/300 | Median wave 10 unchanged |
+| Chapter 2, solo Kosong | 36/300 | 36/300 | Median wave 6 unchanged |
+| Murtabak signature solo | 33/300 (11.0%) | 30/300 (10.0%) | Three fewer wins; median wave 9 unchanged |
+| Bomb signature solo | 63/300 (21.0%) | 63/300 (21.0%) | Median wave 10 unchanged |
+| Appam signature solo | 49/300 (16.3%) | 50/300 (16.7%) | One additional win; median wave 10 unchanged |
+
+All configured gates pass. Murtabak now sits exactly at the allowed band's
+10% lower bound, with no remaining margin at that bound. The comparison shows
+a timing-sensitive tradeoff, not evidence of a distance-consumption bug or
+identical balance. No retuning was made to improve the bands. Rounded Chapter 1
+reports alone cannot establish that every underlying run/result is identical.
 
 ## Focused verification
 
@@ -49,8 +84,9 @@ after comparison plus a Kitchen feel check before integration/shipping.
   timestep subdivision equivalence, active impulse addition, stationary-enemy
   integration, resistance/boss application, zero/invalid dt, large dt and clamp.
 - `./node_modules/.bin/tsc --noEmit` passes.
-- No full suite, check.sh, 300-seed run, web export, browser test or release ran.
-  The lead requested lightweight checks while two validation jobs and low disk
-  space constrain the machine. Do not treat this as a pinned pipeline result.
-- Pending: lead-scheduled baseline and after 300-seed comparisons using identical
-  seeds/build inputs, independent review, and player feel verification.
+- The worker ran only focused tests and typecheck; the lead subsequently ran the
+  baseline/after 300-seed comparisons recorded above. No full suite, check.sh,
+  web export, browser test or release is claimed here. This report is not a
+  pinned pipeline result.
+- Pending: lead release gates, independent review and visible player feel
+  verification. Balance gates alone cannot establish improved feel.
