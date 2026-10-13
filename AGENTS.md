@@ -21,6 +21,7 @@ bash scripts/check.sh       # tsc, lint, unit tests, database tests (one line pe
 
 Run `bash scripts/check.sh` before declaring any task done (`SKIP_DB=1` skips the database tests when the local Supabase isn't up; `--web [specs…]` adds a web build and the Playwright suite).
 CI: `.github/workflows/check.yml` runs the same checks on every PR (tsc, lint, vitest, assert-guard, gitleaks; the pgTAP job only when `supabase/**` changed) and `e2e-nightly.yml` runs `check.sh --web` nightly when main moved. Source of truth is `~/cell/starter/.github/workflows/`. No required checks (personal account, no Pro): a red run is a signal to fix, not a gate.
+CI duty (every builder, Claude or Codex): push your finished slice branch, then read `gh run list -R Mola-Bola/prata-raja-app -L 3`; a run that fails in seconds is an account problem (billing/minutes), not your code: report it to the lead instead of ignoring it. Checks also run on `sol/**` and `s*/**` pushes. The lead pushes `main` after every merge or ship.
 
 ## Navigation & Routing
 
