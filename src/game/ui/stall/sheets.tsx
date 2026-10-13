@@ -2,6 +2,7 @@
 // commit(update), which applies a pure src/meta update to the NEWEST save (so a double tap can never act on a stale copy).
 import { useState } from 'react';
 
+import { signatureIdentity } from '@/core/signature';
 import { chooseSignature } from '@/meta/signature';
 import { CONTENT } from '@/content';
 import { canCook, cook, RECIPES, recipeKnown, runPools } from '@/meta/recipes';
@@ -300,14 +301,14 @@ export function SettingsSheet({ save, commit }: Pick<Ctx, 'save' | 'commit'>) {
 export function SignatureSheet({ save, commit, art }: Ctx) {
   if (!save.unlocks.signature) return <p>Unlocks at stall level 9.</p>;
   return <>
-    <p>Start each daydream with your favourite bread. Fish Curry links to it for a stronger burn.</p>
+    <p>Start each daydream with your favourite bread. The first two Fish Curry, Condensed Milk or Mint Chutney picks link to it.</p>
     <div className="sh-inventory">
       {runPools(save, CONTENT).breadPool.map(id => <button type="button" className="sh-tile" key={id}
         data-testid={`signature-${id}`} aria-pressed={save.signatureBread === id}
         onClick={() => commit(s => chooseSignature(s, id, CONTENT))}>
         <img className="sh-item-art" src={art(CONTENT.breads[id].sprite)} alt="" />
         <b>{CONTENT.breads[id].name}</b>
-        {id === 'murtabak' && <span>Every fourth throw bursts into filling.</span>}
+        <span>{signatureIdentity(id)}</span>
       </button>)}
     </div>
   </>;

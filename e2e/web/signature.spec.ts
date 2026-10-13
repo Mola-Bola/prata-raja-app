@@ -3,7 +3,11 @@ import { expect, test } from '@playwright/test';
 test.use({ viewport: { width: 390, height: 844 } });
 const SAVE_KEY = 'game:prata-raja/save';
 
-test('choose a signature, persist it, and start a level-one Murtabak run', async ({ page }) => {
+for (const [id, name, identity] of [
+  ['murtabak', 'Murtabak', 'Every fourth throw bursts into filling.'],
+  ['roti-bomb', 'Roti Bomb', 'Every fourth bomb leaves a hot tawa patch.'],
+  ['appam', 'Appam', 'Every fourth bowl chains farther without fading.'],
+]) test(`choose ${name}, persist it, and start a level-one run`, async ({ page }) => {
   await page.route('**/rest/v1/**', route => route.fulfill({ json: [] }));
   await page.route('**/auth/v1/**', route => route.fulfill({ json: {} }));
   await page.addInitScript(key => {
@@ -15,15 +19,16 @@ test('choose a signature, persist it, and start a level-one Murtabak run', async
   await expect(page.getByTestId('ui-start')).toHaveText('Open the stall');
   await page.getByTestId('ui-start').click();
   await page.getByTestId('stall-signature').click();
-  await page.getByTestId('signature-murtabak').click();
-  await expect(page.getByTestId('signature-murtabak')).toHaveAttribute('aria-pressed', 'true');
-  await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key)!).signatureBread, SAVE_KEY)).toBe('murtabak');
+  await expect(page.getByTestId(`signature-${id}`)).toContainText(identity);
+  await page.getByTestId(`signature-${id}`).click();
+  await expect(page.getByTestId(`signature-${id}`)).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key)!).signatureBread, SAVE_KEY)).toBe(id);
   await page.reload();
   await page.getByTestId('ui-start').click();
-  await expect(page.getByTestId('stall-signature')).toContainText('Murtabak');
+  await expect(page.getByTestId('stall-signature')).toContainText(name);
   await page.getByTestId('stall-start').click();
-  await expect.poll(() => page.evaluate(() => window.__world?.player.breads.map(b => ({ id: b.id, level: b.level })))).toEqual([{ id: 'murtabak', level: 1 }]);
-  expect(await page.evaluate(() => window.__world?.loadout?.signatureBread)).toBe('murtabak');
+  await expect.poll(() => page.evaluate(() => window.__world?.player.breads.map(b => ({ id: b.id, level: b.level })))).toEqual([{ id, level: 1 }]);
+  expect(await page.evaluate(() => window.__world?.loadout?.signatureBread)).toBe(id);
 });
 
 test('a chunk failure reloads once and does not loop', async ({ page }) => {

@@ -697,7 +697,11 @@ export class Actors {
 
       }
     }
-    if (s.loaded) v.dia *= 1.65;
+    if (s.loaded || s.charged) v.dia *= 1.65;
+    if (s.charged) {
+      const image = v.img ?? v.disc?.img;
+      if (image) image.scene.tweens.add({ targets: image, alpha: 0.6, duration: 140, yoyo: true, repeat: 2 });
+    }
     // Three fading copies per moving bread, capped at 48 atlas images for the whole arena.
     if (!enemy && (s.motion === 'straight' || s.motion === 'boomerang' || s.motion === 'lob') && this.trailCount < 48) {
       for (let i = 0; i < 3; i++) v.trail.push({ img: this.imgs.get(s.sprite).setVisible(false), x: 0, y: 0, k: 1, spin: 0, t: 1 });
@@ -787,6 +791,11 @@ export class Actors {
   }
 
   private releaseShot(s: ShotView): void {
+    const image = s.img ?? s.disc?.img;
+    if (image) {
+      image.scene.tweens.killTweensOf(image);
+      image.setAlpha(1);
+    }
     if (s.disc) {
       s.disc.img.setRotation(0);
       this.discs.put(s.disc);

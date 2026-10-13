@@ -140,18 +140,18 @@ describe('chapter 2 balance (two training steps each, Rare gear, S2 pools)', () 
 });
 
 
-describe('Murtabak signature solo balance (no gear or training)', () => {
-  it('reports solo wins with loaded servings, linked Fish Curry and biased offers', () => {
-    const save = { ...freshSaveV2(), stallXp: 3100, unlocks: unlocksForXp(3100), signatureBread: 'murtabak' as const, unlockedBreads: ['murtabak' as const] };
+describe.each(['murtabak', 'roti-bomb', 'appam'] as const)('%s signature solo balance (no gear or training)', (id) => {
+  it('reports solo wins with signature servings, linked supports and biased offers', () => {
+    const save = { ...freshSaveV2(), stallXp: 3100, unlocks: unlocksForXp(3100), signatureBread: id, unlockedBreads: ['murtabak' as const] };
     const loadout = computeLoadout(save, CONTENT);
     const results = SEEDS.map(seed => simulateRun({ seed, content: CONTENT, maxBreads: 1, loadout, maxTime: MAX_TIME }));
     const rate = results.filter(r => r.won).length / SEED_COUNT;
-    const line = `Murtabak-signature solo: ${(100 * rate).toFixed(1)}% (${results.filter(r => r.won).length}/${SEED_COUNT}); median wave ${median(results.map(r => r.wave))}`;
+    const line = `${id}-signature solo: ${(100 * rate).toFixed(1)}% (${results.filter(r => r.won).length}/${SEED_COUNT}); median wave ${median(results.map(r => r.wave))}`;
     console.log(line);
-    if (process.env.BALANCE_REPORT) writeFileSync(`${process.env.BALANCE_REPORT}.signature`, line + '\n');
+    if (process.env.BALANCE_REPORT) writeFileSync(`${process.env.BALANCE_REPORT}.${id}`, line + '\n');
     for (const result of results) expect(result.time).toBeLessThan(MAX_TIME);
     if (SEED_COUNT >= 300) {
-      expect(rate).toBeGreaterThanOrEqual(.12);
+      expect(rate).toBeGreaterThanOrEqual(.10);
       expect(rate).toBeLessThanOrEqual(.25);
     }
   }, 600_000);

@@ -7,6 +7,14 @@ import type { BreadId, Card, Content, DipId, Loadout, PassiveId, Player } from '
 export const MAX_BREADS = 4;
 export const MAX_DIPS = 4;
 const MAX_LEVEL = 5;
+const LINKABLE_DIPS = ['fish-curry', 'condensed-milk', 'mint-chutney'];
+
+function dipLink(player: Player, id: string, content: Content, signature?: BreadId): BreadId | undefined {
+  const owned = player.dips.find(d => d.id === id);
+  if (owned) return owned.linkedBread;
+  if (!signature || !LINKABLE_DIPS.includes(id) || player.dips.filter(d => d.linkedBread).length >= 2) return;
+  return player.breads.find(b => b.id === signature || content.breads[b.id].evolvedFrom?.bread === signature)?.id;
+}
 
 function evolutionReady(player: Player, def: Content['breads'][BreadId], content: Content): boolean {
   const from = def.evolvedFrom;
@@ -23,7 +31,7 @@ type Candidate = { card: Card; weight: number };
  *  owned dip below L5 (1.0) · new dip from dipPool when dips < MAX_DIPS (0.8)
  *  passive below its maxLevel, owned or new (0.7).
  *  Guarantee: when the player owns no dip and dipPool is non-empty, at least one card is a new dip.
- *  A signature multiplies its bread/synergy weights by 1.6; linked Fish Curry names that bread.
+ *  A signature multiplies its bread/synergy weights by 1.6; up to two linked supports name that bread.
  *  Pools default to every bread/dip whose unlock is 'starter'. Short of candidates: fill with
  *  { kind: 'heal', id: '', level: 1 } then { kind: 'gold', id: '', level: 1 }. Deterministic for a given rng state. */
 export function drawOffer(
@@ -66,10 +74,7 @@ export function drawOffer(
         : ['ghee', 'teh-tarik', 'fast-flip', 'lucky-towel'];
     for (const c of cands) {
       if (c.card.id === signature || synergies.includes(c.card.id)) c.weight *= 1.6;
-      if (c.card.id === 'fish-curry') {
-        c.card.linkedBread = player.dips.find(d => d.id === 'fish-curry')?.linkedBread
-          ?? player.breads.find(b => b.id === signature || content.breads[b.id].evolvedFrom?.bread === signature)?.id;
-      }
+      if (c.card.kind === 'dip') c.card.linkedBread = dipLink(player, c.card.id, content, signature);
     }
   }
 
@@ -113,8 +118,7 @@ export function applyCard(player: Player, card: Card, content: Content, loadout?
     const owned = player.dips.find((d) => d.id === card.id);
     if (owned) owned.level = card.level;
     else {
-      const target = player.breads.find(b => b.id === loadout?.signatureBread || content.breads[b.id].evolvedFrom?.bread === loadout?.signatureBread);
-      const linkedBread = card.id === 'fish-curry' && loadout?.signatureBread && target && !player.dips.some(d => d.linkedBread) ? target.id : undefined;
+      const linkedBread = dipLink(player, card.id, content, loadout?.signatureBread);
       player.dips.push({ id: card.id as DipId, level: 1, ...(linkedBread ? { linkedBread } : {}) });
     }
   } else if (card.kind === 'passive') {

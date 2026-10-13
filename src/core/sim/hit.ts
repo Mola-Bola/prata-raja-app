@@ -65,7 +65,16 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
       if (linkedBase !== hitBase) continue;
     }
     const base = def.levels[d.level - 1];
-    const fx = d.linkedBread && base.type === 'burn' ? { ...base, dps: base.dps * 1.25, time: base.time * 1.25 } : base;
+    const fx = !d.linkedBread ? base
+      : base.type === 'burn' ? { ...base, dps: base.dps * 1.25, time: base.time * 1.25 }
+        : base.type === 'sugar' ? { ...base, slowTime: base.slowTime * 1.25, crashStun: base.crashStun * 1.25 }
+          : base.type === 'chill' ? { ...base, time: base.time * 1.25, freezeTime: base.freezeTime * 1.25 } : base;
+    // A volley/orbit cannot farm Sticky stacks several times in the same instant.
+    if (d.linkedBread && base.type === 'sugar') {
+      const last = e.cooldowns._linkedSugar;
+      if (last !== undefined && w.time - last < 0.2) continue;
+      e.cooldowns._linkedSugar = w.time;
+    }
     for (const ev of applyHitEffect(fx, e)) emit(c, ev);
     if (fx.type === 'chain') chain(c, e, fx, def.color);
   }

@@ -37,11 +37,12 @@ describe('level-up card text', () => {
   });
 
   it('names linked bread on the card, including evolved links, within the phone text budget', () => {
-    for (const bread of Object.values(CONTENT.breads)) {
-      const view = cardView({ kind: 'dip', id: 'fish-curry', level: 1, linkedBread: bread.id });
-      expect(view.line).toContain(bread.name);
+    for (const bread of Object.values(CONTENT.breads)) for (const id of ['fish-curry', 'condensed-milk', 'mint-chutney'] as const) {
+      const view = cardView({ kind: 'dip', id, level: 1, linkedBread: bread.id });
+      expect(view.line).toContain(CONTENT.breads[bread.evolvedFrom?.bread ?? bread.id].name);
       expect(view.line.length).toBeLessThanOrEqual(MAX_CHARS);
-      expect(view.label).toContain(`Linked to ${bread.name}; stronger burn on this bread only.`);
+      expect(view.label).toContain(`Linked to ${CONTENT.breads[bread.evolvedFrom?.bread ?? bread.id].name};`);
+      expect(view.line).toMatch(/^Linked to /);
     }
     expect(cardView({ kind: 'dip', id: 'fish-curry', level: 1, linkedBread: 'murtabak' }).line).toBe('Linked to Murtabak');
   });

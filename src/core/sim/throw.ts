@@ -207,14 +207,32 @@ function tryFire(c: Ctx, b: OwnedBread, def: BreadDef, st: BreadStats): boolean 
   const first = c.w.projectiles.length;
   if (!throwMembers(c, def, st, 0, together)) return false;
   const signature = c.w.loadout?.signatureBread;
-  const loader = signature === 'murtabak' && (def.id === signature || def.evolvedFrom?.bread === signature);
-  if (st.critEvery || loader) b.casts = (b.casts ?? 0) + 1;
+  const signatureThrow = def.id === signature || def.evolvedFrom?.bread === signature;
+  const loader = signature === 'murtabak' && signatureThrow;
+  const charged = signatureThrow && (signature === 'roti-bomb' || signature === 'appam');
+  if (st.critEvery || loader || charged) b.casts = (b.casts ?? 0) + 1;
   if (loader && b.casts! % 4 === 0) {
     // Only one loaded payload per serving, even with Extra Dough; children cannot reload.
     const shot = c.w.projectiles[first];
     shot.loaded = true;
     shot.dmg *= 8;
     shot.stats = { ...st, fragments: 6, fragmentDmg: st.dmg * 1.5, homing: 2 };
+  }
+  if (charged) {
+    for (let i = first; i < c.w.projectiles.length; i++) c.w.projectiles[i].dmg *= signature === 'roti-bomb' ? 1.7 : 1.4;
+  }
+  if (charged && b.casts! % 4 === 0) {
+    const shot = c.w.projectiles[first];
+    shot.charged = true;
+    if (signature === 'roti-bomb') {
+      shot.dmg *= 4;
+      shot.radius *= 1.25;
+      shot.stats = { ...st, zoneTime: Math.max(st.zoneTime, 3), zoneDps: Math.max(st.zoneDps, st.dmg * 2) };
+    } else {
+      shot.dmg *= 3;
+      shot.hopsLeft = Math.min(6, st.hops + 2);
+      shot.stats = { ...st, hopRange: 400, hopFalloff: 0 };
+    }
   }
   if (st.critEvery) {
     if (b.casts! % st.critEvery === 0) for (let i = first; i < c.w.projectiles.length; i++) c.w.projectiles[i].guaranteedCrit = true;

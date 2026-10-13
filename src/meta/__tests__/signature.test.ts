@@ -16,13 +16,13 @@ it('legacy saves default to Kosong; locked, unknown and evolved choices are reje
   expect(computeLoadout({ ...old, signatureBread: 'murtabak' }, CONTENT).startBread).toBe('kosong');
 });
 
-it('persists a known choice through the save store and migration into the next run loadout', async () => {
+it.each(['murtabak', 'roti-bomb', 'appam'] as const)('persists %s through the save store and migration into the next run loadout', async id => {
   let json = JSON.stringify({ ...freshSaveV2(), stallXp: 3100, unlockedBreads: ['murtabak'] });
   const store = createSaveStore({ load: async () => json, save: async (_key, value) => { json = value; } }, 'signature-test');
   await store.load();
-  store.commit(s => chooseSignature(s, 'murtabak', CONTENT));
+  store.commit(s => chooseSignature(s, id, CONTENT));
   await store.flush();
   const restored = parseSaveV2(json);
-  expect(restored.signatureBread).toBe('murtabak');
-  expect(computeLoadout(restored, CONTENT)).toMatchObject({ startBread: 'murtabak', signatureBread: 'murtabak' });
+  expect(restored.signatureBread).toBe(id);
+  expect(computeLoadout(restored, CONTENT)).toMatchObject({ startBread: id, signatureBread: id });
 });

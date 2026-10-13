@@ -332,6 +332,7 @@ export type Projectile = {
   spin: number;
   guaranteedCrit?: boolean;
   loaded?: boolean;
+  charged?: boolean;
 };
 
 export type Zone = { uid: number; x: number; y: number; radius: number; dps: number; time: number; sprite: SpriteKey; effect?: HitEffect; effectT?: number };

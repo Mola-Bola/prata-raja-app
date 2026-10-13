@@ -3,6 +3,7 @@ import { CONTENT } from '../../content';
 import { applyCard, drawOffer } from '../cards';
 import { makeRng } from '../rng';
 import { createRun } from '../sim';
+import { isDisabled, speedMul } from '../status';
 import { hitEnemy } from '../sim/hit';
 import { spawnEnemy } from '../sim/spawn';
 import { updateThrowing } from '../sim/throw';
@@ -112,4 +113,107 @@ describe('signature rules', () => {
     updateThrowing(c);
     expect(c.p.breads[0].casts).toBe(4);
   });
+});
+
+it.each(['roti-bomb', 'appam'] as const)('%s charges one fourth serving and never charges failed throws', id => {
+  const w = createRun({ seed: 3, content: CONTENT, loadout: { startBread: id, signatureBread: id } });
+  const c: Ctx = { w, p: w.player, rng: makeRng(3), dt: .1, m: null };
+  enemy(c);
+  c.p.stats.extraProjectiles = 2;
+  for (let cast = 1; cast <= 4; cast++) {
+    c.p.breads[0].cd = 0;
+    w.projectiles = [];
+    updateThrowing(c);
+    expect(w.projectiles.filter(s => s.charged)).toHaveLength(cast === 4 ? 1 : 0);
+  }
+  const shot = w.projectiles.find(s => s.charged)!;
+  if (id === 'roti-bomb') {
+    expect(shot.stats).toMatchObject({ zoneTime: 3, zoneDps: CONTENT.breads[id].levels[0].dmg * 2 });
+    w.projectiles = [shot];
+    c.dt = 1;
+    updatePlayerShots(c);
+    expect(w.zones).toHaveLength(1);
+    expect(w.events.some(e => e.t === 'blast')).toBe(true);
+  } else {
+    expect(shot.hopsLeft).toBe(5);
+    expect(shot.stats).toMatchObject({ hopRange: 400, hopFalloff: 0 });
+    const second = enemy(c, 120, 200);
+    w.projectiles = [shot];
+    c.dt = .5;
+    updatePlayerShots(c);
+    expect(shot.hit).toContain(second.uid);
+    expect(new Set(shot.hit).size).toBe(shot.hit.length);
+  }
+  w.enemies = [];
+  c.p.breads[0].cd = 0;
+  updateThrowing(c);
+  expect(c.p.breads[0].casts).toBe(4);
+});
+
+it.each(['condensed-milk', 'mint-chutney'] as const)('%s links, upgrades and follows either base/evolved hits', id => {
+  for (const after of [false, true]) {
+    const c = context();
+    if (!after) applyCard(c.p, { kind: 'dip', id, level: 1 }, CONTENT, loadout);
+    c.p.breads[0].level = 5;
+    c.p.dips.push({ id: 'chicken-curry', level: 5 });
+    applyCard(c.p, { kind: 'evolve', id: 'crusher-murtabak', level: 1 }, CONTENT, loadout);
+    if (after) applyCard(c.p, { kind: 'dip', id, level: 1 }, CONTENT, loadout);
+    applyCard(c.p, { kind: 'dip', id, level: 2 }, CONTENT, loadout);
+    expect(c.p.dips.find(d => d.id === id)).toEqual({ id, level: 2, linkedBread: 'crusher-murtabak' });
+    for (const bread of ['murtabak', 'crusher-murtabak', 'kosong', undefined] as const) {
+      const target = enemy(c);
+      hitEnemy(c, target, 1, null, false, false, bread);
+      const status = target.statuses.find(s => s.id === (id === 'condensed-milk' ? 'sugarSlow' : 'chill'));
+      if (bread === 'murtabak' || bread === 'crusher-murtabak') expect(status?.time).toBe(id === 'condensed-milk' ? 2.5 : 7.5);
+      else expect(status).toBeUndefined();
+    }
+  }
+});
+
+it('offers match the two-link limit and existing global upgrades stay global', () => {
+  const c = context();
+  const offer = () => drawOffer(c.p, CONTENT, makeRng(8), { n: 100, signatureBread: 'murtabak' });
+  expect(offer().find(card => card.id === 'condensed-milk')?.linkedBread).toBe('murtabak');
+  for (const id of ['fish-curry', 'condensed-milk', 'mint-chutney'] as const) applyCard(c.p, { kind: 'dip', id, level: 1 }, CONTENT, loadout);
+  expect(c.p.dips.filter(d => d.linkedBread)).toHaveLength(2);
+  expect(offer().find(card => card.id === 'mint-chutney')?.linkedBread).toBeUndefined();
+  applyCard(c.p, { kind: 'dip', id: 'mint-chutney', level: 2 }, CONTENT, loadout);
+  expect(c.p.dips.find(d => d.id === 'mint-chutney')?.linkedBread).toBeUndefined();
+});
+
+it('linked Sticky caps instant stacks and crashes into bounded CC; bosses are never stunned', () => {
+  const c = context();
+  applyCard(c.p, { kind: 'dip', id: 'condensed-milk', level: 1 }, CONTENT, loadout);
+  for (const boss of [false, true]) {
+    const target = enemy(c);
+    target.boss = boss;
+    for (let i = 0; i < 5; i++) {
+      c.w.time += .21;
+      hitEnemy(c, target, 1, null, false, false, 'murtabak');
+      hitEnemy(c, target, 1, null, false, false, 'murtabak');
+      if (i === 0) expect(target.statuses.find(s => s.id === 'sugar')?.stacks).toBe(1);
+    }
+    expect(target.statuses.some(s => s.id === 'sugar')).toBe(false);
+    expect(isDisabled(target)).toBe(!boss);
+    if (boss) expect(speedMul(target)).toBeGreaterThan(0);
+    if (!boss) expect(target.statuses.find(s => s.id === 'stun')?.time).toBe(1.25);
+  }
+});
+
+it('the heat signature survives evolution; ordinary bread throws have no signature bonus', () => {
+  for (const signatureBread of ['roti-bomb', undefined] as const) {
+    const w = createRun({ seed: 3, content: CONTENT, loadout: { startBread: 'roti-bomb', signatureBread } });
+    const c: Ctx = { w, p: w.player, rng: makeRng(3), dt: .1, m: null };
+    enemy(c);
+    c.p.breads[0].level = 5;
+    c.p.dips.push({ id: 'sambal', level: 5 });
+    applyCard(c.p, { kind: 'evolve', id: 'inferno-bomb', level: 1 }, CONTENT, w.loadout);
+    for (let i = 0; i < 4; i++) {
+      c.p.breads[0].cd = 0;
+      w.projectiles = [];
+      updateThrowing(c);
+    }
+    expect(w.projectiles[0].charged ?? false).toBe(!!signatureBread);
+    if (!signatureBread) expect(w.projectiles[0].dmg).toBe(CONTENT.breads['inferno-bomb'].levels[0].dmg);
+  }
 });
