@@ -1,5 +1,7 @@
 # Prata Raja — consolidated handover to Codex (13 Oct 2026, evening, Sydney)
 
+> CI works again for Prata Raja: `Mola-Bola/prata-raja-app` was made public on 13 Oct (owner OK; secret scan of all branches clean), so its Actions run free; first run green (quick 1m28s, pgTAP 1m55s). Other Mola-Bola repos stay private and billing-blocked.
+
 One packet for the next Codex lead. It merges (A) the Claude desk session (0.2.0 → 0.4.1, research, CI, pipeline) and (B) the owner's Codex "Astra" round (0.4.2; its original packet is preserved below as section B, verbatim). The owner is moving the lead seat to Codex (more usage there); Claude is near its weekly cap. **You are the lead now. Decide and move; ask the owner only for tools, access, phone taps or spend.**
 
 ## Start here (in order)

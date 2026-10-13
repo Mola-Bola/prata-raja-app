@@ -1,5 +1,7 @@
 This is an Expo/React Native mobile application (Expo SDK 57, Expo Router, Supabase). Prioritize mobile-first patterns, performance, and cross-platform compatibility. It was started from the Cell starter kit (`akit new-app`), so it shares its foundation with Oleh and Hatch.
 
+> CI works again for Prata Raja: `Mola-Bola/prata-raja-app` was made public on 13 Oct (owner OK; secret scan of all branches clean), so its Actions run free; first run green (quick 1m28s, pgTAP 1m55s). Other Mola-Bola repos stay private and billing-blocked.
+
 ## Expo has changed — do not trust your training data
 
 Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS or React Native API:

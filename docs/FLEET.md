@@ -1,5 +1,7 @@
 # Fleet operating model (owner direction, 13 Oct 2026)
 
+> CI works again for Prata Raja: `Mola-Bola/prata-raja-app` was made public on 13 Oct (owner OK; secret scan of all branches clean), so its Actions run free; first run green (quick 1m28s, pgTAP 1m55s). Other Mola-Bola repos stay private and billing-blocked.
+
 Prata Raja is built by a **Codex fleet** that runs itself. The owner keeps one **main Codex session** for talking to them; everything else is delegated. Audience is the owner (and family test phones): not public. Speed of iteration beats ceremony.
 
 ## Roles

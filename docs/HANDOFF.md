@@ -1,5 +1,7 @@
 # Prata Raja — handoff (rolling; replace the top block when state changes)
 
+> CI works again for Prata Raja: `Mola-Bola/prata-raja-app` was made public on 13 Oct (owner OK; secret scan of all branches clean), so its Actions run free; first run green (quick 1m28s, pgTAP 1m55s). Other Mola-Bola repos stay private and billing-blocked.
+
 ## 13 Oct 2026 — 0.4.2 polish candidate (Codex round 1; release verification pending)
 
 - Owner direction: small continuous polish rounds; Archero-style controls are provisional. Durable steering is in `DIRECTION.md`.
