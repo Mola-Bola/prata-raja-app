@@ -231,6 +231,8 @@ async function verifySlice() {
   const head = git(['rev-parse', branch]);
   onBranch(cwd, branch); assertHead(cwd, head);
   git(['merge-base', '--is-ancestor', base, head]);
+  try { git(['merge-base', '--is-ancestor', base, 'main']); }
+  catch { throw new Error('Slice base must be an ancestor of main; cannot hide branch-only changes'); }
   const ledgerId = process.env.FLEET_LEDGER_ID ? Number(process.env.FLEET_LEDGER_ID) : null;
   if (ledgerId !== null && (!Number.isSafeInteger(ledgerId) || ledgerId < 1)) throw new Error('Invalid FLEET_LEDGER_ID');
   const port = Number(process.env.PORT ?? 9492);
@@ -389,6 +391,14 @@ async function release() {
       await sleep(10000);
     }
     if (!deployed) throw new Error('Timed out waiting for Pages deployment');
+    const shippedLedger = slices.some((s) => s.ledgerId) ? fleet.openLedger(root, { render: false }) : null;
+    try {
+      for (const s of slices.filter((slice) => slice.ledgerId)) shippedLedger.status(s.ledgerId, 'shipped', {
+        release: label,
+        result: { head: verifiedHead, sliceHead: s.head, publishedHead: published, report: join(s.dir, 'REPORT.md') },
+        note: `Web ${label} published and Pages verified; full post-ship checks remain separate`,
+      });
+    } finally { shippedLedger?.close(); }
     for (const s of slices) {
       clean(s.cwd);
       if (git(['rev-parse', 'HEAD'], s.cwd) !== s.head) throw new Error(`Slice advanced; preserve worktree: ${s.branch}`);
