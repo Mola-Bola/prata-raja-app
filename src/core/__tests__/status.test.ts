@@ -68,10 +68,10 @@ describe('applyHitEffect: sugar', () => {
     expect(get(short, 'sugarSlow')).toMatchObject({ time: 4, amount: 0.3 });
   });
 
-  it('crash refreshes an existing stun to the longer time and emits even when already stunned', () => {
+  it('crash on an already-stunned enemy emits but never extends the running stun (no stun-lock)', () => {
     const e = enemy({ statuses: [st('sugar', { stacks: 2, dps: 2, time: 5 }), st('sugarSlow', { time: 4 }), st('stun', { time: 1 })] });
     expect(applyHitEffect(SUGAR, e)).toEqual([evt('stun')]);
-    expect(get(e, 'stun')).toMatchObject({ time: 1.5 });
+    expect(get(e, 'stun')).toMatchObject({ time: 1 });
   });
 });
 
@@ -86,10 +86,10 @@ describe('applyHitEffect: chill', () => {
     expect(get(e, 'freeze')).toMatchObject({ time: 1.5 });
   });
 
-  it('freeze refresh sets time to freezeTime and still emits', () => {
-    const e = enemy({ statuses: [st('freeze', { time: 5 }), st('chill', { stacks: 2, amount: 0.1 })] });
+  it('a freeze on an already-frozen enemy emits but never resets the running freeze (no freeze-lock)', () => {
+    const e = enemy({ statuses: [st('freeze', { time: 0.3 }), st('chill', { stacks: 2, amount: 0.1 })] });
     expect(applyHitEffect(CHILL, e)).toEqual([evt('freeze')]);
-    expect(get(e, 'freeze')).toMatchObject({ time: 1.5 });
+    expect(get(e, 'freeze')).toMatchObject({ time: 0.3 });
   });
 });
 
@@ -365,11 +365,17 @@ describe('crowd control: bosses, elites and the immunity after it', () => {
     expect(isDisabled(e)).toBe(true);
   });
 
-  it('a stun or freeze already running is refreshed as before (the immunity only starts when it ends)', () => {
+  it('a stun or freeze already running is never extended or chained, so fast hits cannot lock an enemy', () => {
     const e = enemy({ statuses: [st('stun', { time: 0.4 })] });
     expect(applyCc(e, 'stun', 1)).toEqual({ event: 'stun', added: false });
-    expect(get(e, 'stun')?.time).toBe(1);
-    expect(applyCc(e, 'stun', 0.2)).toEqual({ event: 'stun', added: false });
-    expect(get(e, 'stun')?.time).toBe(1); // a stun is never shortened by a weaker one
+    expect(applyCc(e, 'freeze', 1.25)).toEqual({ event: 'freeze', added: false });
+    expect(get(e, 'stun')?.time).toBe(0.4);
+    expect(hasStatus(e, 'freeze')).toBe(false);
+    // three linked-Mint hits a second for 3 s: the freeze still ends and immunity follows
+    const f = enemy();
+    let frozen = 0;
+    for (let t = 0; t < 3; t += 1 / 3) { applyCc(f, 'freeze', 1.25); if (hasStatus(f, 'freeze')) frozen += 1 / 3; tickStatuses(f, 1 / 3, 0); }
+    expect(frozen).toBeLessThan(1.7);
+    expect(hasStatus(f, 'ccImmune') || hasStatus(f, 'freeze')).toBe(true);
   });
 });

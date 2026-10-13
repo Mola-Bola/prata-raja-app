@@ -27,11 +27,9 @@ function drop(e: Enemy, id: StatusId): void {
 export function applyCc(e: Enemy, id: 'freeze' | 'stun', time: number): { event: StatusId; added: boolean } {
   if (find(e, 'ccImmune')) return { event: 'ccImmune', added: false };
   const held = e.elite && !e.boss ? time * ELITE_CC_SHARE : time;
-  const cur = find(e, id);
-  if (cur) {
-    cur.time = id === 'freeze' ? held : Math.max(cur.time, held);
-    return { event: id, added: false };
-  }
+  // A freeze or stun already running is never extended or chained (by either kind): it runs out, then CC_IMMUNITY starts.
+  // Refreshing it let fast hitters (e.g. linked Mint on Appam) hold an enemy frozen forever.
+  if (find(e, 'freeze') || find(e, 'stun')) return { event: id, added: false };
   e.statuses.push(fresh(id, held));
   return { event: id, added: true };
 }

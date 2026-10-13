@@ -168,7 +168,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   },
 };
 
-// Chapter 2 reskins keep the same archetype rules; combat numbers are 35% stronger.
+// Chapter 2 reskins keep the same archetype rules; gentler contact damage keeps solo viable without freeze-lock.
 const NIGHT_SKINS = {
   'sugarcane-walker': 'sugar-ant', 'tray-rat': 'roach', 'neon-moth': 'pigeon', fishball: 'mosquito',
   'ice-golem': 'burger-brute', 'satay-archer': 'chilli-imp', 'kway-teow-blob': 'boba-blob', 'noodle-bit': 'boba-pearl',
@@ -177,7 +177,7 @@ const NIGHT_SKINS = {
 for (const [id, baseId] of Object.entries(NIGHT_SKINS)) {
   const base = ENEMIES[baseId];
   ENEMIES[id] = { ...base, id, name: id.split('-').map(word => word[0].toUpperCase() + word.slice(1)).join(' '),
-    sprite: `enemies/${id}`, hp: base.hp * 1.35, speed: base.speed * 1.35, contactDps: base.contactDps * 1.35,
+    sprite: `enemies/${id}`, hp: base.hp * 1.35, speed: base.speed * 1.35, contactDps: base.contactDps * .8,
     ...(base.shield ? { shield: base.shield * 1.35 } : {}),
     ...(base.ranged ? { ranged: { ...base.ranged, dmg: base.ranged.dmg * 1.35, projSprite: 'fx/spark' } } : {}),
     ...(base.heal ? { heal: { ...base.heal, hps: base.heal.hps * 1.35 } } : {}),
