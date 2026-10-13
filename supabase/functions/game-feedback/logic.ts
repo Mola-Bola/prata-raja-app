@@ -3,14 +3,15 @@
 // game's own copy in src/game/feedback.ts: keep them in step).
 
 /** The chips on the game's sheet -> the feedback_kind enum (like, dislike, bug, idea, change). The chip itself is kept as a tag. */
-export const CHIP_KIND = { bug: 'bug', idea: 'idea', balance: 'change', art: 'change' } as const;
+export const CHIP_KIND = { direction: 'change', bug: 'bug', feel: 'change', idea: 'idea', balance: 'change', art: 'change' } as const;
 export type Chip = keyof typeof CHIP_KIND;
 
 export const LIMITS = {
   body: 1000,
   from: 40,
   /** Characters in the whole request. A real note is under 2 KB. */
-  request: 8192,
+  request: 200 * 1024,
+  screenshot: 180 * 1024,
   /** Notes one device may file per hour, and all devices together: a rough guard for an open endpoint. */
   perDevicePerHour: 6,
   globalPerHour: 120,
@@ -19,11 +20,13 @@ export const LIMITS = {
 /** The name of the one profile every game note is filed under (the inbox digest shows it as the author). */
 export const AUTHOR_NAME = 'In-game';
 
-const SCREENS = ['title', 'hub', 'run', 'results'] as const;
+const SCREENS = ['title', 'hub', 'run', 'results', 'kitchen'] as const;
 export type GameScreen = (typeof SCREENS)[number];
 
 export type Note = {
   id: string;
+  deviceSecret?: string;
+  screenshot?: string;
   deviceId: string;
   chip: Chip;
   body: string;
@@ -43,7 +46,7 @@ export type Note = {
 
 export type Parsed = { ok: true; note: Note } | { ok: false; error: string };
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const OWNED = /^[a-z0-9-]{1,32}:\d{1,2}$/;
 // Control characters out (a NUL would make Postgres refuse the row); tab and newline stay for the note itself.
 const CONTROL = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g;
@@ -60,16 +63,20 @@ export function parseNote(raw: unknown): Parsed {
   if (!isObj(raw)) return { ok: false, error: 'not an object' };
   if (typeof raw.id !== 'string' || !UUID.test(raw.id)) return { ok: false, error: 'id' };
   if (typeof raw.device_id !== 'string' || !UUID.test(raw.device_id)) return { ok: false, error: 'device_id' };
-  if (typeof raw.chip !== 'string' || !(raw.chip in CHIP_KIND)) return { ok: false, error: 'chip' };
+  if (typeof raw.chip !== 'string' || !Object.hasOwn(CHIP_KIND, raw.chip)) return { ok: false, error: 'chip' };
   if (typeof raw.body !== 'string') return { ok: false, error: 'body' };
   const body = raw.body.replace(CONTROL, '').trim();
   if (body.length === 0) return { ok: false, error: 'empty' };
   if (body.length > LIMITS.body) return { ok: false, error: 'too long' };
+  if (raw.device_secret !== undefined && !validSecret(raw.device_secret)) return { ok: false, error: 'device_secret' };
+  if (raw.screenshot !== undefined && !validScreenshot(raw.screenshot)) return { ok: false, error: 'screenshot' };
   const c = isObj(raw.context) ? raw.context : {};
   return {
     ok: true,
     note: {
       id: raw.id.toLowerCase(),
+      ...(raw.device_secret ? { deviceSecret: (raw.device_secret as string).toLowerCase() } : {}),
+      ...(raw.screenshot ? { screenshot: raw.screenshot as string } : {}),
       deviceId: raw.device_id.toLowerCase(),
       chip: raw.chip as Chip,
       body,
@@ -128,4 +135,16 @@ export function rateVerdict(counts: { device: number; global: number }): 'ok' | 
   if (counts.device >= LIMITS.perDevicePerHour) return 'device';
   if (counts.global >= LIMITS.globalPerHour) return 'global';
   return 'ok';
+}
+
+export function validSecret(value: unknown): value is string {
+  return typeof value === 'string' && value.length === 73 && value.split('.').length === 2 && value.split('.').every((part) => UUID.test(part));
+}
+export function validScreenshot(value: unknown): value is string {
+  if (typeof value !== 'string' || value.length > LIMITS.screenshot || !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(value)) return false;
+  try {
+    const bytes = atob(value.slice(23));
+    return bytes.length >= 4 && bytes.charCodeAt(0) === 255 && bytes.charCodeAt(1) === 216 &&
+      bytes.charCodeAt(bytes.length - 2) === 255 && bytes.charCodeAt(bytes.length - 1) === 217;
+  } catch { return false; }
 }
