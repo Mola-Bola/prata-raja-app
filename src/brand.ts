@@ -22,6 +22,7 @@ export const brandWords = {
   words: {
     /** The feedback button and sheet. */
     tell: 'Tell Kannan',
+    kitchen: 'Test Kitchen',
     /** Who answers notes, as family see it ("the … team" / "The … team"). */
     team: 'Prata Raja team',
     /** The group of people an extension is shared with (extension audience "circle"). */

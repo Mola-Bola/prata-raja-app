@@ -25,6 +25,7 @@ import type { Hub, HudState } from '../hub';
 import { cardView } from './cardText';
 import { AnalyticsSwitch, FeedbackLayer, TellButton } from './FeedbackSheet'; // [feedback hook]
 import { trackCardPick } from '../telemetry'; // [analytics hook]
+import { Kitchen } from './Kitchen';
 import { Prologue } from './Prologue';
 import { createSaveStore } from './saveStore';
 import { Switch, toggleSetting, type SettingKey } from './settings';
@@ -33,7 +34,7 @@ import { Rewards, type Payout } from './stall/Rewards';
 import { StallHub } from './stall/StallHub';
 
 type UiBridge = Pick<Bridge, 'haptic' | 'save' | 'load'>;
-type Screen = 'title' | 'stall' | 'run' | 'results' | 'story';
+type Screen = 'title' | 'stall' | 'run' | 'results' | 'story' | 'kitchen';
 type Offer = { n: number; cards: Card[]; rerolls: number; level: number };
 type Ended = { result: RunResult; line: string; tip: string; newBest: boolean; before: SaveV2; payout: Payout };
 type Banner = { n: number; text: string; boss: boolean };
@@ -54,7 +55,7 @@ function buzz(bridge: UiBridge, on: boolean, kind: HapticKind): void {
 
 export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
   const chapter = useRef(CONTENT.chapters[0].id);
-  const [screen, setScreen] = useState<Screen>('title');
+  const [screen, setScreen] = useState<Screen>(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('kitchen') === '1' ? 'kitchen' : 'title');
   const replayingStory = useRef(false);
   const [runId, setRunId] = useState(0);
   const [offer, setOffer] = useState<Offer | null>(null);
@@ -101,6 +102,7 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
 
   useEffect(() => {
     const offs = [
+      hub.on('kitchenStart', () => { ticket.current = null; setOffer(null); setPaused(false); setEnded(null); setScreen('kitchen'); }),
       hub.on('runStart', ({ seed }) => {
         ticket.current = { seed, paid: false };
         setScreen('run');
@@ -139,6 +141,8 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
     ];
     return () => offs.forEach((off) => off());
   }, [hub, store]);
+
+  const enterKitchen = () => { ticket.current = null; setOffer(null); setPaused(false); setEnded(null); hub.controls?.quit(); setScreen('kitchen'); };
 
   const toggle = (key: SettingKey) => store.commit(toggleSetting(key));
 
@@ -207,7 +211,8 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
           onRetry={() => setLoad((l) => ({ attempt: l.attempt + 1, failed: false }))}
         />
       )}
-      {screen === 'stall' && save && <StallHub save={save} commit={store.commit} onStart={start} onStory={() => { replayingStory.current = true; setScreen('story'); }} art={art} />}
+      {screen === 'stall' && save && <StallHub save={save} commit={store.commit} onStart={start} onKitchen={enterKitchen} onStory={() => { replayingStory.current = true; setScreen('story'); }} art={art} />}
+      {screen === 'kitchen' && <Kitchen hub={hub} ready={sceneReady} onStart={() => { ticket.current = null; }} onExit={() => setScreen(save ? 'stall' : 'title')} />}
       {screen === 'story' && <Prologue onDone={() => {
         store.commit(finishPrologue);
         if (replayingStory.current) setScreen('stall');
