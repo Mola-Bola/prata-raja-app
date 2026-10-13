@@ -18,10 +18,11 @@ function fixture() {
   mkdirSync(join(root, 'node_modules'));
   writeFileSync(join(root, '.env'), 'LOCAL_ONLY=1\n');
   writeFileSync(join(root, '.gitignore'), '.env\nnode_modules\n.akit\n.pages-repo\n');
-  writeFileSync(join(root, 'app.json'), '{"expo":{"version":"0.4.1"}}');
+  writeFileSync(join(root, 'app.json'), '{"expo":{"version":"0.4.1","runtimeVersion":"1"}}');
   writeFileSync(join(root, 'package.json'), '{"version":"0.4.1"}');
   writeFileSync(join(root, 'package-lock.json'), '{"version":"0.4.1","packages":{"":{"version":"0.4.1"}}}');
   writeFileSync(join(root, 'scripts/check.sh'), `#!/bin/bash
+if [ "$PIPELINE_CHECK_COMMIT" = 1 ]; then git commit --allow-empty -qm 'Concurrent check commit'; fi
 if [ "$PIPELINE_CHECK_FAIL" = 1 ]; then echo '✗ tsc'; exit 1; fi
 if [ -f src/change.txt ] && ! grep -q fixed src/change.txt; then echo '✗ vitest · Tests 1 failed'; exit 1; fi
 echo '✓ vitest · Tests 2 passed'
@@ -34,6 +35,12 @@ echo '✓ e2e · 3 passed'
 const fs = require('fs');
 const a = process.argv.slice(2), output = a[a.indexOf('-o') + 1];
 const review = a.includes('read-only');
+const prompt = fs.readFileSync(0, 'utf8');
+if (review && process.env.PIPELINE_REVIEW_CAPTURE) fs.appendFileSync(process.env.PIPELINE_REVIEW_CAPTURE, prompt);
+if (review && process.env.PIPELINE_REVIEW_COMMIT) require('child_process').execFileSync('git', ['commit', '--allow-empty', '-qm', 'Concurrent review commit']);
+if (review && process.env.PIPELINE_PROTECTED_P1 && prompt.includes(process.env.PIPELINE_PROTECTED_P1)) {
+  fs.writeFileSync(output, JSON.stringify({findings:[{priority:'P1', detail:'Protected diff bug'}]})); process.exit(0);
+}
 if (process.env.PIPELINE_CAPACITY_FILE) {
   const file = process.env.PIPELINE_CAPACITY_FILE;
   const count = fs.existsSync(file) ? Number(fs.readFileSync(file, 'utf8')) : 0;
@@ -62,6 +69,7 @@ if [ "$1" = ship ]; then
   git -C .pages-repo -c user.name=Test -c user.email=test@example.invalid commit -q --allow-empty -m published
   echo shipped > .akit/shipped
 fi
+if [ "$1" = check ] && [ "$PIPELINE_AKIT_COMMIT" = 1 ]; then git commit --allow-empty -qm "Concurrent akit commit"; fi
 if [ "$1" = check ] && [ "$PIPELINE_AKIT_FAIL" = 1 ]; then exit 1; fi
 `, { mode: 0o755 });
   writeFileSync(join(bin, 'gh'), `#!/bin/bash
@@ -104,14 +112,130 @@ describe('pipeline', () => {
       expect(report).toContain('Balance: ch1 60/45/20');
       expect(report).toContain('2 passed'); expect(report).toContain('3 passed');
       expect(report).toContain('no open P0/P1');
+      const unrelated = join(f.base, `${f.name}-logs`);
+      mkdirSync(unrelated);
+      writeFileSync(join(unrelated, 'keep'), 'another task');
+      const state = JSON.parse(readFileSync(join(f.report, 'result.json'), 'utf8'));
+      expect(state.ownedDirectories).toContain(join(f.report, 'logs'));
+      state.ownedDirectories.push(unrelated);
+      writeFileSync(join(f.report, 'result.json'), JSON.stringify(state));
+      Object.assign(f.env, { PIPELINE_REVIEW_CAPTURE: join(f.base, 'merged-review.txt') });
       const release = f.call('release', 'Test release', '--branch', `sol/${f.name}`);
       expect(release.status, release.stderr + release.stdout).toBe(0);
+      expect(readFileSync(join(f.base, 'merged-review.txt'), 'utf8')).not.toContain('0.4.2');
       expect(JSON.parse(readFileSync(join(f.root, 'package.json'), 'utf8')).version).toBe('0.4.2');
       expect(JSON.parse(readFileSync(join(f.root, 'package-lock.json'), 'utf8')).packages[''].version).toBe('0.4.2');
       expect(existsSync(join(f.root, '.akit/shipped'))).toBe(true);
       expect(existsSync(join(f.base, `prata-raja-${f.name}`))).toBe(false);
       expect(existsSync(join(f.report, 'REPORT.md'))).toBe(true);
       expect(existsSync(join(f.report, 'check.log'))).toBe(false);
+      expect(existsSync(join(f.report, 'logs'))).toBe(false);
+      expect(readFileSync(join(unrelated, 'keep'), 'utf8')).toBe('another task');
+    } finally { f.close(); }
+  });
+
+  it.each(['app.json', 'supabase/migrations/001.sql'])('reviews the merged protected diff in %s before stamping', (file) => {
+    const f = fixture();
+    try {
+      expect(f.call('slice', f.name, join(f.base, 'brief.md')).status).toBe(0);
+      const cwd = join(f.base, `prata-raja-${f.name}`);
+      mkdirSync(join(cwd, 'supabase/migrations'), { recursive: true });
+      writeFileSync(join(cwd, file), file === 'app.json' ? '{"expo":{"version":"0.4.1","description":"protected-bug"}}' : '-- protected-bug');
+      execFileSync('git', ['add', '-A'], { cwd, env: f.env });
+      execFileSync('git', ['commit', '-qm', 'Protected change'], { cwd, env: f.env });
+      const path = join(f.report, 'result.json');
+      const result = JSON.parse(readFileSync(path, 'utf8'));
+      result.head = f.git('rev-parse', `sol/${f.name}`);
+      writeFileSync(path, JSON.stringify(result));
+      Object.assign(f.env, { PIPELINE_PROTECTED_P1: 'protected-bug', PIPELINE_REVIEW_CAPTURE: join(f.base, 'review.txt') });
+      const release = f.call('release', 'Test', '--branch', `sol/${f.name}`);
+      expect(release.stderr).toContain('Merged review has open P0/P1');
+      expect(f.call('release', 'Retry', '--branch', `sol/${f.name}`).stderr).toContain('Merged review has open P0/P1');
+      expect(readFileSync(join(f.base, 'review.txt'), 'utf8')).toContain(file);
+      expect(existsSync(join(f.root, `.akit/reviewed-${f.git('rev-parse', 'HEAD')}`))).toBe(false);
+      expect(existsSync(join(f.root, '.akit/shipped'))).toBe(false);
+    } finally { f.close(); }
+  });
+  it.each(['PIPELINE_CHECK_COMMIT', 'PIPELINE_REVIEW_COMMIT'])('rejects slice HEAD changes during %s', (hook) => {
+    const f = fixture();
+    try {
+      Object.assign(f.env, { [hook]: '1' });
+      expect(f.call('slice', f.name, join(f.base, 'brief.md')).status).toBe(1);
+      const result = JSON.parse(readFileSync(join(f.report, 'result.json'), 'utf8'));
+      expect(result.ok).toBe(false);
+      expect(result.head).not.toBe(f.git('rev-parse', `sol/${f.name}`));
+      expect(readFileSync(join(f.report, 'REPORT.md'), 'utf8')).toContain('HEAD changed');
+    } finally { f.close(); }
+  });
+  it.each(['PIPELINE_CHECK_COMMIT', 'PIPELINE_REVIEW_COMMIT', 'PIPELINE_AKIT_COMMIT'])('rejects release HEAD changes during %s before stamping', (hook) => {
+    const f = fixture();
+    try {
+      expect(f.call('slice', f.name, join(f.base, 'brief.md')).status).toBe(0);
+      Object.assign(f.env, { [hook]: '1' });
+      const release = f.call('release', 'Test', '--branch', `sol/${f.name}`);
+      expect(release.stderr).toContain('HEAD changed');
+      expect(existsSync(join(f.root, `.akit/reviewed-${f.git('rev-parse', 'HEAD')}`))).toBe(false);
+      expect(existsSync(join(f.root, '.akit/shipped'))).toBe(false);
+    } finally { f.close(); }
+  });
+  it.each(['app.json', 'package.json', 'package-lock.json'])('rejects an unreviewed %s change hidden in the release version commit', (file) => {
+    const f = fixture();
+    try {
+      expect(f.call('slice', f.name, join(f.base, 'brief.md')).status).toBe(0);
+      writeFileSync(join(f.root, '.git/hooks/pre-commit'), `#!/bin/sh
+node -e 'const fs = require("node:fs"); const file = ${JSON.stringify(file)}; const data = JSON.parse(fs.readFileSync(file)); data.unreviewed = true; fs.writeFileSync(file, JSON.stringify(data));'
+git add ${file}
+`, { mode: 0o755 });
+      const release = f.call('release', 'Test', '--branch', `sol/${f.name}`);
+      expect(release.status).toBe(1);
+      expect(release.stderr).toContain(`Unexpected change during version bump: ${file}`);
+      expect(existsSync(join(f.root, `.akit/reviewed-${f.git('rev-parse', 'HEAD')}`))).toBe(false);
+      expect(existsSync(join(f.root, '.akit/shipped'))).toBe(false);
+    } finally { f.close(); }
+  });
+  it.each(['runtime', 'dependency', 'lock', 'plugin', 'patch'])('refuses OTA for a %s change against main', (change) => {
+    const f = fixture();
+    try {
+      expect(f.call('slice', f.name, join(f.base, 'brief.md')).status).toBe(0);
+      const cwd = join(f.base, `prata-raja-${f.name}`);
+      if (change === 'runtime') writeFileSync(join(cwd, 'app.json'), '{"expo":{"version":"0.4.1","runtimeVersion":"2"}}');
+      if (change === 'dependency') writeFileSync(join(cwd, 'package.json'), '{"version":"0.4.1","dependencies":{"expo-haptics":"57.0.4"}}');
+      if (change === 'lock') writeFileSync(join(cwd, 'package-lock.json'), '{"version":"0.4.1","packages":{"node_modules/expo-haptics":{"version":"57.0.4"}}}');
+      if (change === 'plugin') { mkdirSync(join(cwd, 'plugins')); writeFileSync(join(cwd, 'plugins/native.js'), '// native'); }
+      if (change === 'patch') { mkdirSync(join(cwd, 'patches')); writeFileSync(join(cwd, 'patches/native.patch'), 'native dependency patch'); }
+      execFileSync('git', ['add', '-A'], { cwd, env: f.env });
+      execFileSync('git', ['commit', '-qm', 'Native change'], { cwd, env: f.env });
+      const path = join(f.report, 'result.json');
+      const result = JSON.parse(readFileSync(path, 'utf8'));
+      result.head = f.git('rev-parse', `sol/${f.name}`);
+      writeFileSync(path, JSON.stringify(result));
+      const release = f.call('release', 'Test', '--branch', `sol/${f.name}`);
+      expect(release.status).toBe(1);
+      expect(release.stderr).toContain('documented --apk --cloud path');
+      expect(f.call('release', 'Retry', '--branch', `sol/${f.name}`).stderr).toContain('documented --apk --cloud path');
+      expect(existsSync(join(f.root, '.akit/shipped'))).toBe(false);
+    } finally { f.close(); }
+  });
+  it('refuses a runtime revert to the old slice base when main has a newer runtime', () => {
+    const f = fixture();
+    try {
+      expect(f.call('slice', f.name, join(f.base, 'brief.md')).status).toBe(0);
+      const oldConfig = readFileSync(join(f.root, 'app.json'), 'utf8');
+      writeFileSync(join(f.root, 'app.json'), '{"expo":{"version":"0.4.1","runtimeVersion":"2"}}');
+      f.git('add', 'app.json'); f.git('commit', '-qm', 'New main runtime');
+      const cwd = join(f.base, `prata-raja-${f.name}`);
+      execFileSync('git', ['merge', '--no-edit', 'main'], { cwd, env: f.env });
+      writeFileSync(join(cwd, 'app.json'), oldConfig);
+      execFileSync('git', ['add', 'app.json'], { cwd, env: f.env });
+      execFileSync('git', ['commit', '-qm', 'Revert runtime to slice base'], { cwd, env: f.env });
+      const path = join(f.report, 'result.json');
+      const result = JSON.parse(readFileSync(path, 'utf8'));
+      result.head = f.git('rev-parse', `sol/${f.name}`);
+      writeFileSync(path, JSON.stringify(result));
+      const release = f.call('release', 'Test', '--branch', `sol/${f.name}`);
+      expect(release.status).toBe(1);
+      expect(release.stderr).toContain('Runtime changed; use the documented --apk --cloud path');
+      expect(existsSync(join(f.root, '.akit/shipped'))).toBe(false);
     } finally { f.close(); }
   });
   it('rejects stale or failed slice reports before merging or shipping', () => {
@@ -143,7 +267,7 @@ describe('pipeline', () => {
       writeFileSync(resultPath, JSON.stringify({ ...result, ok: true, findings: [] }));
       const reportPath = join(f.report, 'REPORT.md');
       writeFileSync(reportPath, readFileSync(reportPath, 'utf8').replace('Result: FAIL', 'Result: PASS'));
-      Object.assign(f.env, { PIPELINE_CHECK_FAIL: '1' });
+      Object.assign(f.env, { PIPELINE_CHECK_FAIL: '1', PIPELINE_OPEN_P1: '' });
       const release = f.call('release', 'Test', '--branch', `sol/${f.name}`);
       expect(release.status).toBe(1); expect(release.stderr).toContain('Merged checks failed');
       expect(existsSync(join(f.root, '.akit/shipped'))).toBe(false);
@@ -159,6 +283,18 @@ describe('pipeline', () => {
       expect(release.status).toBe(1);
       expect(existsSync(join(f.root, '.akit/shipped'))).toBe(false);
       expect(existsSync(join(f.root, `.akit/reviewed-${f.git('rev-parse', 'HEAD')}`))).toBe(false);
+    } finally { f.close(); }
+  });
+  it('can retry after failed checks with only the release version bump in the lockfile', () => {
+    const f = fixture();
+    try {
+      expect(f.call('slice', f.name, join(f.base, 'brief.md')).status).toBe(0);
+      Object.assign(f.env, { PIPELINE_AKIT_FAIL: '1' });
+      expect(f.call('release', 'Test', '--branch', `sol/${f.name}`).status).toBe(1);
+      Object.assign(f.env, { PIPELINE_AKIT_FAIL: '' });
+      const retry = f.call('release', 'Retry', '--branch', `sol/${f.name}`);
+      expect(retry.status, retry.stderr + retry.stdout).toBe(0);
+      expect(existsSync(join(f.root, '.akit/shipped'))).toBe(true);
     } finally { f.close(); }
   });
   it('preserves worktrees and logs when Pages verification fails after shipping', () => {

@@ -1,6 +1,6 @@
 // The shell entry points share only command execution, slice metadata and check ownership.
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSync, symlinkSync, realpathSync, openSync, closeSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSync, symlinkSync, realpathSync, openSync, closeSync, lstatSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { createServer } from 'node:net';
@@ -22,6 +22,51 @@ function run(command, argv, cwd = root, options = {}) {
 const git = (argv, cwd = root) => run('git', argv, cwd);
 const clean = (cwd) => { if (git(['status', '--porcelain'], cwd)) throw new Error(`Dirty worktree: ${cwd}`); };
 const onBranch = (cwd, branch) => { if (git(['branch', '--show-current'], cwd) !== branch) throw new Error(`Expected ${branch} in ${cwd}`); };
+const assertHead = (cwd, head) => {
+  if (git(['rev-parse', 'HEAD'], cwd) !== head) throw new Error('HEAD changed during verification; rerun checks and review');
+  clean(cwd);
+};
+const reviewSchema = (dir) => json(join(dir, 'review-schema.json'), { type: 'object', properties: { findings: { type: 'array', items: { type: 'object', properties: { priority: { type: 'string', enum: ['P0', 'P1', 'P2'] }, detail: { type: 'string' } }, required: ['priority', 'detail'], additionalProperties: false } } }, required: ['findings'], additionalProperties: false });
+function requireOtaCompatible(base, head) {
+  const at = (sha, file) => JSON.parse(git(['show', `${sha}:${file}`]));
+  const before = at(base, 'app.json'), after = at(head, 'app.json');
+  if (JSON.stringify(before.expo.runtimeVersion) !== JSON.stringify(after.expo.runtimeVersion)) throw new Error('Runtime changed; use the documented --apk --cloud path in docs/UPDATES.md');
+  delete before.expo.version; delete after.expo.version;
+  const pkgBefore = at(base, 'package.json'), pkgAfter = at(head, 'package.json');
+  const dependencies = (pkg) => [pkg.dependencies, pkg.devDependencies, pkg.optionalDependencies, pkg.peerDependencies];
+  const changed = git(['diff', '--name-only', base, head]).split('\n');
+  const lockChanged = changed.includes('package-lock.json') && (() => {
+    const normalize = (sha) => {
+      const lock = at(sha, 'package-lock.json');
+      delete lock.version;
+      if (lock.packages?.['']) delete lock.packages[''].version;
+      return JSON.stringify(lock);
+    };
+    return normalize(base) !== normalize(head);
+  })();
+  const configAssets = (value) => typeof value === 'string' ? [value.replace(/^\.\//, '')] :
+    value && typeof value === 'object' ? Object.values(value).flatMap(configAssets) : [];
+  // Dependency/lock changes cannot be proved JS-only with shared node_modules; fail closed.
+  if (JSON.stringify(before) !== JSON.stringify(after) ||
+    JSON.stringify(dependencies(pkgBefore)) !== JSON.stringify(dependencies(pkgAfter)) ||
+    changed.some((p) => configAssets(before).some((asset) => p === asset || p.startsWith(`${asset}/`))) ||
+    lockChanged || changed.some((p) => p !== 'package-lock.json' && /^(?:plugins\/|modules\/|ios\/|android\/|patches\/|app.config\.|eas.json$|.*(?:lock.json|lock.yaml|yarn.lock|bun.lockb?)$)/.test(p))) {
+    throw new Error('Native config or dependencies may have changed; use the documented --apk --cloud path in docs/UPDATES.md');
+  }
+}
+function assertVersionBump(base, head, label) {
+  if (head !== base && git(['rev-parse', `${head}^`]) !== base) throw new Error('HEAD changed during version bump');
+  for (const file of git(['diff', '--name-only', base, head]).split('\n').filter(Boolean)) {
+    if (!['app.json', 'package.json', 'package-lock.json'].includes(file)) throw new Error('Unexpected change during version bump');
+    const expected = JSON.parse(git(['show', `${base}:${file}`]));
+    if (file === 'app.json') expected.expo.version = label;
+    else {
+      expected.version = label;
+      if (file === 'package-lock.json' && expected.packages?.['']) expected.packages[''].version = label;
+    }
+    if (JSON.stringify(expected) !== JSON.stringify(JSON.parse(git(['show', `${head}:${file}`])))) throw new Error(`Unexpected change during version bump: ${file}`);
+  }
+}
 const step = (text) => console.log(text);
 async function freePort(port) {
   await new Promise((res, rej) => {
@@ -72,8 +117,9 @@ async function checks(cwd, dir, port) {
   if (result.error) throw result.error;
   return result.status === 0;
 }
-async function review(cwd, dir, base, phase) {
-  const diff = git(['diff', `${base}..HEAD`, '--', 'src', 'scripts', 'e2e', ':!**/__tests__/**', ':!src/content/**'], cwd);
+async function review(cwd, dir, base, head, phase) {
+  reviewSchema(dir);
+  const diff = git(['diff', `${base}..${head}`], cwd);
   const result = JSON.parse(await codex(cwd, dir, phase,
     `Review this diff against ${base}. Read connected code as needed. Real bugs only, P0/P1/P2; no style, speculative issues or praise. Do not edit files. Return findings with priority and a short location/description.\n${diff}`, true));
   if (!Array.isArray(result.findings) || result.findings.some((f) => !['P0', 'P1', 'P2'].includes(f.priority) || typeof f.detail !== 'string')) throw new Error('Invalid review response');
@@ -92,42 +138,54 @@ async function slice() {
   for (const s of [`Create ${cwd} (${branch}) from main; link node_modules; copy local .env`,
     `Codex build (git writable roots); capacity retry every 5 min, up to 4 retries; commit fallback`,
     `PORT=${port} SKIP_DB=1 check.sh --web → ${dir}/logs (owned server)`,
-    'Read-only structured review of src/scripts/e2e diff; one fix + commit + recheck + re-review if needed',
+    'Read-only structured review of the full diff (including app.json and migrations); one fix + commit + recheck + re-review if needed',
     `Write ≤15-line ${dir}/REPORT.md and commit-bound result.json; exit 0 only when green`]) step(s);
   if (dry) return;
   if (existsSync(dir) || existsSync(cwd)) throw new Error('Slice name/worktree already exists; use a new name');
   mkdirSync(store, { recursive: true });
   mkdirSync(dir); // Claim the name atomically when parallel slices start together.
-  const state = { name, branch, cwd, base: git(['rev-parse', 'main']), head: null, ok: false, port };
+  const state = { name, branch, cwd, base: git(['rev-parse', 'main']), head: null, ok: false, port, ownedDirectories: [dir] };
   let green = false, initial = [], findings = [], fixed = false, issue = 'Incomplete';
   try {
     await freePort(port);
     git(['worktree', 'add', '-b', branch, cwd, state.base]);
+    state.ownedDirectories.push(cwd);
     symlinkSync(realpathSync(join(root, 'node_modules')), join(cwd, 'node_modules'));
     copyFileSync(join(root, '.env'), join(cwd, '.env'));
-    json(join(dir, 'review-schema.json'), { type: 'object', properties: { findings: { type: 'array', items: { type: 'object', properties: { priority: { type: 'string', enum: ['P0', 'P1', 'P2'] }, detail: { type: 'string' } }, required: ['priority', 'detail'], additionalProperties: false } } }, required: ['findings'], additionalProperties: false });
+    json(join(dir, 'result.json'), state);
+    mkdirSync(join(dir, 'logs'));
+    state.ownedDirectories.push(join(dir, 'logs'));
+    json(join(dir, 'result.json'), state);
     const instructions = '\nPipeline instructions: read AGENTS.md, DIRECTION.md and handoff first. Implement only this brief, never merge or ship. Commit if permitted; pipeline commits remaining edits. Pipeline runs full checks/Playwright externally. Write the requested report including any balance line. Never read cloud/production env files.';
     await codex(cwd, dir, 'build', briefText + instructions);
     onBranch(cwd, branch);
     commit(cwd, `Slice ${name}`);
+    state.head = git(['rev-parse', 'HEAD'], cwd);
     green = await checks(cwd, dir, port);
-    findings = initial = await review(cwd, dir, state.base, 'review');
+    assertHead(cwd, state.head);
+    findings = initial = await review(cwd, dir, state.base, state.head, 'review');
+    assertHead(cwd, state.head);
     if (!green || blocking(findings)) {
       await codex(cwd, dir, 'fix', `One fix round: fix real review bugs and failing checks, add focused regression coverage.\n${JSON.stringify(findings)}\n${read(join(dir, 'check.log')).slice(-12000)}\nFailing e2e excerpt:\n${read(join(dir, 'logs/e2e.log')).slice(-18000)}\nOriginal brief:\n${briefText}${instructions}`);
       onBranch(cwd, branch);
       commit(cwd, `Fix slice ${name}`);
+      state.head = git(['rev-parse', 'HEAD'], cwd);
       green = await checks(cwd, dir, port);
-      findings = await review(cwd, dir, state.base, 'review-final');
+      assertHead(cwd, state.head);
+      findings = await review(cwd, dir, state.base, state.head, 'review-final');
+      assertHead(cwd, state.head);
       fixed = !blocking(findings);
     }
     clean(cwd);
     onBranch(cwd, branch);
-    state.head = git(['rev-parse', 'HEAD'], cwd);
+    assertHead(cwd, state.head);
     state.ok = green && !blocking(findings);
     issue = state.ok ? 'None blocking' : 'Checks failed or open P0/P1';
   } catch (error) { issue = error.message.replace(/\s+/g, ' ').slice(0, 500); }
   finally {
-    if (existsSync(join(cwd, '.git'))) state.head = git(['rev-parse', 'HEAD'], cwd);
+    if (state.head && existsSync(join(cwd, '.git'))) {
+      try { assertHead(cwd, state.head); } catch (error) { state.ok = false; issue = error.message; }
+    }
     json(join(dir, 'result.json'), { ...state, findings });
     const commits = state.head ? git(['log', '--format=%h', `${state.base}..${state.head}`], cwd).split('\n').join(', ') : 'none';
     const summary = read(join(dir, 'check.log')).split('\n').filter((l) => /^[✓✗-]/.test(l)).join('; ');
@@ -151,8 +209,10 @@ async function release() {
   }
   if (!notes || notes.startsWith('--') || !branches.length || new Set(branches).size !== branches.length) throw new Error('Usage: release.sh "notes" --branch a [--branch b] [--minor] [--dry-run]');
   for (const s of ['Require clean main; acquire repository release lock; validate PASS reports against exact branch HEADs',
-    `Merge ${branches.join(', ')} (stop on conflicts)`, `Read ship-cloud --next-label${minor ? ' --minor' : ''}; set app.json/package.json; commit version`,
-    'Run merged check.sh --web + SKIP_DB=1 akit check; stamp HEAD with slice reports',
+    `Merge ${branches.join(', ')} (stop on conflicts)`,
+    'Review merged full diff; refuse runtime/native config and dependency changes',
+    `Read ship-cloud --next-label${minor ? ' --minor' : ''}; set app.json/package.json; commit only version changes`,
+    'Run merged checks + akit check; reject HEAD changes; stamp pinned HEAD',
     `akit ship -- node scripts/ship-cloud.mjs --label <selected-label> --notes ${JSON.stringify(notes)}`,
     'Wait for Pages build at published SHA and matching live HTML; remove only merged clean slice worktrees and their logs']) step(s);
   if (dry) return;
@@ -164,7 +224,8 @@ async function release() {
   const releaseDir = join(store, `release-${Date.now()}`);
   try {
     writeFileSync(join(lock, 'owner'), `pid=${process.pid} root=${root}\n`);
-    mkdirSync(releaseDir, { recursive: true });
+    mkdirSync(store, { recursive: true });
+    mkdirSync(releaseDir);
     const slices = branches.map((branch) => {
       if (!/^sol\/[a-z0-9][a-z0-9-]*$/.test(branch)) throw new Error(`Not a slice branch: ${branch}`);
       const dir = join(store, branch.slice(4));
@@ -177,9 +238,19 @@ async function release() {
       onBranch(result.cwd, branch);
       return { ...result, dir };
     });
+    // Keep slice changes in scope even when retrying after a failed merged release.
+    const mainHead = git(['rev-parse', 'HEAD']);
+    const base = git(['merge-base', '--octopus', mainHead, ...slices.map((s) => s.base)]);
     for (const s of slices) git(['merge', '--no-edit', '--', s.head]);
+    const mergedHead = git(['rev-parse', 'HEAD']);
+    const findings = await review(root, releaseDir, base, mergedHead, 'review-merged');
+    assertHead(root, mergedHead);
+    if (blocking(findings)) throw new Error('Merged review has open P0/P1; see review-merged.txt');
+    requireOtaCompatible(mainHead, mergedHead);
+    requireOtaCompatible(base, mergedHead);
     const label = run('node', ['scripts/ship-cloud.mjs', '--next-label', ...(minor ? ['--minor'] : [])]);
     if (!/^\d+\.\d+\.\d+$/.test(label)) throw new Error('Invalid ship label');
+    assertHead(root, mergedHead);
     for (const file of ['app.json', 'package.json']) {
       const data = JSON.parse(readFileSync(join(root, file), 'utf8'));
       if (file === 'app.json') data.expo.version = label; else data.version = label;
@@ -193,12 +264,16 @@ async function release() {
       json(lockfile, data);
     }
     commit(root, `Release ${label}`);
+    const verifiedHead = git(['rev-parse', 'HEAD']);
+    assertVersionBump(mergedHead, verifiedHead, label);
     if (!await checks(root, releaseDir, Number(process.env.PORT ?? 9491))) throw new Error('Merged checks failed');
+    assertHead(root, verifiedHead);
     const akit = join(homedir(), 'cell/akit/akit');
     run(akit, ['check'], root, { stdio: 'inherit', env: { ...process.env, SKIP_DB: '1' } });
-    clean(root);
+    assertHead(root, verifiedHead);
     mkdirSync(join(root, '.akit'), { recursive: true });
-    writeFileSync(join(root, '.akit', `reviewed-${git(['rev-parse', 'HEAD'])}`), slices.map((s) => read(join(s.dir, 'REPORT.md'))).join('\n'));
+    writeFileSync(join(root, '.akit', `reviewed-${verifiedHead}`), `Merged ${base}..${mergedHead}; verified ${verifiedHead}\n${JSON.stringify(findings)}\n` + slices.map((s) => read(join(s.dir, 'REPORT.md'))).join('\n'));
+    assertHead(root, verifiedHead);
     run(akit, ['ship', '--', 'node', 'scripts/ship-cloud.mjs', '--label', label, '--notes', notes], root, { stdio: 'inherit' });
     const published = git(['rev-parse', 'HEAD'], join(root, '.pages-repo'));
     const expectedHtml = readFileSync(join(root, '.pages-repo/index.html'), 'utf8');
@@ -217,12 +292,14 @@ async function release() {
       clean(s.cwd);
       if (git(['rev-parse', 'HEAD'], s.cwd) !== s.head) throw new Error(`Slice advanced; preserve worktree: ${s.branch}`);
       git(['merge-base', '--is-ancestor', s.head, 'HEAD']);
-      git(['worktree', 'remove', s.cwd]); // never force: preserve unexpected edits.
-      for (const file of ['logs', 'serve.log', 'check.log']) rmSync(join(s.dir, file), { recursive: true, force: true });
+      if (s.ownedDirectories?.includes(s.cwd)) git(['worktree', 'remove', s.cwd]); // never force: preserve unexpected edits.
+      for (const owned of s.ownedDirectories ?? []) {
+        if (owned === join(s.dir, 'logs') && existsSync(owned) && !lstatSync(owned).isSymbolicLink()) rmSync(owned, { recursive: true, force: true });
+      }
+      for (const file of ['serve.log', 'check.log']) rmSync(join(s.dir, file), { force: true });
       for (const file of ['build', 'fix', 'review', 'review-final']) {
         for (let i = 0; i <= 4; i++) rmSync(join(s.dir, `${file}-${i}.log`), { force: true });
       }
-      rmSync(join(dirname(store), `${s.name}-logs`), { recursive: true, force: true });
     }
     rmSync(releaseDir, { recursive: true, force: true });
     step(`Shipped ${label}; slice reports retained in ${store}.`);
