@@ -460,6 +460,10 @@
   justify-items: center;
   gap: 16px;
   width: min(100%, 420px);
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .gu-levelup > .gu-btn {

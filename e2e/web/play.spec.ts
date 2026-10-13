@@ -329,3 +329,49 @@ test('an enemy biting at the counter shows the danger cue, and every hit flashes
   await expect.poll(marks).toBe(0);
   expect(errors).toEqual([]);
 });
+
+test('short phone scrolls every dip card and Reroll into reach, then picks a rerolled card', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 480 });
+  await page.goto('/play?seed=3');
+  await tid(page, 'ui-start').click();
+  await tid(page, 'story-skip').click();
+  await page.waitForFunction(() => !!window.__world);
+  await page.evaluate(() => {
+    const w = window.__world!;
+    w.phase = 'levelup';
+    w.player.level = 3;
+    w.pendingLevelUps = 1;
+    w.rerolls = 1;
+    w.offer = [
+      { kind: 'dip', id: 'fish-curry', level: 1, linkedBread: 'inferno-bomb' },
+      { kind: 'dip', id: 'condensed-milk', level: 3, linkedBread: 'murtabak' },
+      { kind: 'dip', id: 'mint-chutney', level: 2 },
+    ];
+    window.__hub!.emit('levelUp', { offer: w.offer, rerolls: w.rerolls, level: w.player.level });
+  });
+  const dialog = page.getByRole('dialog', { name: 'Level 3: pick a card' });
+  for (const [i, effect, scope] of [
+    [0, 'Burns over time', 'Linked to Roti Bomb'],
+    [1, 'Slows, then Sugar Crash', 'Linked to Murtabak'],
+    [2, 'Chills; 3 chills freeze', 'All breads'],
+  ] as const) {
+    await expect(tid(page, `ui-card-${i}`)).toContainText(effect);
+    await expect(tid(page, `ui-card-${i}`)).toContainText(scope);
+  }
+  await expect(tid(page, 'ui-card-0')).toBeInViewport({ ratio: 1 });
+  const bounds = await dialog.boundingBox();
+  expect(bounds).not.toBeNull();
+  await page.mouse.move(bounds!.x + bounds!.width / 2, Math.min(400, bounds!.y + bounds!.height / 2));
+  await page.mouse.wheel(0, 1000);
+  await expect.poll(() => dialog.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+  await expect(tid(page, 'ui-card-1')).toBeInViewport({ ratio: 1 });
+  await expect(tid(page, 'ui-card-2')).toBeInViewport({ ratio: 1 });
+  await expect(tid(page, 'ui-reroll')).toBeInViewport({ ratio: 1 });
+  await page.screenshot({ path: test.info().outputPath('short-offer-bottom.png') });
+  await tid(page, 'ui-reroll').click();
+  await expect.poll(() => page.evaluate(() => window.__world!.rerolls)).toBe(0);
+  await expect(all(page, 'ui-reroll')).toHaveCount(0);
+  await tid(page, 'ui-card-0').click();
+  await expect.poll(() => page.evaluate(() => window.__world!.phase)).toBe('wave');
+  await expect(dialog).toHaveCount(0);
+});
