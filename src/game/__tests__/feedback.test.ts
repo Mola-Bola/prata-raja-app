@@ -5,6 +5,11 @@ import type { OwnedBread, OwnedDip, RunResult } from '@/core/types';
 import type { AppInfo } from '../appInfo';
 import {
   BODY_MAX,
+  listNotes,
+  pairOwner,
+  replyToNote,
+  validScreenshot,
+  SCREENSHOT_MAX,
   buildNote,
   canSend,
   CHIPS,
@@ -31,8 +36,8 @@ const build = (over: Partial<Parameters<typeof buildNote>[0]> = {}): NotePayload
   buildNote({ id: ID, deviceId: DEVICE, chip: 'bug', text: '  boss stuck  ', from: ' Mum ', info: INFO, screen: 'run', run: RUN, ...over });
 
 describe('chips', () => {
-  it('are Bug, Idea, Balance and Art, with Idea first chosen', () => {
-    expect(CHIPS.map((c) => c.label)).toEqual(['Bug', 'Idea', 'Balance', 'Art']);
+  it('are Direction, Bug, Feel and Idea, with Idea first chosen', () => {
+    expect(CHIPS.map((c) => c.label)).toEqual(['Direction', 'Bug', 'Feel', 'Idea']);
     expect(CHIPS.map((c) => c.id)).toContain(DEFAULT_CHIP);
   });
 });
@@ -95,7 +100,7 @@ describe('toScreen', () => {
 });
 
 describe('sendNote', () => {
-  const res = (status: number) => new Response('{}', { status });
+  const res = (status: number) => new Response(JSON.stringify({ ok: true, id: ID }), { status });
 
   it('posts the note as text/plain JSON (no CORS preflight) and answers with its id', async () => {
     let seen: { url: string; init: RequestInit } | undefined;
@@ -171,7 +176,7 @@ describe('the sheet', () => {
 
   it('treats an edit after a failure as a new note', () => {
     const failed = run(typed, { type: 'send', id: 'n1' }, { type: 'fail', reason: 'server' });
-    for (const edit of [{ type: 'text', text: 'too hard!' }, { type: 'chip', chip: 'balance' }, { type: 'from', from: 'Dad' }, { type: 'clear' }] as SheetAction[]) {
+    for (const edit of [{ type: 'text', text: 'too hard!' }, { type: 'chip', chip: 'feel' }, { type: 'from', from: 'Dad' }, { type: 'clear' }] as SheetAction[]) {
       expect(run(failed, edit)).toMatchObject({ phase: 'edit', noteId: null, reason: null });
     }
     expect(run(failed, { type: 'clear' }).text).toBe('');
@@ -182,7 +187,7 @@ describe('the sheet', () => {
     expect(run(sending, { type: 'text', text: 'changed' })).toBe(sending);
     expect(run(sending, { type: 'send', id: 'n2' })).toBe(sending);
     const sent = run(sending, { type: 'sent' });
-    expect(run(sent, { type: 'chip', chip: 'art' })).toBe(sent);
+    expect(run(sent, { type: 'chip', chip: 'idea' })).toBe(sent);
     expect(run(sent, { type: 'fail', reason: 'offline' })).toBe(sent);
   });
 
@@ -227,5 +232,37 @@ describe('trackRun (what run a note is about)', () => {
     t.stop();
     hub.emit('hud', hud(9, 9));
     expect(t.read()).toMatchObject({ seed: 100, wave: 0 }); // stopped: no longer listening
+  });
+});
+
+
+describe('private note actions', () => {
+  const pair = { device_id: DEVICE, device_secret: `${DEVICE}.${ID}` };
+  const reply = (data: unknown, status = 200) => ({ url: 'https://x.test/f', fetchImpl: (async () => new Response(JSON.stringify(data), { status })) as typeof fetch });
+  it('requires validated private notes and an explicit server owner boolean', async () => {
+    const note = { id: ID, body: 'My note', chip: 'direction', status: 'approved', plan: null, shipped_in: null, created_at: '2026-10-13', messages: [] };
+    await expect(listNotes(pair, reply({ ok: true, notes: [note], owner: false }))).resolves.toEqual({ ok: true, notes: [note], owner: false });
+    for (const data of [{ ok: true }, { ok: true, notes: [note], owner: 'true' }, { ok: true, notes: [{ ...note, messages: [{}] }], owner: false }]) {
+      await expect(listNotes(pair, reply(data))).resolves.toEqual({ ok: false, reason: 'unavailable' });
+    }
+    await expect(listNotes(pair, reply({}, 400))).resolves.toEqual({ ok: false, reason: 'unavailable' });
+    await expect(listNotes({ ...pair, device_secret: '' }, reply({ ok: true, notes: [], owner: true }))).resolves.toEqual({ ok: false, reason: 'unavailable' });
+  });
+  it('never confirms an owner from a generic success response', async () => {
+    await expect(pairOwner(pair, 'code', reply({ ok: true }))).resolves.toEqual({ ok: false, reason: 'rejected' });
+    await expect(pairOwner(pair, 'code', reply({ ok: true, owner: true }))).resolves.toEqual({ ok: true, owner: true });
+  });
+  it('requires the reply acknowledgement to match both note and message IDs', async () => {
+    await expect(replyToNote(pair, ID, DEVICE, 'reply', reply({ ok: true, id: ID, message_id: DEVICE }))).resolves.toEqual({ ok: true, id: DEVICE });
+    await expect(replyToNote(pair, ID, DEVICE, 'reply', reply({ ok: true, id: ID }))).resolves.toEqual({ ok: false, reason: 'unavailable' });
+  });
+  it('rejects malformed send acknowledgements and bounds optional screenshots', async () => {
+    await expect(sendNote(build(), reply({ ok: true, id: 'another-note' }))).resolves.toEqual({ ok: false, reason: 'server' });
+    await expect(sendNote(build(), reply({}))).resolves.toEqual({ ok: false, reason: 'server' });
+    expect(validScreenshot('data:image/png;base64,/9j/2Q==')).toBe(false);
+    expect(validScreenshot('data:image/jpeg;base64,' + 'A'.repeat(SCREENSHOT_MAX))).toBe(false);
+    const screenshot = 'data:image/jpeg;base64,/9j/2Q==';
+    expect(build({ screenshot, deviceSecret: pair.device_secret })).toMatchObject({ screenshot, device_secret: pair.device_secret });
+    expect(build({ screenshot: null })).not.toHaveProperty('screenshot');
   });
 });
