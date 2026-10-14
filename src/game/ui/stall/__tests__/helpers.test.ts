@@ -8,7 +8,7 @@ import { LEVEL_THRESHOLDS, UNLOCK_TABLE, unlocksForXp } from '@/meta/stall';
 import { STREAK_REWARDS } from '@/meta/streak';
 import { RARITIES, type SaveV2 } from '@/meta/types';
 
-import { chestArt, evolutionRecipes, giftLabel, HOTSPOTS, mergeCandidates, mergeGear, newUnlocks, PANELS, pityLines, progress, rackItems, readyBadges, statLines, titleCase, unlockLevel, UNLOCK_NAMES } from '../helpers';
+import { chestArt, evolutionRecipes, giftLabel, HOTSPOTS, mergeCandidates, mergeGear, newUnlocks, PANELS, pityLines, progress, rackItems, readyBadges, statLines, titleCase, unlockBeat, UNLOCK_NAMES } from '../helpers';
 
 const NOW = new Date('2026-10-12T04:00:00Z');
 const veteran = (): SaveV2 => ({ ...freshSaveV2(), stallXp: 3900, unlocks: unlocksForXp(3900), idle: { lastCollectedAt: NOW.toISOString() } });
@@ -63,7 +63,7 @@ describe('stall display helpers', () => {
     const after = { ...before, stallXp: 350, unlocks: unlocksForXp(350) };
     expect(newUnlocks(before, after)).toEqual(['Gear', 'Towel', 'Training', 'Headband']);
     expect(newUnlocks(after, after)).toEqual([]);
-    for (const row of UNLOCK_TABLE) for (const flag of row.flags) expect(unlockLevel(flag)).toBe(row.level);
+    for (const row of UNLOCK_TABLE) for (const flag of row.flags) expect(unlockBeat(flag)).not.toBe('');
     for (const name of Object.values(UNLOCK_NAMES)) expect(name.split(/\s+/).length).toBeLessThanOrEqual(8);
   });
 

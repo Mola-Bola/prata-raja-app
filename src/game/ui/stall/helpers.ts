@@ -1,11 +1,14 @@
 // Pure helpers for the stall screens (hub scene, sheets, payout panel): no React, no DOM, so Node tests cover them.
 import { CONTENT } from '@/content';
+import { BREADS } from '@/content/breads';
+import { DIPS } from '@/content/dips';
 import { runPools } from '@/meta/recipes';
 import type { Rng } from '@/core/rng';
 import type { PlayerStats } from '@/core/types';
 import { merge3 } from '@/meta/gear';
 import { preview } from '@/meta/idle';
 import { LEVEL_THRESHOLDS, nextUnlock, stallLevel, UNLOCK_TABLE } from '@/meta/stall';
+import { beatLabel } from '@/meta/story';
 import { claim } from '@/meta/streak';
 import { TRAINING_COSTS } from '@/meta/training';
 import { RARITIES, SLOTS, TRAINING_IDS, type GearItem, type Rarity, type SaveV2, type UnlockFlag } from '@/meta/types';
@@ -40,7 +43,8 @@ export const UNLOCK_NAMES: Record<UnlockFlag, string> = {
   chefsSpecial: 'Chef’s Special', towel: 'Towel', headband: 'Headband', apron: 'Apron', gloves: 'Gloves', slippers: 'Slippers',
 };
 export const titleCase = (name: string) => name.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
-export const unlockLevel = (flag: UnlockFlag) => UNLOCK_TABLE.find(row => row.flags.includes(flag))!.level;
+/** What opens a locked flag, in story terms ("Beat the Cockroach King"). */
+export const unlockBeat = (flag: UnlockFlag) => beatLabel(flag);
 
 /** Where the stall level bar stands: level, how full the bar is (0..1) and the "Next: <unlock> in N XP" line. */
 export function progress(xp: number) {
@@ -91,7 +95,10 @@ export function mergeGear(save: SaveV2, item: GearItem, rng: Rng): SaveV2 {
 
 /** Names of what a payout unlocked, in table order ("Gear", "Towel", ...). */
 export function newUnlocks(before: SaveV2, after: SaveV2): string[] {
-  return UNLOCK_TABLE.flatMap(row => row.flags.filter(flag => !before.unlocks[flag] && after.unlocks[flag]).map(flag => UNLOCK_NAMES[flag]));
+  const flags = UNLOCK_TABLE.flatMap(row => row.flags.filter(flag => !before.unlocks[flag] && after.unlocks[flag]).map(flag => UNLOCK_NAMES[flag]));
+  const breads = after.unlockedBreads.filter(id => !before.unlockedBreads.includes(id)).map(id => BREADS[id].name);
+  const dips = after.unlockedDips.filter(id => !before.unlockedDips.includes(id)).map(id => DIPS[id].name);
+  return [...flags, ...breads, ...dips];
 }
 
 export function giftLabel(gift: { gold?: number; materialCount?: number; chest?: string }): string {

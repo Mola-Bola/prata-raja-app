@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { PROLOGUE } from '@/content/story';
 import { SAVE_KEY } from '@/core/save';
-import { freshSaveV2, parseSaveV2 } from '@/meta/migrate';
+import { freshSaveV2, parseSaveV2, parseSaveV3 } from '@/meta/migrate';
 import { finishPrologue } from '@/meta/story';
 
 import { createSaveStore } from '../saveStore';
@@ -38,7 +38,7 @@ describe('story presentation and storage', () => {
     store.commit(finishPrologue);
     store.commit(s => ({ ...s, settings: { ...s.settings, sfx: false } }));
     await store.flush();
-    expect(parseSaveV2(disk)).toMatchObject({ prologueSeen: true, runs: 0, settings: { sfx: false } });
+    expect(parseSaveV3(disk)).toMatchObject({ prologueSeen: true, runs: 0, settings: { sfx: false } });
     const remount = createSaveStore(io, `${SAVE_KEY}/story-test`);
     expect(await remount.load()).toMatchObject({ prologueSeen: true, settings: { sfx: false } });
   });

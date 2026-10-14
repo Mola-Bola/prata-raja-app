@@ -21,7 +21,7 @@ it('receipts draw exact awarded use and collection exposes numeric progress on a
   expect(receipt).toContain('14 / 50 to Simmer 3');
   const collection = renderToStaticMarkup(createElement(DipCollection, { save: payout.save, art }));
   expect(collection).toContain('Sparks jump to pests');
-  expect(collection).toContain('Links begin with Signature at stall level 9');
+  expect(collection).toContain('Links begin with Signature (Beat the Burger Baron)');
   expect(collection).toContain('14 / 50 to Simmer 3'); expect(collection).not.toContain('disabled');
   const noUse = applyRunResult(before, { ...result, dipUseXp: undefined }, makeRng(1), new Date('2026-10-14'));
   expect(renderToStaticMarkup(createElement(Rewards, { before, payout: noUse, art }))).not.toContain('results-dip-');

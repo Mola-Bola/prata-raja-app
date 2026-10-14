@@ -26,8 +26,9 @@ export type StreakState = {
   windowStartDay: string | null;
   restDaysUsed: number;
 };
+/** Every save from v2 on: a v3 save (`SaveV3`) is also a SaveV2, so the stall's shared code takes either. Read v3 fields via `beatsOf`. */
 export type SaveV2 = Omit<SaveV1, 'v'> & {
-  v: 2;
+  v: 2 | 3;
   prologueSeen: boolean;
   signatureBread: BreadId;
   stallXp: number;

@@ -4,13 +4,14 @@ import { isSimmerDip } from '@/core/dipProgression';
 import { dipCollection, SIMMER_FLAVOUR, simmerBonusLabel } from '@/meta/dipProgression';
 import type { SaveV2 } from '@/meta/types';
 import { cardView } from '../cardText';
+import { unlockBeat } from './helpers';
 import type { Art } from './StallProgress';
 
 export function DipCollection({ save, art }: { save: SaveV2; art: Art }) {
   return (
     <div className="sh-dip-collection" data-testid="dip-collection">
       <p>Linked support dips simmer from combat use. Run tiers still grow from 1 to 5 during each daydream.</p>
-      <p>{save.unlocks.signature ? 'Pick a compatible Signature roti to link up to two support dips when you find them.' : 'Links begin with Signature at stall level 9. Until then, dips have their ordinary global effects and earn no simmer XP.'}</p>
+      <p>{save.unlocks.signature ? 'Pick a compatible Signature roti to link up to two support dips when you find them.' : `Links begin with Signature (${unlockBeat('signature')}). Until then, dips have their ordinary global effects and earn no simmer XP.`}</p>
       {dipCollection(save, CONTENT).map(({ dip, available, progress }) => (
         <article className="sh-detail" key={dip.id} data-testid={`collection-${dip.id}`}>
           <div className="sh-dip-title"><img className="sh-item-art" src={art(dip.sprite)} alt="" /><h3>{dip.name}</h3></div>

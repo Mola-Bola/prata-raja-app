@@ -3,7 +3,8 @@
 // queues one write. Writes never overlap (some bridges, e.g. the phone's SQLite, can finish out of order) and are coalesced:
 // whatever is newest when a write finishes is written next, so the last commit always lands last and nothing is dropped.
 import { SAVE_KEY } from '@/core/save';
-import { parseSaveV2 } from '@/meta/migrate';
+import { parseSaveV3 } from '@/meta/migrate';
+import { awardBeats } from '@/meta/story';
 import type { SaveV2 } from '@/meta/types';
 
 import type { Bridge } from '../bridgeTypes';
@@ -94,7 +95,8 @@ export function createSaveStore(io: Io, key: string = SAVE_KEY): SaveStore {
     async load() {
       const json = await serial(key, () => io.load(key));
       if (current) return current; // progress already in memory is newer than what was read
-      current = written = parseSaveV2(json);
+      // Beats are applied on load too, so a save that predates a beat's unlock keeps what the beat opens.
+      current = written = awardBeats(parseSaveV3(json), []);
       notify();
       return current;
     },

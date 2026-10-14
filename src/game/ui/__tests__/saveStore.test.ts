@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SAVE_KEY } from '@/core/save';
-import { freshSaveV2 } from '@/meta/migrate';
+import { freshSaveV2, freshSaveV3 } from '@/meta/migrate';
 import type { SaveV2 } from '@/meta/types';
 
 import type * as SaveStoreModule from '../saveStore';
@@ -58,7 +58,7 @@ describe('save store', () => {
     const store = createSaveStore(f.io);
     expect(store.current).toBeNull();
     const loaded = await store.load();
-    expect(loaded).toMatchObject({ v: 2, gold: 7, runs: 2 });
+    expect(loaded).toMatchObject({ v: 3, gold: 7, runs: 2 });
     expect(f.writes).toHaveLength(0);
   });
 
@@ -165,7 +165,7 @@ describe('save store', () => {
     f.writes[0].done();
     await a.flush();
     const b = createSaveStore({ load: async () => f.log[0], save: async () => {} });
-    expect(await b.load()).toEqual({ ...freshSaveV2(), gold: 12, stallXp: 190, unlocks: { gear: true, towel: true } });
+    expect(await b.load()).toEqual({ ...freshSaveV3(), gold: 12, stallXp: 190, kannanXp: 190, unlocks: { gear: true, towel: true } });
   });
 
   it('a store made after a remount reads only after the old store writes land, and is never overwritten by them', async () => {

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { CONTENT } from '../../content';
-import { freshSaveV2, parseSaveV2 } from '../migrate';
+import { freshSaveV2, parseSaveV2, parseSaveV3 } from '../migrate';
 import { chooseSignature } from '../signature';
 import { computeLoadout } from '../loadout';
 import { unlocksForXp } from '../stall';
@@ -22,7 +22,7 @@ it.each(['murtabak', 'roti-bomb', 'appam'] as const)('persists %s through the sa
   await store.load();
   store.commit(s => chooseSignature(s, id, CONTENT));
   await store.flush();
-  const restored = parseSaveV2(json);
+  const restored = parseSaveV3(json);
   expect(restored.signatureBread).toBe(id);
   expect(computeLoadout(restored, CONTENT)).toMatchObject({ startBread: id, signatureBread: id });
 });

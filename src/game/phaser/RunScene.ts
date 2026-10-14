@@ -11,7 +11,7 @@ import { SAVE_KEY } from '@/core/save';
 import { chooseCard, createRun, drainEvents, reroll, step } from '@/core/sim';
 import { FIELD, type BreadId, type GameEvent, type Loadout, type RunInput, type RunResult, type World } from '@/core/types';
 import { computeLoadout } from '@/meta/loadout';
-import { parseSaveV2 } from '@/meta/migrate';
+import { parseSaveV3 } from '@/meta/migrate';
 
 import { playSfx, setSfxEnabled, unlockAudio, type SfxName } from '../audio/sfx';
 import type { Bridge, HapticKind } from '../bridgeTypes';
@@ -156,7 +156,7 @@ export class RunScene extends Phaser.Scene {
     if (!this.bridge) return this.start();
     const request = ++this.bootRequest;
     this.bridge.load(SAVE_KEY).then(
-      (json) => { if (request === this.bootRequest) this.start(undefined, computeLoadout(parseSaveV2(json), CONTENT)); },
+      (json) => { if (request === this.bootRequest) this.start(undefined, computeLoadout(parseSaveV3(json), CONTENT)); },
       () => { if (request === this.bootRequest) this.start(); },
     );
   }
@@ -351,8 +351,8 @@ export class RunScene extends Phaser.Scene {
     this.bridge
       ?.load(SAVE_KEY)
       .then((json) => {
-        // The save is SaveV2 now (parseSave would read it as unknown and give back the default switches).
-        const s = parseSaveV2(json).settings;
+        // The save is SaveV3 now (parseSave would read it as unknown and give back the default switches).
+        const s = parseSaveV3(json).settings;
         this.hapticsOn = s.haptics;
         setSfxEnabled(s.sfx);
       })

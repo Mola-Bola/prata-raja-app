@@ -16,7 +16,7 @@ import { makeRng } from '@/core/rng';
 import type { Card, RunResult } from '@/core/types';
 import { chapterUnlocked } from '@/meta/chapters';
 import { computeLoadout } from '@/meta/loadout';
-import { finishPrologue, shouldShowPrologue } from '@/meta/story';
+import { awardBeats, beatsFromRun, finishPrologue, shouldShowPrologue } from '@/meta/story';
 import { applyRunResult } from '@/meta/runRewards';
 import type { SaveV2 } from '@/meta/types';
 
@@ -131,7 +131,8 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
         const before = store.current;
         if (!t || t.paid || !before) return;
         t.paid = true;
-        const payout = applyRunResult(before, result, makeRng((t.seed ^ CHEST_SALT) >>> 0), new Date());
+        const paid = applyRunResult(before, result, makeRng((t.seed ^ CHEST_SALT) >>> 0), new Date());
+        const payout = { ...paid, save: awardBeats(paid.save, beatsFromRun(before, result)) };
         store.commit(() => payout.save);
         setEnded({
           result,
