@@ -32,7 +32,7 @@ describe('damage numbers', () => {
     expect(fx.numbersLive).toBe(1);
     const t = texts[0];
     expect(t.value).toBe('5');
-    expect(t.color).toBe(NUMBER_COLOR.chip);
+    expect(t.color).toBe(NUMBER_COLOR.dot);
     fx.update(0.1);
     expect(t.scale).toBeCloseTo(0.85 * 0.85);
     fx.update(0.4);

@@ -10,7 +10,7 @@ import { createHub } from '../hub';
 
 vi.mock('phaser', () => ({ Scene: class {}, TintModes: { MULTIPLY: 0, FILL: 1 } }));
 vi.mock('../audio/sfx', () => ({ playSfx: vi.fn(), setSfxEnabled: vi.fn(), unlockAudio: vi.fn() }));
-vi.mock('../phaser/tex', () => ({ loadSprites: vi.fn(), makeShadow: vi.fn() }));
+vi.mock('../phaser/tex', () => ({ loadSprites: vi.fn(), makeShadow: vi.fn(), makeStatusTextures: vi.fn() }));
 afterEach(() => vi.unstubAllGlobals());
 
 describe('hub', () => {

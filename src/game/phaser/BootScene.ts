@@ -6,7 +6,7 @@ import type { KitchenConfig } from '@/core/kitchen';
 import type { Loadout } from '@/core/types';
 
 import type { Hub } from '../hub';
-import { loadSprites, makeShadow } from './tex';
+import { loadSprites, makeShadow, makeStatusTextures } from './tex';
 
 export class BootScene extends Phaser.Scene {
   private pending: { seed?: number; loadout?: Loadout; chapterId?: string } | null = null;
@@ -46,6 +46,7 @@ export class BootScene extends Phaser.Scene {
 
   create(): void {
     makeShadow(this);
+    makeStatusTextures(this);
     this.scene.start('RunScene', { pending: this.pending, pendingKitchen: this.pendingKitchen });
   }
 }

@@ -106,8 +106,8 @@ export class RunScene extends Phaser.Scene {
     this.imgs = new ImagePool(this);
     this.discs = new DiscPool(this);
     this.stall = new Stall(this, this.imgs);
-    this.actors = new Actors(this.proj, this.imgs, this.discs);
     this.fx = new Fx(this, this.imgs);
+    this.actors = new Actors(this.proj, this.imgs, this.discs, this.fx, this.reduceMotion);
     this.tele = new Telegraphs(this.imgs, this.proj, (uid, out) => this.actors.locate(uid, out));
     this.danger = new DangerCue(this, this.actors);
     this.drag = new DragInput(this, () => this.l);
@@ -687,6 +687,7 @@ export class RunScene extends Phaser.Scene {
   }
 
   private onDot(ev: Extract<GameEvent, { t: 'dot' }>): void {
+    this.actors.tick(ev.uid);
     if (ev.dmg < 1) return;
     const P = this.proj.at(ev.x, ev.y);
     const v = this.actors.viewOf(ev.uid);
@@ -779,13 +780,11 @@ export class RunScene extends Phaser.Scene {
   private onStatus(ev: Extract<GameEvent, { t: 'status' }>): void {
     const v = this.actors.viewOf(ev.uid);
     if (!v) return;
-    const u = this.l.u;
+    // The look of each status is on the enemy itself (actors.ts): this only plays its sound.
     if (ev.status === 'freeze') {
-      this.fx.spawn('fx/ice', v.sx, v.sy, D.fx, 0.4, v.bw * 0.9, v.bw * 1.4).fade(0.9, 0, 0.3);
       this.sfx('freeze');
     } else if (ev.status === 'stun' && v.sugarStacks >= 3) {
       // Sugar Crash: the fifth sugar stack tips it over.
-      this.fx.spawn('fx/sugar-sparkle', v.sx, v.sy - v.bh * 0.6, D.fxTop, 0.5, 30 * u, v.bw * 1.5).fade(1, 0, 0.3).spin(0, 4);
       this.sfx('sugarCrash');
     } else if (ev.status === 'ccImmune') {
       // A freeze or stun just ended, or was turned away: for a few seconds it cannot be held again. A white outline says so.
