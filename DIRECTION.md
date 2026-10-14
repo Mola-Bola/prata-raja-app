@@ -2,6 +2,7 @@
 Standing steering from the owner. Every round and inbox run reads this first. Newest at the top. Retire a line by moving it to "Retired".
 
 ## Active
+- 2026-10-14: **Crispy vs soggy build axes (owner).** Like crit builds in other games: **crispy** builds (crisp pratas/rotis) lean on crits, less on elemental status; **soggy** builds soak in curry/dips for **splash / AoE elemental**; **hybrids** (crispy-elemental, soggy-crit) are valid. Expand the theme this way, but keep stats and progression principled: every axis is a real stat with clear sources (rotis, dips, gear, cards, stall) and shows on the build/stat sheet.
 - 2026-10-14: **Ship fast, owner waives rigorous testing (owner, 14 Oct).** Sole player; bugs are fine as long as base gameplay works and until the feel is right. Ship with `bash scripts/ship-fast.sh` (typecheck + tests related to the change, bump version, publish, push; CI runs the full suite after). Ship each slice as it lands, no batching. Independent review only for saves/login/migrations. Owner notes are the feedback channel.
 - 2026-10-14: **Direction 2.0 (owner voice note, 14 Oct). Supersedes the Codex fleet model.**
   - **Fleet:** Claude lead (Opus) + parallel Haiku workers (Sonnet where risk is higher). Codex retired (usage drain). Verification is light: owner is the only tester and accepts bugs; ship fast, fix forward. No 300-seed/pinned-gate ceremony per slice; `tsc` + touched tests + web build, then ship.
