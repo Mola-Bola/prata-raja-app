@@ -110,7 +110,7 @@ export function stepPlan(step: number, barNo: number, fill: boolean, intensity: 
     snare: (step === 4 || step === 12) && !inFill,
     hat: !inFill && (intensity >= 0.5 || boss ? true : step % 2 === 0),
     fillTom: inFill, // 4 rolling toms
-    urumi: !inFill && intensity >= 0.7 && step % 4 === 3, // rolling 32nd toms at the end of the beat
+    thavilRoll: !inFill && intensity >= 0.7 && step % 4 === 3, // rolling 32nd toms at the end of the beat
     arp: intensity >= 0.25 || boss,
     bassPulse: intensity >= 0.4 || boss, // octave 8ths under the root
   };
@@ -239,7 +239,7 @@ function scheduleStep(t: number): void {
   if (p.snare) hit('snare', t, 0.45);
   if (p.hat) hit('hat', t, step % 2 === 0 ? 0.2 : 0.1);
   if (p.fillTom) tone('triangle', 200 - (step - 12) * 25, 90, t, 0.1, 0.6, 0.07); // dha-ki-ta-ka down the drum
-  if (p.urumi) for (let k = 0; k < 2; k++) tone('triangle', 130, 80, t + (k * dur) / 2, 0.05, 0.3, 0.04);
+  if (p.thavilRoll) for (let k = 0; k < 2; k++) tone('triangle', 130, 80, t + (k * dur) / 2, 0.05, 0.3, 0.04);
 
   // bass: Sa/Pa, on the same 3+3+2 accents, octave 8ths when it's hot
   const rootMidi = degreeMidi(mode, bar.root, SA - 24);

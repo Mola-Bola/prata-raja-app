@@ -37,7 +37,7 @@ describe('music', () => {
     expect(stepPlan(1, 0, false, 0, false).hat).toBe(false);
     expect(stepPlan(1, 0, false, 0.6, false).hat).toBe(true);
     expect(stepPlan(3, 0, false, 0.2, false).arp).toBe(false);
-    expect(stepPlan(3, 0, false, 0.8, false).urumi).toBe(true);
+    expect(stepPlan(3, 0, false, 0.8, false).thavilRoll).toBe(true);
     expect(stepPlan(13, 3, true, 0, false).fillTom).toBe(true);
     expect(stepPlan(13, 2, false, 0, false).fillTom).toBe(false);
   });
