@@ -24,6 +24,7 @@ const C = {
 export const U_PER_M = 10;
 const DASH = { period: 160, len: 70, x: 120 };
 const FAR = FIELD.depth - 40;
+const EDGE_STEP = 60; // field units per trapezoid of the edge trim (the projection bends, so long strips are cut)
 const POOL = 12;
 const GAP = 200; // field units between props on one kerb (~5 per side in view)
 const PROP_H = 150; // field units on the long side at depth scale 1
@@ -33,11 +34,21 @@ const hash = (a: number, b: number): number => {
   return ((h ^ (h >>> 12)) >>> 0) / 4294967296;
 };
 
-/** Ground bands: the plane is N horizontal TileSprite slices, each scaled for its depth ("mode 7"), tiling vertically by world.dist. */
+/** Ground bands: the plane is N horizontal TileSprite slices, each scaled for its depth ("mode 7"), tiling vertically by world.dist.
+ *  The slice table (screen rows, texture scale) depends only on the layout, so it is built once per layout, not per frame. */
 const BANDS = 72;
-/** Floor texture px are 2*halfWidth/ROAD_PX field units wide (the road tile is 256 px after the 2x downscale). */
-const ROAD_PX = 256;
-const FOG = 0.22; // share of the bands (from the horizon) that fade in
+/** Where the floor (and its edge) ends, a little outside the widest a pest can stand (SPAWN_X + cloud spread ~ halfWidth). */
+const PLAY = FIELD.halfWidth + 30;
+const FOG = 0.3; // share of the bands (from the horizon) hazed in the painted far band's colour: the floor stays opaque so painted furniture never shows through
+/** Per floor texture (256 px square tile): field units one tile spans, whether it fills the whole screen width (an indoor hall)
+ *  or only the road (a street, with the painted pavements beside it), lane dashes, and the edge trim colour. */
+const FLOORS: Record<string, { tile: number; full: boolean; dash: boolean; edge: number; fog: number }> = {
+  'street/floor/kopitiam': { tile: 190, full: false, dash: true, edge: 0xf1dfb8, fog: 0xe8b374 },
+  'street/floor/hawker-centre': { tile: 360, full: true, dash: false, edge: 0x5a3a2c, fog: 0xc98d66 },
+};
+const TILE_PX = 256;
+const EDGE_BANDS = 5;
+type Band = { sy: number; h: number; yFar: number; rows: number; unit: number; k: number; w: number; a: number };
 
 export class Street {
   private g: Phaser.GameObjects.Graphics;
@@ -46,6 +57,8 @@ export class Street {
   private keys: string[] = [];
   private floor: Phaser.GameObjects.TileSprite[] = [];
   private floorKey = '';
+  private table: Band[] = [];
+  private tableKey = '';
 
   constructor(private scene: Phaser.Scene) {
     this.g = scene.add.graphics().setDepth(D.ground).setVisible(false);
@@ -65,7 +78,12 @@ export class Street {
     if (!this.floorKey) return;
     if (!this.floor.length) for (let i = 0; i < BANDS; i++) this.floor.push(this.scene.add.tileSprite(0, 0, 8, 8, this.floorKey).setOrigin(0.5, 0).setDepth(D.ground - 1).setVisible(false));
     for (const b of this.floor) b.setTexture(this.floorKey);
+    this.tableKey = '';
     this.last = Number.NaN;
+  }
+
+  private spec(): (typeof FLOORS)[string] {
+    return FLOORS[this.floorKey] ?? { tile: 360, full: false, dash: false, edge: 0x5a3a2c, fog: 0xc98d66 };
   }
 
   /** Field y at screen y (inverse of Projector.at's sy). */
@@ -75,32 +93,41 @@ export class Street {
     return FIELD.reachY + proj.f / s - proj.f;
   }
 
-  private ground(scroll: number, proj: Projector): void {
+  /** The scanline table: equal slices in screen space from the counter line up to the horizon. */
+  private build(proj: Projector): void {
     const v = proj.view;
-    const top = v.horizonY;
+    const key = `${this.floorKey}|${v.width}|${v.horizonY}|${v.counterY}|${v.far}|${proj.ppu}`;
+    if (key === this.tableKey) return;
+    this.tableKey = key;
+    const { tile, full } = this.spec();
+    const unit = tile / TILE_PX; // field units per texture px
     const bot = v.counterY + 6;
-    const unit = (2 * FIELD.halfWidth) / ROAD_PX; // field units per texture px
-    const tex = this.floor[0].frame;
+    this.table = [];
     let yNear = this.yAt(bot, proj);
     let prev = bot;
     for (let i = 0; i < BANDS; i++) {
-      // Bands are equal in screen space, from the counter line up to the horizon.
-      const sy = bot - ((bot - top) * (i + 1)) / BANDS;
+      const sy = bot - ((bot - v.horizonY) * (i + 1)) / BANDS;
       const yFar = i === BANDS - 1 ? FIELD.depth : this.yAt(sy, proj);
-      const b = this.floor[i];
       proj.at(0, (yNear + yFar) / 2);
       const k = proj.s * proj.ppu * proj.laneScale; // screen px per field unit
-      const w = tex.width * unit * k;
-      const rows = (yFar - yNear) / unit; // texture rows this band spans
-      const h = prev - sy + 1;
-      b.setVisible(true).setPosition(proj.sx, sy).setSize(w, h).setTileScale(unit * k, h / rows);
-      // Content moves toward the counter: the row at field y is -(y + scroll)/unit.
-      b.tilePositionX = 0;
-      b.tilePositionY = -(yFar + scroll) / unit;
-      b.setAlpha(Math.min(1, (BANDS - i) / (BANDS * FOG)));
+      const f = Math.min(1, (BANDS - i) / (BANDS * FOG));
+      this.table.push({ sy, h: prev - sy + 1, yFar, rows: (yFar - yNear) / unit, unit, k, w: full ? v.width + 8 : 2 * PLAY * k, a: f * f * (3 - 2 * f) });
       prev = sy;
       yNear = yFar;
     }
+  }
+
+  private ground(scroll: number, proj: Projector): void {
+    this.build(proj);
+    const cx = proj.view.width / 2;
+    this.table.forEach((t, i) => {
+      const b = this.floor[i];
+      b.setVisible(true).setPosition(cx, t.sy).setSize(t.w, t.h).setTileScale(t.unit * t.k, t.h / t.rows);
+      // Content moves toward the counter: the row at field y is -(y + scroll)/unit. Columns are centred on field x = 0.
+      b.tilePositionX = -t.w / 2 / (t.unit * t.k);
+      b.tilePositionY = -(t.yFar + scroll) / t.unit;
+      b.setAlpha(Math.min(1, (BANDS - i) / EDGE_BANDS)); // a thin see-through rim at the horizon, opaque below
+    });
   }
 
   setVisible(on: boolean): void {
@@ -121,12 +148,20 @@ export class Street {
     const g = this.g;
     g.clear();
     const scroll = dist * U_PER_M;
-    // Layer 1: lane dashes on two lines and a kerb stripe at each edge, sliding toward the counter.
-    for (let k = Math.ceil((FAR + scroll) / DASH.period); k >= Math.floor((scroll - DASH.len) / DASH.period); k--) {
+    const { dash, edge, full, fog } = this.spec();
+    if (this.floorKey) this.table.forEach((t) => { if (t.a < 1) g.fillStyle(fog, 0.92 * (1 - t.a)).fillRect(proj.view.width / 2 - t.w / 2, t.sy, t.w, t.h); });
+    // Layer 1: soft lane dashes, on streets only (an indoor floor has none), sliding toward the counter.
+    for (let k = dash ? Math.ceil((FAR + scroll) / DASH.period) : 0; k >= Math.floor((scroll - DASH.len) / DASH.period) && dash; k--) {
       const y0 = k * DASH.period - scroll;
       const y1 = y0 + DASH.len;
       if (y1 < FIELD.reachY || y0 > FAR) continue;
-      for (const sx of [-DASH.x, DASH.x]) this.strip(proj, sx, Math.max(y0, FIELD.reachY), Math.min(y1, FAR), 5, C.line, 0.55);
+      for (const sx of [-DASH.x, DASH.x]) this.strip(proj, sx, Math.max(y0, FIELD.reachY), Math.min(y1, FAR), 5, C.line, 0.3);
+    }
+    // Layer 2: where the play area ends, a trim line with a shadow outside it (an indoor hall also darkens the table zone).
+    if (this.floorKey) for (const side of [-1, 1]) for (let y = FIELD.reachY; y < FAR; y += EDGE_STEP) {
+      const y1 = Math.min(FAR, y + EDGE_STEP);
+      this.strip(proj, side * (PLAY + 14), y, y1, 28, 0x000000, 0.2);
+      this.strip(proj, side * PLAY, y, y1, 7, edge, 0.8);
     }
     this.props(scroll, proj);
   }
@@ -142,7 +177,7 @@ export class Street {
           const y = k * GAP - scroll + (r - 0.5) * GAP * 0.5;
           const key = keys[Math.floor(hash(k + 91, side) * keys.length)];
           if (y < FIELD.reachY || y > FAR || n >= POOL || !this.scene.textures.exists(key)) continue;
-          proj.at(side * (FIELD.halfWidth + 50 + r * 40), y);
+          proj.at(side * (PLAY + 90 + r * 40), y);
           const im = pool[n++].setTexture(key).setVisible(true);
           const long = PROP_H * proj.s * proj.ppu * proj.laneScale;
           im.setPosition(proj.sx, proj.sy).setScale(long / Math.max(im.width, im.height)).setAlpha(Math.min(1, (FAR - y) / 250)).setDepth(D.ground + 1 + proj.sy / 1000);
