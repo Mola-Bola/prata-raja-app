@@ -23,6 +23,7 @@
 - **0.4.0–0.4.1:** owner-delegated first spectacular build, loaded Murtabak; signature choice, Fish Curry/Condensed Milk/Mint links, heat Roti Bomb and bouncing Appam.
 
 ## Open items and remaining polish
+- Release gate temporarily constrained by disk exhaustion: owneraskedfree5GB. Boss73 code/review/balance ready but genuine pinnedgatefailedENOSPC; Thosai76 visualrefinement needed; build/stats/bossicon79 sourcework and review81 underway. Preservefailedruns and rerun afterresources recover. No newrelease after0.4.11.
 - Ordered work: blast/damage and repeated freeze cue corrections72 → boss-death completion73 → boss HUD icon and in-run build/DPS lookup from inventory70 → measured pacing/status-art polish. Attack prototype61 is rejected after paired measurement62 exposed concentrated bursts; branch/evidence retained, file reservations released; lateral dodge direction awaits owner. Then Thosai rolling visuals (source confirmed63; sequence actors ownership) → jobs/drinks (ROADMAP 0.5). Flaky prototype38 is live in Kitchen only; ordinary adoption awaits owner steer. Decomp damage/RNG/boss-data refactors are optional later architecture.
 - Chef's Special and family leaderboard remain previews/future scope.
 - World-tier scenes are sliced but unwired; worn-gear layers and Grade Inspector gameplay remain future work.
