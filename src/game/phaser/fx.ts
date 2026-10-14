@@ -302,6 +302,7 @@ export class Fx {
     n.still = still;
     n.t = 0;
     n.uid = -1;
+    n.perspective = 1;
     n.x = x + 16 * this.u;
     n.y = y - 4 * this.u;
     n.kind = 1;
