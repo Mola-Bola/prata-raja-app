@@ -26,3 +26,4 @@ Check this before designing a system; cite what you used in the commit or wiki p
 | data/ (SOURCES.md + raw per game) | verifying a claim | Raw sources behind teardowns | n/a | n/a |
 
 | [adjacent-mechanics.md](adjacent-mechanics.md) | Owner synthesis: damage order (base→conversion→increased→more→crit), conversion caps, stack caps, falloff, gated offers, enemy cap (Brotato, HoT, DMD, PoB) | used in: stats.ts (crit additive) · not yet used: conversion step, separate 'more' layer, hard enemy cap, gated fusion offers |
+| [hub-design.md](hub-design.md) | Engaging hubs: Hades, Soul Knight, MH canteen, Diablo stash distance, Dave the Diver dual loop; 4 hub concepts + 8 anti-tedium rules | used in: round7 hub mockups · not yet used: pre-run meal buff, stall business loop |
