@@ -7,11 +7,24 @@ import { RunScene } from '../phaser/RunScene';
 import { BootScene } from '../phaser/BootScene';
 import type { HudState, KitchenStats } from '../hub';
 import { createHub } from '../hub';
+import { effectText } from '../ui/RunBuild';
 
+vi.mock('../assets', () => ({ ASSET_URLS: {} }));
 vi.mock('phaser', () => ({ Scene: class {}, TintModes: { MULTIPLY: 0, FILL: 1 } }));
 vi.mock('../audio/sfx', () => ({ playSfx: vi.fn(), setSfxEnabled: vi.fn(), unlockAudio: vi.fn() }));
 vi.mock('../phaser/tex', () => ({ loadSprites: vi.fn(), makeShadow: vi.fn() }));
 afterEach(() => vi.unstubAllGlobals());
+
+describe('build effect labels', () => {
+  it('labels chain and death blasts as base hits while DoT includes its current bonus', () => {
+    expect(effectText({ type: 'chain', dmg: 5, jumps: 2, range: 150 })).toContain('5 base damage each');
+    expect(effectText({ type: 'deathBlast', dmg: 20, radius: 100 })).toContain('20 base damage');
+    expect(effectText({ type: 'burn', dps: 5, time: 3 }, .3)).toBe('Burn 6.5 damage/sec for 3s.');
+    for (const def of Object.values(CONTENT.breads)) for (const level of def.levels) {
+      if (level.zoneEffect?.type === 'chain') expect(effectText(level.zoneEffect)).toContain('base damage each');
+    }
+  });
+});
 
 describe('hub', () => {
   it('delivers typed events to listeners until they unsubscribe', () => {

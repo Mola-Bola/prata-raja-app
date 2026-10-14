@@ -31,10 +31,10 @@ export function effectText(fx: HitEffect, dotPct = 0): string {
     case 'burn': return `Burn ${number(fx.dps * (1 + dotPct))} damage/sec for ${number(fx.time)}s.`;
     case 'sugar': return `Sticky: ${pct(fx.slowPct)} slow for ${number(fx.slowTime)}s. Sugar: ${number(fx.dpsPerStack * (1 + dotPct))} damage/sec per stack for ${number(fx.stackTime)}s; ${fx.crashAt} stacks stun for ${number(fx.crashStun)}s.`;
     case 'chill': return `${pct(fx.slowPerStack)} slow per chill for ${number(fx.time)}s; ${fx.freezeAt} chills freeze for ${number(fx.freezeTime)}s.`;
-    case 'chain': return `${fx.jumps} spark jumps, ${number(fx.dmg)} damage each, ${number(fx.range)} range.`;
+    case 'chain': return `${fx.jumps} spark jumps, ${number(fx.dmg)} base damage each, ${number(fx.range)} range.`;
     case 'tender': return `${number(fx.knockback)} shove; foes take ${signedPct(fx.dmgTakenPct)} damage for ${number(fx.time)}s.`;
     case 'stackDmg': return `${signedPct(fx.pctPerStack)} hit damage per stack, up to ${fx.maxStacks}, for ${number(fx.time)}s; ${signedPct(fx.critAtMax)} crit chance at max.`;
-    case 'deathBlast': return `Burning foes explode on death: ${number(fx.dmg)} damage, ${number(fx.radius)} radius.`;
+    case 'deathBlast': return `Burning foes explode on death: ${number(fx.dmg)} base damage, ${number(fx.radius)} radius.`;
     case 'haste': return `Every ${fx.everyHits} bread hits: ${signedPct(fx.throwSpeedPct)} throw speed for ${number(fx.time)}s.`;
     case 'spin': return `On bread hit: ${signedPct(fx.projSpeedPct)} shot speed, +${number(fx.critDmgPct)} crit multiplier for ${number(fx.time)}s.`;
     case 'healOnKill': return `Heal ${number(fx.hp)} HP per kill.`;
@@ -82,6 +82,7 @@ export function RunBuild({ hud }: { hud: HudState }) {
         const fx = matchingDipLink(CONTENT, d, d.linkedBread) ? simmerEffect(d.id, linked, hud.dipSimmer?.[d.id]) : linked;
         return <article className="gu-build-item" key={d.id} data-testid={`build-dip-${d.id}`}><img src={ASSET_URLS[view.sprite]} alt="" /><div><h4>{def.name} <span>L{d.level}</span></h4><small>{d.linkedBread ? `Linked to ${CONTENT.breads[d.linkedBread].name}` : view.scope} · {dipBonusLabel(def, d.linkedBread ? CONTENT.breads[d.linkedBread] : undefined)}</small><p>{effectText(fx, stats.dotPct)}</p>{matchingDipLink(CONTENT, d, d.linkedBread) && <small>Saved simmer L{hud.dipSimmer?.[d.id] ?? 1} included</small>}</div></article>;
       })}
+      <p className="gu-build-note">Base damage precedes current hit bonuses and foe defence. Damage/sec values include your DoT bonus. Freeze and stun slow bosses; elites recover sooner.</p>
     </section>
     <section aria-labelledby="build-passives"><h3 id="build-passives">Passives · {hud.passives.length}</h3>
       {!hud.passives.length && <p>No passives picked yet.</p>}
