@@ -12,6 +12,10 @@ export const CRUISE = 5;
 const BRAKE = 60;
 /** Default distance to the boss when a chapter does not set bossAt. */
 export const DEFAULT_BOSS_AT = 1200;
+/** Flow runs hold level-up picks until a calm stop: every PICK_EVERY metres (and the boss mark). */
+export const PICK_EVERY = 250;
+/** Seconds the stall takes to ease to a stop before queued picks show. */
+export const CALM_TIME = 1.5;
 /** Threat points that may be unspent at once (a tank costs 6), so a throttled street never bursts when it clears. */
 const CREDIT_CAP = 8;
 /** Living threat above which the street stops asking for more: the director never buries a bot that is behind. */
@@ -61,6 +65,36 @@ function pickLane(world: World, rng: Rng, id: string): SpawnLane {
 
 const living = (e: Enemy) => e.state !== 'dead';
 
+/** The next calm stop strictly after `dist`: the next multiple of PICK_EVERY, capped at the boss mark. Infinity once past it. */
+export function nextPickStop(dist: number, bossAt: number): number {
+  if (dist >= bossAt) return Infinity;
+  return Math.min(bossAt, (Math.floor(dist / PICK_EVERY) + 1) * PICK_EVERY);
+}
+
+/** Flow only. When queued picks are due (a checkpoint passed, or the boss mark reached before the boss steps out), start the
+ *  stall's ease to a stop (world.calmT counts down from CALM_TIME; flowTick reads it). Returns true once, when the stop is
+ *  complete and the offers should show. Never during the boss fight: picks queued then wait for the next run. */
+export function pickDue(world: World, dt: number): boolean {
+  const bossAt = bossAtOf(world.chapter);
+  if (world.pendingLevelUps <= 0 || world.flowBoss) {
+    world.calmT = 0;
+    // A checkpoint passed with nothing queued is not owed later: the next pick waits for the one after it.
+    if (!world.flowBoss && world.dist >= (world.pickAt ?? nextPickStop(0, bossAt))) world.pickAt = nextPickStop(world.dist, bossAt);
+    return false;
+  }
+  let calmT = world.calmT ?? 0;
+  if (!(calmT > 0)) {
+    const pickAt = world.pickAt ?? nextPickStop(0, bossAt);
+    if (world.dist < pickAt && world.dist < bossAt) return false;
+    calmT = CALM_TIME;
+  }
+  calmT = Math.max(0, calmT - dt);
+  world.calmT = calmT;
+  if (calmT > 0) return false;
+  world.pickAt = nextPickStop(world.dist, bossAt);
+  return true;
+}
+
 /** Advance the flow by dt. Call once per sim step while the run is live. */
 export function flowTick(world: World, dt: number, rng: Rng): FlowOut {
   const chapter = world.chapter;
@@ -73,10 +107,13 @@ export function flowTick(world: World, dt: number, rng: Rng): FlowOut {
   } else {
     const bossAt = bossAtOf(chapter);
     const left = bossAt - world.dist;
-    world.dist = Math.min(bossAt, world.dist + CRUISE * Math.min(1, Math.max(0.1, left / BRAKE)) * dt);
+    // Picks due: the stall eases out of cruise over CALM_TIME (smooth, reaching 0 when the offers open).
+    const calm = (world.calmT ?? 0) > 0 ? smooth((world.calmT ?? 0) / CALM_TIME) : 1;
+    world.dist = Math.min(bossAt, world.dist + CRUISE * calm * Math.min(1, Math.max(0.1, left / BRAKE)) * dt);
     world.waveF = waveEquivalent(chapter, world.dist);
     world.wave = Math.floor(world.waveF);
-    if (world.dist >= bossAt) {
+    // Queued picks come before the boss steps out (pickDue opens them at the boss mark).
+    if (world.dist >= bossAt && world.pendingLevelUps === 0) {
       world.flowBoss = true;
       world.wave = chapter.waves.length;
       world.waveF = world.wave;

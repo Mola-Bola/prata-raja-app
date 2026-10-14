@@ -365,6 +365,11 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
               <Bar pct={hud.route.dist / hud.route.bossAt} />
             </div>
           )}
+          {hud.pendingPicks > 0 && (
+            <button type="button" className="gu-chip gu-pick-chip" data-testid="pick-chip" onClick={() => hub.controls?.openPicks()}>
+              Pick ready ★{hud.pendingPicks}
+            </button>
+          )}
           <div className="gu-xp">
             <span className="gu-level">Lv {hud.level}</span>
             <Bar pct={hud.xp / hud.xpToNext} />

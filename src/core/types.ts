@@ -490,6 +490,10 @@ export type World = {
   /** Contact damage taken and seconds since the last aggregated 'playerHit' (contact) event. */
   contactAcc?: number;
   contactT?: number;
+  /** Flow runs: the next calm stop for queued picks (metres; see director.nextPickStop). Unset = the next one from dist. */
+  pickAt?: number;
+  /** Flow runs: seconds left in the ease to a calm stop before queued picks show (0 = cruising). */
+  calmT?: number;
 };
 
 /** What the renderer sends each frame. targetX: field x under the finger while dragging, else null. */

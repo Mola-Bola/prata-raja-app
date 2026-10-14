@@ -8,6 +8,8 @@ export type HudState = {
   waves: number;
   /** Flow runs: the chapter's name and the metres travelled / to the boss (null in wave runs). */
   route: { name: string; dist: number; bossAt: number } | null;
+  /** Level-ups queued for a calm stop (flow runs): the HUD's "Pick ready" chip. 0 hides it. */
+  pendingPicks: number;
   hp: number;
   maxHp: number;
   xp: number;
@@ -70,6 +72,8 @@ export type GameControls = {
   stopKitchen(): void;
   choose(index: number): void;
   reroll(): void;
+  /** Flow runs: open the queued level-up picks now (the "Pick ready" chip). */
+  openPicks(): void;
   pause(): void;
   resume(): void;
   /** Abandon the run and go back to the title. */

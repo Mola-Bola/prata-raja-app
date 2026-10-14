@@ -28,6 +28,7 @@ export class BootScene extends Phaser.Scene {
         startKitchen: (config) => { this.pendingKitchen = config; this.pending = null; },
         tuneKitchen: (tuning) => { if (this.pendingKitchen) this.pendingKitchen = { ...this.pendingKitchen, tuning }; },
         stopKitchen: () => { this.pendingKitchen = null; },
+        openPicks: () => {},
         choose: () => {},
         reroll: () => {},
         pause: () => {},

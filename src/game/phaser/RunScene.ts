@@ -8,7 +8,7 @@ import { CONTENT } from '@/content';
 import { bossAtOf, isFlow } from '@/core/director';
 import { autoInput, autoPick } from '@/core/autoplay';
 import { SAVE_KEY } from '@/core/save';
-import { chooseCard, createRun, drainEvents, reroll, step } from '@/core/sim';
+import { chooseCard, createRun, drainEvents, openPicks, reroll, step } from '@/core/sim';
 import { FIELD, type BreadId, type GameEvent, type Loadout, type RunInput, type RunResult, type World } from '@/core/types';
 import { computeLoadout } from '@/meta/loadout';
 import { parseSaveV3 } from '@/meta/migrate';
@@ -137,6 +137,7 @@ export class RunScene extends Phaser.Scene {
       stopKitchen: () => this.stopKitchen(),
       choose: (i) => this.choose(i),
       reroll: () => this.rerollOffer(),
+      openPicks: () => this.openPicksNow(),
       pause: () => this.hold(),
       resume: () => {
         this.paused = false;
@@ -339,6 +340,11 @@ export class RunScene extends Phaser.Scene {
     if (w && !this.kitchenTuning && reroll(w)) this.openLevelUp(w);
   }
 
+  private openPicksNow(): void {
+    const w = this.world;
+    if (w && !this.kitchenTuning && openPicks(w)) this.openLevelUp(w);
+  }
+
   private openLevelUp(w: World): void {
     this.levelUpOpen = true;
     // The cards swallow touches: a finger that was down will not report its release to the canvas.
@@ -470,6 +476,7 @@ export class RunScene extends Phaser.Scene {
       wave: w.wave,
       waves: w.chapter.waves.length,
       route: isFlow(w.chapter) ? { name: w.chapter.name, dist: w.dist, bossAt: bossAtOf(w.chapter) } : null,
+      pendingPicks: isFlow(w.chapter) && w.phase !== 'levelup' ? w.pendingLevelUps : 0,
       hp: Math.max(0, p.hp),
       maxHp: p.stats.maxHp,
       xp: p.xp,
