@@ -2,15 +2,17 @@
 Purpose: the DOM overlay over Phaser: HUD, stall hub, sheets, build sheet, live tune panel.
 
 ## Files
+- `src/game/ui/run/FreeRunHud.tsx` (+css): the free-movement run HUD (round 8 milestone 2), shown when `HudState.free`; the counter HUD stays in `GameUi.tsx`.
 - `src/game/ui/GameUi.tsx` (+css), `RunBuild.tsx`, `Tune.tsx`, `settings.tsx`, `saveStore.ts` (single save writer), `stall/*` (StallHub, Rewards, sheets), `src/game/tuneStore.ts`, `src/ui/*` (brand, theme, palette), `docs/CONTRACTS.md`
 
 ## How it works
 - Build sheet: glanceable cards, stat bars, pips, chips; text behind info toggles.
+- Free run HUD (`?move=free`): top bar = level ring + HP | place and metres-to-boss (or boss) | coins + pause, thin XP line, meal chip (`HudState.meal`), dip-socket readouts and a 1.2 s Dodge cooldown bottom-right; bottom-left empty for the renderer's joystick. Hint: "Drag anywhere to move · auto-throw" for 3 s per run. Reduced motion: no pulse, no sweep, no hurt shake.
 - Tune panel (`?tune=1`): knobs generated from content, overlay at run creation; export/import idea open.
 - One type scale; colours only in `src/ui/brand.ts`; names via `src/brand.ts`.
 
 ## Status
-Live. Last change 2026-10-14 (ui-pass readability).
+Live. Last change 2026-10-15 (free-movement run HUD, round 8 m2).
 
 ## Research
 - Used: [malleable-dev-flow](../research/malleable-dev-flow.md) P2, [game-feel](../research/game-feel.md).

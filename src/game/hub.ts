@@ -30,6 +30,10 @@ export type HudState = {
   signatureBread: Loadout['signatureBread'];
   /** Hit + DoT event damage in the last five simulation seconds, including overkill. */
   shownDps: number;
+  /** Free-movement run (joystick, dodge): the run HUD is the free layout (src/game/ui/run/FreeRunHud.tsx). */
+  free: boolean;
+  /** The cooked meal this run carries, as a chip label ("Kopi-O kosong: +70 move speed"); null when none. */
+  meal: string | null;
 };
 
 /** Hit and DoT numbers shown on screen, including overkill; not effective HP removed. */
