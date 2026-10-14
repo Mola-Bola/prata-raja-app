@@ -28,6 +28,7 @@ import {
   trackRun,
 } from '../feedback';
 import { createHub, type HudState } from '../hub';
+import { BASE_STATS } from '@/core/stats';
 
 const ID = '3f2b8c1e-5a4d-4e6f-9a1b-0c2d3e4f5a6b';
 const DEVICE = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d';
@@ -223,6 +224,7 @@ describe('trackRun (what run a note is about)', () => {
     boss: null,
     breads: [{ id: 'kosong', level: 2 }],
     dips: [{ id: 'fish-curry', level: 1 }],
+    passives: [], stats: { ...BASE_STATS }, buffs: [], revivesLeft: 0, dipSimmer: {}, signatureBread: undefined, shownDps: 0,
   });
 
   const kitchenStats = (wave: number) => ({ time: 12, wave, phase: 'wave' as const, hp: 50, maxHp: 100,
