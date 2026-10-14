@@ -27,8 +27,8 @@ describe('damage pipeline', () => {
     expect(damageOf(100, { ...s, convertPct: 5 }, M, 1, false)).toBeCloseTo(damageOf(100, { ...s, convertPct: CONVERT_CAP }, M, 1, false));
     expect(damageOf(100, { ...s, convertPct: 0.5 }, M, 1, false)).toBeCloseTo(50 * 1.1 + 50 * 2.1);
     expect(damageOf(100, { ...BASE_STATS, moreDmg: 0.5 }, M, 1, false)).toBeCloseTo(100 * 1.1 * 1.5);
-    expect(damageOf(100, BASE_STATS, M, 1, false, 1)).toBeCloseTo(110 * 0.85);
-    expect(damageOf(100, BASE_STATS, M, 1, false, 99)).toBeCloseTo(110 * PIERCE_FLOOR);
+    expect(damageOf(100, { ...BASE_STATS, pierceFalloff: 0.15 }, M, 1, false, 1)).toBeCloseTo(110 * 0.85);
+    expect(damageOf(100, { ...BASE_STATS, pierceFalloff: 0.15 }, M, 1, false, 99)).toBeCloseTo(110 * PIERCE_FLOOR);
   });
 });
 

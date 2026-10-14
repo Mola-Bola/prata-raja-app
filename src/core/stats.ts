@@ -7,7 +7,7 @@ import type { Buff, ChapterDef, Content, DipId, Loadout, OwnedDip, OwnedPassive,
 export const BASE_STATS: PlayerStats = {
   maxHp: 100, regen: 0, moveSpeed: 700, dmgPct: 0, throwSpeedPct: 0, critChance: 0.05, critMult: 1.5,
   extraProjectiles: 0, sizePct: 0, dotPct: 0, rangePct: 0, xpPct: 0, throwWhileMoving: 0, revives: 0,
-  dmgTakenPct: 0, dodge: 0, healOnLevelUpPct: 0, goldPct: 0, convertPct: 0, moreDmg: 0, pierceFalloff: 0.15,
+  dmgTakenPct: 0, dodge: 0, healOnLevelUpPct: 0, goldPct: 0, convertPct: 0, moreDmg: 0, pierceFalloff: 0, // ponytail: off by default (exact-damage tests); a spec/Tune source can raise it
   soak: 0, critSplash: 0, splashCrit: 0,
 };
 
