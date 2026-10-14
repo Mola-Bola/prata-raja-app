@@ -6,7 +6,7 @@ import type { Enemy, World } from '../types';
 const still = { targetX: null, moving: false };
 const dt = 1 / 60;
 function run(chapterId: string, wave?: number, content = CONTENT): World {
-  const w = createRun({ seed: 5, chapterId, content });
+  const w = createRun({ seed: 5, chapterId, content, mode: 'waves' });
   w.player.breads = []; w.player.stats.maxHp = 1000; w.player.hp = 1000;
   startRunWave(w, wave ?? w.chapter.waves.length);
   drainEvents(w);
@@ -50,7 +50,7 @@ describe('boss defeat ends its wave', () => {
   });
 
   it('does not mistake a chapter-global prior attempt/kill for an unspawned future boss defeat', () => {
-    const w = createRun({ seed: 5, content: CONTENT });
+    const w = createRun({ seed: 5, content: CONTENT, mode: 'waves' });
     w.phase = 'wave'; w.wave = w.chapter.waves.length; w.waveTime = 1000; w.budgetLeft = 0;
     w.player.breads = []; w.bossAttempted = true; w.bossKills = 1;
     step(w, dt, still);
