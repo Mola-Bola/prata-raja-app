@@ -93,6 +93,19 @@ export class Stall {
     this.place(this.breads, false);
   }
 
+  /** Haste is on and the wave is running: the teh tarik cup pours (tehPour.ts). */
+  get pouring(): boolean {
+    return this.teh.warm;
+  }
+
+  /** Where the teh tarik cup's mouth is on screen, or null when no cup is on the counter. */
+  cupMouth(): { x: number; y: number } | null {
+    const s = this.dips.find((d) => d.id === 'teh-tarik');
+    if (!s) return null;
+    const h = s.img.displayHeight;
+    return { x: s.img.x, y: s.img.y - 0.75 * h };
+  }
+
   /** Call before each sim step. */
   snapshot(playerX: number): void {
     this.prevX = playerX;

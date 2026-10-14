@@ -14,8 +14,9 @@ export const FIELD = {
   reachY: 30,
   /** Kannan slides within -kannanMaxX..kannanMaxX. */
   kannanMaxX: 230,
-  /** Half-width of Kannan's body for enemy projectiles that land on the counter. */
-  kannanHitHalfWidth: 34,
+  /** Half-width of Kannan's hurt zone for enemy projectiles and boss volleys that land on the counter (was 34; the drawn
+   *  sprite is unchanged). Pickup and reach radii are separate and untouched. */
+  kannanHitHalfWidth: 30,
 } as const;
 
 // ── Ids ──────────────────────────────────────────────────────────────────────

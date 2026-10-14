@@ -75,7 +75,7 @@ function sprite(scene: unknown, key: string) {
     setScale(x: number, y = x) { this.scaleX = x; this.scaleY = y; return this; },
     setAlpha(v: number) { this.alpha = v; return this; },
     setVisible(v: boolean) { this.visible = v; return this; },
-    setCrop() { return this; }, setPosition() { return this; }, setDepth() { return this; }, clearTint() { return this; },
+    setCrop() { return this; }, setPosition() { return this; }, setDepth() { return this; }, clearTint() { return this; }, setTint() { return this; },
     setFlip() { return this; }, setOrigin() { return this; }, setBlendMode() { return this; },
   };
 }
