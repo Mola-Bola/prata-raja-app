@@ -1,3 +1,4 @@
+import { TRAINING_DEFS } from '../core/statRegistry';
 import type { SaveV1 } from '../core/save';
 import type { BreadId, DipId, PlayerStats } from '../core/types';
 
@@ -15,8 +16,9 @@ export type Affix = { id: string; stat: keyof PlayerStats; value: number };
 export type GearItem = { uid: string; baseId: GearBaseId; slot: Slot; rarity: Rarity; level: number; affixes: Affix[] };
 export const MATERIALS = ['flour', 'ghee', 'egg', 'onion', 'spice', 'sugar', 'milk'] as const;
 export type Material = typeof MATERIALS[number];
-export const TRAINING_IDS = ['wrist', 'stamina', 'flip'] as const;
-export type TrainingId = typeof TRAINING_IDS[number];
+/** Generated from the stat registry (a stat with `training`). Ids are save keys; the set grows, never renames. */
+export const TRAINING_IDS: readonly string[] = TRAINING_DEFS.map(t => t.id);
+export type TrainingId = string;
 export const UNLOCK_FLAGS = ['signature', 'gear', 'training', 'secondReroll', 'recipeBook', 'chefsSpecial', ...SLOTS] as const;
 export type UnlockFlag = typeof UNLOCK_FLAGS[number];
 export type ChestPity = { rare: number; epic: number; opened: number };

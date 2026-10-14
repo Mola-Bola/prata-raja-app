@@ -20,7 +20,7 @@ const calendarDay = (value: unknown): string | null => typeof value === 'string'
 export function freshSaveV2(): SaveV2 {
   return {
     ...freshSave(), v: 2, prologueSeen: false, signatureBread: 'kosong', stallXp: 0, unlockedBreads: [], unlockedDips: [], dipXp: {}, bossAttempts: {}, inventory: [], equipped: {},
-    training: { wrist: 0, stamina: 0, flip: 0 },
+    training: Object.fromEntries(TRAINING_IDS.map(id => [id, 0])),
     materials: { flour: 0, ghee: 0, egg: 0, onion: 0, spice: 0, sugar: 0, milk: 0 },
     streak: { day: 0, lastClaimDay: null, windowStartDay: null, restDaysUsed: 0 },
     idle: { lastCollectedAt: null }, chestPity: { rare: 0, epic: 0, opened: 0 },
