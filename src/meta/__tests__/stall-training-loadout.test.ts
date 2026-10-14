@@ -100,8 +100,9 @@ describe('loadout', () => {
     const save = freshSaveV2(); const item = rollItem(makeRng(1), { slot: 'apron', rarity: 'common' });
     save.inventory = [item]; save.equipped = { apron: item.uid, headband: item.uid }; save.training.wrist = 5;
     expect(computeLoadout(save, CONTENT).stats).toEqual({});
+    // apron is still locked, but a worn over-level item counts; the wrong-slot headband entry does not.
     save.unlocks = { gear: true, headband: true };
-    expect(computeLoadout(save, CONTENT).stats).toEqual({});
+    expect(computeLoadout(save, CONTENT).stats).toEqual(itemStats(item));
     save.equipped = { headband: 'missing' };
     expect(computeLoadout(save, CONTENT).stats).toEqual({});
   });

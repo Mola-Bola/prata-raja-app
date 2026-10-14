@@ -9,7 +9,7 @@ import { SLOTS, type SaveV2 } from './types';
 export function computeLoadout(save: SaveV2, content: Content): Loadout {
   const stats = save.unlocks.training ? trainingStats(save.training) : {};
   for (const slot of SLOTS) {
-    if (!save.unlocks.gear || !save.unlocks[slot]) continue;
+    if (!save.unlocks.gear) continue;
     const item = save.inventory.find(i => i.uid === save.equipped[slot] && i.slot === slot);
     if (item) for (const [stat, value] of Object.entries(itemStats(item))) {
       const key = stat as keyof PlayerStats;
