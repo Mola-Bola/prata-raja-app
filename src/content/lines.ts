@@ -38,7 +38,7 @@ export const LINES: Content['lines'] = {
     'Kosong ricochets to the next enemy from L3.',
     'Tissue pierce and lobs (Roti Bomb, Naan) bypass Tiffin Beetle shields.',
     'Sambal turns every burning enemy into a bomb on death.',
-    'Five Diabetes stacks trigger a 1 s Sugar Crash. Plan around the stun.',
+    'Five Sugar stacks trigger a 1 s Sugar Crash. Plan around the stun.',
     'Monsoon slows you too. Train Quick Feet before Monsoon Alley.',
     'Raja gear cannot be merged. Equip it, do not hoard it.',
     'Three identical items of one rarity merge into the next tier.',

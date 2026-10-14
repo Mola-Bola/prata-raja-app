@@ -51,6 +51,19 @@ export const specOf = (save: SaveV2): string[] => (save as Partial<SaveV3>).spec
 export const specPointsLeft = specPointsOf;
 export const specSpent = (nodes: readonly string[]): number => nodes.reduce((a, id) => a + (BY_ID.get(id)?.cost ?? 0), 0);
 
+/** Load-time settle: the only source of spec points is the Kannan level (level - 1), so the balance is derived, never trusted.
+ *  Keeps nodes in saved order while `needs`, the one-keystone rule and the budget hold; drops the rest. Idempotent. */
+export function settleSpec(level: number, nodes: readonly string[]): { nodes: string[]; specPoints: number } {
+  const budget = Math.max(0, level - 1), kept: string[] = [];
+  let spent = 0, keystone = false;
+  for (const id of nodes) {
+    const node = BY_ID.get(id);
+    if (!node || kept.includes(id) || !node.needs.every(r => kept.includes(r)) || (node.kind === 'keystone' && keystone) || spent + node.cost > budget) continue;
+    kept.push(id); spent += node.cost; keystone ||= node.kind === 'keystone';
+  }
+  return { nodes: kept, specPoints: budget - spent };
+}
+
 export type Blocked = 'owned' | 'points' | 'needs' | 'keystone' | 'unknown';
 /** null = can learn now; otherwise why not. */
 export function allocateBlock(save: SaveV2, id: string): Blocked | null {

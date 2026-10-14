@@ -11,8 +11,8 @@ describe('one Kannan level', () => {
   it('migrates specPoints = level-1 and is idempotent', () => {
     const once = parseSaveV3(JSON.stringify({ ...freshSaveV2(), stallXp: 1500 }));
     expect(once.specPoints).toBe(kannanLevel(1500) - 1);
-    const spent = { ...once, specPoints: 1 };
-    expect(parseSaveV3(JSON.stringify(spent)).specPoints).toBe(1);
+    const spent = { ...once, specPoints: 1, spec: { nodes: ['hands-1'] } };
+    expect(parseSaveV3(JSON.stringify(spent)).specPoints).toBe(kannanLevel(1500) - 2); // balance = level - 1 - spent
     expect(parseSaveV3(JSON.stringify(once))).toEqual(once);
   });
   it('perks apply through the loadout at 5/10/15', () => {

@@ -6,14 +6,16 @@ import '../spec/SpecTree.css';
 
 export { mealLabel };
 
-export function KopiMeal({ save, commit, onClose }: { save: SaveV2; commit: Commit; onClose: () => void }) {
+export function KopiMeal({ save, commit, onClose, embedded }: { save: SaveV2; commit: Commit; onClose: () => void; embedded?: boolean }) {
   const waiting = mealOf(save);
   return (
-    <section className="spec meal" data-testid="kopi-meal" aria-label="Kopi uncle's meals">
-      <header className="spec-top">
-        <h2>Kopi uncle</h2>
-        <button type="button" className="gu-btn spec-close" data-testid="meal-close" onClick={onClose}>Close</button>
-      </header>
+    <section className={`spec meal${embedded ? ' spec--embedded' : ''}`} data-testid="kopi-meal" aria-label="Kopi uncle's meals">
+      {!embedded && (
+        <header className="spec-top">
+          <h2>Kopi uncle</h2>
+          <button type="button" className="gu-btn spec-close" data-testid="meal-close" onClick={onClose}>Close</button>
+        </header>
+      )}
       <p data-testid="meal-status">{waiting ? `Ready for your next run: ${mealLabel(save)}` : 'Cook one meal. It lasts for your next run.'}</p>
       {MEALS.map(m => (
         <article className="spec-detail" key={m.id} data-testid={`meal-${m.id}`}>
