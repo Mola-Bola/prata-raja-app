@@ -44,7 +44,7 @@ describe('stall', () => {
 });
 describe('training', () => {
   it.each(TRAINING_IDS)('%s has five exact costs, stops at five, and fully refunds', id => {
-    let save: SaveV2 = { ...freshSaveV2(), gold: 1080, unlocks: { training: true } };
+    let save: SaveV2 = { ...freshSaveV2(), gold: 1080, unlocks: { training: true, recipeBook: true, chefsSpecial: true } };
     expect(TRAINING_COSTS).toEqual([60, 120, 200, 300, 400]);
     for (let level = 0; level < 5; level++) {
       const previous = save;
@@ -105,5 +105,13 @@ describe('loadout', () => {
     expect(computeLoadout(save, CONTENT).stats).toEqual(itemStats(item));
     save.equipped = { headband: 'missing' };
     expect(computeLoadout(save, CONTENT).stats).toEqual({});
+  });
+});
+describe('registry-driven training', () => {
+  it('keeps legacy ids and gates Crisp/Soak behind their unlocks', () => {
+    expect(TRAINING_IDS).toEqual(expect.arrayContaining(['wrist', 'stamina', 'flip', 'crisp', 'soak']));
+    const save: SaveV2 = { ...freshSaveV2(), gold: 1000, unlocks: { training: true } };
+    expect(buyTraining(save, 'crisp')).toBe(save); expect(buyTraining(save, 'soak')).toBe(save);
+    expect(buyTraining({ ...save, unlocks: { training: true, recipeBook: true } }, 'crisp').training.crisp).toBe(1);
   });
 });

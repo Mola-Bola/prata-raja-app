@@ -219,7 +219,7 @@ describe('migrate', () => {
     const save: SaveV2 = {
       ...freshSaveV2(), gold: 321, bestWave: 6, runs: 4, wins: 1, totalKills: 77, lastPlayed: new Date(T + DAY).toISOString(),
       stallXp: 1300, inventory: [towel, apron], equipped: { towel: towel.uid, apron: apron.uid },
-      training: { wrist: 2, stamina: 0, flip: 5 }, materials: { flour: 3, ghee: 0, egg: 1, onion: 0, spice: 0, sugar: 2, milk: 0 },
+      training: { ...freshSaveV2().training, wrist: 2, flip: 5 }, materials: { flour: 3, ghee: 0, egg: 1, onion: 0, spice: 0, sugar: 2, milk: 0 },
       streak: { day: 4, lastClaimDay: dayName(3), windowStartDay: dayName(0), restDaysUsed: 1 },
       idle: { lastCollectedAt: new Date(T + 2 * DAY).toISOString() }, chestPity: { rare: 3, epic: 14, opened: 34 },
       unlocks: unlocksForXp(1300),

@@ -68,3 +68,12 @@ Two named, real stats. Crispy builds crit; soggy builds splash. Hybrids are firs
 | Stall / later | tawa seasoning (crit), drinks (Kopi O) | thali tray / sambar-pot upgrades, uniques |
 
 Determinism: `rollHit` is unchanged (one rng draw only when `canCrit`). Splash adds no draws unless `splashCrit > 0` (one draw per splashed foe, in `w.enemies` order). Crisp-tag crit chance changes the threshold, not the draw count. Both stats show in the in-run build sheet ("Crisp & Soak" block, per-roti totals). Card art reuses existing passive icons until new ones are drawn.
+
+## Stat registry
+`src/core/statRegistry.ts` is the one list of stats (label, unit, icon, group, display max, who may grant it, build-sheet flag, optional `training`). Helpers for the UI: `formatStat`, `statLabel`, `statsByGroup`, `sheetStats`, `TRAINING_DEFS`.
+To add a stat:
+1. Add the key to `PlayerStats` + `BASE_STATS` (tsc fails until the registry entry exists).
+2. Add ONE entry in `STAT_REGISTRY`; list every system allowed to grant it in `grant`.
+3. Want a training row? Add `training: { id, label, perStep, unlock }` (id is a save key, never rename). Row, cost curve, respec and migration follow; `unlock` gates buying.
+4. Reference it from gear affixes / cards / perks; `statCoverage.test.ts` fails if a system uses a stat the registry doesn't allow it to grant, or the registry claims a grant nobody makes.
+Training is the first ring of the future spec tree. Tune knobs are not generated from stats yet (they walk content tables). UI TODO: render training rows from `TRAINING_DEFS`/`trainingOpen`, and `statLines` from `formatStat`.

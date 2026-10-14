@@ -27,7 +27,7 @@ export const AFFIX_POOLS: Record<Slot, readonly Affix[]> = {
   gloves: [affix('fast-flip', 'throwSpeedPct', .03), affix('firm-grip', 'dmgPct', .03), affix('big-dough', 'sizePct', .05), affix('precise', 'critChance', .01), affix('curry-splashed', 'soak', .03)],
   slippers: [affix('dodge', 'dodge', .05), affix('quick-feet', 'moveSpeed', BASE_STATS.moveSpeed * .03), affix('steady', 'dmgTakenPct', -.02), affix('restful', 'regen', .1)],
 };
-const MAIN_STATS: Record<Slot, Partial<PlayerStats>> = {
+export const MAIN_STATS: Record<Slot, Partial<PlayerStats>> = {
   towel: { critChance: .02 }, headband: { dmgPct: .03 }, apron: { maxHp: 5 },
   gloves: { throwSpeedPct: .03 }, slippers: { moveSpeed: BASE_STATS.moveSpeed * .03 },
 };
