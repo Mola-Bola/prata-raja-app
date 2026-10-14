@@ -15,6 +15,7 @@ import { installCapture } from './capture';
 import { installFonts } from './fonts';
 import { createHub, type Hub } from './hub';
 import { BootScene } from './phaser/BootScene';
+import { HubScene } from './phaser/HubScene';
 import { RunScene } from './phaser/RunScene';
 import { startTelemetry, trackFromRenderer } from './telemetry'; // [analytics hook]
 import { GameUi } from './ui/GameUi';
@@ -94,7 +95,7 @@ export default function GameRoot({ haptic, save, load, track, insets, info }: Pr
         width: Math.round((el.clientWidth || window.innerWidth) * dpr),
         height: Math.round((el.clientHeight || window.innerHeight) * dpr),
       },
-      scene: [BootScene, RunScene],
+      scene: [BootScene, RunScene, HubScene],
     });
     g.registry.set('hub', hub);
     g.registry.set('bridge', bridge);

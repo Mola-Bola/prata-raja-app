@@ -46,7 +46,12 @@ export type KitchenStats = {
   flakyKosong?: boolean;
 };
 
+/** The walkable stall hub's stations (src/game/phaser/hub/stations.ts). */
+export type StationId = 'tawa' | 'dips' | 'gear' | 'pantry' | 'spec' | 'orders' | 'kopi' | 'exit';
+
 export type HubEvents = {
+  /** Kannan walked into range of a station (its panel opens) or out of range of all of them (null: it closes). */
+  hubStation: { id: StationId | null };
   kitchenStart: { seed: number; tuning: KitchenTuning; flakyKosong?: boolean };
   kitchenStats: KitchenStats;
   kitchenEnd: { reason: 'won' | 'lost' | 'stopped'; stats: KitchenStats };
@@ -80,6 +85,15 @@ export type GameControls = {
   resume(): void;
   /** Abandon the run and go back to the title. */
   quit(): void;
+  // The walkable hub (HubScene). Optional: they exist once that scene has booted.
+  /** Show the hub scene (the run scene sleeps). */
+  hubEnter?(): void;
+  /** Stop showing the hub scene (the run scene wakes). start() and startKitchen() do this themselves. */
+  hubLeave?(): void;
+  /** Walk Kannan to a station; its panel opens when he arrives. */
+  hubWalkTo?(id: StationId): void;
+  /** The panel was closed by hand: keep it shut until Kannan has walked out of that station's range. */
+  hubDismiss?(): void;
 };
 
 type Listener<T> = (payload: T) => void;

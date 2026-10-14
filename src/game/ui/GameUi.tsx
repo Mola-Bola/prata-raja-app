@@ -37,10 +37,11 @@ import { createSaveStore } from './saveStore';
 import { Switch, toggleSetting, type SettingKey } from './settings';
 import './GameUi.css';
 import { Rewards, type Payout } from './stall/Rewards';
+import { HubOverlay } from './hub/HubOverlay';
 import { StallHub } from './stall/StallHub';
 
 type UiBridge = Pick<Bridge, 'haptic' | 'save' | 'load'>;
-type Screen = 'title' | 'stall' | 'run' | 'results' | 'story' | 'kitchen';
+type Screen = 'title' | 'hub' | 'stall' | 'run' | 'results' | 'story' | 'kitchen';
 type Offer = { n: number; cards: Card[]; rerolls: number; level: number; left: number; first: number };
 type Ended = { result: RunResult; line: string; tip: string; newBest: boolean; before: SaveV2; payout: Payout };
 type Banner = { n: number; text: string; boss: boolean };
@@ -208,7 +209,7 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
   const toStall = () => {
     setEnded(null);
     setReturned(true);
-    setScreen('stall');
+    setScreen('hub');
     hub.controls?.quit(); // the run is over: this only clears its frozen frame
   };
   // First-time players see the skippable story before run 1; returning players open the stall.
@@ -218,8 +219,14 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
       storyReturn.current = null;
       setScreen('story');
     } else if (save.runs === 0) start();
-    else setScreen('stall');
+    else setScreen('hub');
   };
+
+  // The walkable hub shows its scene (the run scene sleeps); the old stall menu and everything else leave it.
+  useEffect(() => {
+    if (screen === 'hub') hub.controls?.hubEnter?.();
+    else if (screen === 'stall') hub.controls?.hubLeave?.();
+  }, [screen, hub]);
 
   const version = buildLabel(info);
 
@@ -244,8 +251,10 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
           onRetry={() => setLoad((l) => ({ attempt: l.attempt + 1, failed: false }))}
         />
       )}
+      {screen === 'hub' && save && <HubOverlay hub={hub} save={save} commit={store.commit} art={art} afterRun={returned} onStart={start} onKitchen={enterKitchen} onTune={tuneOn ? () => setTuneOpen(true) : undefined} onOldStall={() => setScreen('stall')} onStory={() => { storyReturn.current = 'hub'; setScreen('story'); }} />}
+      {screen === 'stall' && <button type="button" className="gu-btn" data-testid="stall-to-hub" style={{ position: 'absolute', left: 8, bottom: 8, zIndex: 5, pointerEvents: 'auto' }} onClick={() => setScreen('hub')}>New hub</button>}
       {screen === 'stall' && save && <StallHub onTune={tuneOn ? () => setTuneOpen(true) : undefined} save={save} commit={store.commit} onStart={start} onKitchen={enterKitchen} onStory={() => { storyReturn.current = 'stall'; setScreen('story'); }} art={art} afterRun={returned} />}
-      {screen === 'kitchen' && <Kitchen hub={hub} ready={sceneReady} onStart={() => { ticket.current = null; }} onExit={() => setScreen(save ? 'stall' : 'title')} />}
+      {screen === 'kitchen' && <Kitchen hub={hub} ready={sceneReady} onStart={() => { ticket.current = null; }} onExit={() => setScreen(save ? 'hub' : 'title')} />}
       {screen === 'story' && <Prologue onDone={() => {
         store.commit(finishPrologue);
         if (storyReturn.current) setScreen(storyReturn.current);

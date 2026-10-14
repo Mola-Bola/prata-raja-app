@@ -29,6 +29,7 @@ Map of what is built. Steering lives in [DIRECTION.md](../../DIRECTION.md) (wins
 
 ## UI
 - [Overlay, build sheet, tune panel](ui-overlay.md) - live.
+- [Walkable stall hub](hub-scene.md) - branch claude/r8-hub.
 - [Test Kitchen](test-kitchen.md) - live sandbox (also experiments).
 
 ## Backend & ops
