@@ -17,6 +17,12 @@ export const FIELD = {
   /** Half-width of Kannan's hurt zone for enemy projectiles and boss volleys that land on the counter (was 34; the drawn
    *  sprite is unchanged). Pickup and reach radii are separate and untouched. */
   kannanHitHalfWidth: 30,
+  /** Free-movement mode only (content.tune.controlMode 'free'): Kannan walks in x within +-kannanMaxX and in y within freeMinY..freeMaxY
+   *  (the street in front of the stall; the boss parks at holdY ~620 above it). */
+  freeMinY: 20,
+  freeMaxY: 560,
+  /** Free mode: Kannan's body radius for contact and enemy-shot hits. */
+  kannanRadius: 24,
 } as const;
 
 // ── Ids ──────────────────────────────────────────────────────────────────────
@@ -294,7 +300,7 @@ export type Content = {
   chapters: ChapterDef[];
   lines: { wake: string[]; win: string[]; tips: string[] };
   /** Optional director overrides, only ever set by the Tune overlay (src/core/tune.ts); shipped content leaves it unset. */
-  tune?: { cruise?: number; cruiseLate?: number; liveCap?: number; pressure?: number };
+  tune?: { cruise?: number; cruiseLate?: number; liveCap?: number; pressure?: number; /** 'counter' (default) or 'free' movement; see sim/free.ts. */ controlMode?: 'counter' | 'free' };
 };
 
 // ── Run state (src/core/sim.ts owns mutation) ───────────────────────────────
@@ -395,6 +401,16 @@ export type Buff = { id: 'haste' | 'spin' | 'stackDmg'; time: number; stacks: nu
 
 export type Player = {
   x: number;
+  /** Free mode: Kannan's y on the street. Always 0 in counter mode. */
+  y: number;
+  /** Free mode: seconds of dash (i-frames) left, seconds until the next dash, last move direction (unit), and the dodge-press edge. */
+  dashT: number;
+  dashCd: number;
+  dashDx: number;
+  dashDy: number;
+  faceX: number;
+  faceY: number;
+  dodgeHeld: boolean;
   targetX: number;
   moving: boolean;
   hp: number;
@@ -432,7 +448,8 @@ export type GameEvent =
   | { t: 'blast'; x: number; y: number; radius: number; color: string | null }
   | { t: 'chain'; points: { x: number; y: number }[] }
   | { t: 'status'; uid: number; status: StatusId }
-  | { t: 'aim'; uid: number; x: number; y: number; tx: number; time: number }
+  | { t: 'aim'; uid: number; x: number; y: number; tx: number; time: number; ty?: number }
+  | { t: 'dash'; x: number; y: number; dx: number; dy: number }
   | { t: 'enemyShot'; uid: number }
   | { t: 'splat'; x: number }
   | { t: 'playerHit'; dmg: number; source: 'contact' | 'shot' | 'boss' | 'explode' }
@@ -443,7 +460,7 @@ export type GameEvent =
   | { t: 'levelUp'; level: number }
   | { t: 'waveStart'; wave: number; total: number }
   | { t: 'bossSpawn'; bossId: string; name: string }
-  | { t: 'bossTell'; attackId: string; name: string; kind: BossAttack['kind']; xs: number[]; width: number; time: number }
+  | { t: 'bossTell'; attackId: string; name: string; kind: BossAttack['kind']; xs: number[]; width: number; time: number; /** Free mode: the street y of each marked spot. */ ys?: number[] }
   | { t: 'bossPhase'; phase: number }
   | { t: 'revive' }
   | { t: 'runEnd'; won: boolean };
@@ -537,4 +554,12 @@ export type World = {
 export type ActiveFind = { card: Card; alts: Card[]; t: number; n: number; swapped?: boolean };
 
 /** What the renderer sends each frame. targetX: field x under the finger while dragging, else null. */
-export type RunInput = { targetX: number | null; moving: boolean };
+export type RunInput = {
+  targetX: number | null;
+  moving: boolean;
+  /** Free mode: joystick vector, each -1..1 with magnitude <= 1 (+y = up the street). */
+  jx?: number;
+  jy?: number;
+  /** Free mode: dodge pressed (the sim reacts to the rising edge). */
+  dodge?: boolean;
+};

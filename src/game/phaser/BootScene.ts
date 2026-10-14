@@ -31,6 +31,7 @@ export class BootScene extends Phaser.Scene {
         swapFind: () => {},
         choose: () => {},
         reroll: () => {},
+        dodge: () => {},
         pause: () => {},
         resume: () => {},
         quit: () => {

@@ -1,7 +1,8 @@
 // Kannan's throwing: cooldowns, targeting, volleys and what each bread motion launches. Orbit breads keep their orbs alive here.
 import { effectiveCooldown } from '../stats';
 import { FIELD, type BreadDef, type BreadMotion, type BreadStats, type Enemy, type OwnedBread, type Projectile } from '../types';
-import { alive, approachSpeed, clamp, emit, hyp, mods, newUid, type Ctx } from './ctx';
+import { alive, approachSpeed, clamp, emit, enemySpeed, hyp, mods, newUid, type Ctx } from './ctx';
+import { FREE, isFree } from './free';
 
 const RAD = Math.PI / 180;
 /** extraProjectiles fan out this far apart. */
@@ -12,7 +13,7 @@ const ORBIT_Y = 90;
 
 function base(c: Ctx, def: BreadDef, st: BreadStats, motion: BreadMotion): Projectile {
   return {
-    uid: newUid(c), owner: 'player', sprite: def.sprite, breadId: def.id, motion, x: c.p.x, y: 0, vx: 0, vy: 0, z: 0, t: 0, ttl: 1,
+    uid: newUid(c), owner: 'player', sprite: def.sprite, breadId: def.id, motion, x: c.p.x, y: c.p.y, vx: 0, vy: 0, z: 0, t: 0, ttl: 1,
     dmg: st.dmg, radius: st.radius, pierceLeft: 0, hopsLeft: 0, hit: [], returning: false, targetUid: null, tx: 0, ty: 0, stats: st, spin: 0,
   };
 }
@@ -22,7 +23,8 @@ function base(c: Ctx, def: BreadDef, st: BreadStats, motion: BreadMotion): Proje
 /** Is `a` the better thing to shoot than `b`? Whatever is at the counter hurting Kannan (state 'attack') comes first, however far
  *  along the counter it stands; then whatever is closest to the counter (lowest y); then whatever is nearest his lane. Equal
  *  in all three: false, so the first one found keeps its place. */
-function shootFirst(a: Enemy, b: Enemy, px: number): boolean {
+function shootFirst(a: Enemy, b: Enemy, px: number, py = 0, free = false): boolean {
+  if (free) return hyp(a.x - px, a.y - py) < hyp(b.x - px, b.y - py); // free mode: simply the nearest to Kannan
   const aAttacks = a.state === 'attack';
   if (aAttacks !== (b.state === 'attack')) return aAttacks;
   if (!aAttacks && a.y !== b.y) return a.y < b.y;
@@ -33,12 +35,14 @@ function shootFirst(a: Enemy, b: Enemy, px: number): boolean {
 function nearestInRange(c: Ctx, range: number): Enemy | null {
   const { w, p } = c;
   const r2 = range * range;
+  const free = isFree(c);
   let best: Enemy | null = null;
   for (const e of w.enemies) {
     if (!alive(e)) continue;
     const dx = e.x - p.x;
-    if (dx * dx + e.y * e.y > r2) continue;
-    if (best === null || shootFirst(e, best, p.x)) best = e;
+    const dy = e.y - p.y;
+    if (dx * dx + dy * dy > r2) continue;
+    if (best === null || shootFirst(e, best, p.x, p.y, free)) best = e;
   }
   return best;
 }
@@ -47,7 +51,8 @@ function anyInRange(c: Ctx, range: number): boolean {
   const r2 = range * range;
   for (const e of c.w.enemies) {
     const dx = e.x - c.p.x;
-    if (alive(e) && dx * dx + e.y * e.y <= r2) return true;
+    const dy = e.y - c.p.y;
+    if (alive(e) && dx * dx + dy * dy <= r2) return true;
   }
   return false;
 }
@@ -61,9 +66,11 @@ function clusterTargets(c: Ctx, range: number, blast: number, n: number): Enemy[
   const cands: Enemy[] = [];
   const score: number[] = [];
   const attackers: number[] = [];
+  const free = isFree(c);
   for (const e of w.enemies) {
     const dx = e.x - p.x;
-    const d2 = dx * dx + e.y * e.y;
+    const dy = e.y - p.y;
+    const d2 = dx * dx + dy * dy;
     if (!alive(e) || d2 > r2) continue;
     let s = 0;
     let a = e.state === 'attack' ? 1 : 0;
@@ -81,7 +88,7 @@ function clusterTargets(c: Ctx, range: number, blast: number, n: number): Enemy[
   const used = new Set<number>();
   const clear = (i: number): boolean => out.every((o) => hyp(o.x - cands[i].x, o.y - cands[i].y) > blast);
   const better = (i: number, j: number): boolean =>
-    attackers[i] !== attackers[j] ? attackers[i] > attackers[j] : score[i] !== score[j] ? score[i] > score[j] : shootFirst(cands[i], cands[j], p.x);
+    attackers[i] !== attackers[j] ? attackers[i] > attackers[j] : score[i] !== score[j] ? score[i] > score[j] : shootFirst(cands[i], cands[j], p.x, p.y, free);
   while (out.length < n && out.length < cands.length) {
     let bi = -1;
     for (const needClear of [true, false]) {
@@ -101,9 +108,28 @@ function clusterTargets(c: Ctx, range: number, blast: number, n: number): Enemy[
 const predictY = (e: Enemy, vs: number, t: number): number =>
   Math.max(FIELD.reachY, e.boss ? e.holdY : -Infinity, e.y - vs * t);
 
+/** Free mode: where e will be after t seconds, walking straight at Kannan (a parked or boss enemy stays put). */
+function predictFree(c: Ctx, e: Enemy, t: number): { x: number; y: number } {
+  if (e.state !== 'walk' || e.boss) return { x: e.x, y: e.y };
+  const dx = c.p.x - e.x;
+  const dy = c.p.y - e.y;
+  const d = hyp(dx, dy) || 1;
+  const go = Math.min(d, enemySpeed(e) * FREE.pestSpeed * t);
+  return { x: e.x + (dx / d) * go, y: e.y + (dy / d) * go };
+}
+
 /** Angle (0 = straight up the street, + = right) that meets the enemy: it walks toward Kannan while the shot flies. */
 function aimAngle(c: Ctx, e: Enemy, speed: number): number {
   const px = c.p.x;
+  if (isFree(c)) {
+    let q = { x: e.x, y: e.y };
+    let t = hyp(q.x - px, q.y - c.p.y) / speed;
+    for (let i = 0; i < 3; i++) {
+      q = predictFree(c, e, t);
+      t = hyp(q.x - px, q.y - c.p.y) / speed;
+    }
+    return Math.atan2(q.x - px, q.y - c.p.y);
+  }
   const vs = approachSpeed(e);
   let ty = e.y;
   let t = hyp(e.x - px, ty) / speed;
@@ -139,7 +165,7 @@ function spawnWave(c: Ctx, def: BreadDef, st: BreadStats, speed: number, range: 
   const s = base(c, def, st, 'wave');
   s.vy = speed;
   s.radius = (st.width * (1 + c.p.stats.sizePct) * (1 + 0.25 * c.p.stats.extraProjectiles)) / 2;
-  s.ty = range;
+  s.ty = c.p.y + range;
   s.ttl = range / speed;
   c.w.projectiles.push(s);
 }
@@ -148,10 +174,16 @@ function spawnWave(c: Ctx, def: BreadDef, st: BreadStats, speed: number, range: 
 function spawnLob(c: Ctx, def: BreadDef, st: BreadStats, target: Enemy): void {
   const s = base(c, def, st, 'lob');
   const time = Math.max(0.05, st.lobTime);
-  s.tx = clamp(target.x, -FIELD.halfWidth, FIELD.halfWidth);
-  s.ty = predictY(target, approachSpeed(target), time);
+  if (isFree(c)) {
+    const q = predictFree(c, target, time);
+    s.tx = clamp(q.x, -FIELD.halfWidth, FIELD.halfWidth);
+    s.ty = q.y;
+  } else {
+    s.tx = clamp(target.x, -FIELD.halfWidth, FIELD.halfWidth);
+    s.ty = predictY(target, approachSpeed(target), time);
+  }
   s.vx = (s.tx - c.p.x) / time;
-  s.vy = s.ty / time;
+  s.vy = (s.ty - c.p.y) / time;
   s.ttl = time;
   s.radius = st.blast * (1 + c.p.stats.sizePct);
   s.targetUid = target.uid;
@@ -267,7 +299,7 @@ export function placeOrb(c: Ctx, s: Projectile): void {
   const n = Math.max(1, st.count + c.p.stats.extraProjectiles);
   const ang = (2 * Math.PI * (s.targetUid ?? 0)) / n + st.speed * RAD * c.w.time;
   s.x = c.p.x + st.orbitRadius * Math.cos(ang);
-  s.y = ORBIT_Y + st.orbitRadius * Math.sin(ang);
+  s.y = c.p.y + ORBIT_Y + st.orbitRadius * Math.sin(ang);
 }
 
 /** Keep exactly count + extraProjectiles orbs alive for an orbit bread; rebuild them when its level or size changes.
@@ -300,7 +332,7 @@ function syncOrbs(c: Ctx, b: OwnedBread, def: BreadDef, st: BreadStats): void {
 /** Count every bread's cooldown down and throw. Archero rule: cooldowns only run at throwWhileMoving x rate while Kannan moves. */
 export function updateThrowing(c: Ctx): void {
   const { p, w } = c;
-  const rate = p.moving ? p.stats.throwWhileMoving : 1;
+  const rate = p.moving ? (isFree(c) ? Math.max(FREE.moveFire, p.stats.throwWhileMoving) : p.stats.throwWhileMoving) : 1;
   for (const b of p.breads) {
     const def = w.content.breads[b.id];
     const st = def.levels[b.level - 1];

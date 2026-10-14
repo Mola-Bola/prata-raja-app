@@ -6,6 +6,7 @@ import type { BreadStats, Enemy, Projectile } from '../types';
 import { alive, clamp, dist, emit, hyp, newUid, type Ctx } from './ctx';
 import { applyHitEffect } from '../status';
 import { chain, DOT_ZONE, dotDamage, hitEnemy, killEnemy } from './hit';
+import { isFree } from './free';
 import { placeOrb } from './throw';
 
 const HOMING_TURN = 5; // rad/s at homing 1
@@ -15,6 +16,8 @@ const FRAGMENT_TTL = 0.6;
 const SPIN_RATE = 14; // rad/s, for the renderer
 const OUT_Y = 1060;
 const OUT_NEAR_Y = -60;
+/** Shots die below this y: just under the counter, or (free mode, Kannan walks the street) further down. */
+const nearOut = (c: Ctx): number => (isFree(c) ? -200 : OUT_NEAR_Y);
 const OUT_X = 330;
 /** How far a wave bar reaches in y around its leading edge, on top of the enemy's radius. */
 const WAVE_REACH = 20;
@@ -138,7 +141,7 @@ function spawnFlakes(c: Ctx, s: Projectile, e: Enemy): void {
 function straightHit(c: Ctx, s: Projectile, e: Enemy, left: number): boolean {
   const st = s.stats as BreadStats;
   s.hit.push(e.uid);
-  if (hitEnemy(c, e, s.dmg, st, s.pierceLeft <= 0, s.guaranteedCrit, s.breadId)) {
+  if (hitEnemy(c, e, s.dmg, st, s.pierceLeft <= 0, s.guaranteedCrit, s.breadId, s.hit.length - 1)) {
     s.ttl = -1;
     return false;
   }
@@ -199,7 +202,7 @@ function flyStraight(c: Ctx, s: Projectile, dt: number): void {
       s.y = by;
       s.t += step;
       left -= step;
-      if (s.y > OUT_Y || s.y < OUT_NEAR_Y || Math.abs(s.x) > OUT_X || s.t >= s.ttl - TIME_EPS) {
+      if (s.y > OUT_Y || s.y < nearOut(c) || Math.abs(s.x) > OUT_X || s.t >= s.ttl - TIME_EPS) {
         s.ttl = -1;
         return;
       }
@@ -276,7 +279,7 @@ function flyBoomerang(c: Ctx, s: Projectile, dt: number): void {
       reach = s.ty - speed * s.t;
     } else {
       const dx = p.x - s.x;
-      const dy = -s.y;
+      const dy = p.y - s.y;
       const d = hyp(dx, dy);
       if (d <= CATCH_RADIUS) {
         s.ttl = -1;
@@ -370,7 +373,7 @@ function flyFlakyKosong(c: Ctx): void {
     left -= used;
     if (shot && enemy) straightHit(c, shot, enemy, left);
     for (const s of shots) {
-      if (s.ttl >= 0 && (s.y > OUT_Y || s.y < OUT_NEAR_Y || Math.abs(s.x) > OUT_X) && !firstTouched(c, s, s.x, s.y, s.x, s.y, FLAKY_CONTACT_EPS)) s.ttl = -1;
+      if (s.ttl >= 0 && (s.y > OUT_Y || s.y < nearOut(c) || Math.abs(s.x) > OUT_X) && !firstTouched(c, s, s.x, s.y, s.x, s.y, FLAKY_CONTACT_EPS)) s.ttl = -1;
     }
   }
 }

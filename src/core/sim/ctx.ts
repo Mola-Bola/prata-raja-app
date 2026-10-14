@@ -58,6 +58,7 @@ export const approachSpeed = (e: Enemy): number => e.state === 'escape' ? -enemy
 /** Hurt Kannan with a shot, blast or boss attack. Shots can be dodged (stats.dodge). Returns true if it landed. */
 export function hurtPlayer(c: Ctx, base: number, source: 'shot' | 'boss' | 'explode'): boolean {
   const { p } = c;
+  if (p.dashT > 0) return false; // free mode: dash i-frames
   if (p.stats.dodge > 0 && c.rng.chance(p.stats.dodge)) {
     emit(c, { t: 'dodge' });
     return false;
@@ -69,12 +70,13 @@ export function hurtPlayer(c: Ctx, base: number, source: 'shot' | 'boss' | 'expl
   return true;
 }
 
-/** An enemy projectile flying from (x, y) to (tx, 0). tx = landing x; hopsLeft = 1 marks a boss shot. */
-export function enemyShot(c: Ctx, x: number, y: number, tx: number, dmg: number, speed: number, sprite: string, boss: boolean): Projectile {
-  const d = hyp(tx - x, y) || 1;
+/** An enemy projectile flying from (x, y) to (tx, ty); counter mode lands on the counter (ty 0). tx = landing x; hopsLeft = 1 marks a boss shot.
+ *  Free mode: the shot flies straight on past (tx, ty) and hits whatever of Kannan it touches (enemies.ts updateEnemyShots). */
+export function enemyShot(c: Ctx, x: number, y: number, tx: number, dmg: number, speed: number, sprite: string, boss: boolean, ty = 0): Projectile {
+  const d = hyp(tx - x, ty - y) || 1;
   return {
-    uid: newUid(c), owner: 'enemy', sprite, motion: 'enemy', x, y, vx: ((tx - x) / d) * speed, vy: (-y / d) * speed, z: 0, t: 0,
-    ttl: d / speed + 1, dmg, radius: 8, pierceLeft: 0, hopsLeft: boss ? 1 : 0, hit: [], returning: false, targetUid: null, tx, ty: 0,
+    uid: newUid(c), owner: 'enemy', sprite, motion: 'enemy', x, y, vx: ((tx - x) / d) * speed, vy: ((ty - y) / d) * speed, z: 0, t: 0,
+    ttl: d / speed + 1, dmg, radius: 8, pierceLeft: 0, hopsLeft: boss ? 1 : 0, hit: [], returning: false, targetUid: null, tx, ty,
     stats: null, spin: 0,
   };
 }

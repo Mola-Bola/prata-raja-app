@@ -19,8 +19,10 @@ import { FIELD, type Card, type Content, type GameEvent, type Loadout, type Play
 import { bossAtOf, flowTick, isFlow, nextPickStop, findDue, waveEquivalent } from './director';
 import { spawnTick, startWave, waveDone, type SpawnRequest } from './waves';
 import { alive, clamp, dirtyMods, emit, type Ctx } from './sim/ctx';
+import { bossBeat } from './sim/boss';
 import { flushContact, updateEnemies, updateEnemyShots } from './sim/enemies';
 import { updatePlayerShots, updateZones } from './sim/shots';
+import { FREE, isFree, isFreeMode, moveFree } from './sim/free';
 import { spawnEnemy } from './sim/spawn';
 import { updateThrowing } from './sim/throw';
 
@@ -40,7 +42,7 @@ export function createRun(opts: { seed: number; content: Content; chapterId?: st
   const chapter = opts.mode && opts.mode !== found.mode ? { ...found, mode: opts.mode } : found;
   const stats = computeStats([], content, loadout);
   const player: Player = {
-    x: 0, targetX: 0, moving: false, hp: stats.maxHp, stats,
+    x: 0, y: isFreeMode(content) ? FREE.startY : 0, dashT: 0, dashCd: 0, dashDx: 0, dashDy: 1, faceX: 0, faceY: 1, dodgeHeld: false, targetX: 0, moving: false, hp: stats.maxHp, stats,
     breads: [{ id: loadout?.startBread ?? 'kosong', level: 1, cd: 0.4, volleyLeft: 0, volleyT: 0 }],
     dips: [], passives: [], buffs: [], level: 1, xp: 0, xpToNext: xpToNext(1), revivesLeft: stats.revives, throwAnim: 0, hurtAnim: 0,
   };
@@ -149,11 +151,14 @@ function stepOnce(w: World, dt: number, input: RunInput): void {
 /** Slide toward the finger, regen, count buffs and animations down. */
 function movePlayer(c: Ctx, input: RunInput): void {
   const { p, dt } = c;
-  if (input.targetX !== null) p.targetX = clamp(input.targetX, -FIELD.kannanMaxX, FIELD.kannanMaxX);
-  const dx = p.targetX - p.x;
-  p.moving = input.moving || Math.abs(dx) > 1; // still sliding to targetX counts as moving, finger down or not
-  const reach = p.stats.moveSpeed * dt;
-  p.x = Math.abs(dx) <= reach ? p.targetX : p.x + Math.sign(dx) * reach;
+  if (isFree(c)) moveFree(c, input);
+  else {
+    if (input.targetX !== null) p.targetX = clamp(input.targetX, -FIELD.kannanMaxX, FIELD.kannanMaxX);
+    const dx = p.targetX - p.x;
+    p.moving = input.moving || Math.abs(dx) > 1; // still sliding to targetX counts as moving, finger down or not
+    const reach = p.stats.moveSpeed * dt;
+    p.x = Math.abs(dx) <= reach ? p.targetX : p.x + Math.sign(dx) * reach;
+  }
   if (p.stats.regen > 0 && p.hp > 0) p.hp = Math.min(p.stats.maxHp, p.hp + p.stats.regen * dt);
   tickBuffs(p, dt);
   dirtyMods(c);
@@ -167,7 +172,8 @@ function spawnRequest(c: Ctx, r: SpawnRequest): void {
   const content = c.w.content;
   const def = r.boss ? content.bosses[r.enemyId] : content.enemies[r.enemyId];
   if (!def) return;
-  spawnEnemy(c, def, r.x, { elite: r.elite, boss: r.boss, lane: r.lane });
+  const spawned = spawnEnemy(c, def, r.x, { elite: r.elite, boss: r.boss, lane: r.lane });
+  if (r.boss && isFree(c)) bossBeat(spawned);
   if (r.boss) c.w.bossAttempted = true;
   if (r.boss) emit(c, { t: 'bossSpawn', bossId: def.id, name: def.name });
 }
@@ -213,8 +219,9 @@ function revive(c: Ctx): void {
   const { w, p } = c;
   p.revivesLeft--;
   p.hp = p.stats.maxHp * 0.5;
+  const free = isFree(c);
   for (const e of w.enemies) {
-    if (alive(e) && e.y < REVIVE_RADIUS_Y) e.knock += REVIVE_KNOCK * (e.boss ? 0.1 : 1);
+    if (alive(e) && (free ? Math.hypot(e.x - p.x, e.y - p.y) < REVIVE_RADIUS_Y : e.y < REVIVE_RADIUS_Y)) e.knock += REVIVE_KNOCK * (e.boss ? 0.1 : 1);
   }
   let keep = 0;
   for (const s of w.projectiles) if (s.owner !== 'enemy') w.projectiles[keep++] = s;

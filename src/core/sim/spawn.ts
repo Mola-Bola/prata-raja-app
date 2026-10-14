@@ -2,6 +2,7 @@
 import { waveHpScale } from '../stats';
 import { FIELD, type BossDef, type Enemy, type EnemyDef, type SpawnLane } from '../types';
 import { clamp, newUid, SPAWN_Y, type Ctx } from './ctx';
+import { FREE, isFree } from './free';
 
 /** Create one enemy and add it to the world. hp and shield scale with the wave (x3 for elites).
  *  Scratch numbers in cooldowns: bx = spawn x (walk wobble / zigzag centre), ph = wobble phase,
@@ -20,7 +21,7 @@ export function spawnEnemy(c: Ctx, def: EnemyDef | BossDef, x: number, opts: { y
   if (side) x = opts.lane === 'left' ? -SIDE_EDGE : SIDE_EDGE;
   const y = opts.y ?? (side ? SIDE_Y + rng.range(0, 120) : (def.drain?.y ?? SPAWN_Y) + rng.range(0, 40));
   const scale = waveHpScale(w.chapter, w.waveF ?? Math.max(1, w.wave)) * (elite ? 3 : 1);
-  const hp = def.hp * scale * (boss && w.chapter.mode === 'flow' ? w.chapter.bossHp ?? 1 : 1);
+  const hp = def.hp * scale * (boss && w.chapter.mode === 'flow' ? w.chapter.bossHp ?? 1 : 1) * (boss && isFree(c) ? FREE.bossHp : 1);
   const cd: Record<string, number> = { bx: x, ph: rng.range(0, Math.PI * 2), _mt: 0 };
   const e: Enemy = {
     uid: newUid(c), def, boss, elite, x, y, hp, maxHp: hp, shield: (def.shield ?? 0) * scale,
