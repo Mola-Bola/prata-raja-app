@@ -99,11 +99,26 @@ type ShotView = {
   trail: { img: Img; x: number; y: number; k: number; spin: number; t: number }[];
   trailT: number;
   trailNext: number;
+  /** Seconds in flight, the hover height (field units) a flat disc rides at, wobble phase, and the scale last drawn (for the hit splat). */
+  age: number;
+  hover: number;
+  phase: number;
+  kx: number;
+  ky: number;
 };
 
 type Corpse = { v: EnemyView; t: number; k: number };
 
 const CORPSE_LIFE = 0.24;
+/** Flat-bread hover height in field units: thin tissue floats, a heavy murtabak skims low. */
+const HOVER: Record<string, number> = { tissue: 30, murtabak: 7, chapati: 18, appam: 16, idli: 10, vadai: 12 };
+const HOVER_DEFAULT = 16;
+/** Launch squash length (s), and the wobble rate as a share of the spin rate (a frisbee tumbles slower than it spins). */
+const LAUNCH_T = 0.1;
+const WOBBLE = 0.55;
+/** Hit splat: how far the bread flattens and widens over its 120 ms exit. */
+const SPLAT_X = 0.45;
+const SPLAT_Y = 0.5;
 /** Seconds a new enemy takes to enter (fade + slide in from its edge for side spawns). */
 const FADE_IN = 0.25;
 /** How far (fraction of screen width) a side spawn slides in from outside its edge. Reduced motion: no slide, tint only. */
@@ -737,6 +752,13 @@ export class Actors {
         const alpha = 1 - s.t / 0.12;
         s.v.disc?.cont.setAlpha(alpha);
         s.v.img?.setAlpha(alpha);
+        if (!this.reduceMotion) {
+          const f = s.t / 0.12;
+          const sx = s.v.kx * (1 + SPLAT_X * f);
+          const sy = s.v.ky * (1 - SPLAT_Y * f);
+          if (s.v.disc) s.v.disc.cont.setScale(sx, sy);
+          else s.v.img?.setScale(sx, sy);
+        }
         s.v.shadow?.setAlpha(0.3 * alpha);
       }
     }
@@ -749,6 +771,7 @@ export class Actors {
     const v: ShotView = {
       uid: s.uid, stamp: 0, motion: s.motion, disc: null, img: null, shadow: null, dia: 0, texMax: 1,
       px: s.x, py: s.y, pz: s.z, lx: -1, ly: -1, trail: [], trailT: 0, trailNext: 0,
+      age: 0, hover: 0, phase: (s.uid * 2.399) % 6.283, kx: 1, ky: 1,
     };
     if (enemy) {
       v.img = this.imgs.get(s.sprite);
@@ -777,6 +800,11 @@ export class Actors {
         v.dia = 0;
       } else {
         v.dia = s.flake ? SHOT_MIN_U * 0.75 / 0.34 : Math.max(SHOT_MIN_U, 2 * s.radius * SHOT_FIT);
+        // A flat bread rides above the street (the sim has no height for it): tissue floats, murtabak skims.
+        if (!s.flake && s.motion !== 'orbit') {
+          v.hover = HOVER[s.breadId ?? ''] ?? HOVER_DEFAULT;
+          v.shadow = this.imgs.get('shadow');
+        }
         // A flying bread leaves a soft swoosh behind it (the thick end is the head, so it trails when turned to the heading).
 
       }
@@ -787,7 +815,7 @@ export class Actors {
       if (image) image.scene.tweens.add({ targets: image, alpha: 0.6, duration: 140, yoyo: true, repeat: 2 });
     }
     // Three fading copies per moving bread, capped at 48 atlas images for the whole arena.
-    if (!enemy && !s.flake && (s.motion === 'straight' || s.motion === 'boomerang' || s.motion === 'lob') && this.trailCount < 48) {
+    if (!enemy && !this.reduceMotion && !s.flake && (s.motion === 'straight' || s.motion === 'boomerang' || s.motion === 'lob') && this.trailCount < 48) {
       for (let i = 0; i < 3; i++) v.trail.push({ img: this.imgs.get(s.sprite).setVisible(false), x: 0, y: 0, k: 1, spin: 0, t: 1 });
       this.trailCount += 3;
     }
@@ -836,11 +864,14 @@ export class Actors {
       if (s.motion === 'lob') {
         const z = v.pz + (s.z - v.pz) * alpha;
         const lift = z * (40 + 0.32 * s.ty) * P.ppu * sc;
+        v.age += dt;
+        const lq = this.reduceMotion ? 0 : Math.max(0, 1 - v.age / LAUNCH_T);
         const k = ((v.dia * P.ppu * sc) / v.texMax) * (1 + 0.28 * z);
-        (v.img as Img).setPosition(sx, sy - lift).setScale(k).setRotation(s.spin).setDepth(D.shot + sy);
+        v.kx = k; v.ky = k;
+        (v.img as Img).setPosition(sx, sy - lift).setScale(k * (1 + 0.25 * lq), k * (1 - 0.2 * lq)).setRotation(s.spin).setDepth(D.shot + sy);
         this.drawTrail(v, sx, sy - lift, k, s.spin, dt);
         const shw = (v.dia * P.ppu * sc * 0.85 * (1 - 0.45 * z)) / 64;
-        (v.shadow as Img).setPosition(sx, sy).setScale(shw, shw * 0.6).setAlpha(0.36 * (1 - 0.3 * z)).setDepth(D.shadow);
+        (v.shadow as Img).setPosition(sx, sy).setScale(shw, shw * 0.6).setAlpha(0.36 * (1 - 0.5 * z)).setDepth(D.shadow);
         continue;
       }
       const d = v.disc as Disc;
@@ -852,11 +883,33 @@ export class Actors {
         continue;
       }
       const layers = 1 - (s.flakesShed ?? 0) * 0.08;
-      const k = (v.dia * P.ppu * sc * layers) / v.texMax;
+      v.age += dt;
+      const lift = v.hover * P.ppu * sc;
+      const k = ((v.dia * P.ppu * sc * layers) / v.texMax) * (1 + v.hover / 240);
       const spin = s.motion === 'boomerang' ? s.spin * 1.8 : s.spin;
-      d.cont.setPosition(sx, sy).setScale(k, k * DISC_SQUASH).setDepth(D.shot + sy);
+      let ky = k * DISC_SQUASH;
+      let kx = k;
+      let bank = 0;
+      let bob = 0;
+      if (!this.reduceMotion) {
+        // Frisbee: the disc's tilt oscillates (foreshortened 0.45..1 of its width) and it banks toward its travel direction.
+        const sp = Math.hypot(s.vx, s.vy) || 1;
+        ky = k * (0.725 + 0.275 * Math.sin(spin * WOBBLE + v.phase));
+        bank = (s.vx / sp) * 0.3;
+        if (v.hover > 25) bob = Math.sin(v.age * 7 + v.phase) * 3 * P.ppu * sc;
+        const lq = Math.max(0, 1 - v.age / LAUNCH_T);
+        kx *= 1 + 0.25 * lq;
+        ky *= 1 - 0.25 * lq;
+      }
+      v.kx = kx; v.ky = ky;
+      d.cont.setPosition(sx, sy - lift + bob).setScale(kx, ky).setRotation(bank).setDepth(D.shot + sy);
       d.img.setRotation(spin);
-      this.drawTrail(v, sx, sy, k, spin, dt);
+      if (v.shadow) {
+        const h = Math.min(1, v.hover / 40);
+        const shw = (v.dia * P.ppu * sc * 0.8 * (1 - 0.35 * h)) / 64;
+        v.shadow.setPosition(sx, sy).setScale(shw, shw * 0.6).setAlpha(0.3 * (1 - 0.4 * h)).setDepth(D.shadow);
+      }
+      this.drawTrail(v, sx, sy - lift + bob, kx, spin, dt);
     }
   }
 

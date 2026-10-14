@@ -98,7 +98,7 @@ function renderer(reduced: boolean) {
       list, scaleX: 1, scaleY: 1, alpha: 1, visible: true,
       setVisible(v: boolean) { this.visible = v; return this; },
       setScale(x: number, y = x) { this.scaleX = x; this.scaleY = y; return this; },
-      setAlpha(v: number) { this.alpha = v; return this; }, setPosition() { return this; }, setDepth() { return this; },
+      setAlpha(v: number) { this.alpha = v; return this; }, setPosition() { return this; }, setDepth() { return this; }, setRotation() { return this; },
     }) },
   };
   const discs = new DiscPool(scene as never);
