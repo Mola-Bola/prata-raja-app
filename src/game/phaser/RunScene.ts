@@ -889,7 +889,7 @@ export class RunScene extends Phaser.Scene {
     this.finaleUntil = 0;
     this.finale?.destroy();
     this.finale = null;
-    this.cameras.main.zoomTo(1, 0);
+    this.cameras?.main?.zoomTo?.(1, 0);
   }
 
   /** Freeze the run on screen and hand its result to the overlay. */
