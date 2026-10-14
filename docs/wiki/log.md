@@ -25,3 +25,4 @@ Append-only, newest on top, one line per ingest/change/lint.
 - 15 Oct r8-tune: free movement is now the default control mode (counter via ?move=counter / Tune mode.free=0); Kosong cooldown 0.84, FREE pestSpeed 1.31 / bossHp 1.25; 300-seed bands pass for both modes.
 - 15 Oct r8-street: free runs get one top-down scrolling street (Codex kit road + shopfront strips + kerb props, orthographic Projector.top); counter strip dropped in free mode; counter mode keeps the perspective floor.
 - 15 Oct r8-spec2: spec points derived from level on load (`settleSpec`, fixes S1-S3); spec tree screen rebuilt as branch tabs + node cards with in-place Learn and confirmed Reset all; SpecTree/KopiMeal `embedded` (no duplicate header in the hub); tip renamed "Sugar stacks".
+- 2026-10-15 hub readability: U layout, permanent signs with icons, near glow/lift/verb, first-visit tips, uncle bark, GO docked in panel footer, chests action + badge (docs/wiki/hub-scene.md).
