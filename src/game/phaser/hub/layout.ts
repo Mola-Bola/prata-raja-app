@@ -53,7 +53,7 @@ export const STATIONS: Station[] = [
 /** Walk this close to a station and its panel opens; past RANGE + 24 it closes again. */
 export const RANGE = 58;
 /** Closer than this and the station's sign lights up (glow, lift, verb); the panel opens at RANGE. */
-export const NEAR = RANGE + 28;
+export const NEAR = RANGE + 14;
 
 export const stationById = (id: StationId): Station => STATIONS.find((s) => s.id === id)!;
 
