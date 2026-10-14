@@ -13,6 +13,8 @@ export const MODES: Record<ModeName, readonly number[]> = {
 export const SA = 60; // C4
 export const BPM = 156;
 export const BOSS_BPM = 168;
+export const HUB_BPM = 96;
+export type MusicTrack = 'run' | 'hub';
 export const stepSeconds = (bpm: number): number => 60 / bpm / 4; // one 16th note
 
 export const midiHz = (m: number): number => 440 * 2 ** ((m - 69) / 12);
@@ -76,12 +78,22 @@ export function genSection(mode: ModeName, bars: number, seed: number, bpm: numb
 const SEC_A = genSection('mayamalavagowla', 8, 11, BPM);
 const SEC_B = genSection('mohanam', 8, 23, BPM);
 const SEC_BOSS = genSection('hanumatodi', 8, 37, BOSS_BPM, SA);
+/** Hub loop: Mohanam, slow, the lead thinned to every other note (the last note of each bar stays, so cadences hold). */
+export function genHubSection(seed: number): Section {
+  const s = genSection('mohanam', 8, seed, HUB_BPM);
+  return { ...s, bars: s.bars.map((b) => ({ ...b, lead: b.lead.filter((_, i) => i % 2 === 0 || i === b.lead.length - 1) })) };
+}
+const SEC_HUB = genHubSection(61);
 /** A, B, A again (the repeat plays an octave up, see barAt). */
 export const SONG = [SEC_A, SEC_B, SEC_A] as const;
 export const SONG_BARS = SONG.reduce((n, s) => n + s.bars.length, 0);
 
-/** Where a global bar counter lands in the song. `lap` flips on the repeat of A so it can be varied. */
-export function barAt(barIndex: number, boss: boolean): { section: Section; bar: Bar; octUp: boolean; barInSection: number } {
+/** Where a global bar counter lands in the song. The hub loops its own section; boss swaps in the boss section. */
+export function barAt(barIndex: number, boss: boolean, hub = false): { section: Section; bar: Bar; octUp: boolean; barInSection: number } {
+  if (hub) {
+    const i = barIndex % SEC_HUB.bars.length;
+    return { section: SEC_HUB, bar: SEC_HUB.bars[i], octUp: false, barInSection: i };
+  }
   if (boss) {
     const i = barIndex % SEC_BOSS.bars.length;
     return { section: SEC_BOSS, bar: SEC_BOSS.bars[i], octUp: false, barInSection: i };
@@ -102,11 +114,17 @@ export function stepsDue(next: number, now: number, ahead: number, dur: number):
 }
 
 /** What plays on one 16th step (0..15 of a bar) at an intensity 0..1. Pure, so the layering rules are testable. */
-export function stepPlan(step: number, barNo: number, fill: boolean, intensity: number, boss: boolean) {
+export function stepPlan(step: number, barNo: number, fill: boolean, intensity: number, boss: boolean, hub = false) {
+  if (hub) {
+    // calm hub: a soft kick and bass on beats 1 and 3 only, no snare, hats, fills or counter-melody
+    const beat = step === 0 || step === 8;
+    return { kick: beat, bass: beat, snare: false, hat: false, fillTom: false, thavilRoll: false, arp: false, bassPulse: false };
+  }
   const accent = (KICK_STEPS as readonly number[]).includes(step);
   const inFill = fill && barNo % 4 === 3 && step >= 12; // "ta-ka-dhi-mi" every 4 bars
   return {
     kick: accent && !inFill,
+    bass: accent, // root on the 3+3+2 accents
     snare: (step === 4 || step === 12) && !inFill,
     hat: !inFill && (intensity >= 0.5 || boss ? true : step % 2 === 0),
     fillTom: inFill, // 4 rolling toms
@@ -136,6 +154,7 @@ let enabled = true;
 let paused = false;
 let intensity = 0.2;
 let boss = false;
+let hub = false; // the calm hub track (startMusic('hub'))
 
 function init(): boolean {
   if (ctx) return true;
@@ -225,17 +244,18 @@ function stopDrone(): void {
 }
 
 function scheduleStep(t: number): void {
-  const { section, bar, octUp, barInSection } = barAt(Math.floor(stepNo / 16), boss);
+  const { section, bar, octUp, barInSection } = barAt(Math.floor(stepNo / 16), boss, hub);
   const step = stepNo % 16;
   const dur = stepSeconds(section.bpm);
-  const p = stepPlan(step, barInSection, bar.fill, intensity, boss);
+  const p = stepPlan(step, barInSection, bar.fill, intensity, boss, hub);
   const mode = section.mode;
+  const soft = hub ? 0.55 : 1; // the hub's kick sits well under the run's
 
   if (drone && step % 4 === 0) { // tanpura-ish pulse: dip on the beat, swell back
     drone.gain.setValueAtTime(0.25, t);
     drone.gain.linearRampToValueAtTime(0.6, t + dur * 3.5);
   }
-  if (p.kick) tone('triangle', 170, 45, t, 0.13, 0.9, 0.1);
+  if (p.kick) tone('triangle', 170, 45, t, 0.13, 0.9 * soft, 0.1);
   if (p.snare) hit('snare', t, 0.45);
   if (p.hat) hit('hat', t, step % 2 === 0 ? 0.2 : 0.1);
   if (p.fillTom) tone('triangle', 200 - (step - 12) * 25, 90, t, 0.1, 0.6, 0.07); // dha-ki-ta-ka down the drum
@@ -243,7 +263,7 @@ function scheduleStep(t: number): void {
 
   // bass: Sa/Pa, on the same 3+3+2 accents, octave 8ths when it's hot
   const rootMidi = degreeMidi(mode, bar.root, SA - 24);
-  if ((KICK_STEPS as readonly number[]).includes(step)) tone('triangle', midiHz(step === 6 || step === 14 ? rootMidi + (bar.root === 0 ? 7 : 0) : rootMidi), midiHz(rootMidi), t, dur * 2.6, 0.55, 0.02);
+  if (p.bass) tone('triangle', midiHz(step === 6 || step === 14 ? rootMidi + (bar.root === 0 ? 7 : 0) : rootMidi), midiHz(rootMidi), t, dur * 2.6, 0.55, 0.02);
   else if (p.bassPulse && step % 2 === 0) tone('square', midiHz(rootMidi + 12), midiHz(rootMidi + 12), t, dur * 0.8, 0.12, 0);
 
   // counter-melody: broken chord on the bar's root, 16ths
@@ -267,13 +287,13 @@ function scheduleStep(t: number): void {
 function tick(): void {
   if (!ctx || paused || !wanted) return;
   if (ctx.state === 'suspended') void ctx.resume().catch(() => {});
-  const { section } = barAt(Math.floor(stepNo / 16), boss);
+  const { section } = barAt(Math.floor(stepNo / 16), boss, hub);
   const dur = stepSeconds(section.bpm);
   if (nextTime < ctx.currentTime) nextTime = ctx.currentTime + 0.05; // fell behind (tab throttled): don't burst
   for (const t of stepsDue(nextTime, ctx.currentTime, LOOKAHEAD, dur)) {
     try { scheduleStep(t); } catch { /* a bad note must not stop the music */ }
     stepNo++;
-    nextTime = t + stepSeconds(barAt(Math.floor(stepNo / 16), boss).section.bpm);
+    nextTime = t + stepSeconds(barAt(Math.floor(stepNo / 16), boss, hub).section.bpm);
   }
 }
 
@@ -297,13 +317,14 @@ function resumeIf(): void {
   if (wanted && !paused && ctx && ctx.state === 'suspended') void ctx.resume().catch(() => {});
 }
 
-/** A run started (call from the run start, which follows a tap). Restarts the song from bar 0. */
-export function startMusic(): void {
+/** A run started (call from the run start, which follows a tap), or the hub ('hub': calm, slower). Restarts from bar 0. */
+export function startMusic(track: MusicTrack = 'run'): void {
   halt();
   wanted = true;
   paused = false;
   stepNo = 0;
   boss = false;
+  hub = track === 'hub';
   intensity = 0.2;
   run();
 }
