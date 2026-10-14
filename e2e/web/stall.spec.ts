@@ -5,6 +5,7 @@
 //   RUN_SHOTS=1 npx playwright test -c e2e/web stall.spec.ts   also saves .spike/s2-{hub,gear,results}.png (shrunk with sips)
 import { execFileSync } from 'node:child_process';
 import { expect, type Page, test } from '@playwright/test';
+import { openOldStall } from './hub';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -122,8 +123,10 @@ test('a run pays once; the stall and every sheet work; a training step shows up 
 
   // ── The stall ─────────────────────────────────────────────────────────────────────────────────────────────────
   await tid(page, 'ui-stall').click();
-  await expect(tid(page, 'stall-hub')).toBeVisible();
+  await expect(tid(page, 'hub-overlay')).toBeVisible();
   expect(await page.evaluate(() => window.__game!.loop.running)).toBe(false);
+  await expect(tid(page, 'hub-coins')).toHaveText(String(paid.gold));
+  await openOldStall(page); // every sheet below is the old stall's
   await expect(tid(page, 'stall-coins')).toHaveText(String(paid.gold));
   await expect(tid(page, 'stall-next')).toHaveText(`Next: Extra reroll in ${600 - (320 + xp)} XP`);
   await page.waitForTimeout(500);
@@ -255,10 +258,11 @@ test('a first launch starts run 1 at once; a returning player opens the stall; a
   await expect(tid(page, 'ui-start')).toBeEnabled();
   expect(await stored(page)).toEqual(v1); // reading it changed nothing on disk
   await tid(page, 'ui-start').click();
-  await expect(tid(page, 'stall-hub')).toBeVisible();
+  await expect(tid(page, 'hub-overlay')).toBeVisible();
   expect(await page.evaluate(() => window.__world ?? null)).toBeNull(); // no run was started
-  await expect(tid(page, 'stall-coins')).toHaveText('123');
+  await expect(tid(page, 'hub-coins')).toHaveText('123');
   // The first change writes the v2 save, with everything the v1 one had.
+  await openOldStall(page);
   await openSheet(page, 'calendar');
   await tid(page, 'calendar-claim').click();
   await expect.poll(async () => (await stored(page)).v).toBe(2);
@@ -269,7 +273,8 @@ test('a first launch starts run 1 at once; a returning player opens the stall; a
   // After a restart the same save loads: nothing was lost, and the gift is still claimed.
   await page.reload();
   await tid(page, 'ui-start').click();
-  await expect(tid(page, 'stall-coins')).toHaveText('173');
+  await expect(tid(page, 'hub-coins')).toHaveText('173');
+  await openOldStall(page);
   await openSheet(page, 'calendar');
   await expect(tid(page, 'calendar-claim')).toBeDisabled();
 });
@@ -282,7 +287,7 @@ test('a daydream that ends on wave 1 says so and pays nothing, on a 9:16 phone t
   await withSave(page, start);
   await page.goto('/play?seed=3');
   await tid(page, 'ui-start').click();
-  await tid(page, 'stall-start').click();
+  await tid(page, 'hub-go').click();
   await page.waitForFunction(() => !!window.__world);
   await page.evaluate(() => window.__hub!.emit('runEnd', { won: false, wave: 1, kills: 4, bossKills: 0, time: 20, level: 1, gold: 999, breads: [], dips: [] }));
   await expect(tid(page, 'ui-again')).toBeVisible();
@@ -304,8 +309,8 @@ test('the settings cog flips the same Sound and Haptics switches as the pause sh
   await withSave(page, seed({ runs: 9 }));
   await page.goto('/play?seed=3');
   await tid(page, 'ui-start').click();
-  await tid(page, 'stall-settings').click();
-  await expect(tid(page, 'stall-sheet')).toHaveAttribute('aria-label', 'Settings');
+  await tid(page, 'hub-settings').click();
+  await expect(tid(page, 'hub-panel')).toHaveAttribute('aria-label', 'Settings');
   const sound = page.getByRole('switch', { name: 'Sound' });
   const haptics = page.getByRole('switch', { name: 'Haptics' });
   await expect(sound).toHaveAttribute('aria-checked', 'true');
@@ -313,9 +318,9 @@ test('the settings cog flips the same Sound and Haptics switches as the pause sh
   await haptics.click();
   await expect.poll(async () => (await stored(page)).settings).toMatchObject({ sfx: false, haptics: false, music: true });
   await expect(sound).toHaveAttribute('aria-checked', 'false');
-  await closeSheet(page);
+  await tid(page, 'hub-close').click();
   // The run's pause sheet shows what the cog set, and changing it there is the same change.
-  await tid(page, 'stall-start').click();
+  await tid(page, 'hub-go').click();
   await tid(page, 'ui-pause').click();
   await expect(page.getByRole('switch', { name: 'Sound' })).toHaveAttribute('aria-checked', 'false');
   await expect(page.getByRole('switch', { name: 'Haptics' })).toHaveAttribute('aria-checked', 'false');
@@ -332,9 +337,9 @@ test('the game loop sleeps whenever no run is live, wakes for a run, and still t
   await page.goto('/play?seed=3');
   await expect.poll(running, { message: 'asleep behind the title' }).toBe(false);
   await tid(page, 'ui-start').click();
-  await expect(tid(page, 'stall-hub')).toBeVisible();
-  expect(await running()).toBe(false); // the stall is a picture too
-  await tid(page, 'stall-start').click();
+  await expect(tid(page, 'hub-overlay')).toBeVisible();
+  expect(await running()).toBe(false); // the hub is a picture too
+  await tid(page, 'hub-go').click();
   await expect(tid(page, 'ui-pause')).toBeVisible();
   expect(await running()).toBe(true);
   await tid(page, 'ui-pause').click(); // held, but a run is still live: the loop stays awake behind the pause sheet
@@ -376,6 +381,7 @@ test('the day-7 gift chest waits in the chests box, even across a restart, and o
   await withSave(page, seed({ runs: 9, streak: { day: 6, lastClaimDay: localDay(-1), windowStartDay: localDay(-6), restDaysUsed: 0 } }));
   await page.goto('/play');
   await tid(page, 'ui-start').click();
+  await openOldStall(page);
   await openSheet(page, 'calendar');
   await expect(tid(page, 'calendar-claim')).toHaveText('Claim day 7');
   await tid(page, 'calendar-claim').click();
@@ -413,6 +419,7 @@ test('a write that fails keeps everything in memory, says so, and the retry writ
   await withSave(page, seed({ runs: 9 }));
   await page.goto('/play');
   await tid(page, 'ui-start').click();
+  await openOldStall(page);
   await page.evaluate(() => ((window as unknown as { __failWrites: boolean }).__failWrites = true));
   await openSheet(page, 'calendar');
   await tid(page, 'calendar-claim').click();
@@ -442,7 +449,7 @@ test('a save that cannot be read leaves the title with Try again and never write
   await tid(page, 'ui-start').click();
   await expect(tid(page, 'ui-start')).toHaveText('Continue');
   await tid(page, 'ui-start').click();
-  await expect(tid(page, 'stall-coins')).toHaveText('999');
+  await expect(tid(page, 'hub-coins')).toHaveText('999');
   expect(await stored(page)).toMatchObject({ gold: 999, runs: 7 });
 });
 
@@ -458,7 +465,7 @@ for (const [w, h] of [
     await withSave(page, seed({ runs: 3 }));
     await page.goto('/play?seed=3');
     await tid(page, 'ui-start').click();
-    await tid(page, 'stall-start').click();
+    await tid(page, 'hub-go').click();
     await page.waitForFunction(() => !!window.__world);
     await page.evaluate(() => window.__hub!.emit('runEnd', { won: true, wave: 10, kills: 247, bossKills: 1, time: 300, level: 12, gold: 100, breads: [], dips: [] }));
     await expect(tid(page, 'ui-again')).toBeVisible();
@@ -491,7 +498,7 @@ for (const [w, h, inset] of SCREENS) {
     await withSave(page, seed({ stallXp: 3900, runs: 9, pendingChests: ['t4'] }));
     await page.goto('/play');
     await tid(page, 'ui-start').click();
-    await expect(tid(page, 'stall-hub')).toBeVisible();
+    await openOldStall(page);
     // An Android WebView reports no safe area: the app measures it and GameRoot passes it down as these two variables.
     await page.evaluate(({ top, bottom }) => {
       const root = document.querySelector<HTMLElement>('[data-testid="game-root"]')!;
@@ -582,6 +589,7 @@ test('recipe book shows known and unknown evolutions and cooking persists once',
   await withSave(page, seed({ stallXp: 1300, unlockedBreads: [], unlockedDips: [], materials: { flour: 10, ghee: 10, egg: 10, onion: 10, spice: 10, sugar: 10, milk: 10 } }));
   await page.goto('/play');
   await tid(page, 'ui-start').click();
+  await openOldStall(page);
   await openSheet(page, 'recipes');
   await expect(tid(page, 'recipe-book')).toBeVisible();
   await expect(all(page, 'evolution-recipe')).toHaveCount(8);
@@ -598,6 +606,7 @@ test('recipe book shows known and unknown evolutions and cooking persists once',
   await closeSheet(page);
   await page.reload();
   await tid(page, 'ui-start').click();
+  await openOldStall(page);
   await openSheet(page, 'recipes');
   await expect(tid(page, 'cook-rc-ghee')).toBeDisabled();
   await expect(all(page, 'evolution-recipe').filter({ hasText: 'Golden Ghee Chakra' })).toHaveAttribute('data-known', 'true');
@@ -610,13 +619,13 @@ for (const attempts of [2, 3]) {
     await withSave(page, seed({ bossAttempts: { 'kopitiam-street': attempts } }));
     await page.goto('/play?seed=3');
     await tid(page, 'ui-start').click();
-    await tid(page, 'stall-start').click();
+    await tid(page, 'hub-go').click();
     if (attempts === 3) {
-      await expect(tid(page, 'stall-sheet')).toHaveAttribute('aria-label', 'Choose a chapter');
+      await expect(tid(page, 'hub-panel')).toHaveAttribute('data-station', 'exit'); // GO opens the chapter list
       await expect(tid(page, 'chapter-kopitiam-street')).toBeVisible();
       await tid(page, 'chapter-hawker-night').click();
     } else {
-      await expect(all(page, 'stall-sheet')).toHaveCount(0);
+      await expect(all(page, 'hub-panel')).toHaveCount(0);
     }
     await page.waitForFunction(() => !!window.__world);
     const expected = attempts === 3 ? 'hawker-night' : 'kopitiam-street';

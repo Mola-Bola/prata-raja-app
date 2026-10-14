@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openOldStall } from './hub';
 
 const KEY = 'game:prata-raja/save';
 test.use({ viewport: { width: 360, height: 640 } });
@@ -44,17 +45,17 @@ test('Skip persists immediately; settings replay returns to stall without starti
   await page.getByTestId('ui-quit').click();
   await page.getByTestId('ui-stall').click();
   const before = await page.evaluate(key => localStorage.getItem(key), KEY);
-  await page.getByTestId('stall-settings').click();
+  await page.getByTestId('hub-settings').click();
   await page.getByTestId('settings-story').click();
   await expect(page.getByTestId('prologue')).toBeVisible();
   await expect(page.locator('.gu-story-hint')).toContainText('1 / 6');
   expect(await page.evaluate(() => window.__game!.loop.running)).toBe(false);
   await page.getByTestId('story-skip').click();
-  await expect(page.getByTestId('stall-hub')).toBeVisible();
+  await expect(page.getByTestId('hub-overlay')).toBeVisible();
   expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBe(before);
   await page.reload();
   await page.getByTestId('ui-start').click();
-  await expect(page.getByTestId('stall-hub')).toBeVisible();
+  await expect(page.getByTestId('hub-overlay')).toBeVisible();
   await expect(page.getByTestId('prologue')).toHaveCount(0);
 });
 
@@ -64,8 +65,9 @@ for (const v of [1, 2]) {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/play');
     await page.getByTestId('ui-start').click();
-    await expect(page.getByTestId('stall-hub')).toBeVisible();
+    await expect(page.getByTestId('hub-overlay')).toBeVisible();
     await expect(page.getByTestId('prologue')).toHaveCount(0);
+    await openOldStall(page);
     await page.getByTestId('stall-recipes').click();
     await expect(page.getByTestId('stall-locked')).toContainText('Cook evolved breads here from stall level 6.');
     await expect(page.getByTestId('stall-locked')).not.toContainText('Coming soon');

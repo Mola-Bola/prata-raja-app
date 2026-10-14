@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openOldStall } from './hub';
 
 test.use({ viewport: { width: 390, height: 844 } });
 const SAVE_KEY = 'game:prata-raja/save';
@@ -18,6 +19,7 @@ for (const [id, name, identity] of [
   await page.goto('/play?seed=11');
   await expect(page.getByTestId('ui-start')).toHaveText('Continue');
   await page.getByTestId('ui-start').click();
+  await openOldStall(page);
   await page.getByTestId('stall-signature').click();
   await expect(page.getByTestId(`signature-${id}`)).toContainText(identity);
   await page.getByTestId(`signature-${id}`).click();
@@ -25,6 +27,7 @@ for (const [id, name, identity] of [
   await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key)!).signatureBread, SAVE_KEY)).toBe(id);
   await page.reload();
   await page.getByTestId('ui-start').click();
+  await openOldStall(page);
   await expect(page.getByTestId('stall-signature')).toContainText(name);
   await page.getByTestId('stall-start').click();
   await expect.poll(() => page.evaluate(() => window.__world?.player.breads.map(b => ({ id: b.id, level: b.level })))).toEqual([{ id, level: 1 }]);

@@ -1,5 +1,6 @@
 import { writeFileSync } from 'node:fs';
 import { expect, type Page, test } from '@playwright/test';
+import { openKitchen } from './hub';
 
 const SAVE_KEY = 'game:prata-raja/save';
 const stored = (page: Page) => page.evaluate(k => localStorage.getItem(k), SAVE_KEY);
@@ -69,8 +70,9 @@ test('stall kitchen keeps an existing save unchanged through loss, win, restart 
   await tid(page, 'ui-pause').click();
   await tid(page, 'ui-quit').click();
   await tid(page, 'ui-stall').click();
+  await expect(tid(page, 'hub-overlay')).toBeVisible();
   const before = await stored(page);
-  await tid(page, 'stall-kitchen').click();
+  await openKitchen(page);
   await tid(page, 'kitchen-wave').selectOption('10');
   await tid(page, 'kitchen-start').click();
   await page.waitForFunction(() => window.__world?.wave === 10);
@@ -85,9 +87,9 @@ test('stall kitchen keeps an existing save unchanged through loss, win, restart 
   await tid(page, 'kitchen-restart').click();
   await page.waitForFunction(() => window.__world!.phase === 'wave');
   await tid(page, 'kitchen-exit').click();
-  await expect(tid(page, 'stall-hub')).toBeVisible();
+  await expect(tid(page, 'hub-overlay')).toBeVisible();
   expect(await stored(page)).toBe(before);
-  await tid(page, 'stall-start').click();
+  await tid(page, 'hub-go').click();
   await expect(tid(page, 'ui-pause')).toBeVisible();
   await tid(page, 'ui-pause').click();
   await tid(page, 'ui-quit').click();
@@ -114,7 +116,7 @@ test('Flaky Kosong is explicit, restartable and isolated from saves and the next
   await expect(tid(page, 'kitchen-stats')).not.toContainText('Experimental Flaky Kosong');
   expect(await stored(page)).toBe(before);
   await tid(page, 'kitchen-exit').click();
-  await tid(page, 'stall-kitchen').click();
+  await openKitchen(page);
   await expect(tid(page, 'kitchen-flaky')).not.toBeChecked();
   expect(await stored(page)).toBe(before);
 });
