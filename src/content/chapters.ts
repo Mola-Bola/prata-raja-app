@@ -62,7 +62,7 @@ const nightIds: Record<string, string> = {
 CHAPTERS.push({
   id: 'hawker-night', name: 'Hawker Centre Night', background: 'scene/background2', hpPerWave: .06, mode: 'flow', bossAt: 1200,
   floor: 'street/floor/hawker-centre',
-  props: ['hawker-centre-hawker-table', 'hawker-centre-plastic-stools'], // table + stool rows beside the tiled aisle
+  props: [], // stools still read as floating stickers (owner 14 Oct); was ['hawker-centre-hawker-table', 'hawker-centre-plastic-stools'] // table + stool rows beside the tiled aisle
   waves: CHAPTERS[0].waves.map(wave => ({ ...wave,
     mix: Object.fromEntries(Object.entries(wave.mix).map(([id, weight]) => [nightIds[id], weight])),
     ...(wave.boss ? { boss: 'burger-baron' } : {}),
