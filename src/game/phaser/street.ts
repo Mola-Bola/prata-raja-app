@@ -23,15 +23,7 @@ const C = {
 /** Field units the street moves per metre the stall travels. */
 export const U_PER_M = 10;
 const DASH = { period: 160, len: 70, x: 120 };
-const SHOP = { period: 210, x: 330 };
-const LAMP = { period: 480, x: 300 };
 const FAR = FIELD.depth - 40;
-
-/** Cheap stable hash of an integer to 0..1 (shop shapes), so the same street always looks the same. */
-const rnd = (n: number): number => {
-  const x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
-  return x - Math.floor(x);
-};
 
 export class Street {
   private g: Phaser.GameObjects.Graphics;
@@ -60,41 +52,10 @@ export class Street {
       const y1 = y0 + DASH.len;
       if (y1 < FIELD.reachY || y0 > FAR) continue;
       for (const sx of [-DASH.x, DASH.x]) this.strip(proj, sx, Math.max(y0, FIELD.reachY), Math.min(y1, FAR), 5, C.line, 0.55);
-      for (const sx of [-FIELD.halfWidth - 20, FIELD.halfWidth + 20]) this.strip(proj, sx, Math.max(y0, FIELD.reachY), Math.min(y1, FAR), 14, C.kerb, 0.35);
     }
-    // Layer 2: shopfronts and stalls along both sides, each a dark block with an awning, far ones first.
-    for (let k = Math.ceil((FAR + scroll) / SHOP.period); k >= Math.floor(scroll / SHOP.period); k--) {
-      const y = k * SHOP.period - scroll;
-      if (y < FIELD.reachY + 10 || y > FAR) continue;
-      for (const side of [-1, 1]) {
-        const r = rnd(k * 2 + (side > 0 ? 1 : 0));
-        proj.at(side * SHOP.x, y);
-        const s = proj.s;
-        const w = (70 + 60 * r) * s * proj.ppu * proj.laneScale;
-        const h = (110 + 120 * rnd(k + 7)) * s * proj.ppu;
-        const cx = proj.sx;
-        const base = proj.sy;
-        const fade = Math.min(1, (FAR - y) / 200) * 0.5;
-        g.fillStyle(C.shop, fade).fillRect(cx - w / 2, base - h, w, h);
-        g.fillStyle(r > 0.5 ? C.awnA : C.awnB, fade + 0.15).fillRect(cx - w / 2 - 3 * s, base - h * 0.62, w + 6 * s, h * 0.16);
-      }
-    }
-    // Layer 3: lamp posts on the kerbs: a pole and a warm lamp head.
-    for (let k = Math.ceil((FAR + scroll) / LAMP.period); k >= Math.floor(scroll / LAMP.period); k--) {
-      const y = k * LAMP.period - scroll + 60;
-      if (y < FIELD.reachY + 10 || y > FAR) continue;
-      for (const side of [-1, 1]) {
-        proj.at(side * LAMP.x, y);
-        const s = proj.s;
-        const h = 300 * s * proj.ppu;
-        const pw = Math.max(1.5, 7 * s * proj.ppu);
-        g.fillStyle(C.pole, 0.7).fillRect(proj.sx - pw / 2, proj.sy - h, pw, h);
-        g.fillStyle(C.lamp, 0.85).fillCircle(proj.sx, proj.sy - h, Math.max(2, 18 * s * proj.ppu));
-      }
-    }
+    // Shopfront and lamp-post blocks were removed (they read as boxes over the painted street); painted side strips come later.
   }
 
-  /** A flat strip on the ground at field x, from y0 to y1, `width` field units wide (perspective makes it a trapezoid). */
   private strip(proj: Projector, x: number, y0: number, y1: number, width: number, color: number, alpha: number): void {
     proj.at(x - width / 2, y0);
     const ax = proj.sx, ay = proj.sy;
