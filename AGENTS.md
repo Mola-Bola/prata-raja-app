@@ -5,6 +5,7 @@ This is an Expo/React Native mobile application (Expo SDK 57, Expo Router, Supab
 - Roles: Claude lead plans, decides, merges and ships. Haiku workers build bounded slices in `.claude/worktrees/<name>`; Sonnet only for sim or riskier logic. No Codex.
 - The owner is the only player and tester. Web build is the target. Bugs are acceptable; fix forward.
 - A slice is one visible change. The lead's brief names the files to touch and what is out of scope. Workers never edit `docs/HANDOFF.md`, `docs/BACKLOG.md`, `package.json` or `app.json`; the lead does.
+- After visual changes (not every ship): `npm run snap` (add `-- --local` for the current build, `-- --random 6` for random stops) and look at the contact sheet it prints. It runs the bot with `god=1` at chapter points and prints a hitless balance table. URL switches (dev only, never save): `?chapter=<id>&at=<metres>&god=1`.
 - Before shipping: `npx tsc --noEmit` and the tests the change touches.
 - Ship each slice as it lands: `bash scripts/ship-fast.sh` on clean main (typecheck + `npm run test:smoke`, ~1 s; bumps the version, publishes web, pushes). No batching. CI runs the full suite after the push; read `gh run list -R Mola-Bola/prata-raja-app -L 3` only when a ship fails or the owner asks.
 - Owner notes are direction. A commit that finishes a note carries the trailer `Feedback: <note id>`; ship-fast marks it shipped.

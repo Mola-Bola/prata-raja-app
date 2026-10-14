@@ -53,6 +53,9 @@ const newSeed = (): number => Math.floor(Math.random() * 0x100000000);
 /** The chest roll takes its own random stream (the run's seed, scrambled) so it never mirrors the run's first dice. */
 const CHEST_SALT = 0x5bd1e995;
 
+/** Dev/test URL switches that must never write progress. */
+const devRun = (): boolean => typeof window !== 'undefined' && /[?&](at|god)=/.test(window.location.search);
+
 /** Haptics follow the Haptics setting. A device without a vibrator just ignores the call. */
 function buzz(bridge: UiBridge, on: boolean, kind: HapticKind): void {
   if (on) bridge.haptic(kind).catch(() => {});
@@ -145,7 +148,7 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
         t.paid = true;
         const paid = applyRunResult(before, result, makeRng((t.seed ^ CHEST_SALT) >>> 0), new Date());
         const payout = { ...paid, save: awardBeats(paid.save, beatsFromRun(before, result)) };
-        store.commit(() => payout.save);
+        if (!devRun()) store.commit(() => payout.save); // ?at / ?god runs never touch the save
         setEnded({
           result,
           line: pick(result.won ? CONTENT.lines.win : CONTENT.lines.wake),
@@ -247,6 +250,7 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
         if (storyReturn.current) setScreen(storyReturn.current);
         else start();
       }} />}
+      {screen === 'run' && typeof window !== 'undefined' && /[?&]god=1/.test(window.location.search) && <div style={{ position: 'absolute', top: 4, left: 4, zIndex: 50, font: '700 11px sans-serif', color: '#fff', background: 'rgba(0,0,0,.55)', padding: '2px 6px', borderRadius: 6, pointerEvents: 'none' }}>God</div>}
       {screen === 'run' && (
         <Hud key={runId} hub={hub} firstRun={save?.runs === 0} modal={!!offer || paused} onPause={pause} />
       )}
