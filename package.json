@@ -1,7 +1,7 @@
 {
   "name": "prata-raja",
   "main": "expo-router/entry",
-  "version": "0.4.21",
+  "version": "0.4.22",
   "dependencies": {
     "@expo-google-fonts/fredoka": "^0.4.1",
     "@expo-google-fonts/nunito": "^0.4.2",
