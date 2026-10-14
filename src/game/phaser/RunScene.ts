@@ -79,6 +79,9 @@ export class RunScene extends Phaser.Scene {
   private levelUpOpen = false;
   /** The run is over (won, lost, or Kannan woke up early): the world stays on screen, frozen, until the next start or quit. */
   private ended = false;
+  /** uiTime until which an ended run keeps drawing (the finale beat before the results), and its banner. */
+  private finaleUntil = 0;
+  private finale: Phaser.GameObjects.Container | null = null;
   private wokeEarly = false;
   private acc = 0;
   private hitStop = 0;
@@ -231,6 +234,7 @@ export class RunScene extends Phaser.Scene {
     this.paused = false;
     this.levelUpOpen = false;
     this.ended = false;
+    this.clearFinale();
     this.wokeEarly = false;
     this.acc = 0;
     this.hudT = HUD_PERIOD;
@@ -301,6 +305,7 @@ export class RunScene extends Phaser.Scene {
     this.damageRate.reset();
     this.world = null;
     this.ended = false;
+    this.clearFinale();
     this.wokeEarly = false;
     this.levelUpOpen = false;
     window.__world = null;
@@ -379,7 +384,7 @@ export class RunScene extends Phaser.Scene {
     }
     // No run on screen (the title, the stall, the wake-up screen: the overlay covers the canvas): stop drawing it. This frame
     // still finishes and renders, so the last picture is there; start() wakes the loop.
-    if (!this.world || this.ended) this.game.loop.sleep();
+    if ((!this.world || this.ended) && this.uiTime >= this.finaleUntil) this.game.loop.sleep();
   }
 
   /** Wake the loop for a run. It sleeps (see update) whenever none is live, so a start can find it stopped. */
@@ -847,7 +852,44 @@ export class RunScene extends Phaser.Scene {
   /** The sim ended the run (Kannan won or lost). */
   private onRunEnd(w: World, won: boolean): void {
     this.sfx(won ? 'win' : 'lose');
-    this.endRun(w);
+    if (this.kitchenStats() || this.url.bot) {
+      this.endRun(w);
+      return;
+    }
+    // Finale beat (owner: the results came too fast): the world freezes but keeps drawing for a moment, the camera pushes
+    // in and a banner lands; then the results. A tap skips it.
+    this.ended = true;
+    this.levelUpOpen = false;
+    const ms = won ? 2800 : 2200;
+    this.finaleUntil = this.uiTime + ms / 1000 + 0.2;
+    const cam = this.cameras.main;
+    if (!this.reduceMotion) cam.zoomTo(won ? 1.08 : 1.05, ms * 0.8, 'Sine.easeOut');
+    if (won) this.addTrauma(0.6);
+    const u = this.l.u;
+    const cx = cam.width / 2;
+    const cy = cam.height * 0.36;
+    const style = { fontFamily: 'Fredoka, "Arial Rounded MT Bold", "Arial Black", sans-serif', color: won ? '#ffd23f' : '#ffffff', stroke: '#2b1a10', align: 'center' };
+    const title = this.add.text(0, 0, won ? 'Stall saved!' : 'Knocked out…', { ...style, fontSize: `${Math.round(64 * u)}px`, strokeThickness: Math.round(10 * u) }).setOrigin(0.5);
+    const sub = this.add.text(0, 70 * u, won ? 'The pests scatter. Kannan blinks awake…' : 'The tawa goes cold…', { ...style, color: '#fff4dc', fontSize: `${Math.round(26 * u)}px`, strokeThickness: Math.round(6 * u) }).setOrigin(0.5).setAlpha(0);
+    this.finale = this.add.container(cx, cy, [title, sub]).setDepth(10_000).setScrollFactor(0).setScale(this.reduceMotion ? 1 : 1.6).setAlpha(0);
+    this.tweens.add({ targets: this.finale, alpha: 1, scale: 1, duration: 380, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: sub, alpha: 1, delay: 650, duration: 400 });
+    let done = false;
+    const finish = () => {
+      if (done || this.world !== w) return;
+      done = true;
+      this.ended = false; // endRun sets it again and hands the result over
+      this.endRun(w);
+    };
+    this.time.delayedCall(ms, finish);
+    this.time.delayedCall(500, () => this.input.once('pointerdown', finish));
+  }
+
+  private clearFinale(): void {
+    this.finaleUntil = 0;
+    this.finale?.destroy();
+    this.finale = null;
+    this.cameras.main.zoomTo(1, 0);
   }
 
   /** Freeze the run on screen and hand its result to the overlay. */
