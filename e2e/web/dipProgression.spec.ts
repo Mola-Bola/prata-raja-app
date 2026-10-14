@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openOldStall } from './hub';
 
 const SAVE_KEY = 'game:prata-raja/save';
 const tid = (page: Page, id: string) => page.getByTestId(id).filter({ visible: true }).first();
@@ -13,7 +14,7 @@ async function seed(page: Page, over = {}) {
   await page.addInitScript(([k, value]) => { if (!localStorage.getItem(k)) localStorage.setItem(k, value); }, [SAVE_KEY, JSON.stringify({ ...legacy, ...over })]);
   await page.goto('/play');
   await tid(page, 'ui-start').click();
-  await expect(tid(page, 'stall-hub')).toBeVisible();
+  await expect(tid(page, 'hub-overlay')).toBeVisible();
 }
 async function unobscured(page: Page, id: string) {
   const control = tid(page, id);
@@ -25,6 +26,7 @@ for (const [width, height] of [[320, 480], [360, 640]]) {
   test(`legacy collection and all stall controls are reachable at ${width}x${height}`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await seed(page);
+    await openOldStall(page); // the dip collection and the stall controls are the old stall's
     for (const id of ['stall-dips', 'stall-signature', 'stall-kitchen', 'stall-tell', 'stall-start', 'stall-chests', 'stall-calendar', 'stall-training', 'stall-special', 'stall-recipes', 'stall-gear', 'stall-idle']) await unobscured(page, id);
     await page.screenshot({ path: `.spike/dip-simmer/hub-${width}x${height}.png` });
     await tid(page, 'stall-dips').click();
@@ -46,7 +48,7 @@ for (const [width, height] of [[320, 480], [360, 640]]) {
 test('two earned receipts, duplicate result guard, collection reload and Kitchen save isolation', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 640 });
   await seed(page, { stallXp: 5000, signatureBread: 'kosong', unlocks: { signature: true }, dipXp: { 'mint-chutney': 39, 'condensed-milk': 39 } });
-  await tid(page, 'stall-start').click();
+  await tid(page, 'hub-go').click();
   await expect(tid(page, 'ui-pause')).toBeVisible();
   await page.evaluate(() => {
     const w = window.__world!;
@@ -66,6 +68,7 @@ test('two earned receipts, duplicate result guard, collection reload and Kitchen
   await page.evaluate(() => { window.__hub!.emit('runEnd', window.__world!.result!); window.__hub!.emit('runEnd', window.__world!.result!); });
   await page.waitForTimeout(200); expect(await stored(page)).toBe(paid);
   await page.reload(); await tid(page, 'ui-start').click();
+  await openOldStall(page);
   await tid(page, 'stall-dips').click();
   await expect(tid(page, 'collection-mint-chutney')).toContainText('Simmer 2 / 20 · +0.5% chill duration');
   await expect(tid(page, 'collection-mint-chutney')).toContainText('14 / 50 to Simmer 3');
@@ -92,7 +95,7 @@ for (const wave of [1, 2]) {
   test(`Pause then End run preserves actual linked-hit use on wave ${wave}`, async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 640 });
     await seed(page, { stallXp: 5000, signatureBread: 'kosong', unlocks: { signature: true }, dipXp: { 'mint-chutney': 39, 'condensed-milk': 39 } });
-    await tid(page, 'stall-start').click();
+    await tid(page, 'hub-go').click();
     await page.waitForFunction(() => window.__world?.phase === 'wave');
     // Fix the acquired build, then let real projectile hits earn use through the simulation.
     await page.evaluate(wave => {

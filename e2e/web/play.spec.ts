@@ -42,7 +42,7 @@ test('title, start, drag, pick a card, pause, quit', async ({ page }) => {
   await page.waitForFunction(() => !!window.__world, null, { timeout: 60_000 });
   expect(await page.evaluate(() => window.__game!.loop.running)).toBe(true); // the run woke it
   await expect(page.getByText(/Wave 1\/10/)).toBeVisible();
-  await expect(page.locator('[data-testid="stall-hub"]')).toHaveCount(0);
+  await expect(page.locator('[data-testid="hub-overlay"]')).toHaveCount(0);
 
   // Drag below the HUD band: Kannan's target follows the finger (field x, 0 at the middle of the screen).
   await page.mouse.move(195, 700);
@@ -90,8 +90,8 @@ test('title, start, drag, pick a card, pause, quit', async ({ page }) => {
   expect(Object.values(short.materials).every((n) => n === 0)).toBe(true);
   await page.waitForFunction(() => !window.__game!.loop.running); // the wake-up screen covers the canvas: the loop sleeps again
   await tid(page, 'ui-stall').click();
-  await expect(tid(page, 'stall-hub')).toBeVisible();
-  await expect(tid(page, 'stall-coins')).toHaveText('0');
+  await expect(tid(page, 'hub-overlay')).toBeVisible();
+  await expect(tid(page, 'hub-coins')).toHaveText('0');
   await page.waitForTimeout(300);
   expect(await stored(page)).toEqual(short); // looking around the stall pays and changes nothing
   expect(await page.evaluate(() => window.__game!.loop.running)).toBe(false);
