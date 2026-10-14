@@ -13,7 +13,7 @@ function fakeWorld(waves: WaveDef[], seed = 1): World {
     seed, rngState: seed,
     content: { enemies },
     chapter: { id: 'test', name: 'test', background: '', hpPerWave: 0, waves },
-    time: 0, phase: 'wave', wave: 0, waveTime: 0, budgetLeft: 0, spawnClock: 0,
+    time: 0, phase: 'wave', wave: 0, waveTime: 0, budgetLeft: 0, spawnClock: 0, dist: 0, credit: 0,
     enemies: [], projectiles: [], zones: [], nextUid: 1, kills: 0, bossKills: 0, gold: 0,
     pendingLevelUps: 0, offer: [], rerolls: 0, events: [], result: null,
   } as unknown as World;

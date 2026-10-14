@@ -134,7 +134,7 @@ export function simulateRun(opts: BotOptions & { seed: number; content: Content;
   const p = world.player;
   return world.result ?? {
     chapterId: world.chapter.id, bossAttempted: world.bossAttempted ?? false,
-    won: false, wave: world.wave, kills: world.kills, bossKills: world.bossKills, time: world.time, level: p.level, gold: Math.round(world.gold),
+    won: false, wave: world.wave, dist: Math.round(world.dist), kills: world.kills, bossKills: world.bossKills, time: world.time, level: p.level, gold: Math.round(world.gold),
     dipUseXp: { ...world.dipUseXp },
     breads: p.breads.map((b) => ({ ...b })), dips: p.dips.map((d) => ({ ...d })),
   };

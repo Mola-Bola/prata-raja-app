@@ -115,7 +115,7 @@ describe('chapter gates and night content', () => {
   });
   it('boss attempt evidence is produced on spawn and survives a loss result', () => {
     const w = createRun({ seed: 1, content: CONTENT, chapterId: 'hawker-night' });
-    w.phase = 'wave'; w.wave = 9; w.waveTime = 100; w.budgetLeft = 0;
+    w.phase = 'wave'; w.dist = w.chapter.bossAt! - 0.01;
     step(w, 1 / 30, { targetX: null, moving: false });
     expect(w.wave).toBe(10); expect(w.bossAttempted).toBe(true);
     w.player.hp = 0;

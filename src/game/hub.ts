@@ -6,6 +6,8 @@ import type { BreadId, Card, DipId, Loadout, RunPhase, RunResult } from '@/core/
 export type HudState = {
   wave: number;
   waves: number;
+  /** Flow runs: the chapter's name and the metres travelled / to the boss (null in wave runs). */
+  route: { name: string; dist: number; bossAt: number } | null;
   hp: number;
   maxHp: number;
   xp: number;

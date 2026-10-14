@@ -81,7 +81,7 @@ export function createKitchenRun(config: KitchenConfig, content: Content): World
     if (!def || !Number.isInteger(dip.level) || dip.level < 1 || dip.level > Math.min(5, def.levels.length)) throw new Error(`Invalid kitchen dip or level: ${dip.id}`);
     if (dip.linkedBread && (!isLinkableDip(def) || !config.breads.some((b) => b.id === dip.linkedBread))) throw new Error('Linked dip requires a supported dip and selected bread');
   }
-  const world = createRun({ seed: config.seed, content, chapterId: config.chapterId });
+  const world = createRun({ seed: config.seed, content, chapterId: config.chapterId, mode: 'waves' });
   if (config.flakyKosong === true) world.flakyKosong = true;
   world.player.breads = config.breads.map((b) => ({ ...b, cd: 0.4, volleyLeft: 0, volleyT: 0 }));
   world.player.dips = config.dips.map((d) => ({ ...d }));

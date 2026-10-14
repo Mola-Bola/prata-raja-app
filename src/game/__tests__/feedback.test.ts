@@ -212,6 +212,7 @@ describe('trackRun (what run a note is about)', () => {
   const hud = (wave: number, level: number): HudState => ({
     wave,
     waves: 10,
+    route: null,
     hp: 50,
     maxHp: 100,
     xp: 0,

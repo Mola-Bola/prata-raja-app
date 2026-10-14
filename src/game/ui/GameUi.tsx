@@ -318,9 +318,7 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
           <div className="gu-topbar">
             <div className="gu-ribbon">
               <img src={art('ui/ribbon')} alt="" />
-              <span>
-                Wave {Math.max(1, hud.wave)}/{hud.waves}
-              </span>
+              <span>{hud.route ? hud.route.name : `Wave ${Math.max(1, hud.wave)}/${hud.waves}`}</span>
             </div>
             <div className="gu-gold" aria-label={`${hud.gold} gold`}>
               <img src={art('ui/coins')} alt="" />
@@ -330,6 +328,14 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
               <img src={art('ui/pause')} alt="" />
             </button>
           </div>
+          {hud.route && (
+            <div className="gu-xp" data-testid="route-progress">
+              <span className="gu-level">
+                {Math.round(hud.route.dist)} m / {hud.route.bossAt} m
+              </span>
+              <Bar pct={hud.route.dist / hud.route.bossAt} />
+            </div>
+          )}
           <div className="gu-xp">
             <span className="gu-level">Lv {hud.level}</span>
             <Bar pct={hud.xp / hud.xpToNext} />
@@ -477,8 +483,8 @@ function Results({ ended, onAgain, onStall }: { ended: Ended; onAgain: () => voi
           {ended.newBest && paid && <span className="gu-newbest">New best!</span>}
           <dl className={paid ? 'gu-stats gu-stats--five' : 'gu-stats gu-stats--three'}>
             <div>
-              <dt>Waves</dt>
-              <dd>{r.wave}</dd>
+              <dt>{r.dist !== undefined ? 'Metres' : 'Waves'}</dt>
+              <dd>{r.dist ?? r.wave}</dd>
             </div>
             <div>
               <dt>Kills</dt>

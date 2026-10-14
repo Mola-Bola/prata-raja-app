@@ -15,6 +15,7 @@ import { makeRng, type Rng } from './rng';
 import { computeStats, xpToNext } from './stats';
 import { tickBuffs } from './status';
 import { FIELD, type Card, type Content, type GameEvent, type Loadout, type Player, type RunInput, type World } from './types';
+import { flowTick, isFlow, waveEquivalent } from './director';
 import { spawnTick, startWave, waveDone, type SpawnRequest } from './waves';
 import { alive, clamp, dirtyMods, emit, type Ctx } from './sim/ctx';
 import { flushContact, updateEnemies, updateEnemyShots } from './sim/enemies';
@@ -30,10 +31,12 @@ const MAX_CALL_DT = 5;
 const REVIVE_KNOCK = 300;
 const REVIVE_RADIUS_Y = 250;
 
-export function createRun(opts: { seed: number; content: Content; chapterId?: string; loadout?: Loadout }): World {
+/** `mode` overrides the chapter's own (Test Kitchen asks for 'waves'); a chapter with no mode runs waves. */
+export function createRun(opts: { seed: number; content: Content; chapterId?: string; loadout?: Loadout; mode?: 'flow' | 'waves' }): World {
   const { seed, content } = opts;
   const loadout = opts.loadout && { ...opts.loadout, ...(opts.loadout.dipSimmer ? { dipSimmer: { ...opts.loadout.dipSimmer } } : {}) };
-  const chapter = content.chapters.find((ch) => ch.id === opts.chapterId) ?? content.chapters[0];
+  const found = content.chapters.find((ch) => ch.id === opts.chapterId) ?? content.chapters[0];
+  const chapter = opts.mode && opts.mode !== found.mode ? { ...found, mode: opts.mode } : found;
   const stats = computeStats([], content, loadout);
   const player: Player = {
     x: 0, targetX: 0, moving: false, hp: stats.maxHp, stats,
@@ -41,7 +44,7 @@ export function createRun(opts: { seed: number; content: Content; chapterId?: st
     dips: [], passives: [], buffs: [], level: 1, xp: 0, xpToNext: xpToNext(1), revivesLeft: stats.revives, throwAnim: 0, hurtAnim: 0,
   };
   return {
-    seed, rngState: seed >>> 0, content, chapter, time: 0, phase: 'intro', wave: 0, waveTime: 0, budgetLeft: 0, spawnClock: 0,
+    seed, rngState: seed >>> 0, content, chapter, time: 0, phase: 'intro', wave: 0, waveTime: 0, budgetLeft: 0, spawnClock: 0, dist: 0, credit: 0,
     player, enemies: [], projectiles: [], zones: [], nextUid: 1, kills: 0, bossKills: 0, gold: 0, pendingLevelUps: 0, offer: [], recentOffers: [],
     rerolls: loadout?.rerolls ?? 1, events: [], result: null, loadout, dipUseXp: {}, dipLastCredit: {}, contactAcc: 0, contactT: 0,
   };
@@ -119,7 +122,7 @@ function stepOnce(w: World, dt: number, input: RunInput): void {
   const c: Ctx = { w, p: w.player, rng, dt, m: null };
   w.time += dt;
   movePlayer(c, input);
-  if (w.phase === 'intro' && w.time >= INTRO_TIME) beginWave(c, 1);
+  if (w.phase === 'intro' && w.time >= INTRO_TIME) beginRun(c);
   updateThrowing(c);
   updatePlayerShots(c);
   updateZones(c);
@@ -164,6 +167,14 @@ function spawnRequest(c: Ctx, r: SpawnRequest): void {
   if (r.boss) emit(c, { t: 'bossSpawn', bossId: def.id, name: def.name });
 }
 
+/** The intro is over: waves start wave 1, flow just sets off (no banner, the street starts to move). */
+function beginRun(c: Ctx): void {
+  if (!isFlow(c.w.chapter)) return beginWave(c, 1);
+  c.w.wave = 1;
+  c.w.waveF = waveEquivalent(c.w.chapter, 0);
+  c.w.phase = 'wave';
+}
+
 function beginWave(c: Ctx, wave: number): void {
   const { events, spawns } = startWave(c.w, wave);
   for (const ev of events) emit(c, ev);
@@ -173,6 +184,12 @@ function beginWave(c: Ctx, wave: number): void {
 
 function runDirector(c: Ctx): void {
   const { w } = c;
+  if (isFlow(w.chapter)) {
+    const f = flowTick(w, c.dt, c.rng);
+    for (const r of f.spawns) spawnRequest(c, r);
+    if (f.won) endRun(c, true);
+    return;
+  }
   for (const r of spawnTick(w, c.dt, c.rng)) spawnRequest(c, r);
   if (!waveDone(w)) return;
   if (w.wave >= w.chapter.waves.length) endRun(c, true);
@@ -202,7 +219,7 @@ function endRun(c: Ctx, won: boolean): void {
   const cleared = won ? w.chapter.waves.length : Math.max(0, w.wave - 1);
   w.result = {
     chapterId: w.chapter.id, bossAttempted: w.bossAttempted ?? false,
-    won, wave: w.wave, kills: w.kills, bossKills: w.bossKills, time: w.time, level: p.level,
+    won, wave: w.wave, ...(isFlow(w.chapter) ? { dist: Math.round(w.dist) } : {}), kills: w.kills, bossKills: w.bossKills, time: w.time, level: p.level,
     gold: Math.round(w.gold) + 5 * cleared + (won ? 50 : 0),
     dipUseXp: { ...w.dipUseXp },
     breads: p.breads.map((b) => ({ ...b })), dips: p.dips.map((d) => ({ ...d })),
