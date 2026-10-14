@@ -87,3 +87,38 @@ test('two earned receipts, duplicate result guard, collection reload and Kitchen
   await tid(page, 'kitchen-exit').click();
   expect(await stored(page)).toBe(beforeKitchen);
 });
+
+for (const wave of [1, 2]) {
+  test(`Pause then End run preserves actual linked-hit use on wave ${wave}`, async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await seed(page, { stallXp: 5000, signatureBread: 'kosong', unlocks: { signature: true }, dipXp: { 'mint-chutney': 39, 'condensed-milk': 39 } });
+    await tid(page, 'stall-start').click();
+    await page.waitForFunction(() => window.__world?.phase === 'wave');
+    // Fix the acquired build, then let real projectile hits earn use through the simulation.
+    await page.evaluate(wave => {
+      const w = window.__world!;
+      w.wave = wave;
+      w.player.dips = [{ id: 'mint-chutney', level: 1, linkedBread: 'kosong' }, { id: 'condensed-milk', level: 1, linkedBread: 'kosong' }];
+    }, wave);
+    await page.waitForFunction(() => (window.__world?.dipUseXp?.['mint-chutney'] ?? 0) > 0 && (window.__world?.dipUseXp?.['condensed-milk'] ?? 0) > 0, undefined, { timeout: 30_000 });
+    await tid(page, 'ui-pause').click();
+    const earned = await page.evaluate(() => ({ ...window.__world!.dipUseXp }));
+    await tid(page, 'ui-quit').click();
+    await expect(tid(page, 'results')).toBeVisible();
+    expect(await page.evaluate(() => window.__world!.result!.dipUseXp)).toEqual(earned);
+    if (wave === 2) {
+      await expect.poll(async () => JSON.parse((await stored(page))!).dipXp).toEqual({
+        'mint-chutney': 39 + earned['mint-chutney']!, 'condensed-milk': 39 + earned['condensed-milk']!,
+      });
+      for (const id of ['mint-chutney', 'condensed-milk']) await expect(tid(page, `results-dip-${id}`)).toContainText(`+${earned[id as keyof typeof earned]} simmer XP`);
+    } else {
+      await expect(tid(page, 'results-short')).toBeVisible();
+      expect(JSON.parse((await stored(page))!).dipXp).toEqual({ 'mint-chutney': 39, 'condensed-milk': 39 });
+      await expect(page.locator('[data-testid^="results-dip-"]')).toHaveCount(0);
+    }
+    const paid = await stored(page);
+    await page.evaluate(() => window.__hub!.emit('runEnd', window.__world!.result!));
+    await page.waitForTimeout(200);
+    expect(await stored(page)).toBe(paid);
+  });
+}

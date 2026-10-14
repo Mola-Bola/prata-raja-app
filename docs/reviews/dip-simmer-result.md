@@ -23,3 +23,9 @@ Collection is visible on all saves. It explains Signature's stall-level-9 link g
 - Logs: `/tmp/prata-dip-browser.log` (26 cases), `/tmp/prata-dip-final-browser.log` (final three), `/tmp/prata-dip-final-check/` (full checks).
 
 The browser payout test injects a reported use map at the ordinary run-end boundary to verify integration; deterministic core tests verify actual successful-hit accounting separately. Browser viewport proof is not real-device proof. Lead-owned real-phone browser verification, paired baseline identity and 300-seed effect-specific balance evidence remain required before adopting the numeric tuning. No cloud, database, merge or shipping effects were performed by this worker.
+
+## Independent review correction: manual End run
+
+The review identified another result constructor: `RunScene.earlyResult`, used by Pause → End run. It omitted actual use despite the core natural-end and autoplay constructors preserving it. The correction adds only a copied `dipUseXp` map there; progression tuning, combat effects and payout rules are unchanged.
+
+A new browser regression fixes the acquired two-dip build, lets real projectile hits earn positive use, pauses through the UI and presses the actual End run button. Both wave-1 and wave-2 cases reproduce the omission on the old build (expected actual `{mint-chutney: 1, condensed-milk: 1}`, received `undefined`). The paid-wave case checks exact saved XP/receipts; the early exit checks no payout; both replay the same result to verify the ticket guard. The corrected export passes all five focused dip browser cases (20.8s), including both manual-quit regressions. Typecheck, lint and 22 focused core/meta/receipt unit tests pass. A fresh full local check is running and its completion/CI is reported with the new frozen commit. Core/meta/content trees are unchanged from the prior measurement candidate.
