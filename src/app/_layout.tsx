@@ -3,13 +3,13 @@ import Constants from 'expo-constants';
 import { Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useColorScheme, View } from 'react-native';
 import { PaperProvider, Portal, Text } from 'react-native-paper';
 import { en, registerTranslation } from 'react-native-paper-dates';
 
-import { AuthProvider, QueryProvider, useAppConfig, useAuth } from '@/data';
-import { APP_NAME, AppRoot, buildTheme, ConfirmProvider, EmptyState, LARGE_TEXT, navTheme, setInputFontSize, StartupScreen, stackScreenOptions, TAB_LABELS, ToastProvider, useAppFonts, useAppTheme, useDocumentTitle, webHeaderBack } from '@/ui';
+import { AuthProvider, isOwnerEmail, QueryProvider, useAppConfig, useAuth } from '@/data';
+import { APP_NAME, AppRoot, BigButton, buildTheme, ConfirmProvider, EmptyState, LARGE_TEXT, navTheme, setInputFontSize, StartupScreen, stackScreenOptions, TAB_LABELS, ToastProvider, useAppFonts, useAppTheme, useDocumentTitle, webHeaderBack } from '@/ui';
 import { useLargeText } from '@/features/settings/largeText';
 import { FeedbackHost } from '@/features/feedback/FeedbackHost';
 import { useLaunchIntoGame } from '@/features/links/useLaunchIntoGame';
@@ -69,7 +69,17 @@ const olderThan = (a: string, b: string) => {
 };
 
 function RootStack() {
-  const { session, loading } = useAuth();
+  const { session, loading, email, isAnonymous, signOut } = useAuth();
+  // Owner allow-list (src/data/owner.ts): null while the signed-in email is being checked. A guest has no email, so never passes a list.
+  const who = session ? `${session.user.id}:${isAnonymous ? '' : email}` : null;
+  const [checked, setChecked] = useState<{ who: string; ok: boolean } | null>(null);
+  const owner = checked && checked.who === who ? checked.ok : null;
+  useEffect(() => {
+    if (!who) return;
+    let live = true;
+    void isOwnerEmail(isAnonymous ? null : email).then((ok) => live && setChecked({ who, ok }));
+    return () => { live = false; };
+  }, [who, email, isAnonymous]);
   const theme = useAppTheme();
   const config = useAppConfig();
   const min = config.data?.min_client_version;
@@ -77,7 +87,7 @@ function RootStack() {
   const tooOld = !!min && olderThan(mine, min);
   // Before useStartupLink, which forgets the link Android opened the app with once it has used it.
   useReturnAfterSignIn(!loading && !tooOld, !!session);
-  useLaunchIntoGame(!loading && !tooOld); // opens the game from the bare start page (signed in or not)
+  useLaunchIntoGame(!loading && !tooOld && !!session && owner === true); // opens the game from the bare start page once signed in
   useDocumentTitle();
   useStartupLink(!loading && !tooOld);
   useOpenPasswordReset(!loading && !tooOld, !!session);
@@ -88,7 +98,18 @@ function RootStack() {
     SplashScreen.hideAsync().catch(() => {});
   }, []);
 
-  if (loading) return <StartupScreen />;
+  if (loading || (!!session && owner === null)) return <StartupScreen />;
+
+  if (session && owner === false) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center' }}>
+        <EmptyState emoji="🔒" title="This kitchen is private" body="This account isn’t on the list. Sign out and use the owner’s account." />
+        <View style={{ alignItems: 'center', padding: 24 }}>
+          <BigButton onPress={() => void signOut()} testID="private-signout">Sign out</BigButton>
+        </View>
+      </View>
+    );
+  }
 
   if (tooOld) {
     return (
@@ -107,12 +128,12 @@ function RootStack() {
         <Stack.Screen name="sign-in" options={{ headerShown: true, title: 'Sign in' }} />
       </Stack.Protected>
       <Stack.Protected guard={!!session}>
+        {/* The game: full screen, behind the sign-in wall (and the owner list). */}
+        <Stack.Screen name="play" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
         {/* Named for the Back button of a screen stacked over it: "Home, back". */}
         <Stack.Screen name="(app)" options={{ title: TAB_LABELS.home }} />
       </Stack.Protected>
       <Stack.Screen name="reset-password" options={{ headerShown: true, title: 'New password' }} />
-      {/* The game: full screen, and open to everyone (no account needed to play). Not inside either guard above. */}
-      <Stack.Screen name="play" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
     </Stack>
   );
 }

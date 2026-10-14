@@ -10,7 +10,7 @@ import { GAME_BG } from '@/game/config';
 // Loaded on demand, so the sign-in and everyday screens don't download the game engine (web: a separate chunk).
 const GameRoot = lazy(() => import('@/game/GameRoot').catch(error => { recoverChunk(error); throw error; }));
 
-/** The game, full screen, no account needed. The game itself is a DOM component (src/game/GameRoot.tsx). */
+/** The game, full screen, behind the sign-in wall (see _layout.tsx). The game itself is a DOM component (src/game/GameRoot.tsx). */
 export default function Play() {
   const insets = useSafeAreaInsets();
   const info = useMemo(() => appInfo(), []); // which build this is: the game's notes and analytics carry it

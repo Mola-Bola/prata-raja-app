@@ -12,7 +12,9 @@ const checked = <T extends { error?: unknown }>(result: T): T => { if (result.er
 
 // SDK fluent builder is injected so boundary tests exercise the real handler without Deno/network.
 // deno-lint-ignore no-explicit-any
-export function createHandler(admin: any, authorId: () => Promise<string>, ownerCode: () => string | undefined) {
+export function createHandler(admin: any, authorId: () => Promise<string>, ownerCode: () => string | undefined,
+  // OWNER_EMAILS secret (comma-separated). Unset: open as before. Set: only a valid user JWT whose email is listed gets in.
+  gate?: { emails: () => string | undefined; userEmail: (token: string) => Promise<string | null> }) {
   const config = async (key: string) => checked(await admin.from('private_config').select('value').eq('key', key).maybeSingle()).data?.value;
   const knownNote = async (id: string) => checked(await admin.from('feedback').select('id,body,params').eq('id', id).maybeSingle()).data;
   const owns = (note: { params?: Record<string, unknown> } | null, device: string, capability: string | null) =>
@@ -22,6 +24,12 @@ export function createHandler(admin: any, authorId: () => Promise<string>, owner
   return async (req: Request): Promise<Response> => {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
     if (req.method !== 'POST') return error(405, 'use POST');
+    const allowed = gate?.emails()?.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+    if (allowed?.length) {
+      const token = /^Bearer (.+)$/i.exec(req.headers.get('authorization') ?? '')?.[1];
+      const email = token ? (await gate!.userEmail(token).catch(() => null))?.toLowerCase() : null;
+      if (!email || !allowed.includes(email)) return error(401, 'owner only');
+    }
     if (Number(req.headers.get('content-length')) > LIMITS.request) return error(413, 'too large');
     let raw: Record<string, unknown>;
     try {
