@@ -49,6 +49,7 @@ export class Stall {
   private hitT = 0;
   private throwT = 0;
   private l!: Layout;
+  private top = false;
   private cur = pose('idle');
   private flip = false;
   private prevX = 0;
@@ -74,6 +75,16 @@ export class Stall {
     setImage(this.bg, key);
   }
 
+  /** Top-down (free-movement) street: no painted backdrop, no counter strip, no counter slots. Kannan walks the street instead
+   *  and the stall is the build the HUD shows. (Decision: the counter art is seen from behind, so it cannot sit at the bottom of a
+   *  top-down street without breaking the view.) */
+  setTop(on: boolean): void {
+    this.top = on;
+    this.bg.setVisible(!on);
+    this.counter.setVisible(!on);
+    this.lip.setVisible(!on && this.l.counter.ext > 0);
+  }
+
   release(): void {
     this.throwT = 0.28;
   }
@@ -87,7 +98,7 @@ export class Stall {
     this.bg.setPosition(l.bg.x, l.bg.y).setScale(l.bg.scale);
     const c = l.counter;
     this.counter.setPosition(l.w / 2, c.top).setScale(c.scale);
-    this.lip.setVisible(c.ext > 0).setPosition(l.w / 2, c.top + c.h - 1).setScale(c.scale, (c.ext + 1) / COUNTER_LIP_ROWS);
+    this.lip.setVisible(!this.top && c.ext > 0).setPosition(l.w / 2, c.top + c.h - 1).setScale(c.scale, (c.ext + 1) / COUNTER_LIP_ROWS);
     this.kannan.setScale(l.kannan.scale);
     this.place(this.dips, true);
     this.place(this.breads, false);
@@ -203,7 +214,7 @@ export class Stall {
     const hy = -HAND.y * k.h * sy;
     this.handX = kx + dx + hx * Math.cos(rot) - hy * Math.sin(rot);
     this.handY = k.bottom + dy + hx * Math.sin(rot) + hy * Math.cos(rot);
-    if (p) {
+    if (p && !this.top) {
       this.sync(this.dips, p.dips, 'dips', DIP_SPOTS.length);
       this.sync(this.breads, p.breads, 'breads', MAX_BREADS);
     }

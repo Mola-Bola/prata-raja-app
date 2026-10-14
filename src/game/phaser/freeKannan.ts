@@ -101,7 +101,7 @@ export class FreeKannan {
       .setPosition(sx, sy - bob)
       .setScale(k * (horiz ? stretch : 1 / Math.sqrt(stretch)), k * (horiz ? 1 / Math.sqrt(stretch) : stretch))
       .setAlpha(dashing ? 0.75 : 1)
-      .setDepth(sy < l.counter.top ? D.enemy + sy + 0.5 : D.kannan);
+      .setDepth(proj.top || sy < l.counter.top ? D.enemy + sy + 0.5 : D.kannan);
     if (p.hurtAnim > 0) this.body.setTint(0xff9a8a);
     else this.body.clearTint();
     this.shadow.setVisible(true).setPosition(sx, sy).setScale(1.1 * s * (l.kannan.w / 64) * 0.4, 0.35 * s * (l.kannan.w / 64) * 0.4).setAlpha(0.5);

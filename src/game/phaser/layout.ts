@@ -32,7 +32,14 @@ export type Layout = {
    *  bottom (0 when the art already does); counterAt() maps a point of the art to the screen. */
   counter: { scale: number; left: number; top: number; w: number; h: number; ext: number };
   kannan: { scale: number; bottom: number; w: number; h: number; minX: number; maxX: number };
+  /** Free-movement runs look straight down: the road spans the walkable width (ppu px per field unit across, ppuY up the street,
+   *  stretched so the far end of the field, where pests appear, lands under the HUD), `groundY` is field y = 0, strips are the
+   *  shopfronts either side. */
+  top: { roadW: number; stripW: number; ppu: number; ppuY: number; groundY: number };
 };
+
+/** Share of the screen width each shopfront strip takes in the top-down street; the road takes the rest. */
+export const TOP_STRIP = 0.2;
 
 export function makeLayout(w: number, h: number): Layout {
   const u = w / 390;
@@ -51,6 +58,10 @@ export function makeLayout(w: number, h: number): Layout {
   const bgW = ART_BG.w * k;
   const bgX = Math.min(-margin, Math.max(w + margin - bgW, w / 2 - ART_BG.vx * bgW));
   const bgY = view.horizonY - ART_BG.vy * ART_BG.h * k;
+  const roadW = w * (1 - 2 * TOP_STRIP);
+  const topPpu = roadW / (2 * FIELD.halfWidth);
+  const groundY = h - 84 * u;
+  const hudBand = Math.max(0.1 * h, 72 * u);
   const ks = (KANNAN_W * w) / ART_KANNAN.w;
   const kw = ART_KANNAN.w * ks;
   return {
@@ -59,11 +70,12 @@ export function makeLayout(w: number, h: number): Layout {
     u,
     view,
     ppu: w / (2 * FIELD.halfWidth),
-    hudBand: Math.max(0.1 * h, 72 * u),
+    hudBand,
     margin,
     bg: { x: bgX, y: bgY, scale: k },
     counter: { scale: cs, left: (w - counterW) / 2, top: counterTop, w: counterW, h: counterH, ext: Math.max(0, h + margin - (counterTop + counterH)) },
     // He is as wide as KANNAN_W of the screen and slides with the finger, but never out of sight: his sprite stays inside.
+    top: { roadW, stripW: w * TOP_STRIP, ppu: topPpu, ppuY: Math.min(1.6 * topPpu, (groundY - hudBand - 8 * u) / FIELD.depth), groundY },
     kannan: { scale: ks, bottom: h + margin + 6 * u, w: kw, h: ART_KANNAN.h * ks, minX: kw / 2, maxX: w - kw / 2 },
   };
 }
@@ -87,16 +99,32 @@ export class Projector {
   /** Street width opens smoothly from the vanishing point to the fighting lanes. */
   laneScale = 1;
   f = 1;
+  /** Top-down (free-movement) street: no depth, equal size everywhere, field y goes straight up the screen. */
+  top = false;
+  private l!: Layout;
 
   setLayout(l: Layout): void {
+    this.l = l;
     this.view = l.view;
-    this.ppu = l.ppu;
+    this.ppu = this.top ? l.top.ppu : l.ppu;
     // s = f / (f + depth) with depth measured from the near plane, and s(far end) = view.far.
     this.f = (l.view.far * (FIELD.depth - FIELD.reachY)) / (1 - l.view.far);
   }
 
+  setTop(on: boolean): void {
+    this.top = on;
+    if (this.l) this.setLayout(this.l);
+  }
+
   at(x: number, y: number): this {
     const v = this.view;
+    if (this.top) {
+      this.s = 1;
+      this.laneScale = 1;
+      this.sx = v.width / 2 + x * this.ppu;
+      this.sy = this.l.top.groundY - y * this.l.top.ppuY;
+      return this;
+    }
     const d = Math.max(y - FIELD.reachY, -0.25 * this.f);
     const s = this.f / (this.f + d);
     this.s = s;

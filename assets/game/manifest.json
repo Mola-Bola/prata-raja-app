@@ -919,6 +919,106 @@
     "h": 256,
     "w": 235
   },
+  "street/top/food-street-left-1": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/food-street-left-2": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/food-street-right-1": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/food-street-right-2": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/food-street-road": {
+    "w": 512,
+    "h": 512
+  },
+  "street/top/hawker-centre-left-1": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/hawker-centre-left-2": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/hawker-centre-right-1": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/hawker-centre-right-2": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/hawker-centre-road": {
+    "w": 512,
+    "h": 512
+  },
+  "street/top/kopitiam-left-1": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/kopitiam-left-2": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/kopitiam-right-1": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/kopitiam-right-2": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/kopitiam-road": {
+    "w": 512,
+    "h": 512
+  },
+  "street/top/pasar-malam-left-1": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/pasar-malam-left-2": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/pasar-malam-right-1": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/pasar-malam-right-2": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/pasar-malam-road": {
+    "w": 512,
+    "h": 512
+  },
+  "street/top/wet-market-left-1": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/wet-market-left-2": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/wet-market-right-1": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/wet-market-right-2": {
+    "w": 256,
+    "h": 512
+  },
+  "street/top/wet-market-road": {
+    "w": 512,
+    "h": 512
+  },
   "street/wet-market-bicycle": {
     "h": 253,
     "w": 256
