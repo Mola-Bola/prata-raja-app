@@ -66,8 +66,8 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
     target: 'cluster',
     unlock: 'starter',
     // ponytail: scorch zoneDps 3.6 is a guess for the balance sim to tune.
-    levels: ladder({ dmg: 7.2, cooldown: 1.6, range: 850, blast: 80, lobTime: 0.9 }, [
-      { dmg: 9 },
+    levels: ladder({ dmg: 8.5, cooldown: 1.4, range: 850, blast: 80, lobTime: 0.9 }, [
+      { dmg: 10.5 },
       { blast: 100 },
       { zoneTime: 2, zoneDps: 3.6 },
       { count: 2, spread: 15 },
@@ -164,8 +164,8 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
     motion: 'straight',
     target: 'nearest',
     unlock: 'rc-murtabak',
-    levels: ladder({ dmg: 9.6, cooldown: 1.6, speed: 700, radius: 23.4, range: 950, knockback: 120, stun: 0.4 }, [
-      { dmg: 12 },
+    levels: ladder({ dmg: 7.8, cooldown: 1.6, speed: 700, radius: 23.4, range: 950, knockback: 120, stun: 0.4 }, [
+      { dmg: 9.8 },
       { stun: 0.6 },
       { knockback: 160 },
       { cooldown: 1.3 },
@@ -180,7 +180,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
     motion: 'straight',
     target: 'nearest',
     unlock: 'starter-s2',
-    levels: ladder({ dmg: 4.8, cooldown: 1.0, speed: 800, radius: 18.2, range: 950, hops: 3, hopRange: 300, hopFalloff: 0.15 }, [
+    levels: ladder({ dmg: 4.2, cooldown: 1.0, speed: 800, radius: 18.2, range: 950, hops: 3, hopRange: 300, hopFalloff: 0.15 }, [
       { hops: 4 },
       { dmg: 6 },
       { hopFalloff: 0 },
