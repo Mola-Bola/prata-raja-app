@@ -1,6 +1,26 @@
 # Inbox (monitor output)
 
-last run: 2026-10-14 22:05 AEDT (window: since 2026-10-14 00:00 AEDT, first run)
+last run: 2026-10-14 23:50 AEDT (window: since 2026-10-14 22:05 AEDT)
+
+## 2026-10-14 23:50 AEDT (window 22:05 to 23:50, version 0.4.41)
+
+Counts: 1 session, 1 run_start, 1 run_end (1 win, wave 10, 428s), 12 level_up, 12 card_pick, 1 boss_spawn, 1 app_open, 3 release_shipped. 0 $exception, 0 app_error.
+
+New notes: none. All 9 open digest notes already in INBOX. Status changes:
+- 9dbbbd1d moved to "Being built": 0.4.41 shrank Kannan hurt zone 12% and added a floor ring on hit.
+
+Errors: none. No crash, no save loss, no cannot-start signal.
+
+Pacing signals: one completed run, 428s to wave 10, no abandons under 30s, no early deaths. Sample too small to read pacing. Kill events not in taxonomy, so kill gaps are unmeasured.
+
+Replay links:
+- 01a13a2f-4b08-7a77-ae23-742fea795921 (0.4.41, won wave 10 at 428s, boss spawned; check 6bc229d2 spawns after boss death)
+
+Suggested slices:
+- 6bc229d2 spawns after boss death: boss-finish slice (still the top bug). Replay above covers the boss fight.
+- 934d904d pacing: still needs more runs before balance work.
+
+Note: the window starts at the last run, not 00:00. The digest header says 12:49 and events are in AEDT, so the clocks may differ; check if the window looks wrong.
 
 ## 2026-10-14 22:05 AEDT (first pass, versions 0.2.2 to 0.4.39)
 
