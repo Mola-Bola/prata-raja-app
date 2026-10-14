@@ -16,6 +16,8 @@ export const FREE = {
   moveFire: 0.5,
   /** Fastest a bread may throw (s) however much attack speed stacks (combat-feel.md). */
   cdFloor: 0.3,
+  /** A contact hit deals the pest's contactDps x 0.5 s x this (i-frames make hits rarer, so each lands harder). */
+  contactHit: 3.5,
   /** Pests move at this x their counter-mode speed. */
   pestSpeed: 1.31,
   /** Pest contact reach = def.radius x this + kannanRadius. */
@@ -25,7 +27,7 @@ export const FREE = {
   /** Enemy shot hit radius on Kannan (u), added to the shot's own radius. */
   shotHit: 0.8 * FIELD.kannanRadius,
   /** Boss hp x this in free mode (Kannan throws while kiting, so the fight is otherwise too short). */
-  bossHp: 1.25,
+  bossHp: 1.21,
   /** Boss: seconds of calm after it parks before its first attack. */
   bossBeat: 1.5,
 } as const;

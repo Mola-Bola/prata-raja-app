@@ -18,6 +18,12 @@ Purpose: deterministic game rules, separate from presentation. Same seed + input
 ## Damage pipeline
 `damageOf` (`src/core/damage.ts`, called by `rollHit`): base -> conversion (`convertPct`, output capped `CONVERT_CAP` 0.5; the converted share also gets `dotPct`) -> additive increased (`dmgPct` + buff `dmgPct`) -> separate "more" list `moreMuls` (`moreDmg`; add dips/uniques/keystones here) -> crit (`critMult` + buff add) -> pierce falloff (`pierceFalloff` 0.15 per enemy pierced, compounding, floor `PIERCE_FLOOR` 0.4) -> target taken-multiplier. Defaults reproduce the old numbers exactly (`damage.test.ts`). `hitEnemy(..., pierced)` takes the pierce count; `shots.ts` straightHit must pass `st.pierce - s.pierceLeft` to switch falloff on (not yet). Hard cap: `ENEMY_HARD_CAP` 40 live non-boss enemies in `spawnEnemy` (overflow built, never added). Unique hooks (`loadout.hooks`) fire in `hitEnemy`: first hit on a foe freezes it (`_fh` scratch), a crit splashes a flat share (no rng, no re-splash).
 
+## Free-mode feel (r8-feel)
+- `sim/crowd.ts`: after pests move, one separation pass (3x3 spatial hash, module-level arrays, array order, no rng) pushes pests apart (`CROWD.sep` x radii, `push` 320 u/s), backs them out of Kannan's body (he is never moved), treats bosses and frozen pests as walls. `aimAt` sends a far pest to a ring point `_th` radians round Kannan (ring widens with distance); `_side` makes a crowded pest slip sideways 0.6 s then rest 0.8 s. Spawn draws `_th`, `_sj` (speed 0.85-1.15) and an x spread (free only).
+- Contact is one hit per pest per 0.5 s (dps x 0.5 x `FREE.contactHit`), blocked by dash and `Player.iT`; every landed hit (contact, shot, blast, boss) sets `iT = clamp(0.4 dmg / (0.15 maxHp), 0.2, 0.4)`. A hitting pest bounces back 14 u (tanks do not).
+- Throws: target = nearest, within 10 % the one along Kannan's facing; he turns to it while standing; cooldown floor `FREE.cdFloor` 0.3 s.
+- Balance: `FREE.contactHit` is the knob (i-frames and spreading made the old dps far too soft).
+
 ## Status
 Live. Last change 2026-10-15 (free-movement mode behind a toggle; damage pipeline, hard cap, uniques wired). Before: 2026-10-14 (hurt zone 34 -> 30 u). Tests: `src/core/__tests__/`.
 

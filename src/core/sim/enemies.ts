@@ -93,7 +93,7 @@ function contactFree(c: Ctx, e: Enemy): void {
   const left = cdGet(e, '_ch') - c.dt;
   e.cooldowns._ch = Math.max(0, left);
   if (left > 0 || e.def.contactDps <= 0 || p.dashT > 0 || (p.iT ?? 0) > 0) return;
-  const dmg = e.def.contactDps * (e.elite ? ELITE_CONTACT : 1) * (1 + p.stats.dmgTakenPct) * CONTACT_EVERY;
+  const dmg = e.def.contactDps * (e.elite ? ELITE_CONTACT : 1) * (1 + p.stats.dmgTakenPct) * CONTACT_EVERY * FREE.contactHit;
   e.cooldowns._ch = CONTACT_EVERY;
   if (!c.w.god) p.hp -= dmg;
   p.hurtAnim = 0.2;
