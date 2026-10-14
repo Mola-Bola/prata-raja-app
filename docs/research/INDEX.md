@@ -24,3 +24,5 @@ Check this before designing a system; cite what you used in the commit or wiki p
 | [teardown-maple-poe](teardown-maple-poe.md) | job tiers, passive tree, affixes, uniques | Tiers, set bonuses, potential, gems/links, tree, ascendancy | [kannan-level](../wiki/kannan-level.md) | passive tree clusters, ascendancy, sets |
 | [teardown-vs-brotato-oss](teardown-vs-brotato-oss.md) | stat economy, waves, OSS to learn from | Evolution signposting, stat shop, pacing; MIT/BSD/Apache refs only | [director-flow](../wiki/director-flow.md) | stat economy shop, arcana/curse difficulty |
 | data/ (SOURCES.md + raw per game) | verifying a claim | Raw sources behind teardowns | n/a | n/a |
+
+| [adjacent-mechanics.md](adjacent-mechanics.md) | Owner synthesis: damage order (base→conversion→increased→more→crit), conversion caps, stack caps, falloff, gated offers, enemy cap (Brotato, HoT, DMD, PoB) | used in: stats.ts (crit additive) · not yet used: conversion step, separate 'more' layer, hard enemy cap, gated fusion offers |
