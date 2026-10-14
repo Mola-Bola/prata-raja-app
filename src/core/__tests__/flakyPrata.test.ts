@@ -14,6 +14,7 @@ function fixture(enabled = true, dips: DipId[] = [], hops = 0): Ctx {
   const w = createKitchenRun({ ...config(enabled), tuning: { crit: 0 }, dips: dips.map(id => ({ id, level: 5,
     ...(id !== 'teh-tarik' ? { linkedBread: 'kosong' as const } : {}) })) }, CONTENT);
   w.enemies = []; w.events = []; w.projectiles = [];
+  w.player.stats.soak = -1; // isolates the dip proc count from soak splash
   const st: BreadStats = { ...CONTENT.breads.kosong.levels[4], dmg: 100, radius: 4, knockback: 0,
     homing: 0, hops, hopRange: 200, hopFalloff: 0.2 };
   const shot: Projectile = { uid: w.nextUid++, owner: 'player', breadId: 'kosong', sprite: CONTENT.breads.kosong.sprite,

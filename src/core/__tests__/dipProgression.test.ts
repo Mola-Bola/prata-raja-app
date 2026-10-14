@@ -16,6 +16,7 @@ function context(id: DipId = 'fish-curry', level = 1, simmer?: number): Ctx {
   const w = createRun({ seed: 3, content: CONTENT, ...(simmer === undefined ? {} : { loadout: { dipSimmer: { [id]: simmer } } }) });
   w.phase = 'wave'; w.wave = 2;
   w.player.dips = [{ id, level, linkedBread: target(id) }];
+  w.player.stats.soak = -1; // these tests are about the dip alone, not soak splash
   return { w, p: w.player, rng: makeRng(3), dt: .1, m: null };
 }
 function enemy(c: Ctx, hp = 1000) {

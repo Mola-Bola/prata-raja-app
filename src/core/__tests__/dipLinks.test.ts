@@ -13,8 +13,8 @@ import type { BreadId, DipId } from '../types';
 
 const tags = {
   kosong: ['thrown', 'crisp'], tissue: ['thrown', 'pierce', 'crisp'], 'roti-bomb': ['lob', 'area', 'heat'],
-  'egg-telur': ['thrown', 'stuffed'], thosai: ['area', 'crisp'], chapati: ['thrown'], naan: ['lob', 'area'],
-  'garlic-naan': ['lob', 'area'], murtabak: ['thrown', 'stuffed'], appam: ['thrown', 'bounce'], idli: ['thrown'], vadai: ['orbit', 'crisp'],
+  'egg-telur': ['thrown', 'stuffed', 'soggy'], thosai: ['area', 'crisp'], chapati: ['thrown'], naan: ['lob', 'area'],
+  'garlic-naan': ['lob', 'area'], murtabak: ['thrown', 'stuffed', 'soggy'], appam: ['thrown', 'bounce'], idli: ['thrown'], vadai: ['orbit', 'crisp'],
 };
 function context(dip: DipId, target?: BreadId): Ctx {
   // Mint fits every shipped roti; an untagged fixture exercises its mismatch branch.

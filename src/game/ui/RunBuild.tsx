@@ -2,6 +2,7 @@ import { CONTENT } from '@/content';
 import { dipBonusLabel, linkedDipEffect, tagLabels } from '@/core/dipLinks';
 import { matchingDipLink, simmerEffect } from '@/core/dipProgression';
 import { signatureIdentity } from '@/core/signature';
+import { rotiCrisp, SOAK_RADIUS, soakFor } from '@/core/soak';
 import { buffMods, effectiveCooldown } from '@/core/stats';
 import type { HitEffect, PlayerStats } from '@/core/types';
 
@@ -18,9 +19,10 @@ const STAT_LABELS: Record<keyof PlayerStats, string> = {
   critChance: 'Crit chance', critMult: 'Crit damage ×', extraProjectiles: 'Extra projectiles', sizePct: 'Size / blast radius',
   dotPct: 'Damage over time', rangePct: 'Range', xpPct: 'XP', throwWhileMoving: 'Moving throw rate', revives: 'Revives granted',
   dmgTakenPct: 'Damage taken', dodge: 'Dodge chance', healOnLevelUpPct: 'Heal on level-up', goldPct: 'Gold',
+  soak: 'Soak (splash)', critSplash: 'Crit splash', splashCrit: 'Splash can crit',
 };
-const absoluteStats = new Set<keyof PlayerStats>(['maxHp', 'regen', 'moveSpeed', 'critMult', 'extraProjectiles', 'revives']);
-const chanceStats = new Set<keyof PlayerStats>(['critChance', 'dodge', 'throwWhileMoving', 'healOnLevelUpPct']);
+const absoluteStats = new Set<keyof PlayerStats>(['maxHp', 'regen', 'moveSpeed', 'critMult', 'extraProjectiles', 'revives', 'splashCrit']);
+const chanceStats = new Set<keyof PlayerStats>(['critChance', 'soak', 'critSplash', 'dodge', 'throwWhileMoving', 'healOnLevelUpPct']);
 export function statText(key: keyof PlayerStats, value: number): string {
   return absoluteStats.has(key) ? number(value) : chanceStats.has(key) ? pct(value) : signedPct(value);
 }
@@ -90,6 +92,12 @@ export function RunBuild({ hud }: { hud: HudState }) {
         const def = CONTENT.passives[p.id], view = cardView({ kind: 'passive', ...p });
         return <article className="gu-build-item" key={p.id} data-testid={`build-passive-${p.id}`}><img src={ASSET_URLS[view.sprite]} alt="" /><div><h4>{view.name} <span>L{p.level}</span></h4><p>Per level: {def.desc}</p><p>Total: {(Object.keys(def.perLevel) as (keyof PlayerStats)[]).map(key => `${STAT_LABELS[key]} ${statText(key, def.perLevel[key]! * p.level)}`).join(' · ')}</p></div></article>;
       })}
+    </section>
+    <section aria-labelledby="build-axes"><h3 id="build-axes">Crisp &amp; Soak</h3>
+      <dl className="gu-build-stats" data-testid="build-axes-stats"><div><dt>Crisp (crit chance · damage)</dt><dd>{pct(Math.min(1, stats.critChance + mods.critChance))} · ×{number(stats.critMult + mods.critMultAdd)}</dd></div>
+        <div><dt>Soak (splash share)</dt><dd>{pct(stats.soak)}{stats.critSplash > 0 && ` (+${pct(stats.critSplash)} on crit)`}{stats.splashCrit > 0 && ' · splash crits'}</dd></div>
+        {hud.breads.map(b => <div key={b.id}><dt>{CONTENT.breads[b.id].name}</dt><dd>Crisp {pct(Math.min(1, stats.critChance + mods.critChance + rotiCrisp(CONTENT, b.id)))} · Soak {pct(soakFor(CONTENT, stats, hud.dips, b.id))}</dd></div>)}</dl>
+      <p className="gu-build-note">Crisp rotis add 5% crit; soggy rotis add 15% soak; curry, dhal and sambar dips add soak. Splash hits foes within {number(SOAK_RADIUS * (1 + stats.sizePct))} of the target and passes on burn, sugar, chill and tender.</p>
     </section>
     <section aria-labelledby="build-stats"><h3 id="build-stats">Player stats</h3><p>Base + stall gear and training + passives. Temporary buffs are listed below.</p>
       <dl className="gu-build-stats" data-testid="build-stats">{(Object.keys(STAT_LABELS) as (keyof PlayerStats)[]).map(key => <div key={key}><dt>{STAT_LABELS[key]}</dt><dd>{statText(key, stats[key])}</dd></div>)}<div><dt>Revives left</dt><dd>{hud.revivesLeft}</dd></div></dl>

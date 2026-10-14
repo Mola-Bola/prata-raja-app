@@ -75,7 +75,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   'egg-telur': {
     id: 'egg-telur',
-    tags: ['thrown', 'stuffed'],
+    tags: ['thrown', 'stuffed', 'soggy'],
     name: 'Egg (Telur)',
     flavor: 'One egg in, three fragments out. Breakfast economics.',
     sprite: 'breads/egg-telur',
@@ -157,7 +157,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
   },
   murtabak: {
     id: 'murtabak',
-    tags: ['thrown', 'stuffed'],
+    tags: ['thrown', 'stuffed', 'soggy'],
     name: 'Murtabak',
     flavor: 'Stuffed heavy, lands heavier. Nobody stands after.',
     sprite: 'breads/murtabak',

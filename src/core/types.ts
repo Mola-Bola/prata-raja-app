@@ -20,7 +20,7 @@ export const FIELD = {
 
 // ── Ids ──────────────────────────────────────────────────────────────────────
 
-export type RotiTag = 'thrown' | 'lob' | 'bounce' | 'area' | 'pierce' | 'heat' | 'stuffed' | 'sweet' | 'crisp' | 'orbit';
+export type RotiTag = 'thrown' | 'lob' | 'bounce' | 'area' | 'pierce' | 'heat' | 'stuffed' | 'sweet' | 'crisp' | 'orbit' | 'soggy';
 export type DipFamily = 'chutney' | 'curry' | 'dhal' | 'sambar' | 'special';
 
 export type BreadId =
@@ -33,7 +33,8 @@ export type DipId =
   | 'chicken-curry' | 'sambal' | 'teh-tarik' | 'ghee' | 'dhal';
 export type PassiveId =
   | 'strong-wrists' | 'fast-flip' | 'extra-dough' | 'big-dough' | 'hot-tawa' | 'lucky-towel'
-  | 'thick-skin' | 'kopi-break' | 'sharp-eye' | 'bigger-tips' | 'multitasker' | 'second-helping';
+  | 'thick-skin' | 'kopi-break' | 'sharp-eye' | 'bigger-tips' | 'multitasker' | 'second-helping'
+  | 'crisp-edges' | 'curry-soak' | 'crackling-curry' | 'twice-fried';
 export type EnemyKind =
   | 'walker' | 'runner' | 'flyer' | 'swarm' | 'tank' | 'shooter' | 'splitter'
   | 'shielded' | 'healer' | 'summoner' | 'exploder';
@@ -167,6 +168,12 @@ export type PlayerStats = {
   dodge: number;
   healOnLevelUpPct: number;
   goldPct: number;
+  /** Soak: share of a hit's damage (and its dip statuses) splashed to foes around the target. */
+  soak: number;
+  /** Crackling curry: extra splash share added when the hit crits. */
+  critSplash: number;
+  /** Twice-fried: above 0, splash hits roll to crit (one rng draw per splashed foe). */
+  splashCrit: number;
 };
 
 export type PassiveDef = {
@@ -399,6 +406,7 @@ export type GameEvent =
   | { t: 'shieldHit'; uid: number; x: number; y: number }
   | { t: 'shieldBreak'; uid: number; x: number; y: number }
   | { t: 'kill'; uid: number; x: number; y: number; enemyId: string; xp: number; boss: boolean; elite: boolean }
+  | { t: 'splash'; x: number; y: number; radius: number }
   | { t: 'blast'; x: number; y: number; radius: number; color: string | null }
   | { t: 'chain'; points: { x: number; y: number }[] }
   | { t: 'status'; uid: number; status: StatusId }
