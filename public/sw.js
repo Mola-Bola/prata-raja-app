@@ -51,7 +51,8 @@ self.addEventListener('fetch', (event) => {
 
   if (req.mode === 'navigate' && url.origin === scope.origin) {
     event.respondWith(
-      fetch(req)
+      // no-cache: always revalidate with the server (GitHub Pages lets browsers reuse the page for 10 minutes).
+      fetch(req, { cache: 'no-cache' })
         .then(async (res) => {
           // No list (a build that skipped web-pwa.mjs): keep the last page seen instead. GitHub Pages answers deep links
           // with its 404 page, which is the app too.
