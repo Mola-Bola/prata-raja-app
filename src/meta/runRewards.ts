@@ -1,3 +1,5 @@
+import { CONTENT } from '../content';
+import { grantDipUse, type DipReceipt } from './dipProgression';
 import type { Rng } from '../core/rng';
 import type { RunResult } from '../core/types';
 import { rollChest } from './chests';
@@ -14,6 +16,7 @@ export type RunRewards = {
   stallXp: number;
   chest: GearItem | null;
   materials: Partial<Record<Material, number>>;
+  dipReceipts: DipReceipt[];
 };
 
 export function applyRunResult(save: SaveV2, result: RunResult, rng: Rng, now: Date): { save: SaveV2; rewards: RunRewards } {
@@ -30,7 +33,7 @@ export function applyRunResult(save: SaveV2, result: RunResult, rng: Rng, now: D
     idle: save.idle.lastCollectedAt ? { ...save.idle } : { lastCollectedAt: now.toISOString() },
   };
   if (result.wave < MIN_PAID_WAVE) {
-    return { save: { ...save, ...records }, rewards: { paid: false, gold: 0, stallXp: 0, chest: null, materials: {} } };
+    return { save: { ...save, ...records }, rewards: { paid: false, gold: 0, stallXp: 0, chest: null, materials: {}, dipReceipts: [] } };
   }
   // wave is the reached wave; on a loss that wave was not cleared.
   const waves = Math.max(0, result.wave - (result.won ? 0 : 1));
@@ -50,11 +53,12 @@ export function applyRunResult(save: SaveV2, result: RunResult, rng: Rng, now: D
   }
   const inventoryMaterials = { ...save.materials };
   for (const type of MATERIALS) inventoryMaterials[type] += materials[type] ?? 0;
+  const dipProgress = grantDipUse(save, result, CONTENT);
   const next: SaveV2 = {
-    ...save, ...records, gold: save.gold + gold, stallXp: save.stallXp + stallXp,
+    ...save, ...records, dipXp: dipProgress.dipXp, gold: save.gold + gold, stallXp: save.stallXp + stallXp,
     inventory: [...save.inventory, item], materials: inventoryMaterials,
     chestPity: chest.pity, unlocks: { ...save.unlocks, ...unlocksForXp(save.stallXp + stallXp) },
     pendingChests: [...save.pendingChests, item.uid],
   };
-  return { save: next, rewards: { paid: true, gold, stallXp, chest: item, materials } };
+  return { save: next, rewards: { paid: true, gold, stallXp, chest: item, materials, dipReceipts: dipProgress.receipts } };
 }

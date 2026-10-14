@@ -1,3 +1,4 @@
+import { SIMMER_DIPS, simmerProgress } from '../core/dipProgression';
 import type { Content, Loadout, PlayerStats } from '../core/types';
 import { runPools } from './recipes';
 import { itemStats } from './gear';
@@ -17,5 +18,5 @@ export function computeLoadout(save: SaveV2, content: Content): Loadout {
   }
   const pools = runPools(save, content);
   const signature = save.unlocks.signature && pools.breadPool.includes(save.signatureBread) ? save.signatureBread : undefined;
-  return { stats, ...(signature ? { signatureBread: signature } : {}), ...(save.unlocks.secondReroll ? { rerolls: 2 } : {}), ...pools, ...(content.breads.kosong ? { startBread: signature ?? content.breads.kosong.id } : {}) };
+  return { stats, dipSimmer: Object.fromEntries(SIMMER_DIPS.map(id => [id, simmerProgress(save.dipXp?.[id]).level])), ...(signature ? { signatureBread: signature } : {}), ...(save.unlocks.secondReroll ? { rerolls: 2 } : {}), ...pools, ...(content.breads.kosong ? { startBread: signature ?? content.breads.kosong.id } : {}) };
 }

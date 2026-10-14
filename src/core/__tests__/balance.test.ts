@@ -64,6 +64,7 @@ function measureRun(seed: number, maxBreads: number): Measured {
   const result: RunResult = world.result ?? {
     chapterId: world.chapter.id, bossAttempted: world.bossAttempted ?? false,
     won: false, wave: world.wave, kills: world.kills, bossKills: world.bossKills, time: world.time, level: p.level, gold: Math.round(world.gold),
+    dipUseXp: { ...world.dipUseXp },
     breads: p.breads.map((b) => ({ ...b })), dips: p.dips.map((d) => ({ ...d })),
   };
   return { result, bossFightHpLost, bossAttackHpLost, bossSeconds };

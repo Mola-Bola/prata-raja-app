@@ -10,6 +10,7 @@ import { CONTENT } from '@/content';
 import { chapterUnlocked } from '@/meta/chapters';
 import type { SaveV2 } from '@/meta/types';
 
+import { DipCollection } from './DipCollection';
 import { HOTSPOTS, PANELS, readyBadges, unlockLevel, type Panel } from './helpers';
 import { SignatureSheet, CalendarSheet, ChestsSheet, GearSheet, IdleSheet, PreviewSheet, RecipeSheet, SettingsSheet, TrainingSheet, type Commit } from './sheets';
 import { StallProgress, type Art } from './StallProgress';
@@ -20,18 +21,18 @@ export type { Art } from './StallProgress';
 
 export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { save: SaveV2; commit: Commit; onStart: (chapterId: string) => void; onStory: () => void; onKitchen: () => void; art: Art }) {
   // A sheet is a prop's panel, or the settings cog's.
-  const [panel, setPanel] = useState<Panel | 'settings' | 'chapters' | 'signature' | null>(null);
+  const [panel, setPanel] = useState<Panel | 'settings' | 'chapters' | 'signature' | 'dips' | null>(null);
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(timer);
   }, []);
   const badges = readyBadges(save, now);
-  const open = (id: Panel | 'settings' | 'chapters' | 'signature') => {
+  const open = (id: Panel | 'settings' | 'chapters' | 'signature' | 'dips') => {
     setNow(new Date());
     setPanel(id);
   };
-  const spot = panel && panel !== 'settings' && panel !== 'chapters' && panel !== 'signature' ? HOTSPOTS[panel] : null;
+  const spot = panel && panel !== 'settings' && panel !== 'chapters' && panel !== 'signature' && panel !== 'dips' ? HOTSPOTS[panel] : null;
   const locked = !!spot?.flag && !save.unlocks[spot.flag];
   return (
     <div className="sh-hub" data-testid="stall-hub">
@@ -69,6 +70,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
             </button>
           );
         })}
+        <button type="button" className="gu-btn sh-collection-entry" data-testid="stall-dips" onClick={() => open('dips')}>Dip collection</button>
       </div>
       <header className="sh-top" inert={!!panel}>
         <StallProgress xp={save.stallXp} art={art} />
@@ -92,6 +94,11 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
           Tell Kannan
         </button>
       </footer>
+      {panel === 'dips' && (
+        <Sheet title="Dip collection" onClose={() => setPanel(null)}>
+          <DipCollection save={save} art={art} />
+        </Sheet>
+      )}
       {panel === 'signature' && (
         <Sheet title="Signature" onClose={() => setPanel(null)}>
           <SignatureSheet save={save} commit={commit} art={art} />
@@ -113,7 +120,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
           <button type="button" className="gu-btn" data-testid="settings-story" onClick={onStory}>Story</button>
         </Sheet>
       )}
-      {panel && panel !== 'settings' && panel !== 'chapters' && panel !== 'signature' && spot && (
+      {panel && panel !== 'settings' && panel !== 'chapters' && panel !== 'signature' && panel !== 'dips' && spot && (
         <Sheet title={spot.label} onClose={() => setPanel(null)}>
           {locked ? (
             <div className="sh-locked" data-testid="stall-locked">

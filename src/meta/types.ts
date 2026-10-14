@@ -33,6 +33,7 @@ export type SaveV2 = Omit<SaveV1, 'v'> & {
   stallXp: number;
   unlockedBreads: BreadId[];
   unlockedDips: DipId[];
+  dipXp: Partial<Record<DipId, number>>;
   bossAttempts: Record<string, number>;
   inventory: GearItem[];
   equipped: Partial<Record<Slot, string>>;

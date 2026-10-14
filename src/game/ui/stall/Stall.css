@@ -713,3 +713,13 @@
   object-fit: cover;
   border-radius: 10px;
 }
+
+.sh-dip-collection { display: grid; gap: 10px; min-width: 0; }
+.sh-dip-title { display: flex; align-items: center; gap: 10px; }
+.sh-dip-collection progress { width: 100%; accent-color: var(--ink); }
+.sh-dip-collection .sh-detail { overflow-wrap: anywhere; }
+
+.sh-collection-entry { position: absolute; top: 43%; left: 54%; transform: translateX(-50%); width: 124px; min-height: 44px; padding: 8px; font-size: 14px; }
+
+.sh-dip-receipt { gap: 4px; text-align: left; font-size: 14px; line-height: 1.25; }
+.sh-dip-receipt p { margin: 0; }
