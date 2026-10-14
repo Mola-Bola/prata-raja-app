@@ -454,6 +454,8 @@ export type RunResult = {
 export type Loadout = { /** Saved simmer levels, frozen at run start; absent in Kitchen. */ dipSimmer?: Partial<Record<DipId, number>>; stats?: Partial<PlayerStats>; startBread?: BreadId; signatureBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[]; /** Level-up rerolls per run (default 1). */ rerolls?: number };
 
 export type World = {
+  /** Dev/test only (?god=1): Kannan takes no damage. */
+  god?: boolean;
   /** In-memory Kitchen experiment only; absent on ordinary runs. */
   flakyKosong?: boolean;
   /** Field x of the wave director's last spawn (keeps spawn spacing replayable). */

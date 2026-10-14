@@ -41,8 +41,17 @@ const TAU = Math.PI * 2;
 const hex = (c: string): number => parseInt(c.slice(1), 16);
 
 /** URL switches for tests: ?seed=N fixes the run's seed, ?bot=1 plays by itself (and starts at once), ?speed=N runs the sim N times faster. */
-function readUrl(): { seed: number | null; bot: boolean; speed: number; kitchen: boolean } {
-  if (typeof window === 'undefined') return { seed: null, bot: false, speed: 1, kitchen: false };
+/** ?at=N: play the bot headlessly up to N metres so the director, HP scaling and cards are as if travelled. */
+function fastForward(w: World, metres: number): void {
+  for (let i = 0; i < 200_000 && w.dist < metres && w.phase !== 'won' && w.phase !== 'lost'; i++) {
+    if (w.phase === 'levelup') chooseCard(w, autoPick(w));
+    else step(w, STEP, autoInput(w));
+    drainEvents(w);
+  }
+}
+
+function readUrl(): { seed: number | null; bot: boolean; speed: number; kitchen: boolean; chapter: string | null; at: number; god: boolean } {
+  if (typeof window === 'undefined') return { seed: null, bot: false, speed: 1, kitchen: false, chapter: null, at: 0, god: false };
   const q = new URLSearchParams(window.location.search);
   const seed = q.get('seed');
   const speed = Number(q.get('speed'));
@@ -50,6 +59,9 @@ function readUrl(): { seed: number | null; bot: boolean; speed: number; kitchen:
     seed: seed !== null && Number.isFinite(Number(seed)) ? Number(seed) >>> 0 : null,
     bot: q.get('bot') === '1',
     kitchen: q.get('kitchen') === '1',
+    chapter: q.get('chapter'),
+    at: Math.max(0, Number(q.get('at')) || 0),
+    god: q.get('god') === '1',
     speed: Number.isFinite(speed) && speed > 0 ? Math.min(speed, 16) : 1,
   };
 }
@@ -185,7 +197,10 @@ export class RunScene extends Phaser.Scene {
 
   private start(seed?: number, loadout?: Loadout, chapterId?: string): void {
     const s = this.url.seed ?? seed ?? Math.floor(Math.random() * 0x100000000);
-    this.showWorld(createRun({ seed: s, content: tunedContent(), loadout, chapterId }));
+    const w = createRun({ seed: s, content: tunedContent(), loadout, chapterId: this.url.chapter ?? chapterId });
+    if (this.url.god) w.god = true;
+    if (this.url.at > 0 && isFlow(w.chapter)) fastForward(w, this.url.at);
+    this.showWorld(w);
     this.hub.emit('runStart', { seed: s });
     void this.bridge?.track('run_start', {}).catch(() => {});
     this.wake();

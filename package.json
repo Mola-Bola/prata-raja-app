@@ -64,6 +64,7 @@
     "test:db": "supabase test db",
     "gen:types": "supabase gen types typescript --local > src/data/database.types.ts",
     "check": "bash scripts/check.sh",
+    "snap": "node scripts/snap-tour.mjs",
     "test:smoke": "vitest run --configLoader runner src/core/__tests__/director.test.ts src/core/__tests__/save.test.ts src/meta/__tests__/migrate.test.ts src/meta/__tests__/idle-streak-migrate.test.ts src/game/__tests__/hub.test.ts src/game/__tests__/saveMerge.test.ts src/game/ui/__tests__/saveStore.test.ts src/core/__tests__/waves.test.ts"
   },
   "private": true

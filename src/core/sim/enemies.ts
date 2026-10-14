@@ -29,7 +29,7 @@ function lateralX(e: Enemy): number {
 function contact(c: Ctx, e: Enemy): void {
   const dmg = e.def.contactDps * (e.elite ? ELITE_CONTACT : 1) * (1 + c.p.stats.dmgTakenPct) * c.dt;
   if (dmg <= 0) return;
-  c.p.hp -= dmg;
+  if (!c.w.god) c.p.hp -= dmg;
   c.p.hurtAnim = 0.2;
   c.w.contactAcc = (c.w.contactAcc ?? 0) + dmg;
 }

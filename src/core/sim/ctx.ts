@@ -63,7 +63,7 @@ export function hurtPlayer(c: Ctx, base: number, source: 'shot' | 'boss' | 'expl
     return false;
   }
   const dmg = base * (1 + p.stats.dmgTakenPct);
-  p.hp -= dmg;
+  if (!c.w.god) p.hp -= dmg;
   p.hurtAnim = 0.2;
   emit(c, { t: 'playerHit', dmg, source });
   return true;
