@@ -12,9 +12,19 @@ export type GearBaseId =
   | 'cotton-apron' | 'oil-splashed-apron' | 'denim-apron'
   | 'oven-gloves' | 'silicone-gloves' | 'chefs-gloves'
   | 'rubber-flip-flops' | 'kitchen-clogs' | 'old-house-slippers';
-export type Affix = { id: string; stat: keyof PlayerStats; value: number };
-export type GearItem = { uid: string; baseId: GearBaseId; slot: Slot; rarity: Rarity; level: number; affixes: Affix[] };
-export const MATERIALS = ['flour', 'ghee', 'egg', 'onion', 'spice', 'sugar', 'milk'] as const;
+export type AffixBand = 'Fine' | 'Good' | 'Great';
+export type Affix = { id: string; stat: keyof PlayerStats; value: number; /** Value band within the affix range (v2 items only). */ tier?: AffixBand };
+/** v2 fields are optional so legacy items stay valid: no `version` (or 1) = legacy, `affixes` are then the stored truth.
+ *  version 2 = `affixes` are derived from (baseId, ilvl, rarity, seed) by deriveAffixes and can be regenerated. */
+export type GearItem = {
+  uid: string; baseId: GearBaseId; slot: Slot; rarity: Rarity; level: number; affixes: Affix[];
+  ilvl?: number; seed?: number; version?: number;
+  /** Forge steps, 0..MAX_ENHANCE. Never lost. */
+  enhance?: number;
+  /** Unique rule-hook id (src/meta/uniques.ts). */
+  uniqueId?: string;
+};
+export const MATERIALS = ['flour', 'ghee', 'egg', 'onion', 'masala', 'sugar', 'milk', 'chilli', 'curryLeaves'] as const;
 export type Material = typeof MATERIALS[number];
 /** Generated from the stat registry (a stat with `training`). Ids are save keys; the set grows, never renames. */
 export const TRAINING_IDS: readonly string[] = TRAINING_DEFS.map(t => t.id);

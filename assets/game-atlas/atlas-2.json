@@ -2,8 +2,8 @@
   "frames": {
     "chests/chest-common": {
       "frame": {
-        "x": 1256,
-        "y": 2,
+        "x": 1158,
+        "y": 931,
         "w": 238,
         "h": 196
       },
@@ -22,8 +22,8 @@
     },
     "chests/chest-epic": {
       "frame": {
-        "x": 588,
-        "y": 2,
+        "x": 669,
+        "y": 718,
         "w": 214,
         "h": 234
       },
@@ -42,8 +42,8 @@
     },
     "chests/chest-rare": {
       "frame": {
-        "x": 1112,
-        "y": 1421,
+        "x": 1411,
+        "y": 442,
         "w": 234,
         "h": 184
       },
@@ -62,8 +62,8 @@
     },
     "gear/chefs-gloves": {
       "frame": {
-        "x": 902,
-        "y": 1663,
+        "x": 1367,
+        "y": 683,
         "w": 234,
         "h": 196
       },
@@ -82,8 +82,8 @@
     },
     "gear/cooks-hairnet": {
       "frame": {
-        "x": 1194,
-        "y": 1169,
+        "x": 1516,
+        "y": 2,
         "w": 234,
         "h": 170
       },
@@ -122,8 +122,8 @@
     },
     "gear/faded-kopitiam-towel": {
       "frame": {
-        "x": 1003,
-        "y": 240,
+        "x": 933,
+        "y": 478,
         "w": 236,
         "h": 225
       },
@@ -142,8 +142,8 @@
     },
     "gear/lucky-red-towel": {
       "frame": {
-        "x": 717,
-        "y": 480,
+        "x": 812,
+        "y": 2,
         "w": 216,
         "h": 234
       },
@@ -162,8 +162,8 @@
     },
     "gear/old-house-slippers": {
       "frame": {
-        "x": 1195,
-        "y": 921,
+        "x": 1754,
+        "y": 2,
         "w": 236,
         "h": 161
       },
@@ -182,8 +182,8 @@
     },
     "gear/oven-gloves": {
       "frame": {
-        "x": 660,
-        "y": 1678,
+        "x": 1032,
+        "y": 2,
         "w": 238,
         "h": 223
       },
@@ -202,8 +202,8 @@
     },
     "gear/rubber-flip-flops": {
       "frame": {
-        "x": 937,
-        "y": 478,
+        "x": 887,
+        "y": 718,
         "w": 238,
         "h": 226
       },
@@ -222,8 +222,8 @@
     },
     "gear/silicone-gloves": {
       "frame": {
-        "x": 957,
-        "y": 954,
+        "x": 1173,
+        "y": 468,
         "w": 234,
         "h": 211
       },
@@ -242,8 +242,8 @@
     },
     "gear/stall-bandana": {
       "frame": {
-        "x": 1243,
-        "y": 230,
+        "x": 922,
+        "y": 1174,
         "w": 238,
         "h": 203
       },
@@ -302,8 +302,8 @@
     },
     "hub/feedback": {
       "frame": {
-        "x": 956,
-        "y": 1197,
+        "x": 1129,
+        "y": 707,
         "w": 234,
         "h": 220
       },
@@ -322,8 +322,8 @@
     },
     "hub/gift": {
       "frame": {
-        "x": 648,
-        "y": 1439,
+        "x": 902,
+        "y": 1679,
         "w": 222,
         "h": 235
       },
@@ -342,8 +342,8 @@
     },
     "hub/settings": {
       "frame": {
-        "x": 586,
-        "y": 242,
+        "x": 588,
+        "y": 2,
         "w": 220,
         "h": 234
       },
@@ -382,8 +382,8 @@
     },
     "hub/star": {
       "frame": {
-        "x": 476,
-        "y": 1200,
+        "x": 660,
+        "y": 1680,
         "w": 238,
         "h": 235
       },
@@ -402,8 +402,8 @@
     },
     "hub/streak": {
       "frame": {
-        "x": 461,
-        "y": 1440,
+        "x": 482,
+        "y": 720,
         "w": 183,
         "h": 236
       },
@@ -420,67 +420,7 @@
         "h": 256
       }
     },
-    "materials/egg": {
-      "frame": {
-        "x": 1179,
-        "y": 469,
-        "w": 238,
-        "h": 206
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 9,
-        "y": 9,
-        "w": 238,
-        "h": 206
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 224
-      }
-    },
-    "materials/flour": {
-      "frame": {
-        "x": 874,
-        "y": 1437,
-        "w": 234,
-        "h": 222
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 11,
-        "y": 11,
-        "w": 234,
-        "h": 222
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 244
-      }
-    },
-    "materials/onion": {
-      "frame": {
-        "x": 810,
-        "y": 240,
-        "w": 189,
-        "h": 234
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 11,
-        "y": 11,
-        "w": 189,
-        "h": 234
-      },
-      "sourceSize": {
-        "w": 211,
-        "h": 256
-      }
-    },
-    "materials/spice": {
+    "materials/chilli": {
       "frame": {
         "x": 456,
         "y": 1680,
@@ -500,10 +440,130 @@
         "h": 256
       }
     },
+    "materials/curryLeaves": {
+      "frame": {
+        "x": 461,
+        "y": 1440,
+        "w": 200,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 10,
+        "y": 10,
+        "w": 200,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 220,
+        "h": 256
+      }
+    },
+    "materials/egg": {
+      "frame": {
+        "x": 1274,
+        "y": 2,
+        "w": 238,
+        "h": 206
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 206
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 224
+      }
+    },
+    "materials/flour": {
+      "frame": {
+        "x": 920,
+        "y": 948,
+        "w": 234,
+        "h": 222
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 222
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 244
+      }
+    },
+    "materials/masala": {
+      "frame": {
+        "x": 476,
+        "y": 1200,
+        "w": 200,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 10,
+        "y": 10,
+        "w": 200,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 220,
+        "h": 256
+      }
+    },
+    "materials/onion": {
+      "frame": {
+        "x": 817,
+        "y": 240,
+        "w": 189,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 189,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 211,
+        "h": 256
+      }
+    },
+    "materials/spice": {
+      "frame": {
+        "x": 478,
+        "y": 960,
+        "w": 200,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 10,
+        "y": 10,
+        "w": 200,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 220,
+        "h": 256
+      }
+    },
     "materials/sugar": {
       "frame": {
-        "x": 806,
-        "y": 2,
+        "x": 723,
+        "y": 480,
         "w": 206,
         "h": 234
       },
@@ -642,8 +702,8 @@
     },
     "passives/lucky-towel": {
       "frame": {
-        "x": 478,
-        "y": 960,
+        "x": 665,
+        "y": 1440,
         "w": 238,
         "h": 235
       },
@@ -662,8 +722,8 @@
     },
     "passives/multitasker": {
       "frame": {
-        "x": 724,
-        "y": 718,
+        "x": 682,
+        "y": 956,
         "w": 234,
         "h": 232
       },
@@ -722,8 +782,8 @@
     },
     "passives/thick-skin": {
       "frame": {
-        "x": 482,
-        "y": 720,
+        "x": 680,
+        "y": 1200,
         "w": 238,
         "h": 235
       },
@@ -742,8 +802,8 @@
     },
     "ui/boss-badge": {
       "frame": {
-        "x": 486,
-        "y": 480,
+        "x": 586,
+        "y": 242,
         "w": 227,
         "h": 234
       },
@@ -762,8 +822,8 @@
     },
     "ui/btn-cream": {
       "frame": {
-        "x": 720,
-        "y": 959,
+        "x": 486,
+        "y": 480,
         "w": 233,
         "h": 234
       },
@@ -782,8 +842,8 @@
     },
     "ui/btn-orange": {
       "frame": {
-        "x": 718,
-        "y": 1199,
+        "x": 907,
+        "y": 1439,
         "w": 234,
         "h": 234
       },
@@ -842,8 +902,8 @@
     },
     "ui/crown": {
       "frame": {
-        "x": 1016,
-        "y": 2,
+        "x": 1010,
+        "y": 240,
         "w": 236,
         "h": 224
       },
@@ -862,8 +922,8 @@
     },
     "ui/heart": {
       "frame": {
-        "x": 962,
-        "y": 708,
+        "x": 1250,
+        "y": 229,
         "w": 236,
         "h": 209
       },
@@ -902,8 +962,8 @@
     },
     "ui/ribbon": {
       "frame": {
-        "x": 902,
-        "y": 1863,
+        "x": 1490,
+        "y": 212,
         "w": 466,
         "h": 183
       },

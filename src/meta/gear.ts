@@ -1,7 +1,7 @@
-import type { Rng } from '../core/rng';
+import { makeRng, type Rng } from '../core/rng';
 import { BASE_STATS } from '../core/stats';
 import type { PlayerStats } from '../core/types';
-import { RARITIES, SLOTS, type Affix, type GearBaseId, type GearItem, type Rarity, type SaveV2, type Slot } from './types';
+import { RARITIES, SLOTS, type Affix, type AffixBand, type GearBaseId, type GearItem, type Material, type Rarity, type SaveV2, type Slot } from './types';
 
 export const GEAR_BASES: Record<GearBaseId, Slot> = {
   'faded-kopitiam-towel': 'towel', 'sweat-stained-towel': 'towel', 'lucky-red-towel': 'towel',
@@ -32,13 +32,38 @@ export const MAIN_STATS: Record<Slot, Partial<PlayerStats>> = {
   gloves: { throwSpeedPct: .03 }, slippers: { moveSpeed: BASE_STATS.moveSpeed * .03 },
 };
 
+export const GEAR_VERSION = 2;
+/** Affix tier ladder: an affix tier is eligible when its minLvl lies in [ilvl/2, ilvl] (the window). Steps of <=2x guarantee every ilvl has one. */
+export const AFFIX_TIER_LVLS = [1, 2, 4, 7, 12, 20, 32, 50] as const;
+export const AFFIX_BANDS: readonly AffixBand[] = ['Fine', 'Good', 'Great'];
+/** Value range of a pool affix at a tier: the pool value is the Fine-tier midpoint; higher tiers scale up. */
+export function affixRange(def: Affix, tierIdx: number): [number, number] {
+  const s = 1 + .35 * tierIdx;
+  return [def.value * .6 * s, def.value * 1.4 * s];
+}
+const hashStr = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return h >>> 0; };
+/** Pure + deterministic: the same (baseId, ilvl, rarity, seed, version) always gives the same affixes. */
+export function deriveAffixes(baseId: GearBaseId, ilvl: number, rarity: Rarity, seed: number, version = GEAR_VERSION): Affix[] {
+  const rng = makeRng(hashStr(`${baseId}|${ilvl}|${rarity}|${seed}|${version}`));
+  const pool = [...AFFIX_POOLS[GEAR_BASES[baseId]]];
+  const tiers = AFFIX_TIER_LVLS.flatMap((lvl, i) => lvl <= ilvl && lvl >= ilvl / 2 ? [i] : []);
+  const out: Affix[] = [];
+  for (let i = 0; i < RARITY_INFO[rarity].affixes; i++) {
+    const def = pool.splice(rng.int(0, pool.length - 1), 1)[0];
+    const [lo, hi] = affixRange(def, tiers.length ? rng.pick(tiers) : 0);
+    const u = rng.next();
+    out.push({ id: def.id, stat: def.stat, value: Number((lo + (hi - lo) * u).toFixed(4)), tier: AFFIX_BANDS[Math.min(2, Math.floor(u * 3))] });
+  }
+  return out;
+}
+
 /** Slots the player can wear at drop time. Stall level 1 has none open: the gear rack opens at level 2 with the towel, so that is the cap. */
 export function dropSlots(unlocks: SaveV2['unlocks']): readonly Slot[] {
   const open = SLOTS.filter(slot => unlocks[slot]);
   return open.length ? open : SLOTS.slice(0, 1);
 }
 
-export type RollOptions = { baseId?: GearBaseId; slot?: Slot; slots?: readonly Slot[]; rarity?: Rarity; minRarity?: Rarity; source?: 'drop' | 'chest' | 'boss'; uid?: string };
+export type RollOptions = { baseId?: GearBaseId; slot?: Slot; slots?: readonly Slot[]; rarity?: Rarity; minRarity?: Rarity; source?: 'drop' | 'chest' | 'boss'; uid?: string; ilvl?: number };
 export function rollItem(rng: Rng, opts: RollOptions = {}): GearItem {
   const max = opts.source === 'chest' || opts.source === 'boss' ? 5 : 2;
   const min = RARITIES.indexOf(opts.minRarity ?? 'common');
@@ -51,10 +76,12 @@ export function rollItem(rng: Rng, opts: RollOptions = {}): GearItem {
   if (!bases.length) throw new Error('No gear base fits the allowed slots');
   const baseId = opts.baseId ?? rng.pick(bases);
   const slot = GEAR_BASES[baseId];
-  const pool = [...AFFIX_POOLS[slot]];
-  const affixes: Affix[] = [];
-  for (let i = 0; i < RARITY_INFO[rarity].affixes; i++) affixes.push({ ...pool.splice(rng.int(0, pool.length - 1), 1)[0] });
-  return { uid: opts.uid ?? `${rng.int(0, 0xffffffff).toString(16)}-${rng.int(0, 0xffffffff).toString(16)}`, baseId, slot, rarity, level: 1, affixes };
+  const ilvl = Math.max(1, Math.floor(opts.ilvl ?? 1));
+  const seed = rng.int(0, 0xffffffff);
+  return {
+    uid: opts.uid ?? `${rng.int(0, 0xffffffff).toString(16)}-${rng.int(0, 0xffffffff).toString(16)}`, baseId, slot, rarity, level: 1,
+    ilvl, seed, version: GEAR_VERSION, enhance: 0, affixes: deriveAffixes(baseId, ilvl, rarity, seed),
+  };
 }
 
 /** Three distinct items; research caps merge output at Rare. Keeps the lowest input level. */
@@ -63,7 +90,7 @@ export function merge3(items: readonly GearItem[], rng: Rng): GearItem | null {
   if (items.length !== 3 || new Set(items.map(i => i.uid)).size !== 3 || !first ||
       !['common', 'uncommon'].includes(first.rarity) ||
       items.some(i => i.baseId !== first.baseId || i.rarity !== first.rarity || i.slot !== GEAR_BASES[i.baseId])) return null;
-  const merged = rollItem(rng, { baseId: first.baseId, rarity: RARITIES[RARITIES.indexOf(first.rarity) + 1] });
+  const merged = rollItem(rng, { baseId: first.baseId, rarity: RARITIES[RARITIES.indexOf(first.rarity) + 1], ilvl: Math.min(...items.map(i => i.ilvl ?? 1)) });
   return { ...merged, level: Math.min(...items.map(i => i.level)) };
 }
 
@@ -83,10 +110,38 @@ export function equipItem(save: SaveV2, uid: string): SaveV2 {
   if (!item || !save.unlocks.gear || save.pendingChests.includes(uid) || save.equipped[item.slot] === uid) return save;
   return { ...save, equipped: { ...save.equipped, [item.slot]: uid } };
 }
+/** Re-derives a v2 item's affixes; null for legacy items (their stored affixes are the truth). */
+export function regenAffixes(item: GearItem): Affix[] | null {
+  return item.version === GEAR_VERSION && item.seed !== undefined && item.ilvl !== undefined ? deriveAffixes(item.baseId, item.ilvl, item.rarity, item.seed, item.version) : null;
+}
 export function itemStats(item: GearItem): Partial<PlayerStats> {
   const stats: Partial<PlayerStats> = {};
-  const multiplier = RARITY_INFO[item.rarity].multiplier * (1 + .1 * (item.level - 1));
+  const enh = 1 + ENHANCE_PCT * (item.enhance ?? 0);
+  const multiplier = RARITY_INFO[item.rarity].multiplier * (1 + .1 * (item.level - 1)) * enh;
   for (const [key, value] of Object.entries(MAIN_STATS[item.slot])) stats[key as keyof PlayerStats] = value * multiplier;
-  for (const a of item.affixes) stats[a.stat] = (stats[a.stat] ?? 0) + a.value;
+  for (const a of item.affixes) stats[a.stat] = (stats[a.stat] ?? 0) + a.value * enh;
   return stats;
+}
+
+export const MAX_ENHANCE = 15;
+/** Each forge step adds this share of the base affix / main-stat values. */
+export const ENHANCE_PCT = .05;
+/** Cost of the step from +n to +n+1 (n = 0..14): coins and hawker ingredients that widen as the curve climbs. */
+export function enhanceCost(n: number): { gold: number; materials: Partial<Record<Material, number>> } {
+  const materials: Partial<Record<Material, number>> = { flour: 2 + n, ghee: 1 + Math.floor(n / 2) };
+  if (n >= 4) materials.masala = 1 + Math.floor((n - 4) / 2);
+  if (n >= 8) materials.chilli = 1 + Math.floor((n - 8) / 2);
+  if (n >= 11) materials.curryLeaves = 1 + (n - 11);
+  return { gold: Math.round(30 * 1.4 ** n), materials };
+}
+/** Forge bench: one step up. Always succeeds when affordable; the item is never destroyed or downgraded. Unchanged save when it can't. */
+export function enhance<S extends SaveV2>(save: S, uid: string): S {
+  const item = save.inventory.find(i => i.uid === uid);
+  const n = item?.enhance ?? 0;
+  if (!item || n >= MAX_ENHANCE || save.pendingChests.includes(uid)) return save;
+  const cost = enhanceCost(n);
+  if (save.gold < cost.gold || Object.entries(cost.materials).some(([m, c]) => save.materials[m as Material] < c!)) return save;
+  const materials = { ...save.materials };
+  for (const [m, c] of Object.entries(cost.materials)) materials[m as Material] -= c!;
+  return { ...save, gold: save.gold - cost.gold, materials, inventory: save.inventory.map(i => i.uid === uid ? { ...i, enhance: n + 1 } : i) };
 }

@@ -12,7 +12,7 @@ const v2 = (): SaveV2 => {
   return {
     ...freshSaveV2(), prologueSeen: true, gold: 1234, runs: 9, wins: 4, bestWave: 10, totalKills: 400, stallXp: 1500,
     bossAttempts: { 'kopitiam-street': 5 }, inventory: [item], equipped: { [item.slot]: item.uid },
-    materials: { flour: 3, ghee: 1, egg: 0, onion: 2, spice: 0, sugar: 0, milk: 4 },
+    materials: { flour: 3, ghee: 1, egg: 0, onion: 2, masala: 0, chilli: 0, curryLeaves: 0, sugar: 0, milk: 4 },
     training: { wrist: 2, stamina: 1, flip: 0 }, pendingChests: [item.uid],
   };
 };

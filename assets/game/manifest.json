@@ -363,6 +363,18 @@
     "h": 256,
     "w": 220
   },
+  "materials/masala": {
+    "h": 256,
+    "w": 220
+  },
+  "materials/chilli": {
+    "h": 256,
+    "w": 220
+  },
+  "materials/curryLeaves": {
+    "h": 256,
+    "w": 220
+  },
   "materials/sugar": {
     "h": 256,
     "w": 228
