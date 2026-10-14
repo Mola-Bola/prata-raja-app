@@ -14,9 +14,9 @@ export const brandWords = {
   /** Where space is tight (home-screen label on the web, the manifest's short_name). 12 characters or fewer. */
   shortName: 'Prata Raja',
   /** One line under the wordmark on Welcome. */
-  tagline: 'Flip, throw, daydream.',
+  tagline: 'Flip, throw, fight for the stall.',
   /** One sentence for the web manifest, store text and link previews. */
-  description: "Flip, throw, daydream: a prata man's roguelite.",
+  description: "Flip, throw, fight for the stall: a prata man's roguelite.",
 
   /** Feature words. Change the word here and every screen follows. */
   words: {

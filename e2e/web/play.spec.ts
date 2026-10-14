@@ -33,7 +33,7 @@ test('title, start, drag, pick a card, pause, quit', async ({ page }) => {
   await expect(page.locator('canvas')).toBeVisible();
   // The title screen is the overlay's; Start asks the scene (through the hub) for a run. A first launch goes straight into
   // run 1: no stall in between. No run is live, so the game loop sleeps behind the title (it only costs battery there).
-  await expect(tid(page, 'ui-start')).toHaveText('Start daydream');
+  await expect(tid(page, 'ui-start')).toHaveText('Start');
   await page.waitForFunction(() => !!window.__game && !window.__game.loop.running, null, { timeout: 30_000 });
   // Nothing in the game box can scroll (the canvas used to leave 4 px under itself, and a focus then shifted every screen).
   expect(await page.evaluate(() => { const r = document.querySelector('[data-testid="game-root"]')!; return r.scrollHeight - r.clientHeight; })).toBe(0);

@@ -16,7 +16,7 @@ for (const [id, name, identity] of [
     }));
   }, SAVE_KEY);
   await page.goto('/play?seed=11');
-  await expect(page.getByTestId('ui-start')).toHaveText('Open the stall');
+  await expect(page.getByTestId('ui-start')).toHaveText('Continue');
   await page.getByTestId('ui-start').click();
   await page.getByTestId('stall-signature').click();
   await expect(page.getByTestId(`signature-${id}`)).toContainText(identity);
