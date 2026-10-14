@@ -19,7 +19,7 @@ export const CALM_TIME = 1.5;
 /** Threat points that may be unspent at once (a tank costs 6), so a throttled street never bursts when it clears. */
 const CREDIT_CAP = 8;
 /** Living threat above which the street stops asking for more: the director never buries a bot that is behind. */
-export const LIVE_CAP = 12;
+export const LIVE_CAP = 8;
 
 export const isFlow = (chapter: ChapterDef): boolean => chapter.mode === 'flow';
 export const bossAtOf = (chapter: ChapterDef): number => chapter.bossAt ?? DEFAULT_BOSS_AT;

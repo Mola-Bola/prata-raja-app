@@ -6,9 +6,8 @@ export const CHAPTERS: ChapterDef[] = [
     id: 'kopitiam-street',
     name: 'Kopitiam Street',
     background: 'scene/background',
-    // Set by the bot balance sim (BALANCE_SEEDS=300). 0.27 was tuned while a boss could be frozen or stunned for good; with the boss
-    // (and every enemy) only ever slowed, and no freeze-lock, it takes 0.15 to keep the 4-bread bot's win rate near 2 in 3.
-    hpPerWave: 0.15,
+    // Flow retune (BALANCE_SEEDS=300): HP climbs gently along the street; the boss carries the late difficulty (its hp is higher).
+    hpPerWave: 0.03,
     mode: 'flow',
     bossAt: 1200,
     waves: [
@@ -59,7 +58,7 @@ const nightIds: Record<string, string> = {
   'tiffin-beetle': 'drumstick-knight', 'ice-kacang-sprite': 'kopi-ghost', 'kettle-spirit': 'chope-spirit', 'durian-bomb': 'rojak-bomb',
 };
 CHAPTERS.push({
-  id: 'hawker-night', name: 'Hawker Centre Night', background: 'scene/background2', hpPerWave: .21, mode: 'flow', bossAt: 1200,
+  id: 'hawker-night', name: 'Hawker Centre Night', background: 'scene/background2', hpPerWave: .06, mode: 'flow', bossAt: 1200,
   waves: CHAPTERS[0].waves.map(wave => ({ ...wave,
     mix: Object.fromEntries(Object.entries(wave.mix).map(([id, weight]) => [nightIds[id], weight])),
     ...(wave.boss ? { boss: 'burger-baron' } : {}),
