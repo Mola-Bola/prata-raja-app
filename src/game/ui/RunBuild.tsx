@@ -21,6 +21,7 @@ const STAT_LABELS: Record<keyof PlayerStats, string> = {
   dotPct: 'Damage over time', rangePct: 'Range', xpPct: 'XP', throwWhileMoving: 'Moving throw rate', revives: 'Revives granted',
   dmgTakenPct: 'Damage taken', dodge: 'Dodge chance', healOnLevelUpPct: 'Heal on level-up', goldPct: 'Gold',
   soak: 'Soak (splash)', critSplash: 'Crit splash', splashCrit: 'Splash can crit',
+  convertPct: 'Heat conversion', moreDmg: 'More damage', pierceFalloff: 'Pierce falloff',
 };
 const absoluteStats = new Set<keyof PlayerStats>(['maxHp', 'regen', 'moveSpeed', 'critMult', 'extraProjectiles', 'revives', 'splashCrit']);
 const chanceStats = new Set<keyof PlayerStats>(['critChance', 'soak', 'critSplash', 'dodge', 'throwWhileMoving', 'healOnLevelUpPct']);

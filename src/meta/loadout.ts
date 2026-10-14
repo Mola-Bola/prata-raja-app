@@ -7,6 +7,7 @@ import { mealOf } from './meals';
 import { startDips } from './sockets';
 import { specStats } from './specTree';
 import { kannanLevel, kannanXpOf, perksFor } from './kannan';
+import { activeHooks } from './uniques';
 import { SLOTS, type SaveV2 } from './types';
 
 /** Returns additive bonuses, not BASE_STATS (the simulation adds those). */
@@ -37,5 +38,6 @@ export function computeLoadout(save: SaveV2, content: Content): Loadout {
   const startBread = signature ?? content.breads.kosong?.id;
   const dips = startBread ? startDips(save, startBread, content) : [];
   const meal = mealOf(save);
-  return { stats, kannanLevel: level, dipSimmer: Object.fromEntries(SIMMER_DIPS.map(id => [id, simmerProgress(save.dipXp?.[id]).level])), ...(signature ? { signatureBread: signature } : {}), ...(rerolls > 1 ? { rerolls } : {}), ...pools, ...(dips.length ? { startDips: dips } : {}), ...(meal ? { mealId: meal.id } : {}), ...(content.breads.kosong ? { startBread: signature ?? content.breads.kosong.id } : {}) };
+  const hooks = save.unlocks.gear ? activeHooks(save) : [];
+  return { stats, ...(hooks.length ? { hooks } : {}), kannanLevel: level, dipSimmer: Object.fromEntries(SIMMER_DIPS.map(id => [id, simmerProgress(save.dipXp?.[id]).level])), ...(signature ? { signatureBread: signature } : {}), ...(rerolls > 1 ? { rerolls } : {}), ...pools, ...(dips.length ? { startDips: dips } : {}), ...(meal ? { mealId: meal.id } : {}), ...(content.breads.kosong ? { startBread: signature ?? content.breads.kosong.id } : {}) };
 }

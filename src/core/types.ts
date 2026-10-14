@@ -149,6 +149,11 @@ export type DipDef = {
 };
 
 /** Run-time player numbers. Base values in sim; passives, meta and buffs add to them. */
+/** Rule hooks a unique can grant. Data only; hit.ts queries them through the run's loadout. */
+export type UniqueHook =
+  | { kind: 'critSplash'; /** share of the crit's damage splashed to nearby foes */ pct: number; radius: number }
+  | { kind: 'firstHitFreeze'; /** first hit on each foe freezes it */ seconds: number };
+
 export type PlayerStats = {
   maxHp: number;
   regen: number;
@@ -169,6 +174,12 @@ export type PlayerStats = {
   dodge: number;
   healOnLevelUpPct: number;
   goldPct: number;
+  /** Damage pipeline: share of base damage converted to Heat (capped at CONVERT_CAP), which also scales with dotPct. */
+  convertPct: number;
+  /** Damage pipeline: one separate "more" multiplier, x(1 + moreDmg), applied after the additive increases. */
+  moreDmg: number;
+  /** Damage pipeline: each enemy a shot has already pierced cuts its damage by this share (compounding, floor PIERCE_FLOOR). */
+  pierceFalloff: number;
   /** Soak: share of a hit's damage (and its dip statuses) splashed to foes around the target. */
   soak: number;
   /** Crackling curry: extra splash share added when the hit crits. */
@@ -460,7 +471,7 @@ export type RunResult = {
 };
 
 /** Permanent bonuses from the stall (gear, training) applied at run start. S1 passes {}. */
-export type Loadout = { /** Saved simmer levels, frozen at run start; absent in Kitchen. */ dipSimmer?: Partial<Record<DipId, number>>; stats?: Partial<PlayerStats>; startBread?: BreadId; signatureBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[]; /** Level-up rerolls per run (default 1). */ rerolls?: number; /** Persistent Kannan level; scales the flow speed ramp a little. */ kannanLevel?: number;
+export type Loadout = { /** Unique-item rule hooks from worn gear (src/meta/uniques.ts). */ hooks?: UniqueHook[]; /** Saved simmer levels, frozen at run start; absent in Kitchen. */ dipSimmer?: Partial<Record<DipId, number>>; stats?: Partial<PlayerStats>; startBread?: BreadId; signatureBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[]; /** Level-up rerolls per run (default 1). */ rerolls?: number; /** Persistent Kannan level; scales the flow speed ramp a little. */ kannanLevel?: number;
   /** Socketed dips (src/meta/sockets.ts): the run starts with these at level 1, linked to startBread. createRun must copy them into player.dips. */ startDips?: { id: DipId; linkedBread?: BreadId }[];
   /** Cooked meal id (src/meta/meals.ts); its stats are already inside `stats`, this is for the HUD chip. */ mealId?: string };
 
