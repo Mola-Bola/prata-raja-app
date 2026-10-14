@@ -31,6 +31,7 @@ import { AnalyticsSwitch, FeedbackLayer, TellButton } from './FeedbackSheet'; //
 import { trackCardPick } from '../telemetry'; // [analytics hook]
 import { fmt, useCountUp } from './format';
 import { Kitchen } from './Kitchen';
+import { FreeRunHud } from './run/FreeRunHud';
 import { RunBuild } from './RunBuild';
 import { Prologue } from './Prologue';
 import { createSaveStore } from './saveStore';
@@ -336,6 +337,10 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
   const [hud, setHud] = useState<HudState | null>(null);
   const [banner, setBanner] = useState<Banner | null>(null);
   const [hint, setHint] = useState(firstRun);
+  // Free-movement runs get their own hint: shown for three seconds when the run starts, then gone.
+  const freeMode = hud?.free === true;
+  const [freeHint, setFreeHint] = useState(false);
+  const freeHinted = useRef(false);
   // Every drop in HP (a bite, a shot, a boss hit) flashes and shakes the HP pill once. The two names alternate, so the same
   // CSS animation restarts on the next hit without the pill being rebuilt.
   const [hits, setHits] = useState(0);
@@ -363,6 +368,14 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
     return () => window.clearTimeout(t);
   }, [banner]);
 
+  useEffect(() => {
+    if (!freeMode || freeHinted.current) return;
+    freeHinted.current = true;
+    setFreeHint(true);
+    const t = window.setTimeout(() => setFreeHint(false), 3000);
+    return () => window.clearTimeout(t);
+  }, [freeMode]);
+
   // The first drag dismisses the hint. Listening on window in the capture phase sees the canvas's pointer moves
   // without the overlay ever taking them.
   useEffect(() => {
@@ -373,9 +386,15 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
   }, [hint]);
 
   return (
-    <div className="gu-hud">
+    <div className={freeMode ? 'gu-hud gu-hud--free' : 'gu-hud'}>
       {hud?.find && <FindToast key={hud.find.n} find={hud.find} onSwap={(i) => hub.controls?.swapFind(i)} />}
-      {hud && (
+      {hud && freeMode && (
+        <>
+          {isTuned() && <span className="gu-version" data-testid="tuned-badge" style={{ position: 'absolute', top: 2, left: 2, background: '#E8702A', color: '#fff', borderRadius: 6, padding: '0 6px' }}>Tuned</span>}
+          <FreeRunHud hud={hud} hits={hits} hub={hub} onPause={onPause} />
+        </>
+      )}
+      {hud && !freeMode && (
         <>
           <div className="gu-topbar">
             <div className="gu-ribbon">
@@ -426,7 +445,9 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
           <span>{banner.text}</span>
         </div>
       )}
-      {hint && !modal && <p className="gu-hint">Drag to move · stop to throw</p>}
+      {!modal && (freeMode
+        ? freeHint && <p className="gu-hint" data-testid="free-hint">Drag anywhere to move · auto-throw</p>
+        : hint && <p className="gu-hint">Drag to move · stop to throw</p>)}
     </div>
   );
 }

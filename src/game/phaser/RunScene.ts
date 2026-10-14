@@ -14,6 +14,7 @@ import { chooseCard, createRun, drainEvents, reroll, step } from '@/core/sim';
 import { isFreeMode } from '@/core/sim/free';
 import { FIELD, type BreadId, type GameEvent, type Loadout, type RunInput, type RunResult, type World } from '@/core/types';
 import { computeLoadout } from '@/meta/loadout';
+import { mealDef, mealEffect } from '@/meta/meals';
 import { parseSaveV3 } from '@/meta/migrate';
 
 import { playSfx, setSfxEnabled, unlockAudio, type SfxName } from '../audio/sfx';
@@ -72,6 +73,12 @@ function readUrl(): { seed: number | null; bot: boolean; speed: number; kitchen:
     speed: Number.isFinite(speed) && speed > 0 ? Math.min(speed, 16) : 1,
   };
 }
+
+/** The HUD's meal chip: "Kopi-O kosong: +70 move speed", or null when the run has no meal. */
+const mealChip = (id?: string): string | null => {
+  const m = mealDef(id);
+  return m ? `${m.name}: ${mealEffect(m)}` : null;
+};
 
 export class RunScene extends Phaser.Scene {
   private hub!: Hub;
@@ -565,6 +572,8 @@ export class RunScene extends Phaser.Scene {
       dipSimmer: { ...w.loadout?.dipSimmer },
       signatureBread: w.loadout?.signatureBread,
       shownDps: this.damageRate.read(w.time),
+      free: this.free,
+      meal: mealChip(w.loadout?.mealId),
     });
   }
 

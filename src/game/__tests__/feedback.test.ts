@@ -226,7 +226,7 @@ describe('trackRun (what run a note is about)', () => {
     boss: null,
     breads: [{ id: 'kosong', level: 2 }],
     dips: [{ id: 'fish-curry', level: 1 }],
-    passives: [], stats: { ...BASE_STATS }, buffs: [], revivesLeft: 0, dipSimmer: {}, signatureBread: undefined, shownDps: 0,
+    passives: [], stats: { ...BASE_STATS }, buffs: [], revivesLeft: 0, dipSimmer: {}, signatureBread: undefined, shownDps: 0, free: false, meal: null,
   });
 
   const kitchenStats = (wave: number) => ({ time: 12, wave, phase: 'wave' as const, hp: 50, maxHp: 100,

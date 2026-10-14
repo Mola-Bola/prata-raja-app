@@ -1,0 +1,368 @@
+/* Free-movement run HUD (FreeRunHud.tsx). Colours come from GameUi.css's tokens; every control is at least 56 px. */
+
+@property --fr-cd {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 100%;
+}
+
+.gu-hud--free {
+  --fr-shade: rgba(59, 36, 20, 0.55);
+}
+
+.fr-top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  pointer-events: none;
+}
+
+.fr-left,
+.fr-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fr-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+}
+
+.fr-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.fr-ring circle {
+  fill: var(--cream);
+  stroke-width: 5;
+}
+
+.fr-ring-track {
+  stroke: var(--edge-deep);
+}
+
+.fr-ring-fill {
+  stroke: var(--orange);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.2s ease-out;
+}
+
+.fr-ring b {
+  position: relative;
+  font: 700 16px/1 Fredoka, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.fr-hp {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 80px;
+  height: 26px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border: 2.5px solid var(--edge);
+  border-radius: 999px;
+  background: var(--cream);
+  box-shadow: 0 3px 0 var(--edge-deep);
+}
+
+.fr-hp[data-hit='a'] {
+  animation: gu-hurt-a 0.34s ease-out;
+}
+
+.fr-hp[data-hit='b'] {
+  animation: gu-hurt-b 0.34s ease-out;
+}
+
+.fr-hp-num {
+  flex: none;
+  min-width: 18px;
+  font: 800 13px/1 Nunito, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.fr-bar {
+  position: relative;
+  display: block;
+  flex: 1;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--ink);
+}
+
+.fr-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--red);
+  transition: width 0.2s ease-out;
+}
+
+.fr-place {
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+  text-align: center;
+  color: var(--cream);
+  text-shadow: 0 1px 0 rgba(60, 20, 0, 0.45);
+}
+
+.fr-place span {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 600 16px/1.1 Fredoka, system-ui, sans-serif;
+}
+
+.fr-place small {
+  font: 700 12px/1.2 Nunito, system-ui, sans-serif;
+  opacity: 0.9;
+}
+
+.fr-coins {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 36px;
+  padding: 0 10px 0 3px;
+  border: 2.5px solid var(--edge);
+  border-radius: 999px;
+  background: var(--cream);
+  box-shadow: 0 3px 0 var(--edge-deep);
+  font: 800 15px/1 Nunito, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.fr-coins img {
+  width: 28px;
+  height: 28px;
+}
+
+.fr-pause {
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fr-pause img {
+  width: 100%;
+  height: 100%;
+}
+
+.fr-xp {
+  position: relative;
+  height: 5px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 244, 224, 0.3);
+}
+
+.fr-xp i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--gold);
+  transition: width 0.2s ease-out;
+}
+
+.fr-chip {
+  width: max-content;
+  max-width: 80%;
+  margin: 8px auto 0;
+  padding: 4px 12px;
+  box-sizing: border-box;
+  border: 2.5px solid var(--edge);
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--ink);
+  box-shadow: 0 3px 0 var(--edge-deep);
+  font: 800 13px/1.2 Nunito, system-ui, sans-serif;
+  text-align: center;
+}
+
+.fr-boss {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(100%, 300px);
+  margin: 8px auto 0;
+  padding: 4px 10px;
+  box-sizing: border-box;
+  border: 2.5px solid var(--edge);
+  border-radius: 16px;
+  background: var(--cream);
+  box-shadow: 0 3px 0 var(--edge-deep);
+}
+
+.fr-boss img {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.fr-boss-name {
+  flex: none;
+  max-width: 110px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 600 15px/1.1 Fredoka, system-ui, sans-serif;
+}
+
+.fr-boss .fr-bar--boss {
+  height: 8px;
+}
+
+/* Bottom-right only: the dock sits over the right thumb's corner and stays clear of the joystick on the left. */
+.fr-dock {
+  position: absolute;
+  right: calc(var(--safe-right) + 14px);
+  bottom: calc(var(--safe-bottom) + 14px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.fr-dips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 200px;
+}
+
+.fr-dip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  box-sizing: border-box;
+  border: 2.5px solid var(--edge);
+  border-radius: 50%;
+  background: var(--cream);
+  box-shadow: 0 2px 0 var(--edge-deep);
+}
+
+.fr-dip img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.fr-dip b {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  padding: 2px 5px;
+  border: 2px solid var(--edge);
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--cream);
+  font: 800 11px/1 Nunito, system-ui, sans-serif;
+}
+
+.fr-dodge {
+  position: relative;
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  padding: 0;
+  overflow: hidden;
+  border: 3px solid var(--edge);
+  border-radius: 50%;
+  background: var(--orange);
+  color: var(--cream);
+  box-shadow: 0 5px 0 var(--edge-deep);
+  font: 600 20px/1 Fredoka, system-ui, sans-serif;
+  text-shadow: 0 1px 0 rgba(60, 20, 0, 0.45);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fr-dodge:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--edge-deep);
+}
+
+.fr-dodge span {
+  position: relative;
+}
+
+/* The cooldown: a shade that sweeps off the button over the dash's 1.2 s. */
+.fr-dodge-cd {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--fr-shade) var(--fr-cd, 0%), transparent 0);
+  opacity: 0;
+}
+
+.fr-dodge--cool .fr-dodge-cd {
+  --fr-cd: 100%;
+  opacity: 1;
+  animation: fr-cd 1.2s linear both;
+}
+
+@keyframes fr-cd {
+  from { --fr-cd: 100%; }
+  to { --fr-cd: 0%; }
+}
+
+/* Ready: a soft ring pulses to say it can be pressed. Off for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .fr-dodge--ready {
+    animation: fr-ready 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes fr-ready {
+  0%, 100% { box-shadow: 0 5px 0 var(--edge-deep), 0 0 0 0 rgba(242, 140, 40, 0.5); }
+  50% { box-shadow: 0 5px 0 var(--edge-deep), 0 0 0 10px rgba(242, 140, 40, 0); }
+}
+
+/* Reduced motion: no sweep, the cooldown is a plain shade for its duration; no pulse, no hurt shake. */
+@media (prefers-reduced-motion: reduce) {
+  .fr-dodge--cool .fr-dodge-cd {
+    animation: none;
+    --fr-cd: 0%;
+    background: var(--fr-shade);
+  }
+
+  .fr-hp[data-hit] {
+    animation: none;
+  }
+}
+
+/* The street find toast moves up out of the thumbs' way in free mode. */
+.gu-hud--free .gu-find {
+  top: calc(var(--safe-top) + 190px);
+  bottom: auto;
+}
