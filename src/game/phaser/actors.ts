@@ -12,6 +12,7 @@ import {
   STEP, SWARM_SCALE, TENDER_TINT, WHITE, ZONE_TINT,
 } from './look';
 import { DiscPool, ImagePool, type Disc, type Img } from './pools';
+import { prepareThosaiTexture, THOSAI_TEXTURE, thosaiRollFrame } from './thosaiTexture';
 
 const TAU = Math.PI * 2;
 const MULTIPLY = Phaser.TintModes.MULTIPLY;
@@ -109,6 +110,7 @@ export class Actors {
   private now = 0;
   private handX = 0;
   private handY = 0;
+  private reduceMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   private enemies: EnemyView[] = [];
   private enemyMap = new Map<number, EnemyView>();
@@ -694,6 +696,10 @@ export class Actors {
       if (s.motion === 'wave') {
         // The thosai roll lies diagonal in its art: turn it level, then the container stretches it across the street.
         v.disc.img.setRotation(0.7);
+        if (!this.reduceMotion) {
+          prepareThosaiTexture(v.disc.img.scene, v.disc.img);
+          if (v.disc.img.scene.textures.exists(THOSAI_TEXTURE)) v.disc.img.setTexture(THOSAI_TEXTURE, 'roll-0').setRotation(0);
+        }
         v.dia = 0;
       } else {
         v.dia = s.flake ? SHOT_MIN_U * 0.75 / 0.34 : Math.max(SHOT_MIN_U, 2 * s.radius * SHOT_FIT);
@@ -768,6 +774,7 @@ export class Actors {
         const widthPx = 2 * s.radius * P.ppu * sc;
         const kx = widthPx / (v.texMax * 1.18);
         d.cont.setPosition(sx, sy).setScale(kx, kx * 0.52).setDepth(D.shot + sy);
+        if (!this.reduceMotion && d.img.texture.key === THOSAI_TEXTURE) d.img.setFrame(`roll-${thosaiRollFrame(y, 2 * s.radius)}`);
         continue;
       }
       const layers = 1 - (s.flakesShed ?? 0) * 0.08;
