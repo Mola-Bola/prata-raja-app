@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pack assets/game sprites (manifest.json, minus loose 'scene' and DOM-only 'story') into 2048x2048 WebP atlases for Phaser.
+"""Pack assets/game sprites (manifest.json, minus loose 'scene' and 'street' and DOM-only 'story') into 2048x2048 WebP atlases for Phaser.
 
 Each sprite is trimmed to its alpha bbox. Its edge pixels are copied 1 px outward (extrusion, so bilinear
 sampling never reads a neighbour), and 1 px of transparent padding goes outside that: neighbouring frames are
@@ -104,7 +104,7 @@ def load(name):
 
 def main():
     manifest = json.loads((GAME / 'manifest.json').read_text())
-    sprites = [load(n) for n in sorted(manifest) if not n.startswith(('scene/', 'story/'))]
+    sprites = [load(n) for n in sorted(manifest) if not n.startswith(('scene/', 'story/', 'street/'))]
 
     # Each plan (then the UI-only rest) is packed on pages of its own: first fit, tallest sprites first so the big ones pack tight.
     planned = {g for plan in PLANS for g in plan}

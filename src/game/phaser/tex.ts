@@ -17,7 +17,7 @@ const DOM_ONLY = new Set(['scene/hero', 'scene/wake', 'scene/hub']);
 export function loadSprites(scene: Phaser.Scene): void {
   for (const a of ATLASES) scene.load.atlas(a.key, a.textureUrl, a.data);
   for (const [name, url] of Object.entries(ASSET_URLS)) {
-    if (name.startsWith('scene/') && !DOM_ONLY.has(name) && !name.startsWith('scene/hub-tier-')) scene.load.image(name, url);
+    if (name.startsWith('street/') || (name.startsWith('scene/') && !DOM_ONLY.has(name) && !name.startsWith('scene/hub-tier-'))) scene.load.image(name, url);
   }
 }
 

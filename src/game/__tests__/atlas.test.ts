@@ -10,7 +10,7 @@ type Rect = { x: number; y: number; w: number; h: number };
 type Atlas = { frames: Record<string, { frame: Rect }>; meta: { size: { w: number; h: number } } };
 
 const manifest = read('assets/game/manifest.json') as Record<string, unknown>;
-const expected = Object.keys(manifest).filter((name) => !name.startsWith('scene/') && !name.startsWith('story/')).sort();
+const expected = Object.keys(manifest).filter((name) => !name.startsWith('scene/') && !name.startsWith('story/') && !name.startsWith('street/')).sort();
 const atlases = readdirSync(ROOT + 'assets/game-atlas')
   .filter((f) => /^atlas-\d+\.json$/.test(f))
   .sort()

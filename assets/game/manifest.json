@@ -618,5 +618,85 @@
   "scene/hub-tier-10": {
     "w": 556,
     "h": 936
+  },
+  "street/food-street-banquet-table": {
+    "h": 251,
+    "w": 256
+  },
+  "street/food-street-golden-drain-grate": {
+    "h": 225,
+    "w": 256
+  },
+  "street/food-street-lantern-post": {
+    "h": 256,
+    "w": 236
+  },
+  "street/food-street-small-shrine": {
+    "h": 249,
+    "w": 256
+  },
+  "street/hawker-centre-hawker-table": {
+    "h": 256,
+    "w": 236
+  },
+  "street/hawker-centre-neon-lamp": {
+    "h": 256,
+    "w": 234
+  },
+  "street/hawker-centre-plastic-stools": {
+    "h": 256,
+    "w": 253
+  },
+  "street/hawker-centre-steel-bin": {
+    "h": 256,
+    "w": 188
+  },
+  "street/kopitiam-coffee-table": {
+    "h": 256,
+    "w": 227
+  },
+  "street/kopitiam-drain-grate": {
+    "h": 251,
+    "w": 256
+  },
+  "street/kopitiam-lamp-post": {
+    "h": 256,
+    "w": 62
+  },
+  "street/kopitiam-plastic-stools": {
+    "h": 238,
+    "w": 256
+  },
+  "street/pasar-malam-balloon-bundle": {
+    "h": 239,
+    "w": 256
+  },
+  "street/pasar-malam-fairy-light-pole": {
+    "h": 256,
+    "w": 244
+  },
+  "street/pasar-malam-folding-table": {
+    "h": 244,
+    "w": 256
+  },
+  "street/pasar-malam-portable-stool": {
+    "h": 256,
+    "w": 235
+  },
+  "street/wet-market-bicycle": {
+    "h": 253,
+    "w": 256
+  },
+  "street/wet-market-fish-crates": {
+    "h": 249,
+    "w": 256
+  },
+  "street/wet-market-floor-drain": {
+    "h": 253,
+    "w": 256
+  },
+  "street/wet-market-ice-box": {
+    "h": 256,
+    "w": 253
   }
 }

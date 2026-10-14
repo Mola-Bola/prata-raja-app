@@ -262,6 +262,8 @@ export type ChapterDef = {
   mode?: 'flow' | 'waves';
   /** Flow: metres to the boss (default 1200). */
   bossAt?: number;
+  /** Roadside prop sprites ('street/<name>') the run view scrolls along both kerbs; none = bare street. */
+  props?: string[];
   waves: WaveDef[];
 };
 

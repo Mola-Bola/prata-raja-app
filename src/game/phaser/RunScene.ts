@@ -235,6 +235,7 @@ export class RunScene extends Phaser.Scene {
     this.clearWorld();
     this.stall.setBackground(w.chapter.background);
     this.street.setVisible(isFlow(w.chapter));
+    this.street.setProps(w.chapter.props);
     this.world = w;
     window.__world = w;
     this.paused = false;
