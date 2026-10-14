@@ -16,6 +16,7 @@ import { playSfx, setSfxEnabled, unlockAudio, type SfxName } from '../audio/sfx'
 import type { Bridge, HapticKind } from '../bridgeTypes';
 import type { Hub, HudState, KitchenStats } from '../hub';
 import { Actors } from './actors';
+import { FeedbackGate, strongerHaptic } from './combatFeedback';
 import { DangerCue } from './danger';
 import { Fx } from './fx';
 import { DragInput } from './input';
@@ -82,7 +83,10 @@ export class RunScene extends Phaser.Scene {
   private critUid = -1;
   private lastGold = 0;
   private lastKill = { x: 0, y: 0, on: false };
-  private hapticAt = 0;
+  private hapticGate = new FeedbackGate();
+  private damageGate = new FeedbackGate();
+  private eliteGate = new FeedbackGate();
+  private hapticBatch: { kind: HapticKind | null; gap: number } | null = null;
   private healAt = 0;
   private hapticsOn = true;
   private dipColors: number[] = [];
@@ -230,6 +234,8 @@ export class RunScene extends Phaser.Scene {
   /** Stop the run where it is (the sim does not step, the frame is left as drawn). */
   private hold(): void {
     this.paused = true;
+    this.trauma = 0;
+    this.hitStop = 0;
     this.drag.release();
     this.cameras.main.setScroll(0, 0);
   }
@@ -295,6 +301,10 @@ export class RunScene extends Phaser.Scene {
     this.drag.release();
     this.trauma = 0;
     this.hitStop = 0;
+    this.hapticGate.reset();
+    this.damageGate.reset();
+    this.eliteGate.reset();
+    this.hapticBatch = null;
     this.cameras.main.setScroll(0, 0);
   }
 
@@ -478,14 +488,17 @@ export class RunScene extends Phaser.Scene {
 
   private buzz(kind: HapticKind, gap = 0): void {
     if (!this.hapticsOn) return;
-    const now = performance.now();
-    if (now - this.hapticAt < gap) return;
-    this.hapticAt = now;
+    if (this.hapticBatch) {
+      this.hapticBatch.kind = strongerHaptic(this.hapticBatch.kind, kind);
+      this.hapticBatch.gap = Math.max(this.hapticBatch.gap, gap);
+      return;
+    }
+    if (!this.hapticGate.allow(performance.now(), gap)) return;
     this.bridge?.haptic(kind).catch(() => {});
   }
 
   private addTrauma(v: number): void {
-    this.trauma = Math.min(1, this.trauma + v * (this.reduceMotion ? 0.3 : 1));
+    if (!this.reduceMotion) this.trauma = Math.min(1, this.trauma + v);
   }
 
   private stop(seconds: number): void {
@@ -500,6 +513,7 @@ export class RunScene extends Phaser.Scene {
   }
 
   private handle(w: World, events: GameEvent[]): void {
+    this.hapticBatch = { kind: null, gap: 0 };
     for (let i = 0; i < events.length; i++) {
       const ev = events[i];
       if (this.kitchenTuning && (ev.t === 'hit' || ev.t === 'dot')) this.damageShown += Math.max(0, ev.dmg);
@@ -620,6 +634,9 @@ export class RunScene extends Phaser.Scene {
           break;
       }
     }
+    const cue = this.hapticBatch;
+    this.hapticBatch = null;
+    if (cue?.kind) this.buzz(cue.kind, cue.gap);
     // Gold earned this step flies to the counter as coins.
     if (w.gold - this.lastGold >= 1 && this.lastKill.on) {
       const n = Math.min(3, Math.floor(w.gold - this.lastGold));
@@ -663,7 +680,7 @@ export class RunScene extends Phaser.Scene {
     }
     this.fx.number(ev.uid, sx, v ? v.topY : P.sy - 36 * u * P.s, ev.dmg, ev.crit ? 1 : ev.color ? 2 : 0, P.s);
     if (ev.crit) this.critUid = ev.uid;
-    if (v && (v.elite || v.boss)) this.addTrauma(v.boss ? 0.1 : 0.2);
+    if (v && (v.elite || v.boss) && this.eliteGate.allow(performance.now())) this.addTrauma(v.boss ? 0.1 : 0.2);
     this.sfx(ev.crit ? 'crit' : 'hit');
   }
 
@@ -739,9 +756,9 @@ export class RunScene extends Phaser.Scene {
     // A blast near Kannan is the dangerous kind: shake and a heavy buzz. His own bombs land far up the street.
     const p = w.player;
     if (Math.abs(ev.x - p.x) < ev.radius + 110 && ev.y < ev.radius + 110) {
-      this.addTrauma(0.5);
+      if (this.damageGate.allow(performance.now())) this.addTrauma(0.5);
       this.buzz('heavy', 150);
-    } else this.addTrauma(0.1);
+    }
   }
 
   private onChain(ev: Extract<GameEvent, { t: 'chain' }>): void {
@@ -775,12 +792,13 @@ export class RunScene extends Phaser.Scene {
   }
 
   private onPlayerHit(ev: Extract<GameEvent, { t: 'playerHit' }>): void {
+    this.buzz('light', 250);
+    if (!this.damageGate.allow(performance.now())) return;
     if (ev.source === 'contact') this.actors.counterHit();
     this.addTrauma(ev.source === 'contact' ? 0.45 : ev.source === 'boss' ? 0.7 : ev.source === 'explode' ? 0.6 : 0.45);
     const u = this.l.u;
     this.fx.spawn('fx/impact', this.stall.chestX, this.l.counter.top + 8 * u, D.fxTop, 0.22, 60 * u, 140 * u).tint(HAZARD).squash(0.35).fade(1, 0);
-    this.stall.flash();
-    this.buzz('light', 250);
+    if (!this.reduceMotion) this.stall.flash();
     this.sfx('playerHurt');
   }
 
