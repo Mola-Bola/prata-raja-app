@@ -8,6 +8,9 @@ export type SfxName =
   | 'crit'
   | 'kill'
   | 'blast'
+  | 'splash'
+  | 'meteor'
+  | 'zone'
   | 'chain'
   | 'freeze'
   | 'sugarCrash'
@@ -30,18 +33,17 @@ export type SfxName =
 // shape: 0 sine, 1 triangle, 2 saw, 3 clipped tan, 4 sin(t^3) texture, 5+ square (duty = shapeCurve/2).
 // randomness .05 gives +-5% pitch per play; 0 keeps repeats identical.
 // filter: negative = lowpass, positive = highpass.
-// throw and hit are not here: they are dough slaps, see SLAP_PROFILES.
-export const SFX_PARAMS: Record<Exclude<SfxName, 'throw' | 'hit'>, readonly number[]> = {
-  // brighter slap with a tiny up-ping
-  crit: [0.8, 0, 420, 0.002, 0.015, 0.09, 1, 1, -2.5, 0, 220, 0.03, 0, 0, 0, 0, 0, 1, 0, 0, -1200],
+// throw and hit are not here: they are dough slaps (SLAP_PROFILES); crit, blast, splash, meteor, zone and freeze are
+// WebAudio combat voices (see playCombat).
+/** Sounds synthesized with raw WebAudio instead of ZzFX. */
+export type ProcName = 'crit' | 'blast' | 'splash' | 'meteor' | 'zone' | 'freeze';
+const PROC: ReadonlySet<string> = new Set<ProcName>(['crit', 'blast', 'splash', 'meteor', 'zone', 'freeze']);
+
+export const SFX_PARAMS: Record<Exclude<SfxName, 'throw' | 'hit' | ProcName>, readonly number[]> = {
   // small pop
   kill: [0.6, 0.05, 260, 0.002, 0, 0.085, 0, 1, 5, 0, 0, 0, 0, 0.05, 0, 0, 0, 1, 0, 0, -700],
-  // muffled comic boom
-  blast: [0.85, 0, 110, 0.006, 0.03, 0.26, 1, 1, -0.2, 0, 0, 0, 0, 0, 0, 0, 0, 0.55, 0.05, 0, -250],
   // quick zappy crackle
   chain: [0.45, 0, 720, 0.002, 0.03, 0.12, 2, 1, -7, 0, 0, 0, 0, 0.25, 0, 0.04, 0, 1, 0, 0, -1500],
-  // icy tinkle
-  freeze: [0.45, 0, 1500, 0.003, 0.02, 0.22, 0, 1, 1, 0, 380, 0.035, 0, 0, 0, 0, 0, 1, 0, 0, 600],
   // sweet descending bloop
   sugarCrash: [0.6, 0, 560, 0.006, 0.03, 0.14, 1, 1, -2.2, 0, 0, 0, 0, 0, 0, 0, 0, 0.6, 0.05, 0, -1300],
   // tin clang (steel tiffin)
@@ -75,7 +77,7 @@ export const SFX_PARAMS: Record<Exclude<SfxName, 'throw' | 'hit'>, readonly numb
 const SAME_GAP_MS = 40;
 const SLAP_GAP_MS = 25;
 /** Sounds that come in bursts (a volley landing, several biters at the counter) get a longer gap, so a burst is one sound. */
-const MIN_GAP_MS: Partial<Record<SfxName, number>> = { playerHurt: 450 };
+const MIN_GAP_MS: Partial<Record<SfxName, number>> = { playerHurt: 450, crit: 90, blast: 90, splash: 110, meteor: 220, zone: 260, freeze: 120 };
 const BURST_SFX: ReadonlySet<SfxName> = new Set<SfxName>(['hit', 'throw']);
 const BURST_MAX = 12;
 const BURST_WINDOW_MS = 1000;
@@ -196,6 +198,88 @@ function playSlap(ctx: AudioContext, p: SlapPlan, level: number): void {
   }
 }
 
+
+// ── Combat voices (crit crunch and area effects) ────────────────────────────────────────────────────────────
+// Global cap: at most MAX_VOICES of these sound at once, so a screen of explosions cannot stack into a wall of noise.
+const MAX_VOICES = 6;
+const voiceEnds: number[] = [];
+
+/** True (and the voice is booked) when there is room for one more combat voice lasting `dur` seconds. */
+export function admitVoice(ends: number[], now: number, dur: number, max = MAX_VOICES): boolean {
+  for (let i = ends.length - 1; i >= 0; i--) if (ends[i] <= now) ends.splice(i, 1);
+  if (ends.length >= max) return false;
+  ends.push(now + dur);
+  return true;
+}
+
+function tone(ctx: AudioContext, t: number, type: OscillatorType, f0: number, f1: number, glide: number, gain: number, attack: number, decay: number): void {
+  const o = ctx.createOscillator();
+  o.type = type;
+  o.frequency.setValueAtTime(f0, t);
+  o.frequency.exponentialRampToValueAtTime(f1, t + glide);
+  const g = ctx.createGain();
+  envelope(g.gain, t, gain, attack, decay);
+  o.connect(g).connect(ctx.destination);
+  o.start(t);
+  o.stop(t + attack + decay + 0.02);
+}
+
+function noise(ctx: AudioContext, t: number, type: BiquadFilterType, f0: number, f1: number, q: number, gain: number, attack: number, decay: number): void {
+  const n = noiseSource(ctx, t, attack + decay + 0.02);
+  const f = ctx.createBiquadFilter();
+  f.type = type;
+  f.Q.value = q;
+  f.frequency.setValueAtTime(f0, t);
+  f.frequency.exponentialRampToValueAtTime(f1, t + attack + decay);
+  const g = ctx.createGain();
+  envelope(g.gain, t, gain, attack, decay);
+  n.connect(f).connect(g).connect(ctx.destination);
+}
+
+/** [duration s, play] per procedural combat sound. `v` is a random pitch factor of +-8%. */
+const COMBAT: Record<ProcName, readonly [number, (c: AudioContext, t: number, v: number) => void]> = {
+  // Biting a crisp edge: a bright noise burst plus 5 tiny high-passed clicks, 3-8 ms each, spread over ~60 ms.
+  crit: [0.12, (c, t, v) => {
+    noise(c, t, 'highpass', 3200 * v, 5000 * v, 0.7, 0.35, 0.002, 0.05);
+    for (let i = 0; i < 5; i++) noise(c, t + 0.004 + i * 0.012 + Math.random() * 0.006, 'highpass', (4500 + Math.random() * 3000) * v, 7000, 1, 0.28, 0.0008, 0.003 + Math.random() * 0.005);
+    tone(c, t, 'triangle', 1900 * v, 1300 * v, 0.03, 0.12, 0.001, 0.04);
+  }],
+  // Curry splash: a wet "splort", lowpassed noise that opens then closes, with a falling blip.
+  splash: [0.2, (c, t, v) => {
+    noise(c, t, 'lowpass', 500 * v, 1500 * v, 2.5, 0.5, 0.012, 0.13);
+    tone(c, t, 'sine', 420 * v, 130 * v, 0.1, 0.35, 0.004, 0.11);
+    tone(c, t + 0.07, 'sine', 300 * v, 110 * v, 0.07, 0.2, 0.003, 0.07);
+  }],
+  // Roti bomb / heat blast: punchy low thump, then a sizzle tail.
+  blast: [0.5, (c, t, v) => {
+    tone(c, t, 'sine', 150 * v, 42 * v, 0.12, 0.85, 0.003, 0.2);
+    noise(c, t, 'lowpass', 900, 200, 0.8, 0.5, 0.003, 0.14);
+    noise(c, t + 0.06, 'highpass', 5000, 7500, 0.6, 0.12, 0.03, 0.34);
+  }],
+  // Tandoor meteor: rising whoosh into a heavy boom.
+  meteor: [0.7, (c, t, v) => {
+    noise(c, t, 'bandpass', 300 * v, 2400 * v, 1.2, 0.35, 0.22, 0.04);
+    tone(c, t + 0.26, 'sine', 110 * v, 30 * v, 0.3, 1, 0.004, 0.4);
+    noise(c, t + 0.26, 'lowpass', 1200, 120, 0.7, 0.6, 0.004, 0.3);
+  }],
+  // Garlic thunder zone: a short buzzy zap.
+  zone: [0.2, (c, t, v) => {
+    tone(c, t, 'sawtooth', 1400 * v, 180 * v, 0.1, 0.22, 0.002, 0.1);
+    noise(c, t, 'bandpass', 3000 * v, 1200, 3, 0.3, 0.002, 0.08);
+  }],
+  // Freeze shatter: glassy inharmonic tinkles over a tiny ice crack.
+  freeze: [0.45, (c, t, v) => {
+    noise(c, t, 'highpass', 6000, 9000, 0.7, 0.25, 0.001, 0.04);
+    [2637, 3520, 4699, 5588].forEach((f, i) => tone(c, t + i * 0.035 + Math.random() * 0.01, 'sine', f * v, f * v * 0.98, 0.1, 0.16, 0.001, 0.2 + i * 0.03));
+  }],
+};
+
+function playCombat(ctx: AudioContext, name: ProcName): void {
+  const [dur, play] = COMBAT[name];
+  if (!admitVoice(voiceEnds, ctx.currentTime, dur)) return;
+  play(ctx, ctx.currentTime, 1 + (Math.random() * 2 - 1) * 0.08);
+}
+
 type Sound = { play: () => unknown };
 
 type ZzfxModule = {
@@ -250,9 +334,15 @@ export function playSfx(name: SfxName, bread?: BreadId): void {
       playSlap(zzfx.ZZFX.audioContext, slapPlan(bread, Math.random), name === 'throw' ? 0.35 : 0.6);
       return;
     }
+    if (PROC.has(name)) {
+      const ctx = zzfx.ZZFX.audioContext;
+      if (name === 'crit') playSlap(ctx, slapPlan(bread, Math.random), 0.45); // the normal slap, then the crunch over it
+      playCombat(ctx, name as ProcName);
+      return;
+    }
     // ponytail: each ZzFX sound is synthesized on its first play (up to ~100 ms for the long ones);
     // prebuild in idle time if that first-play hitch shows up on device.
-    (sounds[name] ??= new zzfx.ZZFXSound([...SFX_PARAMS[name]])).play();
+    (sounds[name] ??= new zzfx.ZZFXSound([...SFX_PARAMS[name as keyof typeof SFX_PARAMS]])).play();
   } catch {
     // audio can fail on old WebViews; a missing sound must never break the game
   }

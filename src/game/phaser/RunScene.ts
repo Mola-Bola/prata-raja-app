@@ -743,7 +743,8 @@ export class RunScene extends Phaser.Scene {
     this.fx.number(ev.uid, sx, v ? v.topY : P.sy - 36 * u * P.s, ev.dmg, ev.crit ? 1 : ev.color ? 2 : 0, P.s);
     if (ev.crit) {
       this.critUid = ev.uid;
-      // CRISP! crackle: golden sparks (one when reduced motion is on).
+      this.fx.critMark(sx, v ? v.topY : P.sy - 36 * u * P.s, this.reduceMotion);
+      // Crit: a few golden crumb sparks (one when reduced motion is on); the number itself is bigger and gold, with a "!".
       for (let i = 0; i < (this.reduceMotion ? 1 : 3); i++) {
         this.fx.spawn('fx/spark', sx, cy, D.fxTop, 0.22, 14 * u * s, 40 * u * s).tint(0xffd24a).fade(1, 0, 0.25).spin(ev.uid + i * 2.1, 5);
       }
@@ -754,6 +755,8 @@ export class RunScene extends Phaser.Scene {
 
   private onDot(ev: Extract<GameEvent, { t: 'dot' }>): void {
     this.actors.tick(ev.uid);
+    if (ev.color === '#C9D98C') this.sfx('zone'); // a lingering zone's tick (Garlic Thunder Zone); gap-limited
+
     if (ev.dmg < 1) return;
     const P = this.proj.at(ev.x, ev.y);
     const v = this.actors.viewOf(ev.uid);
@@ -816,6 +819,7 @@ export class RunScene extends Phaser.Scene {
 
   /** Soak splash: a curry-coloured ring that spreads over the splash radius (pooled fx; skipped with reduced motion). */
   private onSplash(ev: Extract<GameEvent, { t: 'splash' }>): void {
+    this.sfx('splash');
     if (this.reduceMotion) return;
     const P = this.proj.at(ev.x, ev.y);
     const wpx = ev.radius * 2 * P.ppu * P.s;
@@ -829,7 +833,8 @@ export class RunScene extends Phaser.Scene {
     const ex = this.fx.spawn('fx/explosion', P.sx, P.sy - wpx * 0.18, D.fxTop, 0.42, wpx * 0.35, wpx).fade(1, 0, 0.45);
     if (tint) ex.tint(tint);
     this.fx.spawn('fx/smoke', P.sx, P.sy - wpx * 0.1, D.fx + 2, 0.7, wpx * 0.4, wpx * 0.95).fade(0.55, 0, 0.1);
-    this.sfx('blast');
+    // The big lobbed landing (Tandoor Meteor) is a whoosh and boom; everything else a punchy bomb.
+    this.sfx(ev.radius >= 120 ? 'meteor' : 'blast');
     // A blast near Kannan is the dangerous kind: shake and a heavy buzz. His own bombs land far up the street.
     const p = w.player;
     if (Math.abs(ev.x - p.x) < ev.radius + 110 && ev.y < ev.radius + 110) {

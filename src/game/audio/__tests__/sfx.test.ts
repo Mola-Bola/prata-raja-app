@@ -4,6 +4,7 @@ import {
   SFX_PARAMS,
   SLAP_PROFILES,
   admitSfx,
+  admitVoice,
   playSfx,
   setSfxEnabled,
   slapPlan,
@@ -12,13 +13,13 @@ import {
 } from '../sfx';
 
 const ALL: SfxName[] = [
-  'throw', 'hit', 'crit', 'kill', 'blast', 'chain', 'freeze', 'sugarCrash', 'shieldBreak', 'playerHurt',
+  'throw', 'hit', 'crit', 'kill', 'blast', 'splash', 'meteor', 'zone', 'chain', 'freeze', 'sugarCrash', 'shieldBreak', 'playerHurt',
   'dodge', 'levelUp', 'cardPick', 'waveStart', 'bossAppear', 'bossTell', 'win', 'lose', 'coin', 'uiTap',
 ];
 
 describe('SFX_PARAMS', () => {
   it('has a finite ZzFX parameter array for every non-slap SfxName', () => {
-    const zzfx = ALL.filter((n) => n !== 'throw' && n !== 'hit');
+    const zzfx = ALL.filter((n) => !['throw', 'hit', 'crit', 'blast', 'splash', 'meteor', 'zone', 'freeze'].includes(n));
     expect(Object.keys(SFX_PARAMS).sort()).toEqual([...zzfx].sort());
     for (const name of zzfx) {
       const p = SFX_PARAMS[name as keyof typeof SFX_PARAMS];
@@ -117,5 +118,20 @@ describe('admitSfx throttle', () => {
     expect(admitSfx(h, 'hit', 1024, 'tissue')).toBeNull();
     expect(admitSfx(h, 'hit', 1025, 'tissue')).not.toBeNull();
     expect(admitSfx(h, 'hit', 1010, 'murtabak')).not.toBeNull();
+  });
+});
+
+describe('combat voices', () => {
+  it('caps simultaneous voices and frees them when they end', () => {
+    const ends: number[] = [];
+    for (let i = 0; i < 6; i++) expect(admitVoice(ends, 0, 0.5)).toBe(true);
+    expect(admitVoice(ends, 0.1, 0.5)).toBe(false);
+    expect(admitVoice(ends, 0.6, 0.5)).toBe(true);
+  });
+
+  it('rate-limits crit crunches', () => {
+    const a = admitSfx(NO_SFX_HISTORY, 'crit', 1000)!;
+    expect(admitSfx(a, 'crit', 1040)).toBeNull();
+    expect(admitSfx(a, 'crit', 1100)).not.toBeNull();
   });
 });

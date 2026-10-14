@@ -93,6 +93,9 @@ type Num = {
   value: number;
   pop: number;
   base: number;
+  /** A crit's little "!" flick rather than a damage number. */
+  mark: boolean;
+  still?: boolean;
 };
 
 type Bolt = { pts: number[]; t: number; dur: number };
@@ -101,6 +104,7 @@ type Bolt = { pts: number[]; t: number; dur: number };
 const MAX_DOT_NUMBERS = 8;
 const MAX_TARGET_NUMBERS = 3;
 const NUM_LIFE = 0.6;
+const MARK_LIFE = 0.25;
 const NUM_RISE_T = 0.5;
 const NUM_FADE_FROM = 0.36;
 const NUM_MERGE = 0.3;
@@ -148,7 +152,7 @@ export class Fx {
         .setOrigin(0.5, 1)
         .setDepth(D.number)
         .setVisible(false);
-      this.nums.push({ txt, on: false, color: '#ffffff', t: 0, x: 0, y: 0, uid: 0, kind: 0, perspective: 1, value: 0, pop: 1, base: 1 });
+      this.nums.push({ txt, on: false, color: '#ffffff', t: 0, x: 0, y: 0, uid: 0, kind: 0, perspective: 1, value: 0, pop: 1, base: 1, mark: false });
     }
   }
 
@@ -240,7 +244,7 @@ export class Fx {
   number(uid: number, x: number, y: number, value: number, kind: 0 | 1 | 2, perspective = 1): void {
     for (let i = 0; i < this.nums.length; i++) {
       const n = this.nums[i];
-      if (n.on && n.uid === uid && n.t < NUM_MERGE && n.kind === kind) {
+      if (n.on && !n.mark && n.uid === uid && n.t < NUM_MERGE && n.kind === kind) {
         n.value += value;
         n.x = x;
         n.y = y;
@@ -262,7 +266,7 @@ export class Fx {
         continue;
       }
       if (n.kind === 2) dots++;
-      if (n.uid === uid) {
+      if (n.uid === uid && !n.mark) {
         clustered++;
         if (!targetOldest || n.t > targetOldest.t) targetOldest = n;
       }
@@ -275,6 +279,7 @@ export class Fx {
     if (!n) return;
     if (!n.on) this.liveNums++;
     n.on = true;
+    n.mark = false;
     n.t = 0;
     n.x = x + ((clustered % 3) - 1) * 12 * this.u;
     n.y = y - (clustered % 2) * 10 * this.u;
@@ -284,6 +289,24 @@ export class Fx {
     n.value = value;
     this.setText(n, kind);
     n.txt.setVisible(true);
+  }
+
+  /** A small gold "!" that flicks out up and right of a crit number for 0.25 s. Takes a free slot only; with
+   *  `still` (reduced motion) it does not move, it just shows in the colour for a moment. */
+  critMark(x: number, y: number, still: boolean): void {
+    const n = this.nums.find((m) => !m.on);
+    if (!n) return;
+    this.liveNums++;
+    n.on = true;
+    n.mark = true;
+    n.still = still;
+    n.t = 0;
+    n.uid = -1;
+    n.x = x + 16 * this.u;
+    n.y = y - 4 * this.u;
+    n.kind = 1;
+    n.color = NUMBER_COLOR.big;
+    n.txt.setColor(NUMBER_COLOR.big).setText('!').setRotation(0.35).setVisible(true);
   }
 
   private setText(n: Num, kind: 0 | 1 | 2): void {
@@ -297,7 +320,7 @@ export class Fx {
       n.txt.setColor(c);
     }
     const v = String(Math.max(1, Math.round(n.value)));
-    n.txt.setText(kind === 1 ? `CRISP! ${v}` : v);
+    n.txt.setText(v);
   }
 
   get numbersLive(): number {
@@ -310,6 +333,19 @@ export class Fx {
       const n = this.nums[i];
       if (!n.on) continue;
       n.t += dt;
+      if (n.mark) {
+        if (n.t >= MARK_LIFE) {
+          n.on = false;
+          n.mark = false;
+          n.txt.setVisible(false).setRotation(0);
+          this.liveNums--;
+          continue;
+        }
+        const k = n.t / MARK_LIFE;
+        const fly = n.still ? 0 : easeOut(k) * 10 * this.u;
+        n.txt.setPosition(n.x + fly, n.y - fly).setScale((n.still ? 0.8 : 1.5 - 0.7 * k) * n.perspective).setAlpha(1 - k * k);
+        continue;
+      }
       if (n.t >= NUM_LIFE) {
         n.on = false;
         n.txt.setVisible(false);
