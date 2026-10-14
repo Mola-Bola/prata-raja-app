@@ -2,6 +2,20 @@
 Standing steering from the owner. Every round and inbox run reads this first. Newest at the top. Retire a line by moving it to "Retired".
 
 ## Active
+- 2026-10-14: **Direction 2.0 (owner voice note, 14 Oct). Supersedes the Codex fleet model.**
+  - **Fleet:** Claude lead (Opus) + parallel Haiku workers (Sonnet where risk is higher). Codex retired (usage drain). Verification is light: owner is the only tester and accepts bugs; ship fast, fix forward. No 300-seed/pinned-gate ceremony per slice; `tsc` + touched tests + web build, then ship.
+  - **Genre target:** RPG with an open-world feel long-term (feasibility study first: `docs/OPEN-WORLD.md`). Archero arena is a stepping stone, not the destination.
+  - **No waves.** One fluid, continuous flow of enemies tied to story beats. **The stall moves**: Kannan's stall travels/flies through the street; the world scrolls past rather than a static platform with mobs walking in.
+  - **Story unlocks, not level gates.** New rotis, dips, places unlock through story beats, not "reach level N".
+  - **One character level.** Create Kannan, he levels in one persistent progression. Drop the split of in-run level then stall level. Gear must never drop with a level requirement the player can't meet.
+  - **Crafting materials in theme:** masala, common spices, ghee, flour, onions etc. Enhancements in hawker theme.
+  - **Dips = gem-like supports** with set effects (PoE / games-breakdown as reference, never copy). Themed effects: mint chutney chills/freezes, curry heat = spicy damage over time (not a generic "burn"), masala sneeze, roti scatter/flake as something unique.
+  - **Effects polish:** freeze must not be a random ice block; burn must not be a lone side icon. Statuses read on the enemy itself.
+  - **Audio:** roti hits sound like bread slapping on a tawa; different breads, different slaps.
+  - **Title:** plain "Start" (no "start a daydream"), short intro sequence.
+  - **Cards** are a placeholder; owner will steer them after story/gear solidify.
+  - **Later:** stall as an upgradable component; stall-vs-stall PvP.
+  - **Ops:** login wall (only the owner can play or post notes), progress saved robustly (cloud), version visible in game, continuous monitoring of in-game notes and PostHog session replays by cheap agents.
 - 2026-10-14: **Continuous player-visible development goal (owner approved).** Keep working in complete small loops: choose the most valuable playable improvement, build/test/publish it, verify the live result, incorporate feedback and proceed. Each product loop should change something the owner can see, feel or try; tooling supports delivery. Lead design decisions within this recorded direction, prototype uncertainty and bring concrete options/recommendations when a consequential directional steer is needed. Ask for access, phone taps or spend when required and continue independent work around blockers. Status questions and steering adjust the active goal rather than end it. Keep proposed mechanics malleable, preserve saves, and never pay-to-win.
 - 2026-10-13: **Web-only shipping (owner, 13 Oct):** ship the web build alone: `SKIP_DB=1 ~/cell/akit/akit check` → stamp → `~/cell/akit/akit ship -- node scripts/publish-web.mjs --label "$(node scripts/ship-cloud.mjs --next-label)"`. No Android OTA/APK unless the owner asks (they play in the browser only; same feel, fastest loop, half the build work).
 - 2026-10-13: **Only the owner plays and tests; they test in the browser** (https://mola-bola.github.io/prata-raja/, phone browser or desktop; "Add to Home Screen" for full screen). Web is the primary target: every ship must publish web; verify on the web build first; no family audience to protect, so fast-lane OTAs are fine. APK/native work only when the owner asks.
