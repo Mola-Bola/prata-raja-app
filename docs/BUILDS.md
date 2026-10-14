@@ -51,3 +51,20 @@ Four families, each with its own stat type and flavour of minor skill:
 4. Gear seasoning + stitching; first hawker set.
 5. Drinks in the tiffin; legendary dips and trigger dips; set meals.
 Each step: contracts first, bot balance (300 seeds), phone-readable UI, kid-friendly surface with depth behind it.
+
+## 6. Crisp & Soak axes (owner, 14 Oct; DIRECTION.md "Crispy vs soggy")
+Two named, real stats. Crispy builds crit; soggy builds splash. Hybrids are first-class.
+- **Crisp** = crit chance + crit damage (existing `critChance`/`critMult`). Crits show golden sparks and a "CRISP!" number. Crisp builds trade status potency (Crisp Edges costs -5% DoT per level).
+- **Soak** (`soak`, new) = share of a hit's damage, plus the dip statuses it applied (burn, sugar, chill, tender), splashed to every other foe within 90 units of the target (x `1 + sizePct`). Splash never re-splashes and never touches shields. Shown as a curry-coloured ring (skipped with reduced motion).
+- Hybrid hooks: **Crackling Curry** (`critSplash`: crits splash extra) and **Twice-Fried** (`splashCrit`: splash hits roll to crit).
+
+| Source | Crisp | Soak |
+|---|---|---|
+| Roti tag | `crisp` rotis +5% crit | `soggy` rotis (Murtabak, Egg Telur) +15% soak |
+| Dips | chutneys/Ghee already crit-flavoured | curry +4%, dhal +3%, sambar +6% (+1% per level above 1; linked dips only count for their roti) |
+| Cards (passives) | Crisp Edges (+3% crit, +0.1 crit dmg, -5% DoT) | Curry Soak (+8%) |
+| Hybrid cards | Crackling Curry (crit +20% splash, max 3) | Twice-Fried (splash can crit, +5% soak) |
+| Gear affixes | Crispy (headband, +0.1 crit dmg) | Soaked (apron), Curry-splashed (gloves), +3% soak |
+| Stall / later | tawa seasoning (crit), drinks (Kopi O) | thali tray / sambar-pot upgrades, uniques |
+
+Determinism: `rollHit` is unchanged (one rng draw only when `canCrit`). Splash adds no draws unless `splashCrit > 0` (one draw per splashed foe, in `w.enemies` order). Crisp-tag crit chance changes the threshold, not the draw count. Both stats show in the in-run build sheet ("Crisp & Soak" block, per-roti totals). Card art reuses existing passive icons until new ones are drawn.

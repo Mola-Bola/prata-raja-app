@@ -22,9 +22,9 @@ const affix = (id: string, stat: keyof PlayerStats, value: number): Affix => ({ 
 // shortcut: only unconditional PlayerStats affixes; add combat triggers when the simulation supports them.
 export const AFFIX_POOLS: Record<Slot, readonly Affix[]> = {
   towel: [affix('gold-tips', 'goldPct', .1), affix('crit-power', 'critMult', .1), affix('lucky', 'critChance', .01), affix('keen-eye', 'rangePct', .05)],
-  headband: [affix('strong-wrist', 'dmgPct', .05), affix('sharp-eye', 'critChance', .01), affix('hot-tawa', 'dotPct', .05), affix('long-throw', 'rangePct', .05)],
-  apron: [affix('padded', 'dmgTakenPct', -.03), affix('mending', 'regen', .2), affix('sturdy', 'maxHp', 5), affix('nimble', 'dodge', .02)],
-  gloves: [affix('fast-flip', 'throwSpeedPct', .03), affix('firm-grip', 'dmgPct', .03), affix('big-dough', 'sizePct', .05), affix('precise', 'critChance', .01)],
+  headband: [affix('strong-wrist', 'dmgPct', .05), affix('sharp-eye', 'critChance', .01), affix('hot-tawa', 'dotPct', .05), affix('long-throw', 'rangePct', .05), affix('crispy', 'critMult', .1)],
+  apron: [affix('padded', 'dmgTakenPct', -.03), affix('mending', 'regen', .2), affix('sturdy', 'maxHp', 5), affix('soaked', 'soak', .03), affix('nimble', 'dodge', .02)],
+  gloves: [affix('fast-flip', 'throwSpeedPct', .03), affix('firm-grip', 'dmgPct', .03), affix('big-dough', 'sizePct', .05), affix('precise', 'critChance', .01), affix('curry-splashed', 'soak', .03)],
   slippers: [affix('dodge', 'dodge', .05), affix('quick-feet', 'moveSpeed', BASE_STATS.moveSpeed * .03), affix('steady', 'dmgTakenPct', -.02), affix('restful', 'regen', .1)],
 };
 const MAIN_STATS: Record<Slot, Partial<PlayerStats>> = {

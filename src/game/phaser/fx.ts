@@ -296,7 +296,8 @@ export class Fx {
       n.color = c;
       n.txt.setColor(c);
     }
-    n.txt.setText(String(Math.max(1, Math.round(n.value))));
+    const v = String(Math.max(1, Math.round(n.value)));
+    n.txt.setText(kind === 1 ? `CRISP! ${v}` : v);
   }
 
   get numbersLive(): number {

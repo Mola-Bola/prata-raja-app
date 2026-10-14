@@ -46,6 +46,10 @@ const DIP_LINES: Record<DipId, string> = {
 const PASSIVE_LINES: Partial<Record<PassiveId, string>> = {
   'extra-dough': '+1 bread, 12° fan',
   'big-dough': '+10% size and blast',
+  'crisp-edges': '+3% crit, +0.1 crit dmg',
+  'curry-soak': 'Hits splash +8% nearby',
+  'crackling-curry': 'Crits splash +20% nearby',
+  'twice-fried': 'Splash can crit',
   'kopi-break': '+0.3 HP/s; heals on level',
   'bigger-tips': '+15% XP, auto-collected',
   multitasker: 'Throw on the move +25%',

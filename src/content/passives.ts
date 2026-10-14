@@ -27,6 +27,11 @@ export const PASSIVES: Record<PassiveId, PassiveDef> = {
     perLevel: { xpPct: 0.15 },
     sprite: 'passives/bigger-tips',
   },
+  // Crisp & Soak axes (docs/BUILDS.md). Art reuses existing passive sprites until new icons exist.
+  'crisp-edges': { id: 'crisp-edges', name: 'Crisp Edges', desc: '+3% crit chance, +0.1 crit damage, -5% DoT', maxLevel: 5, perLevel: { critChance: 0.03, critMult: 0.1, dotPct: -0.05 }, sprite: 'passives/lucky-towel' },
+  'curry-soak': { id: 'curry-soak', name: 'Curry Soak', desc: 'Hits splash +8% damage and dip effects nearby', maxLevel: 5, perLevel: { soak: 0.08 }, sprite: 'passives/big-dough' },
+  'crackling-curry': { id: 'crackling-curry', name: 'Crackling Curry', desc: 'Crits splash +20% damage and dip effects nearby', maxLevel: 3, perLevel: { critSplash: 0.2 }, sprite: 'passives/hot-tawa' },
+  'twice-fried': { id: 'twice-fried', name: 'Twice-Fried', desc: 'Splash can crit; +5% soak', maxLevel: 1, perLevel: { splashCrit: 1, soak: 0.05 }, sprite: 'passives/strong-wrists' },
   multitasker: {
     id: 'multitasker',
     name: 'Multitasker',

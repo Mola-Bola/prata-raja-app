@@ -18,7 +18,7 @@ describe('level-up card text', () => {
       ...Object.keys(CONTENT.dips).map((id) => card('dip', id)),
       ...Object.keys(CONTENT.passives).map((id) => card('passive', id)),
     ];
-    expect(cards).toHaveLength(20 + 10 + 12);
+    expect(cards).toHaveLength(20 + 10 + 16);
     for (const c of cards) {
       const v = cardView(c);
       expect(v.name, c.id).not.toBe('');

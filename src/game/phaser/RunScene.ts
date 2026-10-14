@@ -585,6 +585,9 @@ export class RunScene extends Phaser.Scene {
         case 'blast':
           this.onBlast(w, ev);
           break;
+        case 'splash':
+          this.onSplash(ev);
+          break;
         case 'chain':
           this.onChain(ev);
           break;
@@ -720,7 +723,13 @@ export class RunScene extends Phaser.Scene {
       this.fx.spawn('fx/curry-splash', sx, cy, D.fx - 1, 0.3, 22 * u * s, 56 * u * s).tint(this.dipTint()).fade(0.9, 0, 0.2).spin(ev.uid * 2.1, 0);
     }
     this.fx.number(ev.uid, sx, v ? v.topY : P.sy - 36 * u * P.s, ev.dmg, ev.crit ? 1 : ev.color ? 2 : 0, P.s);
-    if (ev.crit) this.critUid = ev.uid;
+    if (ev.crit) {
+      this.critUid = ev.uid;
+      // CRISP! crackle: golden sparks (one when reduced motion is on).
+      for (let i = 0; i < (this.reduceMotion ? 1 : 3); i++) {
+        this.fx.spawn('fx/spark', sx, cy, D.fxTop, 0.22, 14 * u * s, 40 * u * s).tint(0xffd24a).fade(1, 0, 0.25).spin(ev.uid + i * 2.1, 5);
+      }
+    }
     if (v && (v.elite || v.boss) && this.eliteGate.allow(performance.now())) this.addTrauma(v.boss ? 0.1 : 0.2);
     this.sfx(ev.crit ? 'crit' : 'hit', ev.breadId);
   }
@@ -785,6 +794,14 @@ export class RunScene extends Phaser.Scene {
           .delay(0.12 * i);
       }
     }
+  }
+
+  /** Soak splash: a curry-coloured ring that spreads over the splash radius (pooled fx; skipped with reduced motion). */
+  private onSplash(ev: Extract<GameEvent, { t: 'splash' }>): void {
+    if (this.reduceMotion) return;
+    const P = this.proj.at(ev.x, ev.y);
+    const wpx = ev.radius * 2 * P.ppu * P.s;
+    this.fx.spawn('fx/levelup-ring', P.sx, P.sy - wpx * 0.1, D.fx - 1, 0.3, wpx * 0.35, wpx).tint(0xd9a441).fade(0.8, 0, 0.3);
   }
 
   private onBlast(w: World, ev: Extract<GameEvent, { t: 'blast' }>): void {

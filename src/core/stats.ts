@@ -7,6 +7,7 @@ export const BASE_STATS: PlayerStats = {
   maxHp: 100, regen: 0, moveSpeed: 700, dmgPct: 0, throwSpeedPct: 0, critChance: 0.05, critMult: 1.5,
   extraProjectiles: 0, sizePct: 0, dotPct: 0, rangePct: 0, xpPct: 0, throwWhileMoving: 0, revives: 0,
   dmgTakenPct: 0, dodge: 0, healOnLevelUpPct: 0, goldPct: 0,
+  soak: 0, critSplash: 0, splashCrit: 0,
 };
 
 export type BuffMods = { throwSpeedPct: number; projSpeedPct: number; critMultAdd: number; dmgPct: number; critChance: number };

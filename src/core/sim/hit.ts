@@ -1,6 +1,7 @@
 import { linkedDipEffect } from '../dipLinks';
 import { creditDipUse, matchingDipLink, simmerEffect } from '../dipProgression';
 // Damage rules: a bread hit on an enemy, dip chain/sambal side effects, DoT bookkeeping, kills, XP and gold.
+import { rotiCrisp, SOAK_RADIUS, soakFor } from '../soak';
 import { rollHit, xpToNext } from '../stats';
 import { applyCc, applyHitEffect, dmgTakenMul, hasStatus, onBreadHit } from '../status';
 import type { BreadId, BreadStats, Enemy, HitEffect } from '../types';
@@ -40,7 +41,9 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
     }
     return true;
   }
-  const r = rollHit(dmg, guaranteedCrit ? { ...p.stats, critChance: 1 } : p.stats, mods(c), dmgTakenMul(e), c.rng);
+  // Crisp-tagged rotis bring base crit chance; same single rng draw as before.
+  const crisp = rotiCrisp(w.content, breadId);
+  const r = rollHit(dmg, guaranteedCrit ? { ...p.stats, critChance: 1 } : crisp ? { ...p.stats, critChance: p.stats.critChance + crisp } : p.stats, mods(c), dmgTakenMul(e), c.rng);
   if (e.hp > 0 && e.state !== 'dead' && r.dmg > 0) creditDipUse(w, breadId);
   e.hp -= r.dmg;
   e.flash = HIT_FLASH;
@@ -59,6 +62,7 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
     if (st.stun > 0) stun(c, e, st.stun);
     if (st.knockback > 0) e.knock += st.knockback * (e.def.knockbackTaken ?? 1) * (e.boss ? 0.1 : 1);
   }
+  const applied: HitEffect[] = [];
   for (const d of p.dips) {
     if (e.state === 'dead') break; // a cascade (chain -> sambal) already finished it: no effects on a corpse
     const def = w.content.dips[d.id];
@@ -77,12 +81,37 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
       e.cooldowns._linkedSugar = w.time;
     }
     for (const ev of applyHitEffect(fx, e)) emit(c, ev);
+    if (fx.type === 'burn' || fx.type === 'sugar' || fx.type === 'chill' || fx.type === 'tender') applied.push(fx);
     if (fx.type === 'chain') chain(c, e, fx, def.color);
   }
+  const soak = soakFor(w.content, p.stats, p.dips, breadId) + (r.crit ? p.stats.critSplash : 0);
+  if (soak > 0) splash(c, e, dmg, soak, applied);
   onBreadHit(p, w.content);
   dirtyMods(c);
   if (e.hp <= 0) killEnemy(c, e);
   return false;
+}
+
+const SOAK_COLOR = '#D9A441';
+
+/** Soak: `pct` of the hit's base damage and the dip statuses it applied splash to every other foe within the radius
+ *  (grows with sizePct). Rng: no draws, except one per splashed foe when stats.splashCrit > 0 (Twice-fried), in
+ *  w.enemies order. Splash never splashes again and never touches the shield path. */
+function splash(c: Ctx, src: Enemy, base: number, pct: number, effects: readonly HitEffect[]): void {
+  const { w, p } = c;
+  const radius = SOAK_RADIUS * (1 + p.stats.sizePct);
+  emit(c, { t: 'splash', x: src.x, y: src.y, radius });
+  const canCrit = p.stats.splashCrit > 0;
+  for (let i = 0; i < w.enemies.length; i++) {
+    const o = w.enemies[i];
+    if (o === src || !hurtable(o) || dist(src.x, src.y, o.x, o.y) > radius + o.def.radius) continue;
+    const r = rollHit(base * pct, p.stats, mods(c), dmgTakenMul(o), c.rng, canCrit);
+    o.hp -= r.dmg;
+    o.flash = HIT_FLASH;
+    emit(c, { t: 'hit', uid: o.uid, x: o.x, y: o.y, dmg: r.dmg, crit: r.crit, color: SOAK_COLOR });
+    for (const fx of effects) for (const ev of applyHitEffect(fx, o)) emit(c, ev);
+    if (o.hp <= 0) killEnemy(c, o);
+  }
 }
 
 /** Masala: from the hit enemy the spark hops up to `jumps` times, each time to the nearest enemy within `range`
