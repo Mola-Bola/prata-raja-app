@@ -14,7 +14,7 @@ import { claim, STREAK_REWARDS } from '@/meta/streak';
 import { buyTraining, respec, TRAINING_COSTS, TRAINING_STATS } from '@/meta/training';
 import { SLOTS, TRAINING_IDS, type GearItem, type SaveV2 } from '@/meta/types';
 
-import { pipText } from '../cardText';
+import { fmt } from '../format';
 import { Switch, toggleSetting } from '../settings';
 import { chestArt, evolutionRecipes, giftLabel, mergeCandidates, mergeGear, pityLines, rackItems, statLines, titleCase, unlockBeat } from './helpers';
 import type { Art } from './StallProgress';
@@ -37,6 +37,34 @@ function ItemTile({ item, art }: { item: GearItem; art: Art }) {
   );
 }
 
+/** The coins in the jar, as one pill with the coin picture (the same one at the top of every sheet that spends). */
+function Balance({ gold, art }: { gold: number; art: Art }) {
+  return (
+    <span className="sh-balance">
+      <img src={art('ui/coins')} alt="" />
+      {fmt(gold)} coins in the jar
+    </span>
+  );
+}
+
+/** Filled and empty dots: how far a track has come. */
+function Pips({ step, of }: { step: number; of: number }) {
+  return (
+    <span className="sh-pips" role="img" aria-label={`${step} of ${of} steps`}>
+      {Array.from({ length: of }, (_, i) => <i key={i} className={i < step ? 'on' : undefined} />)}
+    </span>
+  );
+}
+
+function Section({ icon, children }: { icon?: string; children: string }) {
+  return (
+    <h3 className="sh-section">
+      {icon && <img src={icon} alt="" />}
+      {children}
+    </h3>
+  );
+}
+
 export function GearSheet({ save, commit, art }: Ctx) {
   const [uid, setUid] = useState<string | null>(null);
   const rack = rackItems(save);
@@ -53,7 +81,8 @@ export function GearSheet({ save, commit, art }: Ctx) {
   };
   return (
     <>
-      <span className="sh-balance">{save.gold} coins in the jar</span>
+      <Balance gold={save.gold} art={art} />
+      <Section>Wearing</Section>
       <div className="sh-slots" data-testid="gear-slots">
         {SLOTS.map((slot) => {
           const worn = rack.find((i) => i.uid === save.equipped[slot]);
@@ -77,6 +106,7 @@ export function GearSheet({ save, commit, art }: Ctx) {
           );
         })}
       </div>
+      <Section>Rack</Section>
       {rack.length > 0 && <p>Tap gear to wear it.</p>}
       <div className="sh-inventory">
         {rack.map((i) => (
@@ -118,18 +148,18 @@ export function GearSheet({ save, commit, art }: Ctx) {
   );
 }
 
-export function TrainingSheet({ save, commit }: Ctx) {
+export function TrainingSheet({ save, commit, art }: Ctx) {
   const trained = TRAINING_IDS.some((id) => save.training[id] > 0);
   return (
     <>
-      <span className="sh-balance">{save.gold} coins in the jar</span>
+      <Balance gold={save.gold} art={art} />
       {TRAINING_IDS.map((id) => {
         const step = save.training[id];
         const cost: number | undefined = TRAINING_COSTS[step];
         return (
           <section className="sh-detail" key={id} data-testid={`train-${id}`}>
             <b>{titleCase(id)}</b>
-            <span aria-label={`${step} of ${TRAINING_COSTS.length} steps`}>{pipText(step, TRAINING_COSTS.length)}</span>
+            <Pips step={step} of={TRAINING_COSTS.length} />
             <span>{statLines(TRAINING_STATS[id]).join(' · ')} each step</span>
             <button type="button" className="gu-btn" data-testid={`train-${id}-buy`} disabled={cost === undefined || save.gold < cost} onClick={() => commit((s) => buyTraining(s, id))}>
               {cost === undefined ? 'Fully trained' : `Train · ${cost} coins`}
@@ -150,7 +180,7 @@ export function IdleSheet({ save, commit, art, now }: Ctx & { now: Date }) {
   return (
     <>
       <img className="sh-feature-art" src={art('hub/tip-jar')} alt="" />
-      <h3 data-testid="idle-waiting">{p.gold} coins waiting</h3>
+      <h3 data-testid="idle-waiting" className="sh-section sh-section--big">{fmt(p.gold)} coins waiting</h3>
       <p>
         Counted {Number(p.hours.toFixed(1))} h of {p.capHours} h
       </p>
@@ -180,6 +210,7 @@ export function CalendarSheet({ save, commit, art, now, go }: Ctx & { now: Date;
   const gift = claim(save, now, tz);
   return (
     <>
+      <Section icon={art('hub/streak')}>Daily gift</Section>
       <p>Two rest days weekly; never start over.</p>
       <div className="sh-calendar" data-testid="calendar-days">
         {STREAK_REWARDS.map((reward, i) => (
@@ -222,6 +253,7 @@ export function ChestsSheet({ save, commit, art }: Ctx) {
   };
   return (
     <>
+      <Section icon={art(chestArt('common'))}>Chests</Section>
       <p data-testid="chest-pity">{pityLines(save).join(' · ')}</p>
       {revealed && (
         <div key={revealed.uid} className="sh-reveal" role="status" data-testid="chest-reveal" style={{ borderColor: RARITY_INFO[revealed.rarity].color }}>
@@ -264,7 +296,7 @@ export function RecipeSheet({ save, commit, art }: Ctx) {
           </section>
         );
       })}
-      <h3 className="gu-heading">Evolutions</h3>
+      <Section icon={art('hub/star')}>Evolutions</Section>
       <p>Max both foods in a run, then pick Evolve.</p>
       {evolutionRecipes(save).map(recipe => (
         <section className="sh-detail" key={recipe.id} data-testid="evolution-recipe" data-known={recipe.known}>

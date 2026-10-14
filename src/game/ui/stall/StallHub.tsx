@@ -13,7 +13,8 @@ import { dueMilestone } from '@/meta/milestones';
 import type { SaveV2 } from '@/meta/types';
 
 import { DipCollection } from './DipCollection';
-import { HOTSPOTS, PANELS, readyBadges, unlockBeat, type Panel } from './helpers';
+import { fmt } from '../format';
+import { chestArt, HOTSPOTS, PANELS, readyBadges, unlockBeat, type Panel } from './helpers';
 import { SignatureSheet, CalendarSheet, ChestsSheet, GearSheet, IdleSheet, PreviewSheet, RecipeSheet, SettingsSheet, TrainingSheet, type Commit } from './sheets';
 import { StallProgress, type Art } from './StallProgress';
 import { Visitor } from './Visitor';
@@ -80,17 +81,16 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, ar
       </div>
       <header className="sh-top" inert={!!panel || !!visitor}>
         <StallProgress xp={kannanXpOf(save)} art={art} />
-        <span className="sh-spec" data-testid="stall-spec">
-          Spec points: {specPointsOf(save)} (tree coming soon)
-          {perk && <><br />Next perk at Lv {perk.level}: {perk.label}</>}
-        </span>
         <span className="sh-coins" data-testid="stall-coins">
           <img src={art('ui/coins')} alt="Coins" />
-          {save.gold}
+          <span className="gu-shine">{fmt(save.gold)}</span>
         </span>
         <button type="button" className="sh-cog" data-testid="stall-settings" aria-label="Settings" onClick={() => open('settings')}>
           <img src={art('hub/settings')} alt="" />
         </button>
+        <span className="sh-spec" data-testid="stall-spec">
+          <b>★ {specPointsOf(save)}</b> spec points{perk && <> · Lv {perk.level} perk: {perk.label}</>}
+        </span>
       </header>
       <footer className="sh-footer" inert={!!panel || !!visitor}>
         <button type="button" className="gu-btn" data-testid="stall-signature" onClick={() => open('signature')}>
@@ -107,12 +107,12 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, ar
       </footer>
       {visitor && <Visitor due={visitor} commit={commit} art={art} onDone={() => setVisitor(null)} />}
       {panel === 'dips' && (
-        <Sheet title="Dip collection" onClose={() => setPanel(null)}>
+        <Sheet title="Dip collection" icon={art('ui/crown')} onClose={() => setPanel(null)}>
           <DipCollection save={save} art={art} />
         </Sheet>
       )}
       {panel === 'signature' && (
-        <Sheet title="Signature" onClose={() => setPanel(null)}>
+        <Sheet title="Signature" icon={art('ui/crown')} onClose={() => setPanel(null)}>
           <SignatureSheet save={save} commit={commit} art={art} />
         </Sheet>
       )}
@@ -127,13 +127,13 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, ar
         </Sheet>
       )}
       {panel === 'settings' && (
-        <Sheet title="Settings" onClose={() => setPanel(null)}>
+        <Sheet title="Settings" icon={art('hub/settings')} onClose={() => setPanel(null)}>
           <SettingsSheet save={save} commit={commit} />
           <button type="button" className="gu-btn" data-testid="settings-story" onClick={onStory}>Story</button>
         </Sheet>
       )}
       {panel && panel !== 'settings' && panel !== 'chapters' && panel !== 'signature' && panel !== 'dips' && spot && (
-        <Sheet title={spot.label} onClose={() => setPanel(null)}>
+        <Sheet title={spot.label} icon={SHEET_ICON[panel as Panel]?.(art)} onClose={() => setPanel(null)}>
           {locked ? (
             <div className="sh-locked" data-testid="stall-locked">
               <img src={art('ui/lock')} alt="" />
@@ -158,10 +158,21 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, ar
   );
 }
 
+/** The small picture beside a sheet's title (art that already exists; a panel without one just has no picture). */
+const SHEET_ICON: Partial<Record<Panel, (art: (key: string) => string) => string>> = {
+  calendar: (art) => art('hub/calendar'),
+  idle: (art) => art('hub/tip-jar'),
+  training: (art) => art('hub/training'),
+  recipes: (art) => art('hub/recipe-book'),
+  special: (art) => art('hub/chef-special'),
+  chests: (art) => art(chestArt('common')),
+  gear: (art) => art('gear/plain-headband'),
+};
+
 /** A bottom sheet over a dim: Escape or a tap outside closes it, focus moves in and returns, and Tab stays inside. The hub
  *  behind it is inert while it is open, and focus that falls out of the sheet (the button it was on just disabled itself:
  *  claiming a gift, spending the last coins) is brought back to the sheet. */
-function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+function Sheet({ title, icon, onClose, children }: { title: string; icon?: string; onClose: () => void; children: ReactNode }) {
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -200,7 +211,10 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
         }}
       >
         <header className="sh-sheet-head">
-          <h2 className="gu-heading">{title}</h2>
+          <div className="sh-sheet-title">
+            {icon && <img src={icon} alt="" />}
+            <h2 className="gu-heading">{title}</h2>
+          </div>
           <button type="button" className="gu-btn" data-testid="stall-close" onClick={onClose} aria-label="Close panel">
             ×
           </button>
