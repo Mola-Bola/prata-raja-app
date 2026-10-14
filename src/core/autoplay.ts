@@ -2,7 +2,8 @@
 import { MAX_BREADS } from './cards';
 import { swapFind } from './finds';
 import { chooseCard, createRun, drainEvents, step } from './sim';
-import { dangers, type Danger } from './sim/danger';
+import { dangers, dangersFree, distToDanger, type Danger, type Danger2 } from './sim/danger';
+import { FREE, isFreeMode } from './sim/free';
 import { FIELD, type Card, type Content, type Loadout, type RunInput, type RunResult, type World } from './types';
 
 /** Extra clearance around a danger, on top of Kannan's half-width already counted in it. */
@@ -57,9 +58,70 @@ function columnScores(w: World): number[] {
 const binOf = (x: number): number => Math.min(BINS - 1, Math.max(0, Math.floor((x + FIELD.halfWidth) / BIN)));
 const binCentre = (bin: number): number => Math.max(-FIELD.kannanMaxX, Math.min(FIELD.kannanMaxX, -FIELD.halfWidth + bin * BIN + BIN / 2));
 
+// ── Free mode: kite ──────────────────────────────────────────────────────────
+
+const DIRS = 16;
+const CANDIDATES = Array.from({ length: DIRS }, (_, i) => [Math.cos((2 * Math.PI * i) / DIRS), Math.sin((2 * Math.PI * i) / DIRS)] as const);
+/** Pests closer than this (beyond touching) make the bot move; otherwise it stands and throws at full rate. */
+const KITE_RANGE = 200;
+const LOOKAHEAD = 0.35;
+const WALL = 70;
+
+/** How bad it is to stand at (x, y): crowding by pests (closer = worse), walls, and anything that is about to land. */
+function risk(w: World, ds: Danger2[], x: number, y: number): number {
+  let r = 0;
+  for (const e of w.enemies) {
+    if (e.state === 'dead') continue;
+    const d = Math.hypot(x - e.x, y - e.y) - e.def.radius * FREE.contactScale - FIELD.kannanRadius;
+    if (d < KITE_RANGE) {
+      const f = 1 - Math.max(d, 0) / KITE_RANGE;
+      r += (e.def.contactDps > 0 || e.boss ? 1 : 0.4) * f * f * 10 + (d < 0 ? 12 : 0);
+    }
+  }
+  const m = Math.min(x + FIELD.kannanMaxX, FIELD.kannanMaxX - x, y - FIELD.freeMinY, FIELD.freeMaxY - y);
+  if (m < WALL) r += ((WALL - m) / WALL) * 4;
+  for (const d of ds) if (d.t < 1.1 && distToDanger(d, x, y) < d.half) r += 40;
+  return r;
+}
+
+const lastDirs = new WeakMap<World, number>();
+/** Free-mode bot: stand and throw until pests close in or something is about to land, then step to the least risky spot and dash out of trouble. */
+function autoInputFree(w: World): RunInput {
+  const p = w.player;
+  const ds = dangersFree(w, REACTION);
+  const here = risk(w, ds, p.x, p.y);
+  const reach = p.stats.moveSpeed * FREE.speedMul * LOOKAHEAD;
+  const lastDir = lastDirs.get(w) ?? -1;
+  let best = -1;
+  let bestRisk = here - 0.5; // staying put is the default; moving must clearly help
+  for (let i = 0; i < DIRS; i++) {
+    const [cx, cy] = CANDIDATES[i];
+    const nx = Math.max(-FIELD.kannanMaxX, Math.min(FIELD.kannanMaxX, p.x + cx * reach));
+    const ny = Math.max(FIELD.freeMinY, Math.min(FIELD.freeMaxY, p.y + cy * reach));
+    const r = risk(w, ds, nx, ny) - (i === lastDir ? 0.6 : 0);
+    if (r < bestRisk) {
+      best = i;
+      bestRisk = r;
+    }
+  }
+  lastDirs.set(w, best);
+  const jx = best < 0 ? 0 : CANDIDATES[best][0];
+  const jy = best < 0 ? 0 : CANDIDATES[best][1];
+  // Dash when a shot/tell is about to land on us, or a pest has us and the way out is clear.
+  let dodge = false;
+  if (p.dashCd <= 0 && best >= 0) {
+    const landing = ds.some((d) => d.t < 0.22 && distToDanger(d, p.x, p.y) < d.half);
+    let touching = 0;
+    for (const e of w.enemies) if (e.state !== 'dead' && Math.hypot(p.x - e.x, p.y - e.y) < e.def.radius * FREE.contactScale + FIELD.kannanRadius + 18 && e.def.contactDps > 0) touching++;
+    dodge = landing || touching >= 2 || (touching >= 1 && here > 14);
+  }
+  return { targetX: null, moving: best >= 0, jx, jy, dodge };
+}
+
 /** What a player would do this frame. Dodge first (an enemy shot, boss tell or aim lands near Kannan's x), then settle under
  *  the densest enemy column, but only when the gain is clear: moving stops the throwing. */
 export function autoInput(w: World): RunInput {
+  if (isFreeMode(w.content)) return autoInputFree(w);
   const p = w.player;
   const ds = dangers(w, REACTION);
   if (ds.length > 0 && (unsafeAt(ds, p.x) || unsafeAt(ds, p.targetX))) {

@@ -24,7 +24,7 @@ const fake = {
 
 const ownedBread = (id: BreadId, level: number) => ({ id, level, cd: 0, volleyLeft: 0, volleyT: 0 });
 const player = (over: Partial<Player> = {}): Player => ({
-  x: 0, targetX: 0, moving: false, hp: 100, stats: { ...BASE_STATS }, breads: [], dips: [], passives: [],
+  x: 0, y: 0, dashT: 0, dashCd: 0, dashDx: 0, dashDy: 1, faceX: 0, faceY: 1, dodgeHeld: false, targetX: 0, moving: false, hp: 100, stats: { ...BASE_STATS }, breads: [], dips: [], passives: [],
   buffs: [], level: 1, xp: 0, xpToNext: 9, revivesLeft: 0, throwAnim: 0, hurtAnim: 0, ...over,
 });
 const seeds = Array.from({ length: 200 }, (_, i) => i + 1);

@@ -9,7 +9,10 @@ import { rollItem } from '../../meta/gear';
 import { unlocksForXp } from '../../meta/stall';
 import { SLOTS } from '../../meta/types';
 import { makeRng } from '../rng';
-import type { Loadout, RunResult } from '../types';
+import type { Content, Loadout, RunResult } from '../types';
+
+/** Free-movement variant of the shipped content (content.tune.controlMode). Counter mode stays the default everywhere else. */
+const FREE_CONTENT: Content = { ...CONTENT, tune: { controlMode: 'free' } };
 
 /** BALANCE_SEEDS=300 gives the full measurement; the default stays quick. BALANCE_FIRST_SEED=301 runs a holdout range. */
 const SEED_COUNT = Number(process.env.BALANCE_SEEDS ?? 20);
@@ -34,8 +37,8 @@ const POLICIES = [
 type Measured = { result: RunResult; bossFightHpLost: number | null; bossAttackHpLost: number | null; bossSeconds: number | null };
 
 /** The autoplay loop of simulateRun, plus event bookkeeping for the boss fight. */
-function measureRun(seed: number, maxBreads: number): Measured {
-  const world = createRun({ seed, content: CONTENT });
+function measureRun(seed: number, maxBreads: number, content: Content = CONTENT): Measured {
+  const world = createRun({ seed, content });
   const dt = 1 / 30;
   let taken = 0;
   let bossTaken = 0;
@@ -70,17 +73,17 @@ function measureRun(seed: number, maxBreads: number): Measured {
   return { result, bossFightHpLost, bossAttackHpLost, bossSeconds };
 }
 
-describe(`balance (autoplay bot, real content, seeds ${FIRST_SEED}..${FIRST_SEED + SEED_COUNT - 1})`, () => {
+describe.each([['counter', CONTENT], ['free movement', FREE_CONTENT]] as const)(`balance (%s, autoplay bot, real content, seeds ${FIRST_SEED}..${FIRST_SEED + SEED_COUNT - 1})`, (mode, content) => {
   it('every run ends before maxTime; prints median wave, win rate, avg level / time / kills and boss-fight HP per pick policy', () => {
     // The reporting loop must be the bot's own loop: same seed, same policy, same result.
-    expect(measureRun(1, 4).result).toEqual(simulateRun({ seed: 1, content: CONTENT, maxTime: MAX_TIME, maxBreads: 4 }));
+    expect(measureRun(1, 4, content).result).toEqual(simulateRun({ seed: 1, content, maxTime: MAX_TIME, maxBreads: 4 }));
     const lines = [
       '| bot picks | median wave | win rate | avg level | avg time (s) | avg kills | boss HP lost (wins) | of which boss shots | boss seconds (wins) |',
       '|---|---|---|---|---|---|---|---|---|',
     ];
     const rates: { name: string; maxBreads: number; rate: number; bossSeconds: number }[] = [];
     for (const { name, maxBreads } of POLICIES) {
-      const runs = SEEDS.map((seed) => measureRun(seed, maxBreads));
+      const runs = SEEDS.map((seed) => measureRun(seed, maxBreads, content));
       const results = runs.map((r) => r.result);
       for (const r of results) expect(r.time).toBeLessThan(MAX_TIME);
       const wins = results.filter((r) => r.won).length;
@@ -91,8 +94,8 @@ describe(`balance (autoplay bot, real content, seeds ${FIRST_SEED}..${FIRST_SEED
         `| ${name} | ${median(results.map((r) => r.wave))} | ${Math.round((100 * wins) / results.length)}% | ${mean(results.map((r) => r.level)).toFixed(1)} | ${mean(results.map((r) => r.time)).toFixed(0)} | ${mean(results.map((r) => r.kills)).toFixed(0)} | ${fightCell((r) => r.bossFightHpLost)} | ${fightCell((r) => r.bossAttackHpLost)} | ${fightCell((r) => r.bossSeconds)} |`,
       );
     }
-    console.log(lines.join('\n'));
-    if (process.env.BALANCE_REPORT) writeFileSync(process.env.BALANCE_REPORT, lines.join('\n') + '\n');
+    console.log(`${mode}\n${lines.join('\n')}`);
+    if (process.env.BALANCE_REPORT) writeFileSync(mode === 'counter' ? process.env.BALANCE_REPORT : `${process.env.BALANCE_REPORT}.free`, lines.join('\n') + '\n');
     if (SEED_COUNT >= 300) for (const { name, maxBreads, rate, bossSeconds } of rates) {
       const [min, max] = maxBreads === 4 ? [0.55, 0.75] : maxBreads === 2 ? [0.4, 0.6] : [0.1, 0.25];
       expect(rate, name).toBeGreaterThanOrEqual(min);

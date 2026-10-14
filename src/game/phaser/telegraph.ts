@@ -6,8 +6,9 @@ import { D, HAZARD, WHITE } from './look';
 import { ImagePool, type Img } from './pools';
 import { setImage } from './tex';
 
-type Aim = { uid: number; fx: number; fy: number; tx: number; t0: number; until: number };
-type Tell = { kind: BossAttack['kind']; uid: number; xs: number[]; width: number; t0: number; until: number };
+type Aim = { uid: number; fx: number; fy: number; tx: number; ty: number; t0: number; until: number };
+/** `ys` (free mode): the street y of each marked x; absent = marks sit on the counter. */
+type Tell = { kind: BossAttack['kind']; uid: number; xs: number[]; ys?: number[]; width: number; t0: number; until: number };
 
 /** Fills `out` with the live field position of an enemy; false when it is gone. */
 export type Locator = (uid: number, out: { x: number; y: number }) => boolean;
@@ -40,12 +41,12 @@ export class Telegraphs {
     this.used++;
   }
 
-  aim(uid: number, fx: number, fy: number, tx: number, now: number, time: number): void {
-    this.aims.push({ uid, fx, fy, tx, t0: now, until: now + time });
+  aim(uid: number, fx: number, fy: number, tx: number, now: number, time: number, ty = LANDING_Y): void {
+    this.aims.push({ uid, fx, fy, tx, ty, t0: now, until: now + time });
   }
 
-  tell(kind: BossAttack['kind'], uid: number, xs: number[], width: number, now: number, time: number): void {
-    this.tells.push({ kind, uid, xs: xs.slice(), width, t0: now, until: now + time });
+  tell(kind: BossAttack['kind'], uid: number, xs: number[], width: number, now: number, time: number, ys?: number[]): void {
+    this.tells.push({ kind, uid, xs: xs.slice(), ys: ys?.slice(), width, t0: now, until: now + time });
   }
 
   clear(): void {
@@ -84,7 +85,7 @@ export class Telegraphs {
     const from = P.at(fx, fy);
     const ax = from.sx;
     const ay = from.sy - 14 * u * from.s;
-    const to = P.at(a.tx, LANDING_Y);
+    const to = P.at(a.tx, a.ty);
     this.dashed(ax, ay, to.sx, to.sy, u, 0.85);
     this.reticle(to.sx, to.sy, (FIELD.kannanHitHalfWidth * 2 + 14) * P.ppu, p);
   }
@@ -143,25 +144,26 @@ export class Telegraphs {
         for (const x of t.xs) this.band(x - half, x + half, 0, FIELD.depth, fill, edge, u);
         break;
       case 'rain':
-        for (const x of t.xs) {
-          this.band(x - half, x + half, 0, 90, fill + 0.08, edge, u);
-          const c = P.at(x, 45);
+        t.xs.forEach((x, i) => {
+          const y = t.ys ? t.ys[i] : 45;
+          if (!t.ys) this.band(x - half, x + half, 0, 90, fill + 0.08, edge, u);
+          const c = P.at(x, y);
           this.reticle(c.sx, c.sy, half * 2 * P.ppu * c.s, p);
-        }
+        });
         break;
       case 'sweep':
-        for (const x of t.xs) this.band(x - half, x + half, 0, 150, fill, edge, u);
+        for (const x of t.xs) this.band(x - half, x + half, 0, t.ys ? FIELD.depth : 150, fill, edge, u);
         break;
       case 'volley': {
         const live = this.locate(t.uid, this.at);
         const from = P.at(live ? this.at.x : 0, live ? this.at.y : 600);
         const ax = from.sx;
         const ay = from.sy;
-        for (const x of t.xs) {
-          const to = P.at(x, LANDING_Y);
+        t.xs.forEach((x, i) => {
+          const to = P.at(x, t.ys ? t.ys[i] : LANDING_Y);
           this.dashed(ax, ay, to.sx, to.sy, u, 0.8);
           this.reticle(to.sx, to.sy, t.width * P.ppu, p);
-        }
+        });
         break;
       }
       case 'summon': {

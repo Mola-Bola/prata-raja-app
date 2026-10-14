@@ -4,6 +4,7 @@
 // At chapter.bossAt the stall slows to a stop and the boss steps out; once it dies the run is won. Creates no enemies itself: it
 // returns SpawnRequests that sim.ts turns into enemies (same rng stream, same spawn functions as waves).
 import type { Rng } from './rng';
+import { isFreeMode } from './sim/free';
 import { ENEMY_COST, spawnPick, type SpawnRequest } from './waves';
 import type { ChapterDef, Enemy, SpawnLane, World } from './types';
 
@@ -101,6 +102,7 @@ export function flowTick(world: World, dt: number, rng: Rng): FlowOut {
   let pr: Pressure;
   if (world.flowBoss) {
     if (!world.enemies.some((e) => e.boss && living(e))) return { spawns: out, won: true };
+    if (isFreeMode(world.content)) return { spawns: out, won: false }; // boss arena lock: the stall is stopped and no adds spawn while the boss lives
     const bw = fightWave(chapter);
     pr = { rate: bw.budget / bw.duration, mix: bw.mix, eliteChance: bw.eliteChance };
   } else {

@@ -11,6 +11,7 @@ import { autoFind, autoInput, autoPick } from '@/core/autoplay';
 import { swapFind } from '@/core/finds';
 import { SAVE_KEY } from '@/core/save';
 import { chooseCard, createRun, drainEvents, reroll, step } from '@/core/sim';
+import { isFreeMode } from '@/core/sim/free';
 import { FIELD, type BreadId, type GameEvent, type Loadout, type RunInput, type RunResult, type World } from '@/core/types';
 import { computeLoadout } from '@/meta/loadout';
 import { parseSaveV3 } from '@/meta/migrate';
@@ -26,7 +27,8 @@ import { DangerCue } from './danger';
 import { Fx } from './fx';
 import { HurtZone } from './hurtZone';
 import { TehPour } from './tehPour';
-import { DragInput } from './input';
+import { DragInput, FreeInput } from './input';
+import { FreeKannan } from './freeKannan';
 import { makeLayout, Projector, type Layout } from './layout';
 import { CURRY, D, HAZARD, HUD_PERIOD, MAX_STEPS, SHAKE_SHARE, STEEL, STEP, TRAUMA_DECAY } from './look';
 import { DiscPool, ImagePool } from './pools';
@@ -54,8 +56,8 @@ function fastForward(w: World, metres: number): void {
   }
 }
 
-function readUrl(): { seed: number | null; bot: boolean; speed: number; kitchen: boolean; chapter: string | null; at: number; god: boolean } {
-  if (typeof window === 'undefined') return { seed: null, bot: false, speed: 1, kitchen: false, chapter: null, at: 0, god: false };
+function readUrl(): { seed: number | null; bot: boolean; speed: number; kitchen: boolean; chapter: string | null; at: number; god: boolean; move: string | null } {
+  if (typeof window === 'undefined') return { seed: null, bot: false, speed: 1, kitchen: false, chapter: null, at: 0, god: false, move: null };
   const q = new URLSearchParams(window.location.search);
   const seed = q.get('seed');
   const speed = Number(q.get('speed'));
@@ -66,6 +68,7 @@ function readUrl(): { seed: number | null; bot: boolean; speed: number; kitchen:
     chapter: q.get('chapter'),
     at: Math.max(0, Number(q.get('at')) || 0),
     god: q.get('god') === '1',
+    move: q.get('move'),
     speed: Number.isFinite(speed) && speed > 0 ? Math.min(speed, 16) : 1,
   };
 }
@@ -86,6 +89,10 @@ export class RunScene extends Phaser.Scene {
   private pour!: TehPour;
   private hurt!: HurtZone;
   private drag!: DragInput;
+  private joy!: FreeInput;
+  private freeKannan!: FreeKannan;
+  /** The run on screen uses free movement (content.tune.controlMode 'free', or ?move=free). */
+  private free = false;
   private url = readUrl();
   private reduceMotion = false;
 
@@ -141,6 +148,8 @@ export class RunScene extends Phaser.Scene {
     this.pour = new TehPour(this, this.fx);
     this.hurt = new HurtZone(this);
     this.drag = new DragInput(this, () => this.l);
+    this.joy = new FreeInput(this, () => this.l);
+    this.freeKannan = new FreeKannan(this);
     // Browsers only start sound from a tap: the first touch on the canvas unlocks it (the Start button's click does too).
     this.input.on('pointerdown', unlockAudio);
     this.relayout();
@@ -165,6 +174,7 @@ export class RunScene extends Phaser.Scene {
         const w = this.world;
         if (w && !this.paused && swapFind(w, i)) this.sfx('cardPick');
       },
+      dodge: () => this.joy.dodge(),
       pause: () => this.hold(),
       resume: () => {
         this.paused = false;
@@ -205,7 +215,11 @@ export class RunScene extends Phaser.Scene {
 
   private start(seed?: number, loadout?: Loadout, chapterId?: string): void {
     const s = this.url.seed ?? seed ?? Math.floor(Math.random() * 0x100000000);
-    const w = createRun({ seed: s, content: tunedContent(), loadout, chapterId: this.url.chapter ?? chapterId });
+    const tuned = tunedContent();
+    // ?move=free / ?move=counter overrides the Tune knob (dev switch; nothing is saved).
+    const mode = this.url.move === 'free' || this.url.move === 'counter' ? this.url.move : tuned.tune?.controlMode;
+    const content = mode === tuned.tune?.controlMode ? tuned : { ...tuned, tune: { ...tuned.tune, controlMode: mode } };
+    const w = createRun({ seed: s, content, loadout, chapterId: this.url.chapter ?? chapterId });
     if (this.url.god) w.god = true;
     if (this.url.at > 0 && isFlow(w.chapter)) fastForward(w, this.url.at);
     this.showWorld(w);
@@ -262,6 +276,8 @@ export class RunScene extends Phaser.Scene {
     this.street.setProps(w.chapter.props);
     this.street.setFloor(w.chapter.floor);
     this.world = w;
+    this.free = isFreeMode(w.content);
+    if (!this.free) this.freeKannan.hide();
     window.__world = w;
     this.paused = false;
     this.levelUpOpen = false;
@@ -283,6 +299,7 @@ export class RunScene extends Phaser.Scene {
     this.trauma = 0;
     this.hitStop = 0;
     this.drag.release();
+    this.joy.release();
     this.cameras.main.setScroll(0, 0);
   }
 
@@ -303,6 +320,7 @@ export class RunScene extends Phaser.Scene {
     this.paused = false;
     if (w && !this.ended && w.phase !== 'won' && w.phase !== 'lost') {
       this.drag.release();
+      this.joy.release();
       this.wokeEarly = true;
       w.result = this.earlyResult(w);
       this.endRun(w);
@@ -352,6 +370,7 @@ export class RunScene extends Phaser.Scene {
     this.stall.reset();
     this.street.setVisible(false);
     this.drag.release();
+    this.joy.release();
     this.trauma = 0;
     this.hitStop = 0;
     this.hapticGate.reset();
@@ -384,6 +403,7 @@ export class RunScene extends Phaser.Scene {
     this.levelUpOpen = true;
     // The cards swallow touches: a finger that was down will not report its release to the canvas.
     this.drag.release();
+    this.joy.release();
     this.hub.emit('levelUp', { offer: w.offer, rerolls: w.rerolls, level: w.player.level - w.pendingLevelUps + 1, left: w.pendingLevelUps });
   }
 
@@ -448,22 +468,26 @@ export class RunScene extends Phaser.Scene {
     }
     if (w) this.street.draw(w.dist, this.proj);
     this.stall.update(w ? w.player : null, w ? (this.wokeEarly ? 'lost' : w.phase) : null, alpha, this.uiTime, dt, this.reduceMotion);
+    const fk = this.free && w ? this.freeKannan : null;
+    this.stall.kannan.setVisible(!fk);
+    if (fk && w) fk.update(w.player, alpha, dt, l, this.proj, this.joy, this.url.god);
     // A shot leaves his raised hand and settles onto the field projection of its own lane.
-    const home = this.proj.at(this.stall.fieldX, 0);
-    this.actors.setHand(this.stall.handX - home.sx, this.stall.handY - home.sy);
-    this.fx.tx = this.stall.chestX;
-    this.fx.ty = this.stall.chestY;
+    const home = this.proj.at(fk ? fk.fieldX : this.stall.fieldX, fk ? fk.fieldY : 0);
+    this.actors.setHand((fk ? fk.handX : this.stall.handX) - home.sx, (fk ? fk.handY : this.stall.handY) - home.sy);
+    this.fx.tx = fk ? fk.chestX : this.stall.chestX;
+    this.fx.ty = fk ? fk.chestY : this.stall.chestY;
     // Teh tarik haste: a caramel ribbon from the cup to his hand, and caramel trails on the breads in flight.
     const live = w && !this.ended ? w : null;
     this.actors.setHaste(this.stall.pouring);
     this.pour.update(this.stall.cupMouth(), { x: this.stall.handX, y: this.stall.handY }, this.stall.pouring, l.u, dt, this.reduceMotion);
-    this.hurt.update(live ? live.player : null, this.stall.fieldX, this.stall.feetY, l);
+    this.hurt.update(live && !fk ? live.player : null, this.stall.fieldX, this.stall.feetY, l);
     if (w) {
       this.actors.draw(w, alpha, this.uiTime, dt);
       this.publishHud(w, dt);
     }
     this.tele.draw(w ? w.time : 0, l.u);
-    if (w) this.danger.update(w, l, this.uiTime, this.reduceMotion);
+    if (w && !fk) this.danger.update(w, l, this.uiTime, this.reduceMotion);
+    else if (fk) this.danger.clear();
     this.fx.update(dt);
     this.shake(dt);
   }
@@ -487,11 +511,10 @@ export class RunScene extends Phaser.Scene {
       n++;
       this.actors.snapshot(w);
       this.stall.snapshot(w.player.x);
-      if (this.url.bot) {
-        const b = autoInput(w);
-        this.input_.targetX = b.targetX;
-        this.input_.moving = b.moving;
-      } else this.drag.read(this.input_);
+      this.freeKannan.snapshot(w.player);
+      if (this.url.bot) Object.assign(this.input_, { jx: 0, jy: 0, dodge: false }, autoInput(w));
+      else if (this.free) this.joy.read(this.input_);
+      else this.drag.read(this.input_);
       step(w, STEP, this.input_);
       this.handle(w, drainEvents(w));
       if ((w.phase !== 'wave' && w.phase !== 'intro') || this.hitStop > 0) break;
@@ -634,7 +657,7 @@ export class RunScene extends Phaser.Scene {
           this.onStatus(ev);
           break;
         case 'aim': {
-          this.tele.aim(ev.uid, ev.x, ev.y, ev.tx, w.time, ev.time);
+          this.tele.aim(ev.uid, ev.x, ev.y, ev.tx, w.time, ev.time, ev.ty);
           this.actors.aim(ev.uid, w.time, w.time + ev.time);
           break;
         }
@@ -689,7 +712,7 @@ export class RunScene extends Phaser.Scene {
           break;
         case 'bossTell': {
           const boss = this.bossUid(w);
-          this.tele.tell(ev.kind, boss, ev.xs, ev.width, w.time, ev.time);
+          this.tele.tell(ev.kind, boss, ev.xs, ev.width, w.time, ev.time, ev.ys);
           this.actors.tell(boss, w.time + ev.time);
           this.sfx('bossTell');
           break;

@@ -74,6 +74,8 @@ export type GameControls = {
   reroll(): void;
   /** Flow runs: swap the street find just granted for alternative `index` (once, inside its window). */
   swapFind(index: number): void;
+  /** Free-movement runs: press Dodge (a short i-frame dash). Ignored in counter mode. A HUD button calls this. */
+  dodge(): void;
   pause(): void;
   resume(): void;
   /** Abandon the run and go back to the title. */
