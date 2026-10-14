@@ -58,4 +58,6 @@ export type SaveV3 = Omit<SaveV2, 'v'> & {
   /** Unspent spec points: 1 per Kannan level above 1 (the spec tree that spends them comes later). */
   specPoints: number;
   stall: { parts: Record<string, number> };
+  /** Kannan levels whose milestone visitor has been thanked (or was already past when the field was added). */
+  seenMilestones: number[];
 };

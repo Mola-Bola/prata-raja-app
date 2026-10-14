@@ -9,21 +9,25 @@ import { brandWords } from '@/brand';
 import { CONTENT } from '@/content';
 import { kannanLevel, kannanXpOf, nextPerk, specPointsOf } from '@/meta/kannan';
 import { chapterUnlocked } from '@/meta/chapters';
+import { dueMilestone } from '@/meta/milestones';
 import type { SaveV2 } from '@/meta/types';
 
 import { DipCollection } from './DipCollection';
 import { HOTSPOTS, PANELS, readyBadges, unlockBeat, type Panel } from './helpers';
 import { SignatureSheet, CalendarSheet, ChestsSheet, GearSheet, IdleSheet, PreviewSheet, RecipeSheet, SettingsSheet, TrainingSheet, type Commit } from './sheets';
 import { StallProgress, type Art } from './StallProgress';
+import { Visitor } from './Visitor';
 import { openFeedback } from '../FeedbackSheet'; // [feedback hook]
 import './Stall.css';
 
 export type { Art } from './StallProgress';
 
-export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { save: SaveV2; commit: Commit; onStart: (chapterId: string) => void; onStory: () => void; onKitchen: () => void; art: Art }) {
+/** afterRun: the hub was reached from a run's results, so a due milestone visitor comes to the stall. */
+export function StallHub({ save, commit, onStart, onStory, onKitchen, art, afterRun }: { save: SaveV2; commit: Commit; onStart: (chapterId: string) => void; onStory: () => void; onKitchen: () => void; art: Art; afterRun?: boolean }) {
   // A sheet is a prop's panel, or the settings cog's.
   const [panel, setPanel] = useState<Panel | 'settings' | 'chapters' | 'signature' | 'dips' | null>(null);
   const [now, setNow] = useState(() => new Date());
+  const [visitor, setVisitor] = useState(() => (afterRun ? dueMilestone(save) : null));
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(timer);
@@ -38,7 +42,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
   const locked = !!spot?.flag && !save.unlocks[spot.flag];
   return (
     <div className="sh-hub" data-testid="stall-hub">
-      <div className="sh-scene" data-testid="stall-scene" inert={!!panel}>
+      <div className="sh-scene" data-testid="stall-scene" inert={!!panel || !!visitor}>
         <img className="sh-art" src={art('scene/hub')} alt="Kannan’s morning stall" draggable={false} />
         {/* Every tap area first, then every label: a label is never under another prop's area, so its whole pill is tappable. */}
         {PANELS.map((id) => {
@@ -74,7 +78,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
         })}
         <button type="button" className="gu-btn sh-collection-entry" data-testid="stall-dips" onClick={() => open('dips')}>Dip collection</button>
       </div>
-      <header className="sh-top" inert={!!panel}>
+      <header className="sh-top" inert={!!panel || !!visitor}>
         <StallProgress xp={kannanXpOf(save)} art={art} />
         <span className="sh-spec" data-testid="stall-spec">
           Spec points: {specPointsOf(save)} (tree coming soon)
@@ -88,7 +92,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
           <img src={art('hub/settings')} alt="" />
         </button>
       </header>
-      <footer className="sh-footer" inert={!!panel}>
+      <footer className="sh-footer" inert={!!panel || !!visitor}>
         <button type="button" className="gu-btn" data-testid="stall-signature" onClick={() => open('signature')}>
           Signature · {save.unlocks.signature ? CONTENT.breads[save.signatureBread].name : unlockBeat('signature')}
         </button>
@@ -100,6 +104,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
           Tell Kannan
         </button>
       </footer>
+      {visitor && <Visitor due={visitor} commit={commit} art={art} onDone={() => setVisitor(null)} />}
       {panel === 'dips' && (
         <Sheet title="Dip collection" onClose={() => setPanel(null)}>
           <DipCollection save={save} art={art} />
