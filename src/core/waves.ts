@@ -81,10 +81,12 @@ export function spawnTick(world: World, dt: number, rng: Rng): SpawnRequest[] {
 }
 
 /** True when the current wave is over: (budgetLeft below the cheapest cost in its mix AND at most 2 living
- *  non-boss enemies) OR waveTime > duration + 15. A wave with a boss is only over when no boss is alive. */
+ *  non-boss enemies) OR waveTime > duration + 15. Boss waves instead end on their matching boss's defeat. */
 export function waveDone(world: World): boolean {
   if (world.enemies.some((e) => e.boss && isLiving(e))) return false;
   const def = waveDef(world);
+  // beginWave spawns bosses synchronously; runDirector checks this corpse before sweepDead removes it.
+  if (def.boss) return world.enemies.some(e => e.boss && e.state === 'dead' && e.def.id === def.boss);
   if (world.waveTime > def.duration + 15) return true;
   const cheapest = Math.min(...Object.keys(def.mix).filter((id) => def.mix[id] > 0).map((id) => costOf(world, id)));
   const living = world.enemies.filter((e) => !e.boss && isLiving(e)).length;
