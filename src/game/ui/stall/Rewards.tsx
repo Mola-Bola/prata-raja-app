@@ -7,7 +7,7 @@ import type { SaveV2 } from '@/meta/types';
 import { chestArt, newUnlocks, titleCase } from './helpers';
 import { StallProgress, type Art } from './StallProgress';
 
-export type Payout = ReturnType<typeof applyRunResult>;
+export type Payout = ReturnType<typeof applyRunResult<SaveV2>>;
 
 /** What a run paid, shown on the wake-up screen under the numbers (coins and XP sit in the stats row): the stall bar filling,
  *  any new unlocks, the chest and the ingredients. It only draws the payout it is given; it never applies one. */

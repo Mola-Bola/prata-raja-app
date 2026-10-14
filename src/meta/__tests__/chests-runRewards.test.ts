@@ -50,7 +50,7 @@ describe('run rewards', () => {
     const state = rng.state;
     const before = JSON.stringify(save);
     const applied = applyRunResult(save, { ...RUN, wave, won: false, kills: 5, gold: 999 }, rng, NOW);
-    expect(applied.rewards).toEqual({ paid: false, gold: 0, stallXp: 0, chest: null, materials: {}, dipReceipts: [] });
+    expect(applied.rewards).toEqual({ paid: false, gold: 0, stallXp: 0, kannanXp: 0, chest: null, materials: {}, dipReceipts: [] });
     expect(applied.save).toMatchObject({ gold: 40, stallXp: 100, materials: save.materials, chestPity: save.chestPity, pendingChests: [], inventory: [], unlocks: save.unlocks });
     expect(rng.state).toBe(state);
     expect(JSON.stringify(save)).toBe(before);
