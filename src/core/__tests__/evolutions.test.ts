@@ -171,7 +171,7 @@ describe('evolutions', () => {
   });
 
   it('loadout pools reach initial offers, queued level-ups and rerolls', () => {
-    const w = createRun({ seed: 1, content: CONTENT, loadout: { breadPool: ['naan'], dipPool: ['ghee'] } });
+    const w = createRun({ seed: 1, content: CONTENT, mode: 'waves', loadout: { breadPool: ['naan'], dipPool: ['ghee'] } });
     w.pendingLevelUps = 2;
     step(w, 1 / 30, { moving: false, targetX: null });
     expect(w.offer).toContainEqual({ kind: 'dip', id: 'ghee', level: 1 });
@@ -184,7 +184,7 @@ describe('evolutions', () => {
 });
 
 it('queued offers and rerolls retain the recipe pools, history and eligible evolution', () => {
-  const w = createRun({ seed: 17, content: CONTENT, loadout: { breadPool: ['naan'], dipPool: ['ghee'], rerolls: 2 } });
+  const w = createRun({ seed: 17, content: CONTENT, mode: 'waves', loadout: { breadPool: ['naan'], dipPool: ['ghee'], rerolls: 2 } });
   w.player.breads[0].level = 5;
   w.player.dips = [{ id: 'ghee', level: 5 }];
   w.pendingLevelUps = 2;

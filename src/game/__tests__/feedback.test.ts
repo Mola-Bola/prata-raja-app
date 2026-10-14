@@ -214,6 +214,7 @@ describe('trackRun (what run a note is about)', () => {
     wave,
     waves: 10,
     route: null,
+    pendingPicks: 0,
     hp: 50,
     maxHp: 100,
     xp: 0,

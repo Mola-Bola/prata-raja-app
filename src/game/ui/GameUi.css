@@ -224,6 +224,15 @@
 
 /* ── HUD (during a run) ─────────────────────────────────────────────────────── */
 
+.gu-pick-chip {
+  position: absolute;
+  top: calc(var(--safe-top) + 92px);
+  right: calc(var(--safe-right) + 12px);
+  padding: 6px 12px;
+  font-size: 14px;
+  pointer-events: auto;
+}
+
 .gu-hud {
   position: absolute;
   inset: 0;
