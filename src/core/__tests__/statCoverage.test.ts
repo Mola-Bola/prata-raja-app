@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { PASSIVES } from '../../content/passives';
 import { AFFIX_POOLS, MAIN_STATS } from '../../meta/gear';
 import { PERKS } from '../../meta/kannan';
+import { MEALS } from '../../meta/meals';
+import { SPEC_NODES } from '../../meta/specTree';
 import { TRAINING_STATS, TRAINING_UNLOCK } from '../../meta/training';
 import { TRAINING_IDS, UNLOCK_FLAGS } from '../../meta/types';
 import { formatStat, STAT_IDS, STAT_REGISTRY, type StatSource } from '../statRegistry';
@@ -15,7 +17,9 @@ const refs: Ref[] = [
   ...Object.values(PASSIVES).flatMap(p => Object.keys(p.perLevel).map(stat => ({ source: 'card' as const, where: `card ${p.id}`, stat }))),
   ...PERKS.flatMap(p => Object.keys(p.stats ?? {}).map(stat => ({ source: 'perk' as const, where: `perk L${p.level}`, stat }))),
   ...TRAINING_IDS.flatMap(id => Object.keys(TRAINING_STATS[id]).map(stat => ({ source: 'training' as const, where: `training ${id}`, stat }))),
+  ...SPEC_NODES.flatMap(n => Object.keys(n.stats).map(stat => ({ source: 'spec' as const, where: `spec ${n.id}`, stat }))),
 ];
+const mealRefs = MEALS.flatMap(m => Object.keys(m.stats).map(stat => ({ where: `meal ${m.id}`, stat })));
 
 describe('stat registry coverage', () => {
   it('has an entry for every PlayerStats key (and nothing extra)', () => {
@@ -34,6 +38,9 @@ describe('stat registry coverage', () => {
       expect(def, `${r.where} references unknown stat ${r.stat}`).toBeDefined();
       expect(def.grant, `${r.where}: registry '${r.stat}' does not list '${r.source}' in grant`).toContain(r.source);
     }
+  });
+  it('meals only use registered stats', () => {
+    for (const r of mealRefs) expect(STAT_REGISTRY[r.stat as keyof typeof STAT_REGISTRY], `${r.where}: ${r.stat}`).toBeDefined();
   });
   it('every stat is grantable by something, and checkable grants (gear/card/perk/training) really exist', () => {
     const bad: string[] = [];
