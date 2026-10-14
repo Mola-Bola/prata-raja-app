@@ -226,7 +226,7 @@
 
 .gu-pick-chip {
   position: absolute;
-  top: calc(var(--safe-top) + 92px);
+  top: calc(var(--safe-top) + 142px); /* below the level bar and DPS pill */
   right: calc(var(--safe-right) + 12px);
   padding: 6px 12px;
   font-size: 14px;
