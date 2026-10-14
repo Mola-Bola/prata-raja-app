@@ -33,7 +33,7 @@ const BASE_BREADS: Record<Exclude<BreadId, EvolutionId>, BreadDef> = {
     motion: 'straight',
     target: 'nearest',
     unlock: 'starter',
-    levels: ladder({ dmg: 10, cooldown: 0.8, speed: 900, radius: 18.2, range: 950 }, [
+    levels: ladder({ dmg: 10, cooldown: 0.84, speed: 900, radius: 18.2, range: 950 }, [
       { dmg: 12, cooldown: 0.72 },
       { hops: 1, hopRange: 260, cooldown: 0.68 },
       { hops: 2, cooldown: 0.64 },

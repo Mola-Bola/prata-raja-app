@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { CONTENT } from '../../content';
+import { CONTENT as BASE_CONTENT } from '../../content';
+/** These tests assume the counter control mode (free is the shipped default). */
+const CONTENT: typeof BASE_CONTENT = { ...BASE_CONTENT, tune: { controlMode: 'counter' } };
 import { makeRng } from '../rng';
 import { autoInput, autoPick, simulateRun } from '../autoplay';
 import { chooseCard, createRun, drainEvents, reroll, step } from '../sim';
@@ -69,6 +71,7 @@ function makeContent(o: { enemies?: EnemyDef[]; bosses?: BossDef[]; breads?: Par
     bosses: Object.fromEntries((o.bosses ?? []).map((b) => [b.id, b])),
     chapters: [{ id: 'test', name: 'Test', background: 'scene/background', hpPerWave: 0.1, waves: o.waves ?? WAVES }],
     lines: { wake: [], win: [], tips: [] },
+    tune: { controlMode: 'counter' },
   };
 }
 

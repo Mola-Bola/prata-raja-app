@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { CONTENT } from '../../content';
+import { CONTENT as BASE_CONTENT } from '../../content';
+/** These tests assume the counter control mode (free is the shipped default). */
+const CONTENT: typeof BASE_CONTENT = { ...BASE_CONTENT, tune: { controlMode: 'counter' } };
 import { makeRng } from '../rng';
 import { createRun, drainEvents, step } from '../sim';
 import { approachSpeed, type Ctx } from '../sim/ctx';

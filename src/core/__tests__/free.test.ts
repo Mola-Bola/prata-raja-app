@@ -24,8 +24,8 @@ const run = (w: World, secs: number, input: RunInput | ((t: number) => RunInput)
 const still: RunInput = { targetX: null, moving: false };
 
 describe('free movement', () => {
-  it('counter mode is the default and never moves Kannan in y', () => {
-    const w = world(CONTENT);
+  it('counter mode (opt-in) never moves Kannan in y', () => {
+    const w = world({ ...CONTENT, tune: { controlMode: 'counter' } });
     run(w, 1, { targetX: 100, moving: true, jx: 1, jy: 1 });
     expect(w.player.y).toBe(0);
     expect(w.player.x).toBeCloseTo(100, 5);

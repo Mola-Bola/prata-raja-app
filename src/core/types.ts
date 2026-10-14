@@ -300,7 +300,7 @@ export type Content = {
   chapters: ChapterDef[];
   lines: { wake: string[]; win: string[]; tips: string[] };
   /** Optional director overrides, only ever set by the Tune overlay (src/core/tune.ts); shipped content leaves it unset. */
-  tune?: { cruise?: number; cruiseLate?: number; liveCap?: number; pressure?: number; /** 'counter' (default) or 'free' movement; see sim/free.ts. */ controlMode?: 'counter' | 'free' };
+  tune?: { cruise?: number; cruiseLate?: number; liveCap?: number; pressure?: number; /** 'free' (default) or 'counter' movement; see sim/free.ts. */ controlMode?: 'counter' | 'free' };
 };
 
 // ── Run state (src/core/sim.ts owns mutation) ───────────────────────────────

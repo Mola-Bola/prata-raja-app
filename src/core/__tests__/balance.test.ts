@@ -13,6 +13,7 @@ import type { Content, Loadout, RunResult } from '../types';
 
 /** Free-movement variant of the shipped content (content.tune.controlMode). Counter mode stays the default everywhere else. */
 const FREE_CONTENT: Content = { ...CONTENT, tune: { controlMode: 'free' } };
+const COUNTER_CONTENT: Content = { ...CONTENT, tune: { controlMode: 'counter' } };
 
 /** BALANCE_SEEDS=300 gives the full measurement; the default stays quick. BALANCE_FIRST_SEED=301 runs a holdout range. */
 const SEED_COUNT = Number(process.env.BALANCE_SEEDS ?? 20);
@@ -73,7 +74,7 @@ function measureRun(seed: number, maxBreads: number, content: Content = CONTENT)
   return { result, bossFightHpLost, bossAttackHpLost, bossSeconds };
 }
 
-describe.each([['counter', CONTENT], ['free movement', FREE_CONTENT]] as const)(`balance (%s, autoplay bot, real content, seeds ${FIRST_SEED}..${FIRST_SEED + SEED_COUNT - 1})`, (mode, content) => {
+describe.each([['counter', COUNTER_CONTENT], ['free movement', FREE_CONTENT]] as const)(`balance (%s, autoplay bot, real content, seeds ${FIRST_SEED}..${FIRST_SEED + SEED_COUNT - 1})`, (mode, content) => {
   it('every run ends before maxTime; prints median wave, win rate, avg level / time / kills and boss-fight HP per pick policy', () => {
     // The reporting loop must be the bot's own loop: same seed, same policy, same result.
     expect(measureRun(1, 4, content).result).toEqual(simulateRun({ seed: 1, content, maxTime: MAX_TIME, maxBreads: 4 }));
@@ -126,7 +127,7 @@ describe('chapter 2 balance (two training steps each, Rare gear, S2 pools)', () 
     const lines = ['| chapter | breads | wins / seeds | win rate | median wave |', '|---|---|---|---|---|'];
     const rates: { maxBreads: number; rate: number }[] = [];
     for (const maxBreads of [4, 2, 1]) {
-      const results = SEEDS.map(seed => simulateRun({ seed, content: CONTENT, chapterId: 'hawker-night', loadout, maxBreads, maxTime: MAX_TIME }));
+      const results = SEEDS.map(seed => simulateRun({ seed, content: COUNTER_CONTENT, chapterId: 'hawker-night', loadout, maxBreads, maxTime: MAX_TIME }));
       for (const result of results) expect(result.time).toBeLessThan(MAX_TIME);
       const wins = results.filter(r => r.won).length;
       const rate = wins / SEED_COUNT;
@@ -148,7 +149,7 @@ describe.each(['murtabak', 'roti-bomb', 'appam'] as const)('%s signature solo ba
   it('reports solo wins with signature servings, linked supports and biased offers', () => {
     const save = { ...freshSaveV2(), stallXp: 3100, unlocks: unlocksForXp(3100), signatureBread: id, unlockedBreads: ['murtabak' as const] };
     const loadout = computeLoadout(save, CONTENT);
-    const results = SEEDS.map(seed => simulateRun({ seed, content: CONTENT, maxBreads: 1, loadout, maxTime: MAX_TIME }));
+    const results = SEEDS.map(seed => simulateRun({ seed, content: COUNTER_CONTENT, maxBreads: 1, loadout, maxTime: MAX_TIME }));
     const rate = results.filter(r => r.won).length / SEED_COUNT;
     const line = `${id}-signature solo: ${(100 * rate).toFixed(1)}% (${results.filter(r => r.won).length}/${SEED_COUNT}); median wave ${median(results.map(r => r.wave))}`;
     console.log(line);
