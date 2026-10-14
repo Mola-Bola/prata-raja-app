@@ -34,6 +34,11 @@ export class Particle {
   ease = 1;
   /** Ends on the live target (Kannan) instead of x1/y1. */
   follow = false;
+  /** Pickup mode (free runs): 0 off, 1 scatter to (x1, y1), 2 lie there until Kannan's magnet reaches it, 3 pulled in. */
+  pick = 0;
+  pv = 0;
+  cx = 0;
+  cy = 0;
 
   fade(a0: number, a1: number, hold = 0): this {
     this.a0 = a0;
@@ -71,6 +76,21 @@ export class Particle {
     this.ease = 2;
     return this;
   }
+  arcH(h: number): this {
+    this.arc = h;
+    return this;
+  }
+  /** A coin or orb that bursts out to (x, y), waits for Kannan's magnet (Fx.magR), then is pulled in faster and faster. */
+  pickup(x: number, y: number): this {
+    this.pick = 1;
+    this.x1 = x;
+    this.y1 = y;
+    this.cx = this.x0;
+    this.cy = this.y0;
+    this.pv = 0;
+    this.dur = 99;
+    return this;
+  }
   /** Wait this long (s) before showing. */
   delay(s: number): this {
     this.t = -s;
@@ -103,6 +123,9 @@ type Bolt = { pts: number[]; t: number; dur: number };
 /** Of the MAX_NUMBERS floating numbers, at most this many are damage-over-time ticks. */
 const MAX_DOT_NUMBERS = 8;
 const MAX_TARGET_NUMBERS = 3;
+const SCATTER_T = 0.25;
+const LIE_MAX = 1.6;
+const COLLECT_PX = 18;
 const NUM_LIFE = 0.6;
 const MARK_LIFE = 0.25;
 const NUM_RISE_T = 0.5;
@@ -114,6 +137,9 @@ export class Fx {
   /** The live target for seeking sparkles (Kannan's chest), set by the scene each frame. */
   tx = 0;
   ty = 0;
+  /** Pickup magnet radius and Kannan's walk speed, both in screen px (the scene sets them each frame; free runs only). */
+  magR = 90;
+  kv = 200;
   private design = 1;
 
   private parts: Particle[] = [];
@@ -195,6 +221,7 @@ export class Fx {
     p.arc = 0;
     p.ease = 1;
     p.follow = false;
+    p.pick = 0;
     return p;
   }
 
@@ -212,6 +239,10 @@ export class Fx {
       p.t += dt;
       if (p.t < 0) {
         p.img.setVisible(false);
+        continue;
+      }
+      if (p.pick > 0) {
+        this.updatePickup(p, dt);
         continue;
       }
       const u = p.t / p.dur;
@@ -235,6 +266,41 @@ export class Fx {
     }
     this.updateNumbers(dt);
     this.updateBolts(dt);
+  }
+
+  /** Coin / orb: burst out over SCATTER_T, lie still until inside the magnet (or LIE_MAX), then pull at Kannan's speed ramping to
+   *  2.5x over 0.4 s; collected inside COLLECT_PX. */
+  private updatePickup(p: Particle, dt: number): void {
+    const img = p.img as Img;
+    if (p.pick === 1) {
+      const u = Math.min(1, p.t / SCATTER_T);
+      const e = easeOut(u);
+      p.cx = p.x0 + (p.x1 - p.x0) * e;
+      p.cy = p.y0 + (p.y1 - p.y0) * e - p.arc * 4 * u * (1 - u);
+      if (u >= 1) p.pick = 2;
+    }
+    const dx = this.tx - p.cx;
+    const dy = this.ty - p.cy;
+    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+    if (p.pick === 2 && (d < this.magR || p.t > LIE_MAX)) {
+      p.pick = 3;
+      p.pv = this.kv;
+    }
+    if (p.pick === 3) {
+      p.pv = Math.min(2.5 * this.kv, p.pv + (1.5 * this.kv * dt) / 0.4);
+      const step = p.pv * dt;
+      if (d <= COLLECT_PX + step) {
+        this.kill(p);
+        return;
+      }
+      p.cx += (dx / d) * step;
+      p.cy += (dy / d) * step;
+    } else if (d < COLLECT_PX && p.pick === 2) {
+      this.kill(p);
+      return;
+    }
+    const s = p.w0 / img.width;
+    img.setVisible(true).setPosition(p.cx, p.cy).setScale(s).setAlpha(1).setRotation(p.r0 + p.rv * p.t);
   }
 
   // ── Damage numbers ─────────────────────────────────────────────────────────────────────────────────────────

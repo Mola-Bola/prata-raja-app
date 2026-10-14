@@ -23,8 +23,16 @@ function base(c: Ctx, def: BreadDef, st: BreadStats, motion: BreadMotion): Proje
 /** Is `a` the better thing to shoot than `b`? Whatever is at the counter hurting Kannan (state 'attack') comes first, however far
  *  along the counter it stands; then whatever is closest to the counter (lowest y); then whatever is nearest his lane. Equal
  *  in all three: false, so the first one found keeps its place. */
+let faceDx = 0;
+let faceDy = 0;
 function shootFirst(a: Enemy, b: Enemy, px: number, py = 0, free = false): boolean {
-  if (free) return hyp(a.x - px, a.y - py) < hyp(b.x - px, b.y - py); // free mode: simply the nearest to Kannan
+  if (free) {
+    // free mode: the nearest to Kannan; within 10 % of each other, whichever lies more along his facing
+    const da = hyp(a.x - px, a.y - py);
+    const db = hyp(b.x - px, b.y - py);
+    if (Math.abs(da - db) > 0.1 * Math.min(da, db)) return da < db;
+    return (a.x - px) * faceDx + (a.y - py) * faceDy > (b.x - px) * faceDx + (b.y - py) * faceDy;
+  }
   const aAttacks = a.state === 'attack';
   if (aAttacks !== (b.state === 'attack')) return aAttacks;
   if (!aAttacks && a.y !== b.y) return a.y < b.y;
@@ -36,6 +44,8 @@ function nearestInRange(c: Ctx, range: number): Enemy | null {
   const { w, p } = c;
   const r2 = range * range;
   const free = isFree(c);
+  faceDx = p.faceX;
+  faceDy = p.faceY;
   let best: Enemy | null = null;
   for (const e of w.enemies) {
     if (!alive(e)) continue;
@@ -140,6 +150,17 @@ function aimAngle(c: Ctx, e: Enemy, speed: number): number {
   return Math.atan2(e.x - px, ty);
 }
 
+/** Free mode: standing still, Kannan turns to the pest he throws at (the renderer picks the walk-<dir>-idle frame from face). */
+function faceTarget(c: Ctx, e: Enemy): void {
+  const { p } = c;
+  if (!isFree(c) || p.moving) return;
+  const d = hyp(e.x - p.x, e.y - p.y);
+  if (d > 1) {
+    p.faceX = (e.x - p.x) / d;
+    p.faceY = (e.y - p.y) / d;
+  }
+}
+
 // ── Launching ────────────────────────────────────────────────────────────────
 
 function spawnStraight(c: Ctx, def: BreadDef, st: BreadStats, motion: 'straight' | 'boomerang', ang: number, speed: number, range: number, target: Enemy | null): void {
@@ -219,6 +240,7 @@ function throwMembers(c: Ctx, def: BreadDef, st: BreadStats, m0: number, members
         target = nearestInRange(c, range);
         if (!target) return false;
         a0 = aimAngle(c, target, speed);
+        faceTarget(c, target);
       }
       for (let m = 0; m < members; m++) {
         const vol = st.count > 1 ? (m0 + m - (st.count - 1) / 2) * st.spread * RAD : 0;
@@ -349,7 +371,7 @@ export function updateThrowing(c: Ctx): void {
     b.cd -= c.dt * rate;
     if (b.cd > 0 || rate <= 0) continue;
     if (tryFire(c, b, def, st)) {
-      b.cd += effectiveCooldown(st.cooldown, p.stats, mods(c));
+      b.cd += Math.max(isFree(c) ? FREE.cdFloor : 0, effectiveCooldown(st.cooldown, p.stats, mods(c)));
       p.throwAnim = THROW_ANIM;
       emit(c, { t: 'throw', breadId: b.id, x: p.x });
     } else {

@@ -21,6 +21,9 @@ export const MAX_ENEMY_Y = 1060;
 export const ELITE_SPEED = 1.1;
 export const ELITE_CONTACT = 1.5;
 
+/** Free-mode i-frames after a hit (Brotato): 0.4 s x (damage as a share of max HP) / 15 %, clamped to 0.2..0.4 s. */
+export const iFramesFor = (dmg: number, maxHp: number): number => clamp((0.4 * dmg) / (0.15 * Math.max(1, maxHp)), 0.2, 0.4);
+
 export const emit = (c: Ctx, e: GameEvent): void => {
   c.w.events.push(e);
 };
@@ -59,6 +62,8 @@ export const approachSpeed = (e: Enemy): number => e.state === 'escape' ? -enemy
 export function hurtPlayer(c: Ctx, base: number, source: 'shot' | 'boss' | 'explode'): boolean {
   const { p } = c;
   if (p.dashT > 0) return false; // free mode: dash i-frames
+  const free = c.w.content.tune?.controlMode !== 'counter';
+  if (free && (p.iT ?? 0) > 0) return false; // free mode: hit i-frames
   if (p.stats.dodge > 0 && c.rng.chance(p.stats.dodge)) {
     emit(c, { t: 'dodge' });
     return false;
@@ -66,6 +71,7 @@ export function hurtPlayer(c: Ctx, base: number, source: 'shot' | 'boss' | 'expl
   const dmg = base * (1 + p.stats.dmgTakenPct);
   if (!c.w.god) p.hp -= dmg;
   p.hurtAnim = 0.2;
+  if (free) p.iT = iFramesFor(dmg, p.stats.maxHp);
   emit(c, { t: 'playerHit', dmg, source });
   return true;
 }
