@@ -253,7 +253,7 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
       {screen === 'run' && offer && (
         <LevelUp offer={offer} onPick={pickCard} onReroll={() => hub.controls?.reroll()} onLater={() => { hub.controls?.deferPicks(); batch.current = { first: 0, left: 0 }; setOffer(null); }} />
       )}
-      {screen === 'run' && paused && (
+      {screen === 'run' && paused && !tuneOpen && (
         <Pause
           hud={pausedHud}
           version={version}
