@@ -48,6 +48,7 @@ export class HubScene extends Phaser.Scene {
   private current: StationId | null = null;
   private dismissed: StationId | null = null;
   private clock = 0;
+  private bobbers: { p: Placed; phase: number }[] = []; // NPCs with a gentle idle bob
 
   constructor() {
     super('HubScene');
@@ -114,6 +115,8 @@ export class HubScene extends Phaser.Scene {
     this.joyBase.setVisible(false);
     this.joyKnob.setVisible(false);
     this.setStation(null);
+    this.tweens.killTweensOf(this.cameras.main);
+    this.cameras.main.setScroll(0, 0);
   }
 
   // ── Building the room ──────────────────────────────────────────────────────────────────────────────────────
@@ -131,10 +134,12 @@ export class HubScene extends Phaser.Scene {
   }
 
   private build(): void {
-    // Floor: terrazzo tiles (the frame is a seamless square).
-    for (let r = 0; r < 6; r++) for (let c = 0; c < 2; c++) {
-      const img = this.image('room/hawker-floor-terrazzo-v2', ROOM_W / 2, -1000, 0).setOrigin(0, 0).setCrop(FLOOR_TRIM, FLOOR_TRIM, 384 - 2 * FLOOR_TRIM, 384 - 2 * FLOOR_TRIM);
-      this.placed.push({ img, x: c * (ROOM_W / 2) + ROOM_W / 4, y: 0, w: ROOM_W / 2 + 5, row: r });
+    // Floor: big terrazzo tiles (the frame is a seamless square), one screen wide, warmed and faded into the floor colour so the
+    // speckle reads as calm texture rather than noise.
+    for (let r = 0; r < 4; r++) {
+      const img = this.image('room/hawker-floor-terrazzo-v2', ROOM_W, -1000, 0).setOrigin(0, 0).setCrop(FLOOR_TRIM, FLOOR_TRIM, 384 - 2 * FLOOR_TRIM, 384 - 2 * FLOOR_TRIM);
+      img.setTint(0xd9c4a2).setAlpha(0.8);
+      this.placed.push({ img, x: ROOM_W / 2, y: 0, w: ROOM_W, row: r });
     }
     for (const d of DECALS) {
       const img = this.image(d.frame, d.w, d.depth).setAlpha(d.alpha ?? 1);
@@ -145,6 +150,7 @@ export class HubScene extends Phaser.Scene {
       const placed = { img, x: p.x, y: p.y, w: p.w };
       this.placed.push(placed);
       this.propArt.set(p, placed);
+      if (p.frame.startsWith('room/npc-')) this.bobbers.push({ p: placed, phase: this.bobbers.length * 1.7 });
     }
     const uncle = this.image('room/npc-uncle-ah-seng', 54, 320);
     this.uncle = { img: uncle, x: 82, y: 322, w: 54 };
@@ -166,8 +172,9 @@ export class HubScene extends Phaser.Scene {
     this.shadow = this.add.image(0, 0, 'shadow').setDepth(0);
     this.kannan = this.add.image(0, 0, FRAME_ATLAS['kannan/walk-down-idle'], 'kannan/walk-down-idle').setOrigin(0.5, 1);
     const jb = frame('roomui/joystick-base'), jk = frame('roomui/joystick-knob-v2');
-    this.joyBase = this.add.image(0, 0, jb.key, jb.frame).setDepth(20000).setAlpha(0.85).setVisible(false);
-    this.joyKnob = this.add.image(0, 0, jk.key, jk.frame).setDepth(20001).setVisible(false);
+    // Screen-fixed: the joystick is placed in screen px, so it must not move with the camera pan.
+    this.joyBase = this.add.image(0, 0, jb.key, jb.frame).setDepth(20000).setAlpha(0.85).setVisible(false).setScrollFactor(0);
+    this.joyKnob = this.add.image(0, 0, jk.key, jk.frame).setDepth(20001).setVisible(false).setScrollFactor(0);
   }
 
   private relayout(): void {
@@ -177,8 +184,8 @@ export class HubScene extends Phaser.Scene {
     for (const p of this.placed) {
       if (p.row === undefined) { this.place(p.img, p.x, p.y, p.w); continue; }
       // A floor tile: its art's edge is a lighter line, so trim it and let the tiles overlap by a pixel.
-      const k = ((ROOM_W / 2) * this.s + 1) / (384 - 2 * FLOOR_TRIM);
-      p.img.setScale(k).setPosition(Math.round((p.x - ROOM_W / 4) * this.s) - FLOOR_TRIM * k, Math.round(p.row * (ROOM_W / 2) * this.s) - FLOOR_TRIM * k);
+      const k = (ROOM_W * this.s + 1) / (384 - 2 * FLOOR_TRIM);
+      p.img.setScale(k).setPosition(Math.round((p.x - ROOM_W / 2) * this.s) - FLOOR_TRIM * k, Math.round(p.row * ROOM_W * this.s) - FLOOR_TRIM * k);
     }
     for (const st of STATIONS) this.labels.get(st.id)!.setPosition(st.x * this.s, (st.y - 22) * this.sy).setScale(this.s * 0.95);
     this.joyBase.setScale((120 * this.s) / this.joyBase.frame.realWidth);
@@ -218,7 +225,7 @@ export class HubScene extends Phaser.Scene {
     this.joy = { x: 0, y: 0 };
     this.joyBase.setVisible(false);
     this.joyKnob.setVisible(false);
-    if (!t.drag) this.tap(p.x / this.s, p.y / this.sy);
+    if (!t.drag) this.tap(p.x / this.s, (p.y + this.cameras.main.scrollY) / this.sy); // the room is panned, the tap is not
   }
 
   /** A tap on a station prop walks to it; a tap on the floor walks to that spot. */
@@ -311,6 +318,17 @@ export class HubScene extends Phaser.Scene {
     if (id === this.current) return;
     this.current = id;
     this.hub.emit('hubStation', { id });
+    this.panFor(id ? this.pos.y : null);
+  }
+
+  /** The open sheet covers the lower half of the screen: slide the room up so Kannan stands above it (0.38 of the height), and back
+   *  down on close. A 250 ms tween; reduced motion jumps. */
+  private panFor(y: number | null): void {
+    const cam = this.cameras.main;
+    const to = y === null ? 0 : Math.max(0, y - ROOM_H * 0.38) * this.sy;
+    this.tweens.killTweensOf(cam);
+    if (this.reduceMotion) cam.setScroll(0, to);
+    else this.tweens.add({ targets: cam, scrollY: to, duration: 250, ease: 'Sine.easeInOut' });
   }
 
   private animateProps(): void {
@@ -322,5 +340,9 @@ export class HubScene extends Phaser.Scene {
     }
     if (this.fan && !this.reduceMotion) this.fan.setAngle(this.clock * 40);
     if (this.uncle && !this.reduceMotion) this.uncle.img.setScale(this.uncle.img.scaleX, ((this.uncle.w * this.s) / (this.uncle.img.frame.realWidth)) * (1 + Math.sin(this.clock * 2) * 0.012));
+    if (!this.reduceMotion) for (const b of this.bobbers) {
+      const k = (b.p.w * this.s) / b.p.img.frame.realWidth;
+      b.p.img.setScale(k, k * (1 + Math.sin(this.clock * 2.2 + b.phase) * 0.012));
+    }
   }
 }

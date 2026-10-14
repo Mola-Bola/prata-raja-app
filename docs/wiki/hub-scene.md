@@ -1,6 +1,6 @@
 # Walkable stall hub (HubScene)
 
-Status: live on branch claude/r8-hub (milestone 3 of docs/plans/round8-fusion.md). Last change: 2026-10-15.
+Status: live on branch claude/r8-hub (milestone 3 of docs/plans/round8-fusion.md). Last change: 2026-10-15 (hub polish: floor, one back wall, pan above the open sheet, two NPCs).
 
 The home screen between runs. A Phaser `HubScene` draws a three-quarter room from real atlas frames (room/*): terrazzo floor,
 back wall, counters, kopi stall with the uncle, tawa, doorway (Exit), stools, fairy lights. Kannan walks with a floating
@@ -19,8 +19,11 @@ Reduced motion: no idle breath, fan or uncle bob, static prompt ring.
 Files: src/game/phaser/HubScene.ts, src/game/phaser/hub/layout.ts (+ __tests__), src/game/ui/hub/HubOverlay.{tsx,css}, small
 edits in GameRoot.tsx, BootScene.ts (launches HubScene), GameUi.tsx (screen 'hub'), hub.ts.
 
-Gaps: the open sheet covers the lower half of the room (Kannan can hide under it); NPCs other than the uncle are not placed;
-no ceiling/pillar props; web e2e specs still expect `stall-hub` after Start.
+Camera: when a station opens, the room slides up (250 ms tween, 0.38 of the height is Kannan's line) so he stays above the sheet;
+it slides back on close. Taps map through the camera scroll; the joystick is screen-fixed.
+NPCs: the uncle (breathing) plus room/npc-student and room/npc-auntie-siew-lan as PROPS (collision), all bob unless reduced motion.
+Gaps: the wall's slanted left end leaves a small floor gap at the top-left corner; no ceiling/pillar props; the fairy-light string and
+fan shadow were already placed; web e2e specs still expect `stall-hub` after Start.
 
 Research used: docs/research/hub-design.md (anti-tedium 1, 3, 5, 6: short walks, one GO from anywhere, panels <= 2 levels).
 Skipped on purpose: Dave-style business loop, village growth.

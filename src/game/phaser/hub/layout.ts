@@ -8,15 +8,14 @@ export const ROOM_H = 844;
 export const SPEED = 200;
 /** Where Kannan can stand: the floor, between the counters' front edge and the bottom bar. */
 export const BOUNDS = { x0: 22, x1: 368, y0: 322, y1: 770 };
-export const START = { x: 195, y: 560 };
+export const START = { x: 195, y: 560 }; // the open middle of the floor
 
 /** One placed prop. (x, y) is the middle of its base; w is the drawn width. `hw`/`d` give its footprint (half-width, depth)
  *  Kannan cannot walk through; none means decoration. `station` ties the prop to a station so a tap on it walks there. */
 export type Prop = { frame: string; x: number; y: number; w: number; hw?: number; d?: number; station?: StationId };
 
 export const PROPS: Prop[] = [
-  { frame: 'room/stall-back-wall', x: 100, y: 205, w: 200 },
-  { frame: 'room/stall-back-wall', x: 290, y: 205, w: 200 },
+  { frame: 'room/stall-back-wall', x: 190, y: 250, w: 460 }, // one wall across the top; its slanted left end runs past the edge, its base sits behind the stalls
   { frame: 'room/kopi-stall-front', x: 75, y: 300, w: 150, hw: 62, d: 38, station: 'kopi' },
   { frame: 'room/tawa-counter', x: 218, y: 292, w: 150, hw: 62, d: 34, station: 'tawa' },
   { frame: 'room/doorway-glow', x: 334, y: 305, w: 104, hw: 36, d: 16, station: 'exit' },
@@ -28,6 +27,9 @@ export const PROPS: Prop[] = [
   { frame: 'room/pantry-shelves', x: 62, y: 745, w: 124, hw: 52, d: 26, station: 'pantry' },
   { frame: 'room/dip-shelf', x: 340, y: 600, w: 92, hw: 36, d: 22, station: 'dips' },
   { frame: 'room/spec-board', x: 338, y: 740, w: 92, hw: 34, d: 14, station: 'spec' },
+  // Regulars standing by the steel table and near the drain; their footprints keep Kannan's paths clear.
+  { frame: 'room/npc-student', x: 40, y: 556, w: 40, hw: 12, d: 6 },
+  { frame: 'room/npc-auntie-siew-lan', x: 262, y: 646, w: 44, hw: 14, d: 6 },
 ];
 
 /** Decoration with no footprint. `depth` fixed: floors under everything, lights and fan shadow over it. */
