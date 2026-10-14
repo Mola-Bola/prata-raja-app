@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  LIGHT_SFX,
   NO_SFX_HISTORY,
   SFX_PARAMS,
   SLAP_PROFILES,
@@ -15,11 +16,12 @@ import {
 const ALL: SfxName[] = [
   'throw', 'hit', 'crit', 'kill', 'blast', 'splash', 'meteor', 'zone', 'chain', 'freeze', 'sugarCrash', 'shieldBreak', 'playerHurt',
   'dodge', 'levelUp', 'cardPick', 'waveStart', 'bossAppear', 'bossTell', 'win', 'lose', 'coin', 'uiTap',
+  'step', 'stationOpen', 'stationClose', 'enhance', 'fuse', 'socket', 'dash', 'cook',
 ];
 
 describe('SFX_PARAMS', () => {
   it('has a finite ZzFX parameter array for every non-slap SfxName', () => {
-    const zzfx = ALL.filter((n) => !['throw', 'hit', 'crit', 'blast', 'splash', 'meteor', 'zone', 'freeze'].includes(n));
+    const zzfx = ALL.filter((n) => !['throw', 'hit', 'crit', 'blast', 'splash', 'meteor', 'zone', 'freeze', ...LIGHT_SFX].includes(n));
     expect(Object.keys(SFX_PARAMS).sort()).toEqual([...zzfx].sort());
     for (const name of zzfx) {
       const p = SFX_PARAMS[name as keyof typeof SFX_PARAMS];
@@ -122,6 +124,13 @@ describe('admitSfx throttle', () => {
 });
 
 describe('combat voices', () => {
+  it('admits footsteps on every footfall but at most one per 90 ms', () => {
+    const h = admitSfx(NO_SFX_HISTORY, 'step', 1000)!;
+    expect(admitSfx(h, 'step', 1089)).toBeNull();
+    expect(admitSfx(h, 'step', 1090)).not.toBeNull();
+    expect(admitSfx(h, 'dash', 1001)).not.toBeNull(); // other light cues keep their own gap
+  });
+
   it('caps simultaneous voices and frees them when they end', () => {
     const ends: number[] = [];
     for (let i = 0; i < 6; i++) expect(admitVoice(ends, 0, 0.5)).toBe(true);
