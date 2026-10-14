@@ -1,4 +1,5 @@
 import { dipMatchesBread } from '../dipLinks';
+import { creditDipUse, matchingDipLink, simmerEffect } from '../dipProgression';
 // Damage rules: a bread hit on an enemy, dip chain/sambal side effects, DoT bookkeeping, kills, XP and gold.
 import { rollHit, xpToNext } from '../stats';
 import { applyCc, applyHitEffect, dmgTakenMul, hasStatus, onBreadHit } from '../status';
@@ -40,6 +41,7 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
     return true;
   }
   const r = rollHit(dmg, guaranteedCrit ? { ...p.stats, critChance: 1 } : p.stats, mods(c), dmgTakenMul(e), c.rng);
+  if (e.hp > 0 && e.state !== 'dead' && r.dmg > 0) creditDipUse(w, breadId);
   e.hp -= r.dmg;
   e.flash = HIT_FLASH;
   emit(c, { t: 'hit', uid: e.uid, x: e.x, y: e.y, dmg: r.dmg, crit: r.crit, color: null });
@@ -67,10 +69,11 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
     }
     const base = def.levels[d.level - 1];
     const bonus = d.linkedBread && dipMatchesBread(def, w.content.breads[d.linkedBread]);
-    const fx = !bonus ? base
+    const matchedFx = !bonus ? base
       : base.type === 'burn' ? { ...base, dps: base.dps * 1.25, time: base.time * 1.25 }
         : base.type === 'sugar' ? { ...base, slowTime: base.slowTime * 1.25, crashStun: base.crashStun * 1.25 }
           : base.type === 'chill' ? { ...base, time: base.time * 1.25, freezeTime: base.freezeTime * 1.25 } : base;
+    const fx = bonus && matchingDipLink(w.content, d, breadId) ? simmerEffect(d.id, matchedFx, w.loadout?.dipSimmer?.[d.id]) : matchedFx;
     // A volley/orbit cannot farm Sticky stacks several times in the same instant.
     if (d.linkedBread && base.type === 'sugar') {
       const last = e.cooldowns._linkedSugar;

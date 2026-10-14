@@ -1,3 +1,6 @@
+import { CONTENT } from '@/content';
+import { SIMMER_FLAVOUR, simmerBonusLabel } from '@/meta/dipProgression';
+import { simmerProgress } from '@/core/dipProgression';
 import type { applyRunResult } from '@/meta/runRewards';
 import type { SaveV2 } from '@/meta/types';
 
@@ -24,6 +27,14 @@ export function Rewards({ before, payout, art }: { before: SaveV2; payout: Payou
           ))}
         </p>
       )}
+      {rewards.dipReceipts.map(receipt => {
+        const progress = simmerProgress(receipt.afterXp);
+        return <div className="sh-detail sh-dip-receipt" key={receipt.id} data-testid={`results-dip-${receipt.id}`}>
+          <p>{CONTENT.dips[receipt.id].name} · +{receipt.gained} simmer XP</p>
+          <p>Simmer {receipt.beforeLevel}{receipt.afterLevel !== receipt.beforeLevel ? ` → ${receipt.afterLevel}` : ''} · {simmerBonusLabel(receipt.afterLevel)} {SIMMER_FLAVOUR[receipt.id]}</p>
+          <p>{progress.needed ? `${progress.xp} / ${progress.needed} to Simmer ${progress.level + 1}` : 'Fully simmered'} · Applies next daydream</p>
+        </div>;
+      })}
       <p className="sh-gains">
         {rewards.chest && (
           <span className="sh-gain" data-testid="results-chest">

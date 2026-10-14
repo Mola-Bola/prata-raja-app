@@ -274,6 +274,7 @@ export class RunScene extends Phaser.Scene {
       gold: Math.round(w.gold) + 5 * Math.max(0, w.wave - 1),
       breads: p.breads.map((b) => ({ ...b })),
       dips: p.dips.map((d) => ({ ...d })),
+      dipUseXp: { ...w.dipUseXp },
     };
   }
 

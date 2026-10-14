@@ -31,7 +31,8 @@ const REVIVE_KNOCK = 300;
 const REVIVE_RADIUS_Y = 250;
 
 export function createRun(opts: { seed: number; content: Content; chapterId?: string; loadout?: Loadout }): World {
-  const { seed, content, loadout } = opts;
+  const { seed, content } = opts;
+  const loadout = opts.loadout && { ...opts.loadout, ...(opts.loadout.dipSimmer ? { dipSimmer: { ...opts.loadout.dipSimmer } } : {}) };
   const chapter = content.chapters.find((ch) => ch.id === opts.chapterId) ?? content.chapters[0];
   const stats = computeStats([], content, loadout);
   const player: Player = {
@@ -42,7 +43,7 @@ export function createRun(opts: { seed: number; content: Content; chapterId?: st
   return {
     seed, rngState: seed >>> 0, content, chapter, time: 0, phase: 'intro', wave: 0, waveTime: 0, budgetLeft: 0, spawnClock: 0,
     player, enemies: [], projectiles: [], zones: [], nextUid: 1, kills: 0, bossKills: 0, gold: 0, pendingLevelUps: 0, offer: [], recentOffers: [],
-    rerolls: loadout?.rerolls ?? 1, events: [], result: null, loadout, contactAcc: 0, contactT: 0,
+    rerolls: loadout?.rerolls ?? 1, events: [], result: null, loadout, dipUseXp: {}, dipLastCredit: {}, contactAcc: 0, contactT: 0,
   };
 }
 
@@ -203,6 +204,7 @@ function endRun(c: Ctx, won: boolean): void {
     chapterId: w.chapter.id, bossAttempted: w.bossAttempted ?? false,
     won, wave: w.wave, kills: w.kills, bossKills: w.bossKills, time: w.time, level: p.level,
     gold: Math.round(w.gold) + 5 * cleared + (won ? 50 : 0),
+    dipUseXp: { ...w.dipUseXp },
     breads: p.breads.map((b) => ({ ...b })), dips: p.dips.map((d) => ({ ...d })),
   };
   emit(c, { t: 'runEnd', won });

@@ -1,3 +1,4 @@
+import { SIMMER_DIPS, validDipXp } from '../core/dipProgression';
 import { BREADS } from '../content/breads';
 import { DIPS } from '../content/dips';
 import { CHAPTERS } from '../content/chapters';
@@ -16,7 +17,7 @@ const calendarDay = (value: unknown): string | null => typeof value === 'string'
 
 export function freshSaveV2(): SaveV2 {
   return {
-    ...freshSave(), v: 2, prologueSeen: false, signatureBread: 'kosong', stallXp: 0, unlockedBreads: [], unlockedDips: [], bossAttempts: {}, inventory: [], equipped: {},
+    ...freshSave(), v: 2, prologueSeen: false, signatureBread: 'kosong', stallXp: 0, unlockedBreads: [], unlockedDips: [], dipXp: {}, bossAttempts: {}, inventory: [], equipped: {},
     training: { wrist: 0, stamina: 0, flip: 0 },
     materials: { flour: 0, ghee: 0, egg: 0, onion: 0, spice: 0, sugar: 0, milk: 0 },
     streak: { day: 0, lastClaimDay: null, windowStartDay: null, restDaysUsed: 0 },
@@ -55,6 +56,10 @@ export function parseSaveV2(json: unknown): SaveV2 {
   if (raw.v === 1) {
     save.idle.lastCollectedAt = date(base.lastPlayed);
     return save;
+  }
+  for (const id of SIMMER_DIPS) {
+    const xp = validDipXp(obj(raw.dipXp)[id]);
+    if (xp) save.dipXp[id] = xp;
   }
   save.stallXp = num(raw.stallXp);
   save.unlockedBreads = Object.values(BREADS).filter(b => !b.evolvedFrom && Array.isArray(raw.unlockedBreads) && raw.unlockedBreads.includes(b.id)).map(b => b.id);

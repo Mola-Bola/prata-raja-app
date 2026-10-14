@@ -423,10 +423,11 @@ export type RunResult = {
   gold: number;
   breads: OwnedBread[];
   dips: OwnedDip[];
+  dipUseXp?: Partial<Record<DipId, number>>;
 };
 
 /** Permanent bonuses from the stall (gear, training) applied at run start. S1 passes {}. */
-export type Loadout = { stats?: Partial<PlayerStats>; startBread?: BreadId; signatureBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[]; /** Level-up rerolls per run (default 1). */ rerolls?: number };
+export type Loadout = { /** Saved simmer levels, frozen at run start; absent in Kitchen. */ dipSimmer?: Partial<Record<DipId, number>>; stats?: Partial<PlayerStats>; startBread?: BreadId; signatureBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[]; /** Level-up rerolls per run (default 1). */ rerolls?: number };
 
 export type World = {
   /** In-memory Kitchen experiment only; absent on ordinary runs. */
@@ -467,6 +468,8 @@ export type World = {
   // Sim-owned extras (optional, so older worlds still load). Set by createRun.
   /** The run's loadout, kept so chooseCard can recompute stats (cards.applyCard needs it). */
   loadout?: Loadout;
+  dipUseXp?: Partial<Record<DipId, number>>;
+  dipLastCredit?: Partial<Record<DipId, number>>;
   /** Contact damage taken and seconds since the last aggregated 'playerHit' (contact) event. */
   contactAcc?: number;
   contactT?: number;
