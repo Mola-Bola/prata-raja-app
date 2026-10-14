@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SIGNUP_OPEN } from '@/data';
 import { APP_NAME, BigButton, MAX_WIDTH, space, TAGLINE, useAppTheme, Wordmark } from '@/ui';
 
 export default function Welcome() {
@@ -21,9 +22,11 @@ export default function Welcome() {
           </Text>
         </View>
         <View style={{ gap: space.md }}>
-          <BigButton large onPress={() => router.push({ pathname: '/sign-in', params: { mode: 'up' } })} testID="welcome-create">
-            Create an account
-          </BigButton>
+          {SIGNUP_OPEN ? (
+            <BigButton large onPress={() => router.push({ pathname: '/sign-in', params: { mode: 'up' } })} testID="welcome-create">
+              Create an account
+            </BigButton>
+          ) : null}
           <BigButton tone="ghost" onPress={() => router.push({ pathname: '/sign-in', params: { mode: 'in' } })} testID="welcome-signin">
             I already have an account
           </BigButton>

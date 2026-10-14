@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 
-import { useAuth, useAuthProviders } from '@/data';
+import { SIGNUP_OPEN, useAuth, useAuthProviders } from '@/data';
 import { APP_NAME, BigButton, Screen, space, TextField, useAppTheme, useToast, Wordmark } from '@/ui';
 
 export default function SignIn() {
   const params = useLocalSearchParams<{ mode?: 'in' | 'up' }>();
-  const [mode, setMode] = useState<'in' | 'up'>(params.mode === 'up' ? 'up' : 'in');
+  const [mode, setMode] = useState<'in' | 'up'>(params.mode === 'up' && SIGNUP_OPEN ? 'up' : 'in');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -93,6 +93,7 @@ export default function SignIn() {
             Forgot password?
           </Button>
         ) : null}
+        {SIGNUP_OPEN ? (
         <View style={[styles.switch, { borderTopColor: theme.colors.outlineVariant }]}>
           <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
             {mode === 'in' ? `New to ${APP_NAME}?` : 'Already have an account?'}
@@ -101,6 +102,7 @@ export default function SignIn() {
             {mode === 'in' ? 'Create an account' : 'Sign in'}
           </Button>
         </View>
+        ) : null}
       </View>
     </Screen>
   );

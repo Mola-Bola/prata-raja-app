@@ -10,3 +10,4 @@ export { clearQueryCache, QueryProvider, queryClient, useIsOnline, useQueuedChan
 export { useServerDown } from './reachability';
 export { QUEUED_NOTE, saveOrQueue, type SaveResult } from './save';
 export { DEFAULT_SERVER_URL, OPENED_FOR_PASSWORD_RESET, OPENED_WITH_AUTH_LINK, SERVER_URL, setServerUrl, WEB_URL } from './supabase';
+export { isOwnerEmail, OWNER_HASHES, SIGNUP_OPEN } from './owner';

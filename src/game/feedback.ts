@@ -192,6 +192,20 @@ export const FAIL_TEXT: Record<FailReason, string> = {
   unavailable: 'My notes isn’t available on this server yet.',
 };
 
+/** The signed-in session's access token (supabase-js keeps it in localStorage on web), so the function can tell the owner. */
+export function authHeaders(): Record<string, string> {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)!;
+      if (/^sb-.+-auth-token$/.test(k)) {
+        const token = JSON.parse(localStorage.getItem(k) ?? '{}').access_token;
+        if (typeof token === 'string') return { authorization: `Bearer ${token}` };
+      }
+    }
+  } catch { /* no storage: sent as nobody */ }
+  return {};
+}
+
 /** POST the note. Never throws: every outcome is a SendResult. text/plain keeps it a "simple" request (no CORS preflight). */
 export async function sendNote(
   note: NotePayload,
@@ -204,7 +218,7 @@ export async function sendNote(
   try {
     const res = await (opts.fetchImpl ?? fetch)(url, {
       method: 'POST',
-      headers: { 'content-type': 'text/plain;charset=UTF-8' },
+      headers: { 'content-type': 'text/plain;charset=UTF-8', ...authHeaders() },
       body: JSON.stringify(note),
       signal: ctrl.signal,
     });
@@ -245,7 +259,7 @@ async function feedbackAction(body: Record<string, unknown>, opts: RequestOption
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 15000);
   try {
-    const res = await (opts.fetchImpl ?? fetch)(url, { method: 'POST', headers: { 'content-type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(body), signal: ctrl.signal });
+    const res = await (opts.fetchImpl ?? fetch)(url, { method: 'POST', headers: { 'content-type': 'text/plain;charset=UTF-8', ...authHeaders() }, body: JSON.stringify(body), signal: ctrl.signal });
     if (!res.ok) return { ok: false, reason: res.status === 429 ? 'busy' : [400, 404, 405, 501].includes(res.status) ? 'unavailable' : res.status === 401 || res.status === 403 ? 'rejected' : 'server' };
     const data: unknown = await res.json().catch(() => null);
     return record(data) && data.ok === true ? { ok: true, data } : { ok: false, reason: 'unavailable' };

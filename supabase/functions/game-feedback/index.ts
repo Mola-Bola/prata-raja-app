@@ -31,4 +31,7 @@ async function authorId(): Promise<string> {
   return (author = id);
 }
 
-Deno.serve(createHandler(admin, authorId, () => Deno.env.get('GAME_FEEDBACK_OWNER_CODE')));
+Deno.serve(createHandler(admin, authorId, () => Deno.env.get('GAME_FEEDBACK_OWNER_CODE'), {
+  emails: () => Deno.env.get('OWNER_EMAILS'),
+  userEmail: async (token) => (await admin.auth.getUser(token)).data.user?.email ?? null,
+}));
