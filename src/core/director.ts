@@ -7,8 +7,15 @@ import type { Rng } from './rng';
 import { ENEMY_COST, spawnPick, type SpawnRequest } from './waves';
 import type { ChapterDef, Enemy, SpawnLane, World } from './types';
 
-/** Cruise speed in metres per second (the stall slows to a halt over the last BRAKE metres before the boss). */
-export const CRUISE = 5;
+/** Stall speed in metres per second: CRUISE at the start of the street, easing (smoothstep over distance) up to CRUISE_LATE at the
+ *  boss mark. The stall slows to a halt over the last BRAKE metres before the boss. Both are Tune-panel knobs. */
+export const CRUISE = 4;
+export const CRUISE_LATE = 7.5;
+/** Mob flow per second scales with speed / SPEED_REF, so threat per metre stays what the street rows say (they were tuned at 5 m/s). */
+const SPEED_REF = 5;
+/** A stronger Kannan (loadout.kannanLevel) stretches the speed ramp a little: +POWER_PER_LEVEL per level above 1, capped at POWER_CAP. */
+export const POWER_PER_LEVEL = 0.015;
+export const POWER_CAP = 0.3;
 const BRAKE = 60;
 /** Default distance to the boss when a chapter does not set bossAt. */
 export const DEFAULT_BOSS_AT = 1200;
@@ -26,6 +33,15 @@ export const bossAtOf = (chapter: ChapterDef): number => chapter.bossAt ?? DEFAU
 const fightWave = (chapter: ChapterDef) => chapter.waves[chapter.waves.length - 1];
 const rows = (chapter: ChapterDef) => chapter.waves.filter((wv) => !wv.boss);
 const smooth = (t: number): number => t * t * (3 - 2 * t);
+
+/** Stall speed (m/s) at the world's current distance: the start->late ramp, its rise scaled by Kannan's level. */
+export function cruiseAt(world: World): number {
+  const tune = world.content.tune;
+  const from = tune?.cruise ?? CRUISE;
+  const to = tune?.cruiseLate ?? CRUISE_LATE;
+  const power = 1 + Math.min(POWER_CAP, POWER_PER_LEVEL * Math.max(0, (world.loadout?.kannanLevel ?? 1) - 1));
+  return from + (to - from) * smooth(Math.min(1, world.dist / bossAtOf(world.chapter))) * power;
+}
 
 export type Pressure = { rate: number; mix: Record<string, number>; eliteChance: number };
 
@@ -109,7 +125,7 @@ export function flowTick(world: World, dt: number, rng: Rng): FlowOut {
     const left = bossAt - world.dist;
     // Picks due: the stall eases out of cruise over CALM_TIME (smooth, reaching 0 when the offers open).
     const calm = (world.calmT ?? 0) > 0 ? smooth((world.calmT ?? 0) / CALM_TIME) : 1;
-    world.dist = Math.min(bossAt, world.dist + (world.content.tune?.cruise ?? CRUISE) * calm * Math.min(1, Math.max(0.1, left / BRAKE)) * dt);
+    world.dist = Math.min(bossAt, world.dist + cruiseAt(world) * calm * Math.min(1, Math.max(0.1, left / BRAKE)) * dt);
     world.waveF = waveEquivalent(chapter, world.dist);
     world.wave = Math.floor(world.waveF);
     // Queued picks come before the boss steps out (pickDue opens them at the boss mark).
@@ -124,7 +140,7 @@ export function flowTick(world: World, dt: number, rng: Rng): FlowOut {
   }
   let heat = 0;
   for (const e of world.enemies) if (living(e) && !e.boss) heat += ENEMY_COST[e.def.kind];
-  if (heat < (world.content.tune?.liveCap ?? LIVE_CAP)) world.credit = Math.min(CREDIT_CAP, world.credit + pr.rate * (world.content.tune?.pressure ?? 1) * dt);
+  if (heat < (world.content.tune?.liveCap ?? LIVE_CAP)) world.credit = Math.min(CREDIT_CAP, world.credit + pr.rate * (world.content.tune?.pressure ?? 1) * (world.flowBoss ? 1 : cruiseAt(world) / SPEED_REF) * dt);
   for (;;) {
     const fits = Object.keys(pr.mix).filter((id) => pr.mix[id] > 0 && ENEMY_COST[world.content.enemies[id].kind] <= world.credit).sort();
     if (fits.length === 0) break;

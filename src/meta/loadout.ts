@@ -17,7 +17,8 @@ export function computeLoadout(save: SaveV2, content: Content): Loadout {
       stats[key] = (stats[key] ?? 0) + value;
     }
   }
-  const perks = perksFor(kannanLevel(kannanXpOf(save)));
+  const level = kannanLevel(kannanXpOf(save));
+  const perks = perksFor(level);
   for (const perk of perks) for (const [stat, value] of Object.entries(perk.stats ?? {})) {
     const key = stat as keyof PlayerStats;
     stats[key] = (stats[key] ?? 0) + value;
@@ -25,5 +26,5 @@ export function computeLoadout(save: SaveV2, content: Content): Loadout {
   const rerolls = (save.unlocks.secondReroll ? 2 : 1) + perks.reduce((n, perk) => n + (perk.rerolls ?? 0), 0);
   const pools = runPools(save, content);
   const signature = save.unlocks.signature && pools.breadPool.includes(save.signatureBread) ? save.signatureBread : undefined;
-  return { stats, dipSimmer: Object.fromEntries(SIMMER_DIPS.map(id => [id, simmerProgress(save.dipXp?.[id]).level])), ...(signature ? { signatureBread: signature } : {}), ...(rerolls > 1 ? { rerolls } : {}), ...pools, ...(content.breads.kosong ? { startBread: signature ?? content.breads.kosong.id } : {}) };
+  return { stats, kannanLevel: level, dipSimmer: Object.fromEntries(SIMMER_DIPS.map(id => [id, simmerProgress(save.dipXp?.[id]).level])), ...(signature ? { signatureBread: signature } : {}), ...(rerolls > 1 ? { rerolls } : {}), ...pools, ...(content.breads.kosong ? { startBread: signature ?? content.breads.kosong.id } : {}) };
 }

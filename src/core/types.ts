@@ -279,7 +279,7 @@ export type Content = {
   chapters: ChapterDef[];
   lines: { wake: string[]; win: string[]; tips: string[] };
   /** Optional director overrides, only ever set by the Tune overlay (src/core/tune.ts); shipped content leaves it unset. */
-  tune?: { cruise?: number; liveCap?: number; pressure?: number };
+  tune?: { cruise?: number; cruiseLate?: number; liveCap?: number; pressure?: number };
 };
 
 // ── Run state (src/core/sim.ts owns mutation) ───────────────────────────────
@@ -454,7 +454,7 @@ export type RunResult = {
 };
 
 /** Permanent bonuses from the stall (gear, training) applied at run start. S1 passes {}. */
-export type Loadout = { /** Saved simmer levels, frozen at run start; absent in Kitchen. */ dipSimmer?: Partial<Record<DipId, number>>; stats?: Partial<PlayerStats>; startBread?: BreadId; signatureBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[]; /** Level-up rerolls per run (default 1). */ rerolls?: number };
+export type Loadout = { /** Saved simmer levels, frozen at run start; absent in Kitchen. */ dipSimmer?: Partial<Record<DipId, number>>; stats?: Partial<PlayerStats>; startBread?: BreadId; signatureBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[]; /** Level-up rerolls per run (default 1). */ rerolls?: number; /** Persistent Kannan level; scales the flow speed ramp a little. */ kannanLevel?: number };
 
 export type World = {
   /** Dev/test only (?god=1): Kannan takes no damage. */

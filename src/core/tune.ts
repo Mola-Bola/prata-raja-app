@@ -2,7 +2,7 @@
 // override set is a flat {knobId: value} map applied to a deep CLONE of the tables, so the shipped tables are never mutated and
 // the sim stays deterministic for whatever content it is handed. Bread/dip knobs are keyed by the first non-zero value across
 // the five levels and scale every level by the same ratio (levels are cumulative ladders, so editing L1 alone would not stick).
-import { bossAtOf, CRUISE, LIVE_CAP } from './director';
+import { bossAtOf, CRUISE, CRUISE_LATE, LIVE_CAP } from './director';
 import type { Content } from './types';
 
 export type Overrides = Record<string, number>;
@@ -36,7 +36,7 @@ export function tuneKnobs(content: Content): Knob[] {
   ks.push(knob('enemies.all.hp', 'Enemies', 'hp x (all)', 1, false), knob('enemies.all.speed', 'Enemies', 'speed x (all)', 1, false));
   for (const e of Object.values(content.enemies))
     ks.push(knob(`enemies.${e.id}.hp`, 'Enemies', `${e.name} hp`, e.hp), knob(`enemies.${e.id}.speed`, 'Enemies', `${e.name} speed`, e.speed));
-  ks.push(knob('director.cruise', 'Director', 'stall speed (m/s)', CRUISE), knob('director.pressure', 'Director', 'pressure ramp x', 1, false),
+  ks.push(knob('director.cruise', 'Director', 'stall speed, start (m/s)', CRUISE), knob('director.cruiseLate', 'Director', 'stall speed, at boss (m/s)', CRUISE_LATE), knob('director.pressure', 'Director', 'pressure ramp x', 1, false),
     knob('director.liveCap', 'Director', 'LIVE_CAP', LIVE_CAP));
   for (const c of content.chapters) ks.push(knob(`chapters.${c.id}.bossAt`, 'Director', `${c.name} bossAt (m)`, bossAtOf(c)));
   ks.push(knob('pres.hover', 'Look', 'prata hover height x', PRES_DEFAULTS.hover, false), knob('pres.wobble', 'Look', 'wobble amount', PRES_DEFAULTS.wobble, false),
@@ -77,6 +77,7 @@ export function applyTune(base: Content, overrides: Overrides): Content {
     else if (kind === 'enemies' && name !== 'all') (c.enemies[name] as unknown as Record<string, number>)[key] = v;
     else if (kind === 'chapters') c.chapters.find((ch) => ch.id === name)!.bossAt = v;
     else if (id === 'director.cruise') tune.cruise = v;
+    else if (id === 'director.cruiseLate') tune.cruiseLate = v;
     else if (id === 'director.pressure') tune.pressure = v;
     else if (id === 'director.liveCap') tune.liveCap = v;
   }

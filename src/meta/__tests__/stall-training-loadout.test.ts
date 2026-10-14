@@ -74,7 +74,7 @@ describe('training', () => {
 });
 describe('loadout', () => {
   it('returns zero additive bonuses for a fresh save and the existing starter bread', () => {
-    expect(computeLoadout(freshSaveV2(), CONTENT)).toEqual({ stats: {}, dipSimmer: { 'fish-curry': 1, 'mint-chutney': 1, 'condensed-milk': 1 }, startBread: 'kosong', ...runPools(freshSaveV2(), CONTENT) });
+    expect(computeLoadout(freshSaveV2(), CONTENT)).toEqual({ stats: {}, kannanLevel: 1, dipSimmer: { 'fish-curry': 1, 'mint-chutney': 1, 'condensed-milk': 1 }, startBread: 'kosong', ...runPools(freshSaveV2(), CONTENT) });
   });
   it('stall level 4 (Extra reroll) gives the run two rerolls', () => {
     const save = freshSaveV2(); save.unlocks = { ...save.unlocks, secondReroll: true };

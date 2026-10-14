@@ -27,7 +27,7 @@ describe('tune overlay', () => {
     expect(CONTENT.tune).toBeUndefined();
   });
   it('cleans junk and default values (reset clears)', () => {
-    expect(cleanOverrides({ 'breads.kosong.dmg': 10, nope: 1, 'enemies.all.hp': 'x', 'director.cruise': 999 }, knobs)).toEqual({ 'director.cruise': 20 });
+    expect(cleanOverrides({ 'breads.kosong.dmg': 10, nope: 1, 'enemies.all.hp': 'x', 'director.cruise': 999 }, knobs)).toEqual({ 'director.cruise': 16 });
     expect(cleanOverrides(null, knobs)).toEqual({});
   });
   it('tuned content stays deterministic and a faster stall covers more ground', () => {

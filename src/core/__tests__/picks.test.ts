@@ -61,7 +61,7 @@ describe('flow level-up picks', () => {
     w.phase = 'wave';
     w.wave = 1;
     // Nothing queued while the street passes the 250 m checkpoint (kills would queue picks there).
-    for (let i = 0; i < 1800 && w.dist < PICK_EVERY + 5; i++) {
+    for (let i = 0; i < 3600 && w.dist < PICK_EVERY + 5; i++) {
       w.player.hp = w.player.stats.maxHp;
       w.enemies = [];
       w.pendingLevelUps = 0;
