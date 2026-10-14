@@ -1,0 +1,1112 @@
+{
+  "frames": {
+    "chests/chest-epic": {
+      "frame": {
+        "x": 456,
+        "y": 1044,
+        "w": 214,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 11,
+        "w": 214,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 232,
+        "h": 256
+      }
+    },
+    "chests/chest-rare": {
+      "frame": {
+        "x": 1618,
+        "y": 724,
+        "w": 234,
+        "h": 184
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 184
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 206
+      }
+    },
+    "gear/chefs-gloves": {
+      "frame": {
+        "x": 1380,
+        "y": 724,
+        "w": 234,
+        "h": 196
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 196
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 218
+      }
+    },
+    "gear/cooks-hairnet": {
+      "frame": {
+        "x": 957,
+        "y": 1627,
+        "w": 234,
+        "h": 170
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 170
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 192
+      }
+    },
+    "gear/cotton-apron": {
+      "frame": {
+        "x": 1697,
+        "y": 484,
+        "w": 228,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 9,
+        "w": 228,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 248,
+        "h": 256
+      }
+    },
+    "gear/denim-apron": {
+      "frame": {
+        "x": 1701,
+        "y": 2,
+        "w": 222,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 9,
+        "w": 222,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 242,
+        "h": 256
+      }
+    },
+    "gear/faded-kopitiam-towel": {
+      "frame": {
+        "x": 867,
+        "y": 956,
+        "w": 236,
+        "h": 225
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 236,
+        "h": 225
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 243
+      }
+    },
+    "gear/lucky-red-towel": {
+      "frame": {
+        "x": 475,
+        "y": 1541,
+        "w": 216,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 216,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 236,
+        "h": 256
+      }
+    },
+    "gear/oil-splashed-apron": {
+      "frame": {
+        "x": 778,
+        "y": 2,
+        "w": 228,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 228,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 246,
+        "h": 256
+      }
+    },
+    "gear/old-house-slippers": {
+      "frame": {
+        "x": 1167,
+        "y": 1391,
+        "w": 236,
+        "h": 161
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 236,
+        "h": 161
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 179
+      }
+    },
+    "gear/oven-gloves": {
+      "frame": {
+        "x": 882,
+        "y": 1185,
+        "w": 238,
+        "h": 223
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 223
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 241
+      }
+    },
+    "gear/plain-headband": {
+      "frame": {
+        "x": 1587,
+        "y": 924,
+        "w": 234,
+        "h": 179
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 179
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 201
+      }
+    },
+    "gear/rubber-flip-flops": {
+      "frame": {
+        "x": 715,
+        "y": 1754,
+        "w": 238,
+        "h": 226
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 226
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 244
+      }
+    },
+    "gear/silicone-gloves": {
+      "frame": {
+        "x": 929,
+        "y": 1412,
+        "w": 234,
+        "h": 211
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 211
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 233
+      }
+    },
+    "gear/sweat-stained-towel": {
+      "frame": {
+        "x": 1225,
+        "y": 484,
+        "w": 234,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 9,
+        "w": 234,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 254,
+        "h": 256
+      }
+    },
+    "hub/calendar": {
+      "frame": {
+        "x": 2,
+        "y": 1064,
+        "w": 208,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 208,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 226,
+        "h": 256
+      }
+    },
+    "hub/chef-special": {
+      "frame": {
+        "x": 778,
+        "y": 244,
+        "w": 201,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 9,
+        "w": 201,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 221,
+        "h": 256
+      }
+    },
+    "hub/feedback": {
+      "frame": {
+        "x": 1142,
+        "y": 724,
+        "w": 234,
+        "h": 220
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 220
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 242
+      }
+    },
+    "hub/gift": {
+      "frame": {
+        "x": 219,
+        "y": 824,
+        "w": 222,
+        "h": 235
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 10,
+        "y": 11,
+        "w": 222,
+        "h": 235
+      },
+      "sourceSize": {
+        "w": 243,
+        "h": 256
+      }
+    },
+    "hub/recipe-book": {
+      "frame": {
+        "x": 1241,
+        "y": 2,
+        "w": 226,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 226,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 244,
+        "h": 256
+      }
+    },
+    "hub/settings": {
+      "frame": {
+        "x": 448,
+        "y": 1303,
+        "w": 220,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 220,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 242,
+        "h": 256
+      }
+    },
+    "hub/stall-badge": {
+      "frame": {
+        "x": 2,
+        "y": 824,
+        "w": 213,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 213,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 233,
+        "h": 256
+      }
+    },
+    "hub/star": {
+      "frame": {
+        "x": 2,
+        "y": 1544,
+        "w": 238,
+        "h": 235
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 235
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 253
+      }
+    },
+    "hub/tip-jar": {
+      "frame": {
+        "x": 390,
+        "y": 324,
+        "w": 201,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 9,
+        "w": 201,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 223,
+        "h": 256
+      }
+    },
+    "hub/training": {
+      "frame": {
+        "x": 1010,
+        "y": 2,
+        "w": 227,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 227,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 245,
+        "h": 256
+      }
+    },
+    "materials/egg": {
+      "frame": {
+        "x": 1345,
+        "y": 948,
+        "w": 238,
+        "h": 206
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 206
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 224
+      }
+    },
+    "materials/flour": {
+      "frame": {
+        "x": 1107,
+        "y": 952,
+        "w": 234,
+        "h": 222
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 222
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 244
+      }
+    },
+    "materials/ghee": {
+      "frame": {
+        "x": 1471,
+        "y": 2,
+        "w": 226,
+        "h": 238
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 226,
+        "h": 238
+      },
+      "sourceSize": {
+        "w": 244,
+        "h": 256
+      }
+    },
+    "materials/onion": {
+      "frame": {
+        "x": 674,
+        "y": 1044,
+        "w": 189,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 189,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 211,
+        "h": 256
+      }
+    },
+    "materials/spice": {
+      "frame": {
+        "x": 2,
+        "y": 1304,
+        "w": 200,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 10,
+        "y": 10,
+        "w": 200,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 220,
+        "h": 256
+      }
+    },
+    "materials/sugar": {
+      "frame": {
+        "x": 672,
+        "y": 1282,
+        "w": 206,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 206,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 228,
+        "h": 256
+      }
+    },
+    "passives/big-dough": {
+      "frame": {
+        "x": 983,
+        "y": 244,
+        "w": 238,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 254
+      }
+    },
+    "passives/bigger-tips": {
+      "frame": {
+        "x": 1225,
+        "y": 244,
+        "w": 238,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 254
+      }
+    },
+    "passives/extra-dough": {
+      "frame": {
+        "x": 1467,
+        "y": 244,
+        "w": 238,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 254
+      }
+    },
+    "passives/fast-flip": {
+      "frame": {
+        "x": 1709,
+        "y": 244,
+        "w": 238,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 254
+      }
+    },
+    "passives/hot-tawa": {
+      "frame": {
+        "x": 983,
+        "y": 484,
+        "w": 238,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 254
+      }
+    },
+    "passives/kopi-break": {
+      "frame": {
+        "x": 595,
+        "y": 486,
+        "w": 238,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 254
+      }
+    },
+    "passives/lucky-towel": {
+      "frame": {
+        "x": 206,
+        "y": 1304,
+        "w": 238,
+        "h": 235
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 235
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 253
+      }
+    },
+    "passives/multitasker": {
+      "frame": {
+        "x": 477,
+        "y": 1779,
+        "w": 234,
+        "h": 232
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 232
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 254
+      }
+    },
+    "passives/second-helping": {
+      "frame": {
+        "x": 445,
+        "y": 806,
+        "w": 236,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 9,
+        "w": 236,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 254
+      }
+    },
+    "passives/sharp-eye": {
+      "frame": {
+        "x": 244,
+        "y": 566,
+        "w": 238,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 254
+      }
+    },
+    "passives/strong-wrists": {
+      "frame": {
+        "x": 2,
+        "y": 343,
+        "w": 238,
+        "h": 237
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 237
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 255
+      }
+    },
+    "passives/thick-skin": {
+      "frame": {
+        "x": 214,
+        "y": 1064,
+        "w": 238,
+        "h": 235
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 235
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 253
+      }
+    },
+    "room/counter-mid": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 384,
+        "h": 337
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 384,
+        "h": 337
+      },
+      "sourceSize": {
+        "w": 384,
+        "h": 337
+      }
+    },
+    "room/fairy-light-string": {
+      "frame": {
+        "x": 390,
+        "y": 2,
+        "w": 384,
+        "h": 318
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 384,
+        "h": 318
+      },
+      "sourceSize": {
+        "w": 384,
+        "h": 318
+      }
+    },
+    "roomui/joystick-base": {
+      "frame": {
+        "x": 685,
+        "y": 726,
+        "w": 213,
+        "h": 226
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 213,
+        "h": 226
+      },
+      "sourceSize": {
+        "w": 213,
+        "h": 226
+      }
+    },
+    "roomui/station-prompt-ring": {
+      "frame": {
+        "x": 695,
+        "y": 1520,
+        "w": 230,
+        "h": 230
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 230,
+        "h": 230
+      },
+      "sourceSize": {
+        "w": 230,
+        "h": 230
+      }
+    },
+    "ui/boss-badge": {
+      "frame": {
+        "x": 244,
+        "y": 1543,
+        "w": 227,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 227,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 249,
+        "h": 256
+      }
+    },
+    "ui/btn-cream": {
+      "frame": {
+        "x": 240,
+        "y": 1783,
+        "w": 233,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 233,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 255,
+        "h": 256
+      }
+    },
+    "ui/btn-orange": {
+      "frame": {
+        "x": 2,
+        "y": 1783,
+        "w": 234,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 234
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 256
+      }
+    },
+    "ui/coins": {
+      "frame": {
+        "x": 2,
+        "y": 584,
+        "w": 238,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 9,
+        "w": 238,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 254
+      }
+    },
+    "ui/crown": {
+      "frame": {
+        "x": 902,
+        "y": 724,
+        "w": 236,
+        "h": 224
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 10,
+        "y": 10,
+        "w": 236,
+        "h": 224
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 244
+      }
+    },
+    "ui/heart": {
+      "frame": {
+        "x": 1124,
+        "y": 1178,
+        "w": 236,
+        "h": 209
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 9,
+        "y": 11,
+        "w": 236,
+        "h": 209
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 231
+      }
+    },
+    "ui/pause": {
+      "frame": {
+        "x": 1463,
+        "y": 484,
+        "w": 230,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 9,
+        "w": 230,
+        "h": 236
+      },
+      "sourceSize": {
+        "w": 252,
+        "h": 256
+      }
+    },
+    "ui/ribbon": {
+      "frame": {
+        "x": 1364,
+        "y": 1158,
+        "w": 466,
+        "h": 183
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 23,
+        "y": 23,
+        "w": 466,
+        "h": 183
+      },
+      "sourceSize": {
+        "w": 512,
+        "h": 229
+      }
+    }
+  },
+  "meta": {
+    "image": "atlas-3.webp",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1"
+  }
+}

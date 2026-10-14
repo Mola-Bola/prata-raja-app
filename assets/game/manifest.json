@@ -3,6 +3,10 @@
     "h": 466,
     "w": 512
   },
+  "bosses/grade-inspector": {
+    "w": 506,
+    "h": 512
+  },
   "bosses/king-cockroach": {
     "h": 512,
     "w": 480
@@ -131,9 +135,29 @@
     "h": 256,
     "w": 222
   },
+  "enemies/chope-spirit": {
+    "w": 246,
+    "h": 256
+  },
+  "enemies/drain-rat": {
+    "w": 256,
+    "h": 233
+  },
+  "enemies/drumstick-knight": {
+    "w": 254,
+    "h": 256
+  },
   "enemies/durian-bomb": {
     "h": 256,
     "w": 220
+  },
+  "enemies/fishball": {
+    "w": 186,
+    "h": 256
+  },
+  "enemies/ice-golem": {
+    "w": 256,
+    "h": 214
   },
   "enemies/ice-kacang-sprite": {
     "h": 254,
@@ -143,9 +167,29 @@
     "h": 254,
     "w": 256
   },
+  "enemies/kopi-ghost": {
+    "w": 175,
+    "h": 256
+  },
+  "enemies/kway-teow-blob": {
+    "w": 256,
+    "h": 199
+  },
   "enemies/mosquito": {
     "h": 256,
     "w": 252
+  },
+  "enemies/mynah-thief": {
+    "w": 256,
+    "h": 199
+  },
+  "enemies/neon-moth": {
+    "w": 256,
+    "h": 163
+  },
+  "enemies/noodle-bit": {
+    "w": 220,
+    "h": 256
   },
   "enemies/pigeon": {
     "h": 185,
@@ -155,13 +199,61 @@
     "h": 244,
     "w": 256
   },
+  "enemies/rojak-bomb": {
+    "w": 224,
+    "h": 256
+  },
+  "enemies/satay-archer": {
+    "w": 235,
+    "h": 256
+  },
   "enemies/sugar-ant": {
     "h": 230,
     "w": 256
   },
+  "enemies/sugarcane-walker": {
+    "w": 203,
+    "h": 256
+  },
   "enemies/tiffin-beetle": {
     "h": 256,
     "w": 195
+  },
+  "enemies/tray-rat": {
+    "w": 245,
+    "h": 256
+  },
+  "evolutions/crusher-murtabak": {
+    "w": 231,
+    "h": 256
+  },
+  "evolutions/garlic-thunder-zone": {
+    "w": 223,
+    "h": 256
+  },
+  "evolutions/golden-ghee-chakra": {
+    "w": 256,
+    "h": 244
+  },
+  "evolutions/half-boiled-halo": {
+    "w": 241,
+    "h": 256
+  },
+  "evolutions/inferno-bomb": {
+    "w": 197,
+    "h": 256
+  },
+  "evolutions/tandoor-meteor": {
+    "w": 224,
+    "h": 256
+  },
+  "evolutions/tarik-lance": {
+    "w": 172,
+    "h": 256
+  },
+  "evolutions/thosai-typhoon": {
+    "w": 219,
+    "h": 256
   },
   "fx/curry-splash": {
     "h": 231,
@@ -339,6 +431,94 @@
     "h": 480,
     "w": 512
   },
+  "kannan/walk-down-idle": {
+    "h": 185,
+    "w": 108
+  },
+  "kannan/walk-down-walk-1": {
+    "h": 202,
+    "w": 105
+  },
+  "kannan/walk-down-walk-2": {
+    "h": 188,
+    "w": 108
+  },
+  "kannan/walk-down-walk-3": {
+    "h": 161,
+    "w": 106
+  },
+  "kannan/walk-down-walk-4": {
+    "h": 184,
+    "w": 112
+  },
+  "kannan/walk-left-idle": {
+    "h": 215,
+    "w": 109
+  },
+  "kannan/walk-left-walk-1": {
+    "h": 223,
+    "w": 106
+  },
+  "kannan/walk-left-walk-2": {
+    "h": 189,
+    "w": 116
+  },
+  "kannan/walk-left-walk-3": {
+    "h": 193,
+    "w": 117
+  },
+  "kannan/walk-left-walk-4": {
+    "h": 214,
+    "w": 108
+  },
+  "kannan/walk-right-idle": {
+    "h": 215,
+    "w": 109
+  },
+  "kannan/walk-right-walk-1": {
+    "h": 223,
+    "w": 106
+  },
+  "kannan/walk-right-walk-2": {
+    "h": 189,
+    "w": 116
+  },
+  "kannan/walk-right-walk-3": {
+    "h": 193,
+    "w": 117
+  },
+  "kannan/walk-right-walk-4": {
+    "h": 214,
+    "w": 108
+  },
+  "kannan/walk-up-idle": {
+    "h": 163,
+    "w": 111
+  },
+  "kannan/walk-up-walk-1": {
+    "h": 194,
+    "w": 109
+  },
+  "kannan/walk-up-walk-2": {
+    "h": 192,
+    "w": 107
+  },
+  "kannan/walk-up-walk-3": {
+    "h": 178,
+    "w": 114
+  },
+  "kannan/walk-up-walk-4": {
+    "h": 184,
+    "w": 105
+  },
+  "materials/chilli": {
+    "h": 256,
+    "w": 274
+  },
+  "materials/curryLeaves": {
+    "h": 256,
+    "w": 247
+  },
   "materials/egg": {
     "h": 224,
     "w": 256
@@ -351,6 +531,10 @@
     "h": 256,
     "w": 244
   },
+  "materials/masala": {
+    "h": 256,
+    "w": 269
+  },
   "materials/milk": {
     "h": 256,
     "w": 146
@@ -362,18 +546,6 @@
   "materials/spice": {
     "h": 256,
     "w": 220
-  },
-  "materials/masala": {
-    "h": 256,
-    "w": 269
-  },
-  "materials/chilli": {
-    "h": 256,
-    "w": 274
-  },
-  "materials/curryLeaves": {
-    "h": 256,
-    "w": 247
   },
   "materials/sugar": {
     "h": 256,
@@ -427,9 +599,189 @@
     "h": 253,
     "w": 256
   },
+  "room/ceiling-fan-shadow": {
+    "h": 359,
+    "w": 384
+  },
+  "room/chest": {
+    "h": 351,
+    "w": 384
+  },
+  "room/counter-left": {
+    "h": 377,
+    "w": 384
+  },
+  "room/counter-mid": {
+    "h": 337,
+    "w": 384
+  },
+  "room/counter-right": {
+    "h": 377,
+    "w": 384
+  },
+  "room/curry-pot-stove": {
+    "h": 384,
+    "w": 372
+  },
+  "room/dip-shelf": {
+    "h": 371,
+    "w": 384
+  },
+  "room/doorway-glow": {
+    "h": 384,
+    "w": 378
+  },
+  "room/drain-grate": {
+    "h": 356,
+    "w": 384
+  },
+  "room/fairy-light-string": {
+    "h": 318,
+    "w": 384
+  },
+  "room/gear-rack-forge": {
+    "h": 352,
+    "w": 384
+  },
+  "room/hawker-floor-terrazzo": {
+    "h": 384,
+    "w": 384
+  },
+  "room/hawker-floor-terrazzo-v2": {
+    "h": 384,
+    "w": 384
+  },
+  "room/kopi-stall-front": {
+    "h": 384,
+    "w": 376
+  },
+  "room/mama-shop-front": {
+    "h": 351,
+    "w": 384
+  },
+  "room/npc-ah-beng": {
+    "h": 205,
+    "w": 118
+  },
+  "room/npc-auntie-siew-lan": {
+    "h": 213,
+    "w": 149
+  },
+  "room/npc-office-worker": {
+    "h": 204,
+    "w": 112
+  },
+  "room/npc-student": {
+    "h": 194,
+    "w": 126
+  },
+  "room/npc-uncle-ah-seng": {
+    "h": 214,
+    "w": 144
+  },
+  "room/order-chalkboard": {
+    "h": 384,
+    "w": 356
+  },
+  "room/pantry-shelves": {
+    "h": 384,
+    "w": 384
+  },
+  "room/pillar": {
+    "h": 384,
+    "w": 345
+  },
+  "room/plastic-stool-blue": {
+    "h": 384,
+    "w": 366
+  },
+  "room/plastic-stool-red": {
+    "h": 384,
+    "w": 343
+  },
+  "room/spec-board": {
+    "h": 378,
+    "w": 384
+  },
+  "room/stall-back-wall": {
+    "h": 384,
+    "w": 337
+  },
+  "room/steel-table": {
+    "h": 384,
+    "w": 366
+  },
+  "room/tawa-counter": {
+    "h": 343,
+    "w": 384
+  },
+  "room/tiffin-carrier": {
+    "h": 364,
+    "w": 384
+  },
+  "roomui/coin-pill": {
+    "h": 82,
+    "w": 195
+  },
+  "roomui/go-pill": {
+    "h": 99,
+    "w": 256
+  },
+  "roomui/icon-anvil-tawa": {
+    "h": 93,
+    "w": 102
+  },
+  "roomui/icon-chalkboard": {
+    "h": 104,
+    "w": 88
+  },
+  "roomui/icon-chalkboard-v2": {
+    "h": 90,
+    "w": 94
+  },
+  "roomui/icon-katori": {
+    "h": 70,
+    "w": 84
+  },
+  "roomui/icon-kopi-cup": {
+    "h": 104,
+    "w": 99
+  },
+  "roomui/icon-pantry-sack": {
+    "h": 98,
+    "w": 86
+  },
+  "roomui/icon-tawa": {
+    "h": 99,
+    "w": 96
+  },
+  "roomui/joystick-base": {
+    "h": 226,
+    "w": 213
+  },
+  "roomui/joystick-knob": {
+    "h": 100,
+    "w": 96
+  },
+  "roomui/joystick-knob-v2": {
+    "h": 58,
+    "w": 59
+  },
+  "roomui/level-ring-frame": {
+    "h": 94,
+    "w": 103
+  },
+  "roomui/station-prompt-ring": {
+    "h": 230,
+    "w": 230
+  },
   "scene/background": {
     "h": 1919,
     "w": 1080
+  },
+  "scene/background2": {
+    "w": 1080,
+    "h": 1919
   },
   "scene/counter": {
     "h": 527,
@@ -443,145 +795,21 @@
     "h": 1919,
     "w": 1080
   },
+  "scene/hub-tier-1": {
+    "w": 556,
+    "h": 936
+  },
+  "scene/hub-tier-10": {
+    "w": 556,
+    "h": 936
+  },
+  "scene/hub-tier-5": {
+    "w": 552,
+    "h": 936
+  },
   "scene/wake": {
     "h": 1919,
     "w": 1080
-  },
-  "ui/boss-badge": {
-    "h": 256,
-    "w": 249
-  },
-  "ui/btn-cream": {
-    "h": 256,
-    "w": 255
-  },
-  "ui/btn-orange": {
-    "h": 256,
-    "w": 256
-  },
-  "ui/card": {
-    "h": 512,
-    "w": 410
-  },
-  "ui/card-epic": {
-    "h": 512,
-    "w": 417
-  },
-  "ui/card-rare": {
-    "h": 512,
-    "w": 378
-  },
-  "ui/coins": {
-    "h": 254,
-    "w": 256
-  },
-  "ui/crown": {
-    "h": 244,
-    "w": 256
-  },
-  "ui/heart": {
-    "h": 231,
-    "w": 256
-  },
-  "ui/lock": {
-    "h": 256,
-    "w": 196
-  },
-  "ui/logo": {
-    "h": 820,
-    "w": 1024
-  },
-  "ui/pause": {
-    "h": 256,
-    "w": 252
-  },
-  "ui/ribbon": {
-    "h": 229,
-    "w": 512
-  },
-  "evolutions/golden-ghee-chakra": {
-    "w": 256,
-    "h": 244
-  },
-  "evolutions/tarik-lance": {
-    "w": 172,
-    "h": 256
-  },
-  "evolutions/inferno-bomb": {
-    "w": 197,
-    "h": 256
-  },
-  "evolutions/half-boiled-halo": {
-    "w": 241,
-    "h": 256
-  },
-  "evolutions/thosai-typhoon": {
-    "w": 219,
-    "h": 256
-  },
-  "evolutions/tandoor-meteor": {
-    "w": 224,
-    "h": 256
-  },
-  "evolutions/garlic-thunder-zone": {
-    "w": 223,
-    "h": 256
-  },
-  "evolutions/crusher-murtabak": {
-    "w": 231,
-    "h": 256
-  },
-  "enemies/sugarcane-walker": {
-    "w": 203,
-    "h": 256
-  },
-  "enemies/tray-rat": {
-    "w": 245,
-    "h": 256
-  },
-  "enemies/neon-moth": {
-    "w": 256,
-    "h": 163
-  },
-  "enemies/fishball": {
-    "w": 186,
-    "h": 256
-  },
-  "enemies/ice-golem": {
-    "w": 256,
-    "h": 214
-  },
-  "enemies/satay-archer": {
-    "w": 235,
-    "h": 256
-  },
-  "enemies/kway-teow-blob": {
-    "w": 256,
-    "h": 199
-  },
-  "enemies/noodle-bit": {
-    "w": 220,
-    "h": 256
-  },
-  "enemies/drumstick-knight": {
-    "w": 254,
-    "h": 256
-  },
-  "enemies/kopi-ghost": {
-    "w": 175,
-    "h": 256
-  },
-  "enemies/chope-spirit": {
-    "w": 246,
-    "h": 256
-  },
-  "enemies/rojak-bomb": {
-    "w": 224,
-    "h": 256
-  },
-  "scene/background2": {
-    "w": 1080,
-    "h": 1919
   },
   "story/prologue-1": {
     "w": 941,
@@ -607,31 +835,7 @@
     "w": 941,
     "h": 1672
   },
-  "enemies/mynah-thief": {
-    "w": 256,
-    "h": 199
-  },
-  "enemies/drain-rat": {
-    "w": 256,
-    "h": 233
-  },
-  "bosses/grade-inspector": {
-    "w": 506,
-    "h": 512
-  },
-  "scene/hub-tier-1": {
-    "w": 556,
-    "h": 936
-  },
-  "scene/hub-tier-5": {
-    "w": 552,
-    "h": 936
-  },
-  "scene/hub-tier-10": {
-    "w": 556,
-    "h": 936
-  },
-  "street/floor/kopitiam": {
+  "street/floor/food-street": {
     "h": 512,
     "w": 768
   },
@@ -639,7 +843,7 @@
     "h": 512,
     "w": 768
   },
-  "street/floor/food-street": {
+  "street/floor/kopitiam": {
     "h": 512,
     "w": 768
   },
@@ -730,5 +934,57 @@
   "street/wet-market-ice-box": {
     "h": 256,
     "w": 253
+  },
+  "ui/boss-badge": {
+    "h": 256,
+    "w": 249
+  },
+  "ui/btn-cream": {
+    "h": 256,
+    "w": 255
+  },
+  "ui/btn-orange": {
+    "h": 256,
+    "w": 256
+  },
+  "ui/card": {
+    "h": 512,
+    "w": 410
+  },
+  "ui/card-epic": {
+    "h": 512,
+    "w": 417
+  },
+  "ui/card-rare": {
+    "h": 512,
+    "w": 378
+  },
+  "ui/coins": {
+    "h": 254,
+    "w": 256
+  },
+  "ui/crown": {
+    "h": 244,
+    "w": 256
+  },
+  "ui/heart": {
+    "h": 231,
+    "w": 256
+  },
+  "ui/lock": {
+    "h": 256,
+    "w": 196
+  },
+  "ui/logo": {
+    "h": 820,
+    "w": 1024
+  },
+  "ui/pause": {
+    "h": 256,
+    "w": 252
+  },
+  "ui/ribbon": {
+    "h": 229,
+    "w": 512
   }
 }
