@@ -12,7 +12,7 @@ import { kannanLevel } from './kannan';
 import { BASE_SOCKETS, MAX_SOCKETS } from './sockets';
 import { mealDef } from './meals';
 import { fusionOf } from './fusion';
-import { specNode } from './specTree';
+import { settleSpec, specNode } from './specTree';
 import { milestonesBelow } from './milestones';
 import type { DipId } from '../core/types';
 import { MATERIALS, RARITIES, SLOTS, TRAINING_IDS, UNLOCK_FLAGS, type GearBaseId, type GearItem, type Rarity, type SaveV2, type SaveV3 } from './types';
@@ -167,9 +167,10 @@ export function parseSaveV3(json: unknown): SaveV3 {
   for (const [k, v] of Object.entries(obj(obj(raw.stall).parts))) if (Number.isSafeInteger(v) && (v as number) >= 1) parts[k] = v as number;
   const beats = Array.isArray(raw.beats) ? raw.beats.filter((b): b is string => typeof b === 'string') : [];
   const kannanXp = Math.max(num(raw.kannanXp), base.stallXp);
-  const specPoints = typeof raw.specPoints === 'number' ? integer(raw.specPoints) : kannanLevel(kannanXp) - 1;
   // Gates read the Kannan level (never lower than the stall level they were migrated from).
   // A save from before seenMilestones marks the milestones it already passed; a newer one keeps its own list.
   const seenMilestones = Array.isArray(raw.seenMilestones) ? [...new Set(raw.seenMilestones.filter((l): l is number => Number.isSafeInteger(l)))] : milestonesBelow(kannanXp);
-  return { ...base, beats: [...new Set([...base.beats, ...beats])], kannanXp, specPoints, unlocks: { ...base.unlocks, ...unlocksForXp(kannanXp) }, stall: { parts }, seenMilestones, ...migrateMeta(raw) };
+  const meta = migrateMeta(raw);
+  const { nodes, specPoints } = settleSpec(kannanLevel(kannanXp), meta.spec.nodes); // points are derived from the level, never read from the file
+  return { ...base, beats: [...new Set([...base.beats, ...beats])], kannanXp, specPoints, unlocks: { ...base.unlocks, ...unlocksForXp(kannanXp) }, stall: { parts }, seenMilestones, ...meta, spec: { nodes } };
 }

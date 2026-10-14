@@ -165,7 +165,7 @@ describe('save store', () => {
     f.writes[0].done();
     await a.flush();
     const b = createSaveStore({ load: async () => f.log[0], save: async () => {} });
-    expect(await b.load()).toEqual({ ...freshSaveV3(), gold: 12, stallXp: 190, kannanXp: 190, unlocks: { gear: true, towel: true } });
+    expect(await b.load()).toEqual({ ...freshSaveV3(), gold: 12, stallXp: 190, kannanXp: 190, specPoints: 1 /* derived: level 2 */, unlocks: { gear: true, towel: true } });
   });
 
   it('a store made after a remount reads only after the old store writes land, and is never overwritten by them', async () => {

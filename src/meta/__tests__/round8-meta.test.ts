@@ -2,16 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../../content';
 import { makeRng } from '../../core/rng';
 import { createRun } from '../../core/sim';
+import { xpForLevel } from '../kannan';
 import { computeLoadout } from '../loadout';
 import { mealLabel, cookMeal, canCookMeal, MEALS } from '../meals';
 import { freshSaveV3, migrateMeta, parseSaveV3 } from '../migrate';
 import { applyRunResult } from '../runRewards';
 import { addSocket, MAX_SOCKETS, socketCount, socketDip, socketsOf, startDips } from '../sockets';
-import { allocate, allocateBlock, canAllocate, respec, SPEC_NODES, specStats } from '../specTree';
+import { allocate, allocateBlock, canAllocate, respec, SPEC_NODES, specSpent, specStats } from '../specTree';
 import type { SaveV3 } from '../types';
 
 const roundTrip = (s: SaveV3) => parseSaveV3(JSON.stringify(s));
-const withPoints = (n: number): SaveV3 => ({ ...freshSaveV3(), specPoints: n });
+const withPoints = (n: number): SaveV3 => ({ ...freshSaveV3(), kannanXp: xpForLevel(n + 1), specPoints: n });
 const learn = (s: SaveV3, ...ids: string[]) => ids.reduce((a, id) => allocate(a, id), s);
 
 describe('migration of sockets / spec / meal', () => {
@@ -37,7 +38,7 @@ describe('migration of sockets / spec / meal', () => {
     expect(m.spec.nodes).toEqual(['hands-1']);
     expect(m.meal).toBeNull();
     expect(migrateMeta({ sockets: 5, spec: [], meal: 'x' })).toEqual({ sockets: {}, spec: { nodes: [] }, meal: null, fusions: [], tiffin: [] });
-    const s = { ...freshSaveV3(), gold: 77, specPoints: 4 };
+    const s = { ...freshSaveV3(), gold: 77, kannanXp: xpForLevel(5), specPoints: 4 };
     const back = parseSaveV3(JSON.stringify({ ...s, sockets: 'junk', spec: 9 }));
     expect(back.gold).toBe(77);
     expect(back.specPoints).toBe(4);
@@ -100,13 +101,54 @@ describe('spec tree', () => {
     expect(allocate(crisp, 'crisp-k')).toBe(crisp); // owned
   });
   it('respec is free and complete; specStats flows into the loadout', () => {
-    const s = learn(withPoints(10), 'hands-1', 'crisp-1');
+    const s = learn(withPoints(4), 'hands-1', 'crisp-1');
     expect(specStats(s)).toEqual({ dmgPct: 0.05, critChance: 0.02 });
     expect(computeLoadout(s, CONTENT).stats).toEqual({ dmgPct: 0.05, critChance: 0.02 });
     const r = respec(s);
-    expect(r.specPoints).toBe(10);
+    expect(r.specPoints).toBe(4);
     expect(r.spec.nodes).toEqual([]);
     expect(computeLoadout(r, CONTENT).stats).toEqual({});
+  });
+});
+
+describe('spec points are derived from the level on load (S1-S3)', () => {
+  const at = (level: number, extra: object) => parseSaveV3(JSON.stringify({ ...freshSaveV3(), kannanXp: xpForLevel(level), ...extra }));
+  const chain = ['hands-1', 'crisp-1', 'crisp-2', 'crisp-3', 'crisp-4', 'crisp-n', 'crisp-k']; // 1+1+1+1+1+2+3 = 10
+  it('S1: nodes but no specPoints do not mint points', () => {
+    const { specPoints: _drop, ...noPoints } = { ...freshSaveV3(), kannanXp: xpForLevel(11), spec: { nodes: chain } };
+    void _drop;
+    const s = parseSaveV3(JSON.stringify(noPoints));
+    expect(s.spec.nodes).toEqual(chain);
+    expect(s.specPoints).toBe(0);
+    expect(at(11, { spec: { nodes: chain }, specPoints: 99 }).specPoints).toBe(0); // a forged balance is ignored too
+  });
+  it('S2: invalid keystone pairs, missing prerequisites and over-budget nodes are dropped', () => {
+    const two = at(30, { spec: { nodes: ['hands-1', 'crisp-1', 'crisp-2', 'crisp-3', 'crisp-4', 'crisp-n', 'crisp-k', 'body-1', 'soak-1', 'soak-2', 'soak-3', 'soak-4', 'soak-n', 'soak-k'] } });
+    expect(two.spec.nodes).not.toContain('soak-k');
+    expect(two.spec.nodes).toContain('crisp-k');
+    expect(at(30, { spec: { nodes: ['crisp-k'] } }).spec.nodes).toEqual([]); // needs not met
+    const broke = at(3, { spec: { nodes: chain } }); // level 3 = 2 points
+    expect(broke.spec.nodes).toEqual(['hands-1', 'crisp-1']);
+    expect(broke.specPoints).toBe(0);
+    expect(respec(broke).specPoints).toBe(2); // respec can no longer mint
+  });
+  it('S3: a cost change cannot mint or burn points', () => {
+    const saved = at(11, { spec: { nodes: chain } });
+    expect(saved.specPoints + specSpent(saved.spec.nodes)).toBe(10);
+    expect(respec(saved).specPoints).toBe(10);
+  });
+  it('idempotent, and a normal earn / allocate / respec loop stays balanced', () => {
+    let s = at(8, { spec: { nodes: ['hands-1', 'crisp-1'] } });
+    for (let i = 0; i < 3; i++) {
+      s = parseSaveV3(JSON.stringify(s));
+      expect(s.specPoints + specSpent(s.spec.nodes)).toBe(7);
+      s = allocate(s, 'crisp-2');
+      s = parseSaveV3(JSON.stringify(respec(s)));
+      expect(s.specPoints).toBe(7);
+      s = allocate(allocate(s, 'hands-1'), 'crisp-1');
+    }
+    const again = parseSaveV3(JSON.stringify(s));
+    expect(again).toEqual(s);
   });
 });
 

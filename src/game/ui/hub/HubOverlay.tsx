@@ -155,7 +155,7 @@ function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitche
     case 'spec':
       return (
         <Tabs tabs={[
-          { name: 'Spec tree', ...t, body: <SpecTree save={save} commit={commit} onClose={close} /> },
+          { name: 'Spec tree', ...t, body: <SpecTree save={save} commit={commit} onClose={close} embedded /> },
           { name: 'Training', flag: 'training', ...t, body: <TrainingSheet save={save} commit={commit} art={art} /> },
         ]} />
       );
@@ -168,7 +168,7 @@ function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitche
         ]} />
       );
     case 'kopi':
-      return <KopiMeal save={save} commit={commit} onClose={close} />;
+      return <KopiMeal save={save} commit={commit} onClose={close} embedded />;
     case 'exit':
       return chapters;
     case 'settings':
