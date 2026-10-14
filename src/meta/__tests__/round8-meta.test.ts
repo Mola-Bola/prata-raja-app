@@ -36,7 +36,7 @@ describe('migration of sockets / spec / meal', () => {
     expect(m.sockets).toEqual({ kosong: [null, 'fish-curry', null] });
     expect(m.spec.nodes).toEqual(['hands-1']);
     expect(m.meal).toBeNull();
-    expect(migrateMeta({ sockets: 5, spec: [], meal: 'x' })).toEqual({ sockets: {}, spec: { nodes: [] }, meal: null });
+    expect(migrateMeta({ sockets: 5, spec: [], meal: 'x' })).toEqual({ sockets: {}, spec: { nodes: [] }, meal: null, fusions: [], tiffin: [] });
     const s = { ...freshSaveV3(), gold: 77, specPoints: 4 };
     const back = parseSaveV3(JSON.stringify({ ...s, sockets: 'junk', spec: 9 }));
     expect(back.gold).toBe(77);

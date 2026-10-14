@@ -80,4 +80,8 @@ export type SaveV3 = Omit<SaveV2, 'v'> & {
   spec: { nodes: string[] };
   /** The meal cooked for the NEXT run (src/meta/meals.ts); cleared when a run ends. */
   meal: { id: string } | null;
+  /** Curry-pot fusions discovered (src/meta/fusion.ts ids). */
+  fusions: string[];
+  /** Extra rotis packed in the tiffin after the start roti (max 2). Display only until runs can start with several rotis. */
+  tiffin: string[];
 };

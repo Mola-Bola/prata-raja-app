@@ -11,6 +11,7 @@ import { unlocksForXp } from './stall';
 import { kannanLevel } from './kannan';
 import { BASE_SOCKETS, MAX_SOCKETS } from './sockets';
 import { mealDef } from './meals';
+import { fusionOf } from './fusion';
 import { specNode } from './specTree';
 import { milestonesBelow } from './milestones';
 import type { DipId } from '../core/types';
@@ -130,7 +131,7 @@ export function parseSaveV2(json: unknown): SaveV2 {
 /** Round-8 fields on a v3 save (sockets, spec tree, meal): an additive step inside v3, so no version bump (same pattern as seenMilestones). */
 /** Idempotent, never drops owned progress: reads the three round-8 fields from raw JSON, cleaning each on its own.
  *  Junk entries are dropped from sockets/spec/meal only (unknown dip ids, unknown nodes, unknown meal). Absent fields get defaults. */
-export function migrateMeta(raw: Record<string, unknown>): Pick<SaveV3, 'sockets' | 'spec' | 'meal'> {
+export function migrateMeta(raw: Record<string, unknown>): Pick<SaveV3, 'sockets' | 'spec' | 'meal' | 'fusions' | 'tiffin'> {
   const sockets: SaveV3['sockets'] = {};
   for (const [bread, list] of Object.entries(obj(raw.sockets))) {
     if (!Object.hasOwn(BASE_SOCKETS, bread) || !Array.isArray(list)) continue;
@@ -140,7 +141,10 @@ export function migrateMeta(raw: Record<string, unknown>): Pick<SaveV3, 'sockets
   }
   const nodes = Array.isArray(obj(raw.spec).nodes) ? obj(raw.spec).nodes as unknown[] : [];
   const meal = obj(raw.meal).id;
-  return { sockets, spec: { nodes: [...new Set(nodes.filter((id): id is string => typeof id === 'string' && !!specNode(id)))] }, meal: typeof meal === 'string' && mealDef(meal) ? { id: meal } : null };
+  const list = (v: unknown) => (Array.isArray(v) ? v : []).filter((x): x is string => typeof x === 'string');
+  const fusions = [...new Set(list(raw.fusions).filter(id => fusionOf(id)))];
+  const tiffin = [...new Set(list(raw.tiffin).filter(id => Object.hasOwn(BASE_SOCKETS, id)))].slice(0, 2);
+  return { fusions, tiffin, sockets, spec: { nodes: [...new Set(nodes.filter((id): id is string => typeof id === 'string' && !!specNode(id)))] }, meal: typeof meal === 'string' && mealDef(meal) ? { id: meal } : null };
 }
 export function freshSaveV3(): SaveV3 {
   return { ...freshSaveV2(), v: 3, beats: [], kannanXp: 0, specPoints: 0, stall: { parts: {} }, seenMilestones: [], ...migrateMeta({}) };
