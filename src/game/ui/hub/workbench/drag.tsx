@@ -152,7 +152,7 @@ export function useUndo(commit: Commit) {
   const el = toast && (
     <div className="wb-toast" role="status" data-testid="wb-undo">
       <span>{toast.text}</span>
-      <button type="button" className="gu-btn" data-testid="wb-undo-btn" onClick={undo}>Undo</button>
+      <button type="button" className="u-plain" data-testid="wb-undo-btn" onClick={undo}>Undo</button>
     </div>
   );
   return { run, toast: el };

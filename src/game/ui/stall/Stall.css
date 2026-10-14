@@ -131,7 +131,7 @@
 
 .sh-label[data-locked] {
   background: #e4d6bd;
-  color: #5b4330;
+  color: var(--muted);
   border-style: dashed;
 }
 
@@ -188,7 +188,7 @@
 /* the next-unlock line is context, so it is quieter than the XP count above the bar */
 .sh-progress span:last-child {
   font-weight: 700;
-  color: #5b4330;
+  color: var(--muted);
 }
 
 .sh-progress .gu-bar {
@@ -286,7 +286,7 @@
   padding: 12px calc(var(--safe-right) + 18px) calc(var(--safe-bottom) + 20px) calc(var(--safe-left) + 18px);
 }
 
-.sh-footer > .gu-btn:not(.sh-start) {
+.sh-footer > .u-plain:not(.sh-start) {
   min-height: 48px;
   min-width: 0;
   padding: 8px 6px;
@@ -396,7 +396,7 @@
   margin: 0;
 }
 
-.sh-sheet .gu-btn:disabled {
+.sh-sheet :is(.u-go, .u-plain):disabled {
   cursor: default;
   box-shadow: none;
   border-style: dashed;
@@ -816,15 +816,17 @@
 }
 
 .sh-chapter {
+  width: 100%;
+  margin-bottom: var(--sp-2);
   justify-content: flex-start;
-  gap: 12px;
+  gap: var(--sp-3);
 }
 
 .sh-chapter img {
   width: 60px;
   height: 80px;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: var(--r-s);
 }
 
 .sh-dip-collection { display: grid; gap: 10px; min-width: 0; }
@@ -890,7 +892,7 @@
 }
 .sh-visitor-tap {
   font: 700 var(--fs-cap)/1 Nunito, system-ui, sans-serif;
-  color: #5b4330;
+  color: var(--muted);
 }
 .sh-visitor-perk,
 .sh-visitor-gift {
@@ -927,14 +929,8 @@
   height: 56px;
 }
 
-.sh-recipes .sh-detail > .gu-btn {
+.sh-recipes .sh-detail > :is(.u-go, .u-plain) {
   grid-column: 1 / -1;
-}
-
-.sh-sheet-head .gu-btn {
-  min-width: 52px;
-  padding: 0 0 4px;
-  font-size: 30px;
 }
 
 /* ── Forge bench (Forge.tsx) ─────────────────────────────────────────────────── */
@@ -946,7 +942,7 @@
 .fg-rule { margin: 0; font-style: italic; color: var(--ink); }
 .fg-affix { display: flex; align-items: center; gap: 8px; font-size: var(--fs-body); }
 .fg-affix > span { flex: 1; min-width: 0; }
-.fg-affix .gu-btn { min-height: 36px; padding: 4px 10px; font-size: var(--fs-cap); }
+.fg-affix .u-plain { min-height: var(--touch); padding: var(--sp-1) var(--sp-3); font: var(--f-cap); }
 .fg-chip { font-style: normal; font-size: var(--fs-cap); font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 2px solid var(--edge); background: var(--cream); }
 .fg-chip--Good { background: #cfeec6; }
 .fg-chip--Great { background: var(--gold); }

@@ -1,56 +1,52 @@
-/* The walkable hub's overlay (HubOverlay.tsx): top bar, GO pill, station panel. Tokens come from .gu-root (GameUi.css). */
-.hb-root { position: absolute; inset: 0; pointer-events: none; --hb-go-h: 58px; /* the GO pill's height at 148 px wide (256 x 99 art) */ }
+/* The walkable hub's overlay (HubOverlay.tsx): top bar, GO pill, station panel. Tokens and button tiers: ../tokens.css, ../system.css. */
+.hb-root { position: absolute; inset: 0; pointer-events: none; }
 
 .hb-top {
-  position: absolute; top: calc(var(--safe-top) + 10px); left: calc(var(--safe-left) + 10px); right: calc(var(--safe-right) + 10px);
-  display: flex; align-items: center; gap: 8px;
+  position: absolute; top: calc(var(--safe-top) + var(--sp-3)); left: calc(var(--safe-left) + var(--sp-3)); right: calc(var(--safe-right) + var(--sp-3));
+  display: flex; align-items: center; gap: var(--sp-2);
 }
 .hb-level { position: relative; width: 62px; height: 56px; flex: none; display: grid; place-items: center; }
 .hb-level img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.hb-level b { position: relative; font: 700 22px/1 Fredoka, system-ui, sans-serif; color: var(--cream); text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5); }
-.hb-level i { position: absolute; left: 8px; bottom: 0; height: 5px; max-width: calc(100% - 16px); border-radius: 3px; background: var(--gold); }
-.hb-spec { padding: 2px 8px; border-radius: 999px; background: var(--glass); color: var(--cream); font: 700 var(--fs-cap)/1.4 Nunito, system-ui, sans-serif; }
+.hb-level b { position: relative; font: var(--f-title); color: var(--cream); text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5); }
+.hb-level i { position: absolute; left: var(--sp-2); bottom: 0; height: 5px; max-width: calc(100% - 16px); border-radius: var(--r-full); background: var(--gold); }
+.hb-spec { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 2px var(--sp-2); border-radius: var(--r-full); background: var(--glass); color: var(--cream); font: var(--f-cap); }
+.hb-spec img { width: 16px; height: 16px; object-fit: contain; }
 .hb-coins { position: relative; margin-left: auto; width: 112px; height: 46px; display: grid; place-items: center; }
 .hb-coins img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.hb-coins b { position: relative; padding-left: 24px; font: 700 18px/1 Fredoka, system-ui, sans-serif; color: var(--cream); text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5); }
-.hb-cog { pointer-events: auto; flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--glass); display: grid; place-items: center; cursor: pointer; }
+.hb-coins b { position: relative; padding-left: var(--sp-5); font: var(--f-btn); color: var(--cream); text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5); }
+.hb-cog { flex: none; background: var(--glass); border-color: var(--glass-edge); box-shadow: none; }
 .hb-cog img { width: 26px; height: 26px; }
 
-/* GO: always bottom right, over any open panel (the panel pads its end to clear it). */
+/* GO: bottom right while no panel is open; with one open it docks in the panel footer (never over content). */
 .hb-go {
-  position: absolute; z-index: 3; right: calc(var(--safe-right) + 12px); bottom: calc(var(--safe-bottom) + 14px);
+  position: absolute; z-index: 3; right: calc(var(--safe-right) + var(--sp-3)); bottom: calc(var(--safe-bottom) + 14px);
   width: 148px; padding: 0; border: 0; background: none; pointer-events: auto; cursor: pointer; touch-action: manipulation;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45)); transition: transform 0.09s ease-out;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45)); transition: transform var(--m-press) ease-out;
 }
 .hb-go:active { transform: translateY(3px) scale(0.96); }
 .hb-go img { display: block; width: 100%; }
-.hb-tell { position: absolute; z-index: 3; right: calc(var(--safe-right) + 10px); top: calc(var(--safe-top) + 72px); min-height: 40px; padding: 6px 12px; font-size: 15px; }
+.hb-tell { position: absolute; z-index: 3; right: calc(var(--safe-right) + var(--sp-3)); top: calc(var(--safe-top) + 72px); min-height: var(--touch); padding: var(--sp-1) var(--sp-3); font: var(--f-body); }
 
 .hb-sheet {
   position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; pointer-events: auto;
   max-height: 55%; overflow-y: auto; overscroll-behavior: contain;
-  border-radius: 26px 26px 0 0; padding: 12px calc(var(--safe-right) + 16px) 0 calc(var(--safe-left) + 16px);
-  font: 600 var(--fs-body)/1.4 Nunito, system-ui, sans-serif;
-  animation: hb-rise 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border-radius: var(--r-m) var(--r-m) 0 0; padding: var(--sp-3) calc(var(--safe-right) + var(--sp-4)) 0 calc(var(--safe-left) + var(--sp-4));
+  font: var(--f-body);
 }
-@keyframes hb-rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
-.hb-sheet-head { position: sticky; top: -12px; z-index: 1; display: flex; align-items: center; gap: 10px; padding: 2px 0 8px; background: var(--cream); }
+.hb-sheet-head { position: sticky; top: calc(-1 * var(--sp-3)); z-index: 1; display: flex; align-items: center; gap: var(--sp-2); padding: 2px 0 var(--sp-2); background: var(--cream); }
 .hb-sheet-head img { width: 36px; height: 36px; object-fit: contain; }
-.hb-sheet-head .gu-heading { flex: 1; text-align: left; font-size: 24px; }
-.hb-sheet-head .gu-btn { min-height: 44px; min-width: 44px; padding: 4px 12px; font-size: 24px; }
-.hb-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-.hb-tab { pointer-events: auto; min-height: 40px; padding: 6px 14px; border: 2.5px solid var(--edge); border-radius: 999px; background: var(--cream); color: var(--ink); font: 700 15px/1 Nunito, system-ui, sans-serif; cursor: pointer; }
-.hb-tab[aria-selected='true'] { background: var(--orange); border-color: var(--orange-deep); }
-.hb-materials { display: flex; flex-wrap: wrap; gap: 6px; }
-
-@media (prefers-reduced-motion: reduce) { .hb-sheet { animation: none; } .hb-go { transition: none; } }
+.hb-sheet-head .gu-heading { flex: 1; text-align: left; font: var(--f-title); }
+.hb-tabs { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.hb-materials { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 
 /* The cooked meal: a small chip under the top bar. */
-.hb-meal { position: absolute; z-index: 3; left: calc(var(--safe-left) + 10px); top: calc(var(--safe-top) + 72px); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 10px; border-radius: 999px; background: var(--glass); color: var(--cream); font: 700 var(--fs-cap)/1.4 Nunito, system-ui, sans-serif; pointer-events: none; }
+.hb-meal { position: absolute; z-index: 3; left: calc(var(--safe-left) + var(--sp-3)); top: calc(var(--safe-top) + 72px); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px var(--sp-3); border-radius: var(--r-full); background: var(--glass); color: var(--cream); font: var(--f-cap); pointer-events: none; }
 
-.hb-tip { margin: 0 0 8px; padding: 6px 12px; border-radius: 12px; background: var(--gold); color: var(--ink); font: 700 var(--fs-cap)/1.35 Nunito, system-ui, sans-serif; }
+.hb-tip { margin: 0 0 var(--sp-2); padding: 6px var(--sp-3); border-radius: var(--r-s); background: var(--gold); color: var(--ink); font: var(--f-cap); }
 
 /* With a panel open, GO sits in this footer bar (never over content). */
-.hb-sheet-foot { position: sticky; bottom: 0; z-index: 1; display: flex; justify-content: flex-end; margin: 8px calc(-1 * (var(--safe-right) + 16px)) 0 calc(-1 * (var(--safe-left) + 16px)); padding: 6px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 8px) calc(var(--safe-left) + 16px); background: var(--cream); border-top: 2px solid var(--edge); }
+.hb-sheet-foot { position: sticky; bottom: 0; z-index: 1; display: flex; justify-content: flex-end; margin: var(--sp-2) calc(-1 * (var(--safe-right) + var(--sp-4))) 0 calc(-1 * (var(--safe-left) + var(--sp-4))); padding: 6px calc(var(--safe-right) + var(--sp-4)) calc(var(--safe-bottom) + var(--sp-2)) calc(var(--safe-left) + var(--sp-4)); background: var(--cream); border-top: 2px solid var(--edge); }
 .hb-sheet-foot .hb-go { position: static; width: 120px; }
-.hb-chests { margin: 0 0 8px; width: 100%; background: var(--orange); }
+.hb-chests { margin: 0 0 var(--sp-2); width: 100%; }
+
+@media (prefers-reduced-motion: reduce) { .hb-go { transition: none; } }

@@ -18,6 +18,7 @@ import { fmt } from '../format';
 import { Switch, toggleSetting } from '../settings';
 import { chestArt, evolutionRecipes, giftLabel, mergeCandidates, mergeGear, pityLines, rackItems, statLines, titleCase, unlockBeat } from './helpers';
 import type { Art } from './StallProgress';
+import '../system';
 
 export type Commit = (update: (save: SaveV2) => SaveV2) => void;
 type Ctx = { save: SaveV2; commit: Commit; art: Art };
@@ -135,10 +136,10 @@ export function GearSheet({ save, commit, art }: Ctx) {
           {statLines(itemStats(item)).map((line) => (
             <span key={line}>{line}</span>
           ))}
-          <button type="button" className="gu-btn" data-testid="gear-upgrade" disabled={save.gold < cost || !Number.isFinite(cost)} onClick={() => commit((s) => upgradeItem(s, item.uid))}>
+          <button type="button" className="u-plain" data-testid="gear-upgrade" disabled={save.gold < cost || !Number.isFinite(cost)} onClick={() => commit((s) => upgradeItem(s, item.uid))}>
             Upgrade · {cost} coins
           </button>
-          <button type="button" className="gu-btn" data-testid="gear-merge" disabled={!candidates.length} onClick={merge}>
+          <button type="button" className="u-plain" data-testid="gear-merge" disabled={!candidates.length} onClick={merge}>
             Merge three · next rarity
           </button>
           {!candidates.length && <p>{['common', 'uncommon'].includes(item.rarity) ? 'Needs three the same.' : 'Merging stops at Rare.'}</p>}
@@ -161,13 +162,13 @@ export function TrainingSheet({ save, commit, art }: Ctx) {
             <b>{titleCase(id)}</b>
             <Pips step={step} of={TRAINING_COSTS.length} />
             <span>{statLines(TRAINING_STATS[id]).join(' · ')} each step</span>
-            <button type="button" className="gu-btn" data-testid={`train-${id}-buy`} disabled={cost === undefined || save.gold < cost} onClick={() => commit((s) => buyTraining(s, id))}>
+            <button type="button" className="u-plain" data-testid={`train-${id}-buy`} disabled={cost === undefined || save.gold < cost} onClick={() => commit((s) => buyTraining(s, id))}>
               {cost === undefined ? 'Fully trained' : `Train · ${cost} coins`}
             </button>
           </section>
         );
       })}
-      <button type="button" className="gu-btn" data-testid="train-respec" disabled={!trained} onClick={() => commit(respec)}>
+      <button type="button" className="u-plain" data-testid="train-respec" disabled={!trained} onClick={() => commit(respec)}>
         Respec free · coins returned
       </button>
     </>
@@ -187,7 +188,7 @@ export function IdleSheet({ save, commit, art, now }: Ctx & { now: Date }) {
       <p>{p.rate} coins each hour, while you’re away.</p>
       <button
         type="button"
-        className="gu-btn gu-btn--primary"
+        className="u-go"
         data-testid="idle-collect"
         disabled={!p.gold}
         onClick={() => {
@@ -223,7 +224,7 @@ export function CalendarSheet({ save, commit, art, now, go }: Ctx & { now: Date;
       </div>
       <button
         type="button"
-        className="gu-btn gu-btn--primary"
+        className="u-go"
         data-testid="calendar-claim"
         disabled={!gift.rewards.day}
         onClick={() => {
@@ -268,7 +269,7 @@ export function ChestsSheet({ save, commit, art }: Ctx) {
         </div>
       )}
       {chests.map((item) => (
-        <button type="button" className="gu-btn sh-chest" key={item.uid} data-testid="chest-open" onClick={() => open(item.uid)}>
+        <button type="button" className="u-plain sh-chest" key={item.uid} data-testid="chest-open" onClick={() => open(item.uid)}>
           <img src={art(chestArt(item.rarity))} alt="" />
           Open chest
         </button>
@@ -290,7 +291,7 @@ export function RecipeSheet({ save, commit, art }: Ctx) {
             <img className="sh-item-art" src={art(def.sprite)} alt="" />
             <b>{def.name}</b>
             <span>{Object.entries(recipe.costs).map(([m, n]) => `${n} ${m} (${save.materials[m as keyof typeof save.materials]})`).join(' · ')}</span>
-            <button type="button" className="gu-btn" data-testid={`cook-${recipe.id}`} disabled={!canCook(save, recipe.id)} onClick={() => commit(s => cook(s, recipe.id))}>
+            <button type="button" className="u-plain" data-testid={`cook-${recipe.id}`} disabled={!canCook(save, recipe.id)} onClick={() => commit(s => cook(s, recipe.id))}>
               {owned ? 'Known recipe' : 'Cook recipe'}
             </button>
           </section>

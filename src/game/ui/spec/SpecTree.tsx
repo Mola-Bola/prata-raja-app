@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 
 import { allocate, allocateBlock, respec, SPEC_NODES, specNode, specOf, specPointsLeft, specSpent, type Blocked, type SpecBranch, type SpecNode } from '@/meta/specTree';
 import type { SaveV2 } from '@/meta/types';
+import { ASSET_URLS } from '../../assets';
 import type { Commit } from '../stall/sheets';
+import '../system';
 import './SpecTree.css';
 
 type Tab = 'core' | 'crisp' | 'soak' | 'heat';
@@ -13,7 +15,8 @@ const TABS: { id: Tab; name: string; branches: SpecBranch[] }[] = [
   { id: 'soak', name: 'Soak', branches: ['soak'] }, { id: 'heat', name: 'Heat', branches: ['heat'] },
 ];
 const KIND_NAME = { small: 'Small', notable: 'Notable', keystone: 'Keystone' } as const;
-const ICON = { small: '●', notable: '◆', keystone: '★' } as const;
+/** Node shape: small = dot, notable = diamond, keystone = the painted star (CSS draws the first two). */
+const Shape = ({ kind }: { kind: SpecNode['kind'] }) => (kind === 'keystone' ? <img src={ASSET_URLS['hub/star']} alt="" /> : <i className={`spec-shape spec-shape--${kind}`} />);
 const pts = (n: number) => `${n} point${n === 1 ? '' : 's'}`;
 const nodesOf = (tab: Tab) => SPEC_NODES.filter(n => TABS.find(t => t.id === tab)!.branches.includes(n.branch));
 const firstOpen = (save: SaveV2, tab: Tab) => (nodesOf(tab).find(n => !specOf(save).includes(n.id)) ?? nodesOf(tab)[0]).id;
@@ -39,29 +42,30 @@ export function SpecTree({ save, commit, onClose, embedded }: { save: SaveV2; co
       {!embedded && (
         <header className="spec-top">
           <h2>Spec</h2>
-          <button type="button" className="gu-btn spec-close" data-testid="spec-close" onClick={onClose}>Close</button>
+          <button type="button" className="u-plain u-round" aria-label="Close" data-testid="spec-close" onClick={onClose}><i className="ic ic-x" aria-hidden="true" /></button>
         </header>
       )}
       <div className="spec-bar">
         <span className="spec-points" data-testid="spec-points">{pts(specPointsLeft(save))} left</span>
         <span className="spec-spent" data-testid="spec-spent">{spent} spent</span>
-        <button type="button" className="spec-reset" data-testid="spec-reset" disabled={!have.length} onClick={() => setConfirm(true)}>Reset all</button>
+        <button type="button" className="u-link" data-testid="spec-reset" disabled={!have.length} onClick={() => setConfirm(true)}>Reset all</button>
       </div>
       {confirm && (
         <div className="spec-confirm" role="alertdialog" aria-label="Reset all" data-testid="spec-confirm">
           <span>Refund {pts(spent)}?</span>
-          <button type="button" className="gu-btn" data-testid="spec-reset-yes" onClick={() => { commit(s => respec(s)); setConfirm(false); }}>Yes</button>
-          <button type="button" className="gu-btn" data-testid="spec-reset-cancel" onClick={() => setConfirm(false)}>Cancel</button>
+          <button type="button" className="u-plain" data-testid="spec-reset-yes" onClick={() => { commit(s => respec(s)); setConfirm(false); }}>Yes</button>
+          <button type="button" className="u-plain" data-testid="spec-reset-cancel" onClick={() => setConfirm(false)}>Cancel</button>
         </div>
       )}
       <div className="spec-tabs" role="tablist" aria-label="Branches">
         {TABS.map(t => (
-          <button key={t.id} type="button" role="tab" className="spec-tab" aria-selected={tab === t.id} data-testid={`spec-tab-${t.id}`}
+          <button key={t.id} type="button" role="tab" className="u-chip spec-tab" aria-selected={tab === t.id} data-testid={`spec-tab-${t.id}`}
             onClick={() => { setTab(t.id); setPicked(firstOpen(save, t.id)); }}>
             {t.name} <small>{nodesOf(t.id).filter(n => have.includes(n.id)).length}/{nodesOf(t.id).length}</small>
           </button>
         ))}
       </div>
+      <p className="spec-legend" aria-hidden="true"><span><Shape kind="small" /> Small</span><span><Shape kind="notable" /> Notable</span><span><Shape kind="keystone" /> Keystone</span></p>
       <ol ref={path} className="spec-path" aria-label={`${TABS.find(t => t.id === tab)!.name} nodes`}>
         {nodesOf(tab).map(n => {
           const b = allocateBlock(save, n.id), state = have.includes(n.id) ? 'learned' : b ? 'locked' : 'open';
@@ -69,7 +73,7 @@ export function SpecTree({ save, commit, onClose, embedded }: { save: SaveV2; co
             <li key={n.id} className="spec-item">
               <button type="button" className={`spec-card spec-${n.kind}`} data-testid={`spec-node-${n.id}`} data-state={state} data-picked={picked === n.id || undefined}
                 aria-pressed={picked === n.id} onClick={(e) => { const li = e.currentTarget.parentElement; setPicked(n.id); requestAnimationFrame(() => li?.scrollIntoView?.({ block: 'nearest' })); }}>
-                <span className="spec-icon" aria-hidden="true">{state === 'learned' ? '✓' : ICON[n.kind]}</span>
+                <span className="spec-icon" aria-hidden="true">{state === 'learned' ? <i className="ic ic-check" /> : <Shape kind={n.kind} />}</span>
                 <span className="spec-text">
                   <b>{n.name}</b>
                   <span>{n.line}</span>
@@ -81,7 +85,7 @@ export function SpecTree({ save, commit, onClose, embedded }: { save: SaveV2; co
               {picked === n.id && (
                 <div className="spec-act" data-testid="spec-detail">
                   <span>{KIND_NAME[n.kind]} · {pts(n.cost)}{b && b !== 'owned' ? ` · ${reason(save, n, b)}` : ''}</span>
-                  <button type="button" className="gu-btn gu-btn--primary" data-testid="spec-learn" disabled={b !== null} onClick={() => commit(s => allocate(s, picked))}>
+                  <button type="button" className="u-go" data-testid="spec-learn" disabled={b !== null} onClick={() => commit(s => allocate(s, picked))}>
                     {b === 'owned' ? 'Learned' : `Learn (${n.cost})`}
                   </button>
                 </div>

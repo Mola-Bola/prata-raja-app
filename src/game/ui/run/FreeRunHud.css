@@ -1,4 +1,4 @@
-/* Free-movement run HUD (FreeRunHud.tsx). Colours come from GameUi.css's tokens; every control is at least 56 px. */
+/* Free-movement run HUD (FreeRunHud.tsx). Tokens: ../tokens.css; Dodge is the go tier (../system.css). Nothing under 13 px, every control 44 px or more. */
 
 @property --fr-cd {
   syntax: '<percentage>';
@@ -14,7 +14,7 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
   position: relative;
   pointer-events: none;
 }
@@ -23,7 +23,7 @@
 .fr-right {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--sp-2);
 }
 
 .fr-ring {
@@ -60,20 +60,20 @@
 
 .fr-ring b {
   position: relative;
-  font: 700 16px/1 Fredoka, system-ui, sans-serif;
+  font: var(--f-btn);
   font-variant-numeric: tabular-nums;
 }
 
 .fr-hp {
   display: flex;
   align-items: center;
-  gap: 4px;
-  width: 80px;
-  height: 26px;
-  padding: 0 4px;
+  gap: var(--sp-1);
+  width: 84px;
+  height: 28px;
+  padding: 0 var(--sp-1);
   box-sizing: border-box;
-  border: 2.5px solid var(--edge);
-  border-radius: 999px;
+  border: 3px solid var(--edge);
+  border-radius: var(--r-full);
   background: var(--cream);
   box-shadow: 0 3px 0 var(--edge-deep);
 }
@@ -88,8 +88,9 @@
 
 .fr-hp-num {
   flex: none;
-  min-width: 18px;
-  font: 800 13px/1 Nunito, system-ui, sans-serif;
+  min-width: 20px;
+  font: var(--f-cap);
+  line-height: 1;
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
@@ -100,16 +101,16 @@
   flex: 1;
   height: 8px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--ink);
 }
 
 .fr-bar i {
   position: absolute;
   inset: 0 auto 0 0;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--red);
-  transition: width 0.2s ease-out;
+  transition: width var(--m-in) ease-out;
 }
 
 .fr-place {
@@ -118,7 +119,6 @@
   min-width: 0;
   text-align: center;
   color: var(--cream);
-  text-shadow: 0 1px 0 rgba(60, 20, 0, 0.45);
 }
 
 .fr-place span {
@@ -126,25 +126,32 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font: 600 16px/1.1 Fredoka, system-ui, sans-serif;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-full);
+  background: var(--glass);
+  font: var(--f-body);
 }
 
 .fr-place small {
-  font: 700 12px/1.2 Nunito, system-ui, sans-serif;
-  opacity: 0.9;
+  margin-top: 2px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-full);
+  background: var(--glass);
+  font: var(--f-cap);
 }
 
 .fr-coins {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: var(--sp-1);
   height: 36px;
-  padding: 0 10px 0 3px;
-  border: 2.5px solid var(--edge);
-  border-radius: 999px;
+  padding: 0 var(--sp-3) 0 3px;
+  border: 3px solid var(--edge);
+  border-radius: var(--r-full);
   background: var(--cream);
   box-shadow: 0 3px 0 var(--edge-deep);
-  font: 800 15px/1 Nunito, system-ui, sans-serif;
+  font: var(--f-body);
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
@@ -174,9 +181,9 @@
 .fr-xp {
   position: relative;
   height: 5px;
-  margin-top: 6px;
+  margin-top: var(--sp-2);
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: rgba(255, 244, 224, 0.3);
 }
 
@@ -184,34 +191,34 @@
   position: absolute;
   inset: 0 auto 0 0;
   background: var(--gold);
-  transition: width 0.2s ease-out;
+  transition: width var(--m-in) ease-out;
 }
 
 .fr-chip {
   width: max-content;
   max-width: 80%;
-  margin: 8px auto 0;
-  padding: 4px 12px;
+  margin: var(--sp-2) auto 0;
+  padding: var(--sp-1) var(--sp-3);
   box-sizing: border-box;
-  border: 2.5px solid var(--edge);
-  border-radius: 999px;
+  border: 3px solid var(--edge);
+  border-radius: var(--r-full);
   background: var(--gold);
   color: var(--ink);
   box-shadow: 0 3px 0 var(--edge-deep);
-  font: 800 13px/1.2 Nunito, system-ui, sans-serif;
+  font: var(--f-cap);
   text-align: center;
 }
 
 .fr-boss {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
   width: min(100%, 300px);
-  margin: 8px auto 0;
-  padding: 4px 10px;
+  margin: var(--sp-2) auto 0;
+  padding: var(--sp-1) var(--sp-3);
   box-sizing: border-box;
-  border: 2.5px solid var(--edge);
-  border-radius: 16px;
+  border: 3px solid var(--edge);
+  border-radius: var(--r-s);
   background: var(--cream);
   box-shadow: 0 3px 0 var(--edge-deep);
 }
@@ -229,7 +236,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font: 600 15px/1.1 Fredoka, system-ui, sans-serif;
+  font: var(--f-body);
 }
 
 .fr-boss .fr-bar--boss {
@@ -239,20 +246,20 @@
 /* Bottom-right only: the dock sits over the right thumb's corner and stays clear of the joystick on the left. */
 .fr-dock {
   position: absolute;
-  right: calc(var(--safe-right) + 14px);
-  bottom: calc(var(--safe-bottom) + 14px);
+  right: calc(var(--safe-right) + var(--sp-4));
+  bottom: calc(var(--safe-bottom) + var(--sp-4));
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 10px;
+  gap: var(--sp-3);
 }
 
 .fr-dips {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 6px;
-  max-width: 200px;
+  gap: var(--sp-2);
+  max-width: 210px;
 }
 
 .fr-dip {
@@ -262,8 +269,8 @@
   width: 46px;
   height: 46px;
   box-sizing: border-box;
-  border: 2.5px solid var(--edge);
-  border-radius: 50%;
+  border: 3px solid var(--edge);
+  border-radius: var(--r-full);
   background: var(--cream);
   box-shadow: 0 2px 0 var(--edge-deep);
 }
@@ -276,40 +283,30 @@
 
 .fr-dip b {
   position: absolute;
-  right: -6px;
-  bottom: -6px;
+  right: -8px;
+  bottom: -8px;
   padding: 2px 5px;
   border: 2px solid var(--edge);
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--ink);
   color: var(--cream);
-  font: 800 11px/1 Nunito, system-ui, sans-serif;
+  font: var(--f-cap);
+  line-height: 1;
 }
 
 .fr-dodge {
+  /* u-go u-round supplies the orange fill, edge and ink label (5.9:1); this sizes it as the big thumb button. */
   position: relative;
-  pointer-events: auto;
-  display: grid;
-  place-items: center;
   width: 88px;
   height: 88px;
-  padding: 0;
   overflow: hidden;
-  border: 3px solid var(--edge);
-  border-radius: 50%;
-  background: var(--orange);
-  color: var(--cream);
-  box-shadow: 0 5px 0 var(--edge-deep);
-  font: 600 20px/1 Fredoka, system-ui, sans-serif;
-  text-shadow: 0 1px 0 rgba(60, 20, 0, 0.45);
-  cursor: pointer;
-  touch-action: manipulation;
+  box-shadow: 0 5px 0 var(--orange-deep);
   -webkit-tap-highlight-color: transparent;
 }
 
 .fr-dodge:active {
   transform: translateY(3px);
-  box-shadow: 0 2px 0 var(--edge-deep);
+  box-shadow: 0 2px 0 var(--orange-deep);
 }
 
 .fr-dodge span {
@@ -320,7 +317,7 @@
 .fr-dodge-cd {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
+  border-radius: var(--r-full);
   background: conic-gradient(var(--fr-shade) var(--fr-cd, 0%), transparent 0);
   opacity: 0;
 }
@@ -344,8 +341,8 @@
 }
 
 @keyframes fr-ready {
-  0%, 100% { box-shadow: 0 5px 0 var(--edge-deep), 0 0 0 0 rgba(242, 140, 40, 0.5); }
-  50% { box-shadow: 0 5px 0 var(--edge-deep), 0 0 0 10px rgba(242, 140, 40, 0); }
+  0%, 100% { box-shadow: 0 5px 0 var(--orange-deep), 0 0 0 0 rgba(242, 140, 40, 0.5); }
+  50% { box-shadow: 0 5px 0 var(--orange-deep), 0 0 0 10px rgba(242, 140, 40, 0); }
 }
 
 /* Reduced motion: no sweep, the cooldown is a plain shade for its duration; no pulse, no hurt shake. */

@@ -81,13 +81,13 @@ export function GearBench({ save, commit, art }: { save: SaveV2; commit: Commit;
             <div className="fg-affix" key={k}>
               <span>{statLabel(a.stat)} <b>{formatStat(a.stat, a.value, true)}</b></span>
               {picked.ilvl !== undefined && (
-                <button type="button" className="gu-btn" data-testid="wb-reroll" disabled={!rCost || short(save, rCost)}
+                <button type="button" className="u-plain" data-testid="wb-reroll" disabled={!rCost || short(save, rCost)}
                   onClick={() => { undo.run(`Rerolled ${statLabel(a.stat)}`, s => rerollAffix(s, picked.uid, k)); playSfx('uiTap'); }}>Reroll</button>
               )}
             </div>
           ))}
           {rCost && picked.affixes.length > 0 && picked.ilvl !== undefined && <><span>Reroll one affix: the rest stay.</span><CostRow save={save} cost={rCost} art={art} /></>}
-          <button type="button" className="gu-btn gu-btn--primary" data-testid="wb-enhance" onClick={() => doEnhance(picked.uid)}>Enhance +{(picked.enhance ?? 0) + 1}</button>
+          <button type="button" className="u-go" data-testid="wb-enhance" onClick={() => doEnhance(picked.uid)}>Enhance +{(picked.enhance ?? 0) + 1}</button>
         </section>
       )}
       {undo.toast}

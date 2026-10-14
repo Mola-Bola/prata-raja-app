@@ -30,6 +30,7 @@ import {
   trackRun,
 } from '../feedback';
 import type { Hub } from '../hub';
+import './system';
 import './FeedbackSheet.css';
 
 const TELL = brandWords.words.tell;
@@ -85,7 +86,7 @@ export function FeedbackLayer({ hub, screen }: { hub: Hub; screen: string }) {
 /** The "Tell Kannan" button for the pause sheet and the results screen. */
 export function TellButton() {
   return (
-    <button type="button" className="gu-btn gu-btn--wide" data-testid="ui-tell" onClick={openFeedback}>
+    <button type="button" className="u-plain u-wide" data-testid="ui-tell" onClick={openFeedback}>
       {TELL}
     </button>
   );
@@ -174,13 +175,13 @@ function Sheet({ screen, run, screenshot }: Opened) {
       <section className="gu-sheet fb-sheet" role="dialog" aria-modal="true" aria-label={TELL} data-testid="feedback-sheet">
         <header className="fb-head">
           <h2 className="gu-heading">{TELL}</h2>
-          <button type="button" className="fb-x" aria-label="Close" data-testid="feedback-close" disabled={busy} onClick={close}>
-            ×
+          <button type="button" className="u-plain u-round" aria-label="Close" data-testid="feedback-close" disabled={busy} onClick={close}>
+            <i className="ic ic-x" aria-hidden="true" />
           </button>
         </header>
         <div className="fb-tabs" role="tablist" aria-label="Feedback">
-          <button type="button" className="fb-chip" role="tab" aria-selected={tab === 'write'} disabled={busy} data-testid="feedback-write-tab" onClick={() => setTab('write')}>Write a note</button>
-          <button type="button" className="fb-chip" role="tab" aria-selected={tab === 'notes'} disabled={busy} data-testid="feedback-notes-tab" onClick={() => { setNotesOpened(true); setTab('notes'); }}>My notes</button>
+          <button type="button" className="u-chip" role="tab" aria-selected={tab === 'write'} disabled={busy} data-testid="feedback-write-tab" onClick={() => setTab('write')}>Write a note</button>
+          <button type="button" className="u-chip" role="tab" aria-selected={tab === 'notes'} disabled={busy} data-testid="feedback-notes-tab" onClick={() => { setNotesOpened(true); setTab('notes'); }}>My notes</button>
         </div>
         {notesOpened && <div hidden={tab !== 'notes'}><FeedbackNotes identity={identity} secretSaved={secretSaved} onBusy={setNotesBusy} /></div>}
         <div className="fb-compose" hidden={tab !== 'write'}>
@@ -197,7 +198,7 @@ function Sheet({ screen, run, screenshot }: Opened) {
                   type="button"
                   role="radio"
                   aria-checked={s.chip === c.id}
-                  className="fb-chip"
+                  className="u-chip"
                   data-testid={`feedback-chip-${c.id}`}
                   disabled={sending}
                   onClick={() => dispatch({ type: 'chip', chip: c.id })}
@@ -222,7 +223,7 @@ function Sheet({ screen, run, screenshot }: Opened) {
               />
               {s.text && !sending && (
                 <button type="button" className="fb-clear" aria-label="Clear note" data-testid="feedback-clear" onClick={() => dispatch({ type: 'clear' })}>
-                  ×
+                  <i className="ic ic-x" aria-hidden="true" />
                 </button>
               )}
             </div>
@@ -251,7 +252,7 @@ function Sheet({ screen, run, screenshot }: Opened) {
             )}
             <button
               type="button"
-              className="gu-btn gu-btn--primary gu-btn--wide"
+              className="u-go u-wide"
               data-testid="feedback-send"
               disabled={!identity || !canSend(s) || sending}
               onClick={() => void send()}

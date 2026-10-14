@@ -20,6 +20,7 @@ import { SignatureSheet, CalendarSheet, ChestsSheet, GearSheet, IdleSheet, Previ
 import { StallProgress, type Art } from './StallProgress';
 import { Visitor } from './Visitor';
 import { openFeedback } from '../FeedbackSheet'; // [feedback hook]
+import '../system';
 import './Stall.css';
 
 export type { Art } from './StallProgress';
@@ -78,8 +79,8 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, ar
             </button>
           );
         })}
-        <button type="button" className="gu-btn sh-collection-entry" data-testid="stall-dips" onClick={() => open('dips')}>Dip collection</button>
-        <button type="button" className="gu-btn sh-collection-entry sh-forge-entry" data-testid="stall-forge" onClick={() => open('forge')}>Forge</button>
+        <button type="button" className="u-plain sh-collection-entry" data-testid="stall-dips" onClick={() => open('dips')}>Dip collection</button>
+        <button type="button" className="u-plain sh-collection-entry sh-forge-entry" data-testid="stall-forge" onClick={() => open('forge')}>Forge</button>
       </div>
       <header className="sh-top" inert={!!panel || !!visitor}>
         <StallProgress xp={kannanXpOf(save)} art={art} />
@@ -91,19 +92,19 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, ar
           <img src={art('hub/settings')} alt="" />
         </button>
         <span className="sh-spec" data-testid="stall-spec">
-          <b>★ {specPointsOf(save)}</b> spec points{perk && <> · Lv {perk.level} perk: {perk.label}</>}
+          <b>{specPointsOf(save)}</b> spec points{perk && <> · Lv {perk.level} perk: {perk.label}</>}
         </span>
       </header>
       <footer className="sh-footer" inert={!!panel || !!visitor}>
-        <button type="button" className="gu-btn" data-testid="stall-signature" onClick={() => open('signature')}>
+        <button type="button" className="u-plain" data-testid="stall-signature" onClick={() => open('signature')}>
           Signature · {save.unlocks.signature ? CONTENT.breads[save.signatureBread].name : unlockBeat('signature')}
         </button>
-        <button type="button" className="gu-btn gu-btn--primary gu-btn--wide sh-start" data-testid="stall-start" onClick={() => chapterUnlocked(save, 'hawker-night') ? open('chapters') : onStart(CONTENT.chapters[0].id)}>
+        <button type="button" className="u-go u-wide sh-start" data-testid="stall-start" onClick={() => chapterUnlocked(save, 'hawker-night') ? open('chapters') : onStart(CONTENT.chapters[0].id)}>
           Start
         </button>
-        <button type="button" className="gu-btn" data-testid="stall-kitchen" onClick={onKitchen}>{brandWords.words.kitchen}</button>
-        {onTune && <button type="button" className="gu-btn" data-testid="stall-tune" onClick={onTune}>Tune</button>}
-        <button type="button" className="gu-btn" data-testid="stall-tell" onClick={openFeedback}>
+        <button type="button" className="u-plain" data-testid="stall-kitchen" onClick={onKitchen}>{brandWords.words.kitchen}</button>
+        {onTune && <button type="button" className="u-plain" data-testid="stall-tune" onClick={onTune}>Tune</button>}
+        <button type="button" className="u-plain" data-testid="stall-tell" onClick={openFeedback}>
           Tell Kannan
         </button>
       </footer>
@@ -126,7 +127,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, ar
       {panel === 'chapters' && (
         <Sheet title="Choose a chapter" onClose={() => setPanel(null)}>
           {CONTENT.chapters.filter(ch => chapterUnlocked(save, ch.id)).map(ch => (
-            <button key={ch.id} type="button" className="gu-btn sh-chapter" data-testid={`chapter-${ch.id}`} onClick={() => onStart(ch.id)}>
+            <button key={ch.id} type="button" className="u-plain sh-chapter" data-testid={`chapter-${ch.id}`} onClick={() => onStart(ch.id)}>
               <img src={art(ch.background)} alt="" />
               {ch.name}
             </button>
@@ -136,7 +137,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, ar
       {panel === 'settings' && (
         <Sheet title="Settings" icon={art('hub/settings')} onClose={() => setPanel(null)}>
           <SettingsSheet save={save} commit={commit} />
-          <button type="button" className="gu-btn" data-testid="settings-story" onClick={onStory}>Story</button>
+          <button type="button" className="u-plain" data-testid="settings-story" onClick={onStory}>Story</button>
         </Sheet>
       )}
       {panel && panel !== 'settings' && panel !== 'chapters' && panel !== 'signature' && panel !== 'dips' && panel !== 'forge' && spot && (
@@ -222,8 +223,8 @@ function Sheet({ title, icon, onClose, children }: { title: string; icon?: strin
             {icon && <img src={icon} alt="" />}
             <h2 className="gu-heading">{title}</h2>
           </div>
-          <button type="button" className="gu-btn" data-testid="stall-close" onClick={onClose} aria-label="Close panel">
-            ×
+          <button type="button" className="u-plain u-round" data-testid="stall-close" onClick={onClose} aria-label="Close panel">
+            <i className="ic ic-x" aria-hidden="true" />
           </button>
         </header>
         {children}
