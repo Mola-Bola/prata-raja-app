@@ -1,6 +1,24 @@
 # Inbox (monitor output)
 
-last run: 2026-10-14 23:50 AEDT (window: since 2026-10-14 22:05 AEDT)
+last run: 2026-10-15 00:48 AEDT (window: since 2026-10-14 23:50 AEDT)
+
+## 2026-10-15 00:48 AEDT (window 23:50 to 00:48, quiet)
+
+Counts: 0 sessions with run/level events, 0 run_start, 0 run_end, 0 $exception, 0 app_error. 1 event in window: release_shipped at 00:31 AEDT (version not in its properties, so it cannot be matched to a build).
+
+New notes: none. The digest's 9 open notes are all already in INBOX. Status changes: none.
+
+Errors: none. No crash, no save loss, no cannot-start signal.
+
+Pacing signals: no runs in window, so nothing to read.
+
+Replay links: none (no sessions in window).
+
+Suggested slices:
+- release_shipped at 00:31 has no version property: check the release emitter adds app_version so future ships can be matched to builds.
+- 6bc229d2 spawns after boss death: boss-finish slice (still the top bug, unchanged).
+
+Note: PostHog events are stored in AEDT per the timestamp offset (+11:00). The query window used 12:50 UTC, which matches 23:50 AEDT.
 
 ## 2026-10-14 23:50 AEDT (window 22:05 to 23:50, version 0.4.41)
 
