@@ -2,6 +2,7 @@
 Append-only, newest on top, one line per ingest/change/lint.
 
 - 2026-10-15: Free-movement run HUD (round 8 m2): `src/game/ui/run/FreeRunHud.tsx`, grouped top bar, meal chip, dip readouts, Dodge with 1.2 s cooldown; HudState gains `free` and `meal`. Branch claude/r8-hud.
+- 2026-10-15: Hub polish (claude/r8-hubpolish): terrazzo as 4 screen-wide tiles, warmed and faded; one back wall across the top; Kannan starts mid-floor; room pans up so Kannan clears the open station sheet (250 ms, instant in reduced motion); two NPCs (student by the steel table, auntie by the drain) with a gentle bob.
 - 2026-10-15: Walkable stall hub (HubScene + HubOverlay): joystick/tap/WASD, 8 stations with panels, GO pill, old stall via Settings. Branch claude/r8-hub.
 - 2026-10-14: Teh tarik haste pour (caramel ribbon cup to hand, droplets, caramel trail, froth puff; reduced motion tint only); Kannan hurt zone 34 -> 30 u (balance in band at 300 seeds; 26 u broke the bands) with a floor ellipse that flashes on hit. Branch claude/tarik-hitbox.
 - 2026-10-14: Wiki created (index, 20 pages, research/INDEX.md, stale-code, archive of DEPTH/ROADMAP/SPEC/OWNER-SUMMARY-DEPTH/FEEDBACK/reviews). Lint: none yet.
