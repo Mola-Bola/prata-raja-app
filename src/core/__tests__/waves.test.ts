@@ -205,6 +205,26 @@ describe('waveDone', () => {
     expect(waveDone(w)).toBe(true);
   });
 
+  it('completes a defeated boss wave immediately despite budget and surviving adds', () => {
+    const w = fakeWorld([wave({ budget: 10, boss: 'warden' })]);
+    startWave(w, 1);
+    w.enemies = [enemy({ boss: true, state: 'dead', def: { id: 'warden' } as Enemy['def'] }), enemy(), enemy(), enemy()];
+    expect(waveDone(w)).toBe(true);
+  });
+
+  it('holds an unspawned boss wave and rejects an unrelated corpse despite global prior attempts or timeout', () => {
+    const w = fakeWorld([wave({ budget: 10, boss: 'warden' })]);
+    startWave(w, 1); w.bossAttempted = true; w.bossKills = 1; w.budgetLeft = 0; w.waveTime = 100;
+    expect(waveDone(w)).toBe(false);
+    w.enemies = [enemy({ boss: true, state: 'dead', def: { id: 'previous' } as Enemy['def'] })];
+    expect(waveDone(w)).toBe(false);
+  });
+
+  it('a boss corpse does not bypass ordinary non-boss wave budgets', () => {
+    const w = setup(); w.enemies = [enemy({ boss: true, state: 'dead', def: { id: 'previous' } as Enemy['def'] })];
+    expect(waveDone(w)).toBe(false);
+  });
+
   it('keeps a boss wave open while its boss lives, even past the timeout', () => {
     const w = fakeWorld([wave({ budget: 10, boss: 'warden' })]);
     startWave(w, 1);
@@ -212,7 +232,7 @@ describe('waveDone', () => {
     w.waveTime = 100;
     w.enemies = [enemy({ boss: true })];
     expect(waveDone(w)).toBe(false);
-    w.enemies = [enemy({ boss: true, state: 'dead' })];
+    w.enemies = [enemy({ boss: true, state: 'dead', def: { id: 'warden' } as Enemy['def'] })];
     expect(waveDone(w)).toBe(true);
   });
 });

@@ -173,8 +173,11 @@ function beginWave(c: Ctx, wave: number): void {
 
 function runDirector(c: Ctx): void {
   const { w } = c;
-  for (const r of spawnTick(w, c.dt, c.rng)) spawnRequest(c, r);
-  if (!waveDone(w)) return;
+  // Defeating the boss closes its wave before another add is spawned. Normal waves keep their spawn-first order.
+  if (!w.chapter.waves[w.wave - 1].boss || !waveDone(w)) {
+    for (const r of spawnTick(w, c.dt, c.rng)) spawnRequest(c, r);
+    if (!waveDone(w)) return;
+  }
   if (w.wave >= w.chapter.waves.length) endRun(c, true);
   else beginWave(c, w.wave + 1);
 }
