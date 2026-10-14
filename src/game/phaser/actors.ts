@@ -6,6 +6,7 @@ import * as Phaser from 'phaser';
 
 import type { Enemy, EnemyKind, Projectile, World } from '@/core/types';
 
+import { pres } from '../tuneStore';
 import type { Fx } from './fx';
 import type { Layout, Projector } from './layout';
 import {
@@ -115,7 +116,6 @@ const HOVER: Record<string, number> = { tissue: 30, murtabak: 7, chapati: 18, ap
 const HOVER_DEFAULT = 16;
 /** Launch squash length (s), and the wobble rate as a share of the spin rate (a frisbee tumbles slower than it spins). */
 const LAUNCH_T = 0.1;
-const WOBBLE = 0.55;
 /** Hit splat: how far the bread flattens and widens over its 120 ms exit. */
 const SPLAT_X = 0.45;
 const SPLAT_Y = 0.5;
@@ -802,7 +802,7 @@ export class Actors {
         v.dia = s.flake ? SHOT_MIN_U * 0.75 / 0.34 : Math.max(SHOT_MIN_U, 2 * s.radius * SHOT_FIT);
         // A flat bread rides above the street (the sim has no height for it): tissue floats, murtabak skims.
         if (!s.flake && s.motion !== 'orbit') {
-          v.hover = HOVER[s.breadId ?? ''] ?? HOVER_DEFAULT;
+          v.hover = (HOVER[s.breadId ?? ''] ?? HOVER_DEFAULT) * pres('hover');
           v.shadow = this.imgs.get('shadow');
         }
         // A flying bread leaves a soft swoosh behind it (the thick end is the head, so it trails when turned to the heading).
@@ -894,7 +894,7 @@ export class Actors {
       if (!this.reduceMotion) {
         // Frisbee: the disc's tilt oscillates (foreshortened 0.45..1 of its width) and it banks toward its travel direction.
         const sp = Math.hypot(s.vx, s.vy) || 1;
-        ky = k * (0.725 + 0.275 * Math.sin(spin * WOBBLE + v.phase));
+        ky = k * (0.725 + 0.275 * Math.sin(spin * pres('wobble') + v.phase));
         bank = (s.vx / sp) * 0.3;
         if (v.hover > 25) bob = Math.sin(v.age * 7 + v.phase) * 3 * P.ppu * sc;
         const lq = Math.max(0, 1 - v.age / LAUNCH_T);

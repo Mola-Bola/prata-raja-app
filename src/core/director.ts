@@ -19,7 +19,7 @@ export const CALM_TIME = 1.5;
 /** Threat points that may be unspent at once (a tank costs 6), so a throttled street never bursts when it clears. */
 const CREDIT_CAP = 8;
 /** Living threat above which the street stops asking for more: the director never buries a bot that is behind. */
-const LIVE_CAP = 12;
+export const LIVE_CAP = 12;
 
 export const isFlow = (chapter: ChapterDef): boolean => chapter.mode === 'flow';
 export const bossAtOf = (chapter: ChapterDef): number => chapter.bossAt ?? DEFAULT_BOSS_AT;
@@ -109,7 +109,7 @@ export function flowTick(world: World, dt: number, rng: Rng): FlowOut {
     const left = bossAt - world.dist;
     // Picks due: the stall eases out of cruise over CALM_TIME (smooth, reaching 0 when the offers open).
     const calm = (world.calmT ?? 0) > 0 ? smooth((world.calmT ?? 0) / CALM_TIME) : 1;
-    world.dist = Math.min(bossAt, world.dist + CRUISE * calm * Math.min(1, Math.max(0.1, left / BRAKE)) * dt);
+    world.dist = Math.min(bossAt, world.dist + (world.content.tune?.cruise ?? CRUISE) * calm * Math.min(1, Math.max(0.1, left / BRAKE)) * dt);
     world.waveF = waveEquivalent(chapter, world.dist);
     world.wave = Math.floor(world.waveF);
     // Queued picks come before the boss steps out (pickDue opens them at the boss mark).
@@ -124,7 +124,7 @@ export function flowTick(world: World, dt: number, rng: Rng): FlowOut {
   }
   let heat = 0;
   for (const e of world.enemies) if (living(e) && !e.boss) heat += ENEMY_COST[e.def.kind];
-  if (heat < LIVE_CAP) world.credit = Math.min(CREDIT_CAP, world.credit + pr.rate * dt);
+  if (heat < (world.content.tune?.liveCap ?? LIVE_CAP)) world.credit = Math.min(CREDIT_CAP, world.credit + pr.rate * (world.content.tune?.pressure ?? 1) * dt);
   for (;;) {
     const fits = Object.keys(pr.mix).filter((id) => pr.mix[id] > 0 && ENEMY_COST[world.content.enemies[id].kind] <= world.credit).sort();
     if (fits.length === 0) break;

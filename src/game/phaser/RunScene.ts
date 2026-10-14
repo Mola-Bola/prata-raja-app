@@ -5,6 +5,7 @@ import * as Phaser from 'phaser';
 
 import { applyKitchenTuning, createKitchenRun, DEFAULT_KITCHEN_TUNING, type KitchenConfig, type KitchenTuning } from '@/core/kitchen';
 import { CONTENT } from '@/content';
+import { pres, tunedContent } from '../tuneStore';
 import { bossAtOf, isFlow } from '@/core/director';
 import { autoInput, autoPick } from '@/core/autoplay';
 import { SAVE_KEY } from '@/core/save';
@@ -184,14 +185,14 @@ export class RunScene extends Phaser.Scene {
 
   private start(seed?: number, loadout?: Loadout, chapterId?: string): void {
     const s = this.url.seed ?? seed ?? Math.floor(Math.random() * 0x100000000);
-    this.showWorld(createRun({ seed: s, content: CONTENT, loadout, chapterId }));
+    this.showWorld(createRun({ seed: s, content: tunedContent(), loadout, chapterId }));
     this.hub.emit('runStart', { seed: s });
     void this.bridge?.track('run_start', {}).catch(() => {});
     this.wake();
   }
 
   private startKitchen(config: KitchenConfig): void {
-    const world = createKitchenRun(config, CONTENT);
+    const world = createKitchenRun(config, tunedContent());
     const tuning = applyKitchenTuning(world, { ...DEFAULT_KITCHEN_TUNING, ...config.tuning });
     this.showWorld(world);
     this.kitchenTuning = tuning;
@@ -888,7 +889,7 @@ export class RunScene extends Phaser.Scene {
     // in and a banner lands; then the results. A tap skips it.
     this.ended = true;
     this.levelUpOpen = false;
-    const ms = won ? 2800 : 2200;
+    const ms = (won ? 2800 : 2200) * pres('finale');
     this.finaleUntil = this.uiTime + ms / 1000 + 0.2;
     const cam = this.cameras.main;
     if (!this.reduceMotion) cam.zoomTo(won ? 1.08 : 1.05, ms * 0.8, 'Sine.easeOut');

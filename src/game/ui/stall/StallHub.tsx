@@ -20,7 +20,7 @@ import './Stall.css';
 
 export type { Art } from './StallProgress';
 
-export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { save: SaveV2; commit: Commit; onStart: (chapterId: string) => void; onStory: () => void; onKitchen: () => void; art: Art }) {
+export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, art }: { onTune?: () => void; save: SaveV2; commit: Commit; onStart: (chapterId: string) => void; onStory: () => void; onKitchen: () => void; art: Art }) {
   // A sheet is a prop's panel, or the settings cog's.
   const [panel, setPanel] = useState<Panel | 'settings' | 'chapters' | 'signature' | 'dips' | null>(null);
   const [now, setNow] = useState(() => new Date());
@@ -96,6 +96,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
           Start
         </button>
         <button type="button" className="gu-btn" data-testid="stall-kitchen" onClick={onKitchen}>{brandWords.words.kitchen}</button>
+        {onTune && <button type="button" className="gu-btn" data-testid="stall-tune" onClick={onTune}>Tune</button>}
         <button type="button" className="gu-btn" data-testid="stall-tell" onClick={openFeedback}>
           Tell Kannan
         </button>

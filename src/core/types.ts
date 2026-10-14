@@ -273,6 +273,8 @@ export type Content = {
   bosses: Record<string, BossDef>;
   chapters: ChapterDef[];
   lines: { wake: string[]; win: string[]; tips: string[] };
+  /** Optional director overrides, only ever set by the Tune overlay (src/core/tune.ts); shipped content leaves it unset. */
+  tune?: { cruise?: number; liveCap?: number; pressure?: number };
 };
 
 // ── Run state (src/core/sim.ts owns mutation) ───────────────────────────────
