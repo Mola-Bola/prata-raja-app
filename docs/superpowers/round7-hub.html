@@ -1,0 +1,575 @@
+<title>Prata Raja Hub Mocks</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: long review page; each direction = row of scaled 390x844 phone frames + a notes column. Phone interiors are one fixed hawker-night world. */
+:root{
+  --bg:#f3ece0; --fg:#2a1d16; --muted:#6d5a4c; --card:#fffaf1; --line:#dccdb6; --accent:#b8321f; --accent2:#0f6e5c; --gold:#c98a12;
+  /* in-phone world (theme-independent) */
+  --night:#17101c; --night2:#241a2c; --steel:#b9c1c8; --steel-d:#6c7680; --enamel:#c4301f; --leaf:#2f8a4a; --leaf-d:#1d5a33; --turm:#f2b632; --kolam:#f4ead2; --teal:#1b7f86; --cream:#fff3dc; --ink:#2a1d16;
+  --disp:'Fredoka','Trebuchet MS',system-ui,sans-serif; --body:'Nunito','Segoe UI',system-ui,sans-serif;
+  --s:.85;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#150f12;--fg:#f4e9d8;--muted:#b9a38e;--card:#221820;--line:#3a2a30;--accent:#ff7a5c;--accent2:#4fd1b0;--gold:#f2b632;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#150f12;--fg:#f4e9d8;--muted:#b9a38e;--card:#221820;--line:#3a2a30;--accent:#ff7a5c;--accent2:#4fd1b0;--gold:#f2b632;color-scheme:dark}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--body);padding-inline:16px;padding-block:24px 80px;margin:0}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:64px}
+h1,h2,h3{font-family:var(--disp);margin:0;text-wrap:balance;line-height:1.1}
+h1{font-size:clamp(34px,6vw,64px);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(26px,4vw,40px);font-weight:600}
+h3{font-size:18px;font-weight:600}
+p{margin:0}
+.lede{max-width:62ch;color:var(--muted);font-size:17px}
+.hero{display:flex;gap:28px;align-items:flex-end;flex-wrap:wrap}
+.hero>div{min-width:0;flex:1 1 360px;display:flex;flex-direction:column;gap:14px}
+.toc{display:flex;gap:8px;flex-wrap:wrap}
+.toc a{font:600 14px var(--disp);color:var(--fg);background:var(--card);border:2px solid var(--line);padding:6px 14px;border-radius:99px;text-decoration:none}
+.toc a:hover,.toc a:focus-visible{border-color:var(--accent);outline:none}
+.sec{display:flex;flex-direction:column;gap:20px;scroll-margin-top:16px}
+.sec-head{display:flex;flex-direction:column;gap:6px}
+.tag{font:600 13px var(--disp);color:var(--accent2);letter-spacing:.06em}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.fcol{display:flex;flex-direction:column;gap:8px}
+.fcap{font:600 14px var(--disp);color:var(--muted);max-width:calc(390px*var(--s))}
+.fw{width:calc(390px*var(--s));height:calc(844px*var(--s));flex:none}
+.notes{flex:1 1 280px;min-width:0;max-width:440px;display:flex;flex-direction:column;gap:14px}
+.note{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.note b{font-family:var(--disp);font-weight:600}
+.love b{color:var(--accent2)} .risk b{color:var(--accent)}
+.feel{font:500 19px/1.35 var(--disp)}
+.tblw{overflow-x:auto;border:2px solid var(--line);border-radius:16px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:14.5px}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{font-family:var(--disp);font-weight:600}
+tr:last-child td,tr:last-child th{border-bottom:0}
+.rec{background:var(--card);border:2px solid var(--gold);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.rec ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.tt{position:fixed;top:10px;right:10px;font:600 13px var(--disp);background:var(--card);color:var(--fg);border:2px solid var(--line);border-radius:99px;padding:6px 12px;cursor:pointer;z-index:200}
+
+/* ---------- phone shell ---------- */
+.phone{width:390px;height:844px;transform:scale(var(--s));transform-origin:0 0;background:#0b0710;border-radius:44px;padding:10px;position:relative;box-shadow:0 18px 40px #0006;font-family:var(--body);color:var(--cream);outline:none}
+.phone *{box-sizing:border-box}
+.scr{position:relative;width:370px;height:824px;border-radius:34px;overflow:hidden;background:var(--night);user-select:none;-webkit-user-select:none;touch-action:pan-y}
+.phone:focus-visible{box-shadow:0 0 0 4px var(--turm)}
+.phone img{-webkit-user-drag:none;user-select:none}
+.fd{font-family:var(--disp)}
+.btn{font:600 14px var(--disp);color:var(--ink);background:var(--turm);border:0;border-radius:12px;padding:8px 12px;cursor:pointer;box-shadow:0 3px 0 #a9741a}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #a9741a}
+.btn.ghost{background:#ffffff18;color:var(--cream);box-shadow:none}
+.btn:focus-visible,.cell:focus-visible,.node:focus-visible,.vst:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.chip{display:inline-flex;align-items:center;gap:4px;font:600 12px var(--disp);padding:3px 9px;border-radius:99px;background:#ffffff1c;color:var(--cream);border:0}
+.topbar{position:absolute;left:10px;right:10px;top:34px;height:38px;display:flex;align-items:center;gap:8px;z-index:60}
+.pill{display:flex;align-items:center;gap:6px;background:#120c17d9;border:2px solid #ffffff22;border-radius:99px;padding:3px 10px 3px 4px;font:600 13px var(--disp);height:34px}
+.lv{width:26px;height:26px;border-radius:50%;background:conic-gradient(var(--turm) 0 62%,#ffffff22 0);display:grid;place-items:center;position:relative;font:700 12px var(--disp);color:var(--ink)}
+.lv::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--turm);z-index:0}
+.lv span{position:relative;z-index:1}
+.coin{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9a0,#d9981c);display:inline-block;box-shadow:inset 0 0 0 2px #a9741a}
+.gopill{position:absolute;left:50%;transform:translateX(-50%);bottom:26px;z-index:70;font:700 22px var(--disp);color:#fff;background:linear-gradient(#e5482f,#b8281a);border:3px solid #ffd27a;border-radius:99px;padding:8px 26px 10px;cursor:pointer;box-shadow:0 5px 0 #7d1a10,0 0 24px #ff6a3d66;display:flex;flex-direction:column;align-items:center;line-height:1.05;min-width:128px}
+.gopill small{font:600 11px var(--body);opacity:.92;letter-spacing:.02em}
+.gopill:active{transform:translateX(-50%) translateY(3px);box-shadow:0 2px 0 #7d1a10}
+.gopill:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:95;background:#120c17ee;border:2px solid var(--turm);border-radius:18px;padding:14px 18px;font:600 16px var(--disp);text-align:center;max-width:280px}
+.sheet{position:absolute;left:8px;right:8px;background:linear-gradient(#2c2030,#1d1523);border:2px solid #ffffff2a;border-radius:20px;z-index:80;padding:10px 12px 12px;box-shadow:0 -8px 30px #0008}
+.sheet h4{margin:0;font:600 17px var(--disp);display:flex;align-items:center;gap:8px}
+.sheet .x{margin-left:auto;background:#ffffff1c;color:#fff;border:0;border-radius:50%;width:28px;height:28px;font:700 14px var(--disp);cursor:pointer}
+.sheet .sub{font-size:12px;opacity:.78}
+.sheet .note{color:var(--cream)}
+.grid{display:grid;gap:6px}
+.cell{background:#ffffff12;border:2px solid #ffffff1a;border-radius:12px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px;font:600 11px var(--disp);text-align:center;color:var(--cream);cursor:pointer;min-width:0}
+.cell img{width:38px;height:38px;object-fit:contain}
+.cell.on{border-color:var(--turm);background:#f2b63222}
+.cell small{font:600 10px var(--body);opacity:.8}
+.hearts{display:inline-flex;gap:2px;color:#ff6a7a;font-size:13px;letter-spacing:1px}
+.ambient{position:absolute;pointer-events:none}
+.ent{position:absolute;transform:translate(-50%,-100%);cursor:pointer}
+.ent img{display:block;pointer-events:none}
+.kan{position:absolute;width:0;height:0}
+.kan .sh{position:absolute;left:-18px;top:-6px;width:36px;height:12px;border-radius:50%;background:#0008}
+.kan img{position:absolute;left:-30px;top:-54px;width:60px;height:auto;transform-origin:50% 100%}
+.kan.fl img{transform:scaleX(-1)}
+.node{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;border:3px solid #ffffff44;background:#ffffff14;font:700 11px var(--disp);color:var(--cream);cursor:pointer;padding:0}
+.node.on{background:var(--turm);color:var(--ink);border-color:#fff}
+.node.av{border-color:var(--turm);box-shadow:0 0 10px #f2b63288}
+.bar{height:8px;border-radius:9px;background:#ffffff22;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#7ad06b,#f2b632)}
+.jz{position:absolute;left:16px;bottom:16px;width:122px;height:122px;border-radius:50%;background:#ffffff14;border:3px solid #ffffff33;z-index:70;touch-action:none}
+.jz::before{content:"";position:absolute;inset:34px;border-radius:50%;border:2px dashed #ffffff22}
+.jk{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9a0,#d9981c);box-shadow:0 3px 8px #0008}
+@media (prefers-reduced-motion:no-preference){
+  .steam{animation:steam 2.6s ease-in infinite}
+  .steam.b{animation-delay:1.3s}
+  .flick{animation:flick 3.1s steps(1) infinite}
+  .twk{animation:twk 2.4s ease-in-out infinite}
+  .bob{animation:bob .38s ease-in-out infinite}
+  .ringp{animation:ringp 1.3s ease-in-out infinite}
+  .sizzle{animation:sz .6s ease-out}
+  .shake{animation:shake .3s}
+  .pop{animation:pop .35s ease-out}
+  .foe{animation:crawl 5s linear infinite alternate}
+  .disc{animation:fly 1.1s linear infinite}
+  .kroam{animation:roam 9s ease-in-out infinite}
+  .jroam{animation:jr 9s ease-in-out infinite}
+  .roadscroll{animation:rs 2.2s linear infinite}
+}
+@keyframes steam{0%{transform:translateY(6px) scale(.6);opacity:0}25%{opacity:.8}100%{transform:translateY(-34px) scale(1.15);opacity:0}}
+@keyframes flick{0%,100%{opacity:1}8%{opacity:.5}12%{opacity:1}55%{opacity:.8}58%{opacity:1}}
+@keyframes twk{0%,100%{opacity:.35}50%{opacity:1}}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
+@keyframes ringp{0%,100%{opacity:.7}50%{opacity:1}}
+@keyframes sz{0%{filter:brightness(2.2) saturate(1.6);transform:scale(1.08)}100%{filter:none;transform:scale(1)}}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes crawl{0%{transform:translate(0,0)}100%{transform:translate(var(--dx),var(--dy))}}
+@keyframes fly{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(540deg);opacity:.2}}
+@keyframes roam{0%,100%{transform:translate(0,0)}25%{transform:translate(50px,-30px)}50%{transform:translate(0,-60px)}75%{transform:translate(-50px,-20px)}}
+@keyframes jr{0%,100%{transform:translate(0,0)}25%{transform:translate(14px,-8px)}50%{transform:translate(0,-16px)}75%{transform:translate(-14px,-5px)}}
+@keyframes rs{to{background-position:0 72px}}
+
+/* ---------- D1 world ---------- */
+#d1w{z-index:1;position:absolute;left:0;top:76px;width:370px;height:640px;overflow:hidden;touch-action:none}
+.wall{position:absolute;left:0;top:0;width:370px;height:172px;background:linear-gradient(#0003,#0000 40%),repeating-linear-gradient(90deg,#1f6f78 0 36px,#1a5f67 36px 38px),#1b7f86;border-bottom:8px solid #3b2a22}
+.wall::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34px;background:repeating-linear-gradient(90deg,#8f3a2a 0 18px,#7a2f22 18px 20px)}
+.floor{position:absolute;left:0;top:172px;width:370px;height:468px;background:radial-gradient(circle at 50% 30%,#fff2,#0000 70%),repeating-conic-gradient(#5c4f55 0 25%,#4b3f46 0 50%) 0 0/46px 46px;box-shadow:inset 0 14px 24px #0008}
+.fairy{position:absolute;left:0;top:2px;width:370px;height:14px}
+.fairy i{position:absolute;width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px 2px #f2b632aa}
+.lab{position:absolute;left:50%;top:100%;transform:translate(-50%,2px);white-space:nowrap;font:600 11px var(--disp);background:#120c17dd;border:1.5px solid #ffffff33;border-radius:99px;padding:1px 8px;color:var(--cream);pointer-events:none}
+.near .lab{background:var(--turm);color:var(--ink);border-color:#fff}
+.ringw{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:5}
+.ring{position:absolute;width:76px;height:44px;border-radius:50%;border:3px dashed var(--turm);box-shadow:0 0 16px #f2b632aa,inset 0 0 14px #f2b63266;opacity:0;transform:translate(-50%,-50%);transition:opacity .15s}
+.ring.on{opacity:1}
+.hint{position:absolute;left:150px;right:12px;bottom:112px;font:600 11px/1.3 var(--body);color:#ffffffb0;text-align:right;z-index:60;pointer-events:none}
+.prompt{position:absolute;left:50%;transform:translateX(-50%);bottom:150px;z-index:71;background:var(--turm);color:var(--ink);font:700 13px var(--disp);padding:5px 14px;border-radius:99px;box-shadow:0 3px 0 #a9741a;cursor:pointer;border:0}
+
+/* D2 */
+.vsc{background:#2b2229;z-index:1;position:absolute;left:0;right:0;top:76px;bottom:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;touch-action:pan-x pan-y}
+.vw{position:relative;width:1240px;height:898px;margin-top:-150px}
+.vsky{position:absolute;inset:0;background:linear-gradient(#0e0a1a,#2a1d3a 38%,#3d2b33 62%,#2b2229)}
+.vfloor{position:absolute;left:0;right:0;top:430px;bottom:0;background:repeating-conic-gradient(#4f444a 0 25%,#443a40 0 50%) 0 0/54px 54px;box-shadow:inset 0 12px 20px #0008}
+.vroof{position:absolute;left:0;right:0;top:130px;height:300px;background:repeating-linear-gradient(90deg,#2d2c3a 0 60px,#272633 60px 62px);opacity:.8}
+.vst{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;cursor:pointer;background:none;border:0;padding:0;color:inherit}
+.vst .glow{position:absolute;inset:-14px;border-radius:40%;background:radial-gradient(circle,#ffb34755,#0000 70%);pointer-events:none}
+.vst.dim img.main{filter:brightness(.4) saturate(.5)}
+.vst.sel .nm{background:var(--turm);color:var(--ink)}
+.nm{font:600 12px var(--disp);background:#120c17dd;border:1.5px solid #ffffff33;border-radius:99px;padding:2px 10px;margin-top:2px;white-space:nowrap}
+.bub{left:8px;right:8px;bottom:10px;z-index:80}
+
+/* D3 */
+.cnt{position:absolute;inset:0;background:radial-gradient(circle at 50% 22%,#5a3a2a,#2a1c22 60%,#17101c)}
+.cnt::before{content:"";position:absolute;left:0;right:0;top:340px;bottom:0;background:linear-gradient(#c8cfd5,#8a939b 4%,#6c7680 30%,#58626b)}
+.cnt::after{content:"";position:absolute;left:0;right:0;top:336px;height:6px;background:#e6ebef}
+.zone{position:absolute;border-radius:22px;transition:box-shadow .12s}
+.zone.hot{box-shadow:0 0 0 4px var(--turm),0 0 24px var(--turm)}
+.drag{touch-action:none;cursor:grab}
+.dghost{position:absolute;z-index:99;pointer-events:none;opacity:.92;filter:drop-shadow(0 8px 8px #0008)}
+.tawa{left:12px;top:160px;width:176px;height:176px}
+.tawa img.t{position:absolute;inset:0;width:100%;filter:drop-shadow(0 8px 6px #0009)}
+.tawa .ember{position:absolute;inset:14px;border-radius:50%;background:radial-gradient(circle,#ff6a2b66,#ff6a2b00 70%)}
+.pot{left:222px;top:172px;width:146px;height:160px}
+.potb{position:absolute;left:8px;right:8px;bottom:4px;height:100px;background:linear-gradient(90deg,#8a939b,#d8dee3 40%,#8a939b);border-radius:12px 12px 40px 40px;border:3px solid #4b535a}
+.potb::before{content:"";position:absolute;left:-6px;right:-6px;top:-8px;height:22px;border-radius:50%;background:radial-gradient(#d9981c,#a9561a);border:3px solid #4b535a}
+.tiffin{left:272px;top:352px;width:92px;height:176px}
+.tf{position:absolute;left:6px;right:6px;height:44px;border-radius:12px;background:linear-gradient(90deg,#8a939b,#e6ebef 45%,#8a939b);border:3px solid #4b535a;display:grid;place-items:center}
+.tf img{width:34px;height:34px;object-fit:contain}
+.tgrip{position:absolute;left:30px;right:30px;top:-12px;height:16px;border:5px solid #4b535a;border-bottom:0;border-radius:14px 14px 0 0}
+.rack{position:absolute;left:8px;right:8px;top:642px;height:84px;background:#3b2a22;border-radius:14px;border-bottom:8px solid #2a1c16;display:flex;gap:4px;padding:6px 6px 0}
+.jar{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;font:600 10px var(--disp);color:var(--cream)}
+.jar img{width:44px;height:44px;object-fit:contain}
+.katori{position:absolute;width:48px;height:48px;border-radius:50%}
+.katori img.k{position:absolute;inset:0;width:100%;height:100%}
+.katori img.d{position:absolute;left:9px;top:9px;width:30px;height:30px;object-fit:contain}
+
+/* D4 */
+.cust{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;width:104px}
+.ord{position:relative;background:var(--cream);border-radius:16px;padding:4px;display:grid;place-items:center;width:52px;height:52px;box-shadow:0 3px 0 #0005}
+.ord::after{content:"";position:absolute;bottom:-6px;left:22px;border:6px solid transparent;border-top-color:var(--cream);border-bottom:0}
+.ord img{width:42px;height:42px;object-fit:contain}
+.tray{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+
+/* Run */
+.road{position:absolute;inset:0;background:repeating-linear-gradient(180deg,#2e2a33 0 70px,#2a262f 70px 72px),#2e2a33}
+.road::before,.road::after{content:"";position:absolute;top:0;bottom:0;width:60px;background:repeating-conic-gradient(#4f444a 0 25%,#443a40 0 50%) 0 0/40px 40px}
+.road::before{left:0}.road::after{right:0}
+.foe{position:absolute;width:30px;height:30px;border-radius:50% 50% 40% 40%;background:#6b3b73;border:2px solid #2b1330}
+.foe::before,.foe::after{content:"";position:absolute;top:9px;width:6px;height:6px;border-radius:50%;background:#fff}
+.foe::before{left:5px}.foe::after{right:5px}
+.disc{position:absolute;width:24px;height:24px}
+@media (max-width:520px){.tt{display:none}}
+</style>
+
+<button class="tt" id="tt" type="button">Toggle light / dark</button>
+<div class="wrap">
+
+<header class="hero">
+  <div>
+    <span class="tag">ROUND 7 · HUB REIMAGINED</span>
+    <h1>The stall is a place you walk into.</h1>
+    <p class="lede">Four fresh ways to build Prata Raja's home between runs, each in a real phone frame. Direction 1, the workbench in 3 and the day shift in 4 are playable: walk Kannan with the joystick, WASD or a tap, drag dips into katori, serve regulars. A shared run HUD closes the loop so hub and street feel like one game.</p>
+    <nav class="toc" aria-label="Sections">
+      <a href="#d1">D1 Walkable Stall</a><a href="#d2">D2 Hawker Centre</a><a href="#d3">D3 Workbench</a><a href="#d4">D4 Day &amp; Night</a><a href="#hud">Run HUD</a><a href="#cmp">Compare</a>
+    </nav>
+  </div>
+</header>
+
+<section class="sec" id="d1">
+  <div class="sec-head"><span class="tag">DIRECTION 1 · PLAYABLE</span><h2>Walkable Stall</h2>
+    <p class="feel">Soul Knight's living room, but it smells of ghee. Kannan walks a three-quarter stall inside the hawker centre and every station is a prop within three seconds of him.</p></div>
+  <div class="row">
+    <div class="fcol"><div class="fw"><div class="phone" id="d1p" tabindex="0" aria-label="Walkable stall demo. Click, then use arrow keys or WASD."><div class="scr" id="d1s"></div></div></div>
+      <div class="fcap">Playable: drag the joystick, tap the floor, or WASD / arrows. Walk up to a prop, tap it or press E.</div></div>
+    <div class="fcol"><div class="fw"><div class="phone"><div class="scr" id="d1b"></div></div></div>
+      <div class="fcap">Station frame: Gear Rack × Forge, one bench for wear, stash and enhance. Two levels deep, no more.</div></div>
+    <div class="fcol"><div class="fw"><img src="img2/concept-d1.webp" alt="Concept render for this direction" style="width:100%;height:100%;object-fit:cover;border-radius:36px;display:block"></div><div class="fcap">Codex concept render: the target look for this direction.</div></div>
+    <div class="notes">
+      <div class="note love"><b>What players love</b>Hades House and Soul Knight's Living Room make the hub a place with people and props in it. Stations you can see are easier to remember than menu tabs, and the room can visibly grow.</div>
+      <div class="note risk"><b>Risk</b>Dave the Diver's walking slog and Diablo 4's distant stash and smith. Answers here: every station within ~3 s of Kannan, one persistent GO pill, a panel that closes when you walk off, and Gear + Forge + Stash fused into one bench.</div>
+      <div class="note"><b>Sensitivities</b>The kolam is a framed board on the wall, never a floor event. No deities, no shrine prop.</div>
+      <div class="note"><b>Build cost</b>Medium. One tile room, about ten sprites, a tiny collision list. Panels reuse the existing build sheet data.</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="d2">
+  <div class="sec-head"><span class="tag">DIRECTION 2</span><h2>Hawker Centre Village</h2>
+    <p class="feel">Your stall is one of nine. The neighbours are the stations, and the whole centre lights up, stall by stall, as the story moves.</p></div>
+  <div class="row">
+    <div class="fcol"><div class="fw"><div class="phone"><div class="scr" id="d2s"></div></div></div>
+      <div class="fcap">Scroll sideways or tap a stall: Kannan walks there. Lit stalls are unlocked, dark ones are the next story beats.</div></div>
+    <div class="fcol"><div class="fw"><div class="phone"><div class="scr" id="d2b"></div></div></div>
+      <div class="fcap">Base growth: the same spot at three story milestones.</div></div>
+    <div class="fcol"><div class="fw"><img src="img2/concept-d2.webp" alt="Concept render for this direction" style="width:100%;height:100%;object-fit:cover;border-radius:36px;display:block"></div><div class="fcap">Codex concept render: the target look for this direction.</div></div>
+    <div class="notes">
+      <div class="note love"><b>What players love</b>People. Hades' cast, gifts and gossip give every return a reason to walk somewhere. Soul Knight's renovation and Halls of Torment's camp show progress as a place. Regulars you know by name make the hub remember you.</div>
+      <div class="note risk"><b>Risk</b>Cult of the Lamb: bases that grow too fast and nag. Keep the village to nine stalls, no upkeep timers. It is wider than one screen, so walking time matters: tap-to-walk and a pinned GO.</div>
+      <div class="note"><b>Build cost</b>Highest art cost: each NPC wants a portrait and lines. Cheap start with three stalls and a lit, dark, dark pattern.</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="d3">
+  <div class="sec-head"><span class="tag">DIRECTION 3 · PLAYABLE</span><h2>The Workbench</h2>
+    <p class="feel">One steel counter, no walking. Everything is a thing you drag onto another thing, and the counter sizzles when you get it right.</p></div>
+  <div class="row">
+    <div class="fcol"><div class="fw"><div class="phone"><div class="scr" id="d3s"></div></div></div>
+      <div class="fcap">Playable drags: gear onto the tawa, dips into the katori or the pot, the roti into the tiffin.</div></div>
+    <div class="fcol"><div class="fw"><div class="phone"><div class="scr" id="d3b"></div></div></div>
+      <div class="fcap">The canteen moment: cook one pre-run meal from the spice rack. Its buff rides on the GO pill.</div></div>
+    <div class="fcol"><div class="fw"><img src="img2/concept-d3.webp" alt="Concept render for this direction" style="width:100%;height:100%;object-fit:cover;border-radius:36px;display:block"></div><div class="fcap">Codex concept render: the target look for this direction.</div></div>
+    <div class="notes">
+      <div class="note love"><b>What players love</b>Potion Craft makes crafting the room itself. Monster Hunter's canteen is the ritual players actually remember: eat once, hunt, the buff expires on return.</div>
+      <div class="note risk"><b>Risk</b>Drag-and-drop on a phone needs generous drop targets and an undo. Without a room there is no social layer, so pair it with D1 or D2 for people.</div>
+      <div class="note"><b>Build cost</b>Lowest art cost (all props already exist). Medium UI cost for the drag layer. Fits the existing gear, dip socket and enhance data as is.</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="d4">
+  <div class="sec-head"><span class="tag">DIRECTION 4</span><h2>Day &amp; Night</h2>
+    <p class="feel">Dave the Diver for roti. Night is the run. Day is sixty seconds of tap-serving the regulars from what you hauled home.</p></div>
+  <div class="row">
+    <div class="fcol"><div class="fw"><div class="phone"><div class="scr" id="d4s"></div></div></div>
+      <div class="fcap">Playable day shift: tap the bread that matches the speech bubble. Ends after 60 s.</div></div>
+    <div class="fcol"><div class="fw"><div class="phone"><div class="scr" id="d4b"></div></div></div>
+      <div class="fcap">Dusk transition: day tally, shutters down, tonight's run.</div></div>
+    <div class="fcol"><div class="fw"><img src="img2/concept-d4.webp" alt="Concept render for this direction" style="width:100%;height:100%;object-fit:cover;border-radius:36px;display:block"></div><div class="fcap">Codex concept render: the target look for this direction.</div></div>
+    <div class="notes">
+      <div class="note love"><b>What players love</b>Two loops that feed each other, and the restaurant as a comforting job. Each step pays out. Regulars give bonds and a reason to care about quality.</div>
+      <div class="note risk"><b>Risk</b>The Dave GDC talk admits the split can feel monotonous, and players call the restaurant walking and action screens a slog. Keep it under 2 minutes, tap-only, skippable, and never the only source of power.</div>
+      <div class="note"><b>Build cost</b>Medium. New loop, new balance (coins, rep, bonds). Highest design risk because it adds a second game to tune. Do it last.</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="hud">
+  <div class="sec-head"><span class="tag">SHARED</span><h2>Run HUD for freeform movement</h2>
+    <p class="feel">The stall joystick is the run joystick. Kannan keeps the same sprite, scale and thumb position, so crossing the door changes the scenery and nothing else.</p></div>
+  <div class="row">
+    <div class="fcol"><div class="fw"><div class="phone"><div class="scr" id="hs"></div></div></div>
+      <div class="fcap">Auto-throw toward the nearest foe. The top bar is grouped into three clusters. The hub meal buff stays visible all run.</div></div>
+    <div class="notes">
+      <div class="note"><b>Layout rules</b>Left thumb: joystick, same spot as the hub. Right thumb: dodge and dip socket readouts only. Top: level ring and HP left, stop and timer centre, coins and pause right. One thin XP bar under it.</div>
+      <div class="note"><b>Hub link</b>The buff chip from the Kopi uncle or tiffin meal shows for the whole run and clears on return, as in Monster Hunter. Enemies are placeholder shapes.</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="cmp">
+  <div class="sec-head"><h2>How they compare</h2></div>
+  <div class="tblw"><table>
+    <thead><tr><th></th><th>D1 Walkable Stall</th><th>D2 Hawker Village</th><th>D3 Workbench</th><th>D4 Day &amp; Night</th></tr></thead>
+    <tbody>
+      <tr><th>Engagement</th><td>High. A place with props, easy to personalise.</td><td>Highest long-term. People, gossip, bonds, visible growth.</td><td>High per session. Tactile crafting, sizzle feedback.</td><td>High but split. Second loop, comforting.</td></tr>
+      <tr><th>Build cost</th><td>Medium</td><td>High (NPC art and writing)</td><td>Low art, medium UI</td><td>Medium, plus balance</td></tr>
+      <tr><th>Tedium risk</th><td>Low if stations stay within ~3 s and GO is pinned</td><td>Medium. It is wide.</td><td>Lowest. No walking at all.</td><td>Medium-high. Monotony is the stated risk.</td></tr>
+      <tr><th>Fit with ARPG + survivor</th><td>Strong. Fused bench gives crafted power. Joystick matches the run.</td><td>Strong for story. Weak for speed.</td><td>Strongest for crafted gear, dips as sockets, spec and enhance.</td><td>Indirect. Feeds coins and bonds, not build power.</td></tr>
+    </tbody></table></div>
+  <div class="rec">
+    <h2>Recommended fusion</h2>
+    <p>Ship D1's room with D3's bench inside it. Grow it with D2 over time. Keep D4 as an optional later chapter.</p>
+    <ol>
+      <li><b>Now:</b> D1 walkable stall, with Gear Rack × Forge built as the D3 workbench (drag gear to the tawa, dips into katori). One station, one trip.</li>
+      <li><b>Next:</b> Kopi uncle and the tiffin meal as the pre-run buff, shown on GO and in the run HUD.</li>
+      <li><b>Then:</b> D2 growth. Each story beat lights a neighbouring stall and adds one stool, sign or stove to the room. Regulars give gifts and bonds.</li>
+      <li><b>Later:</b> D4 day shift as an opt-in sixty-second screen that turns spare materials into coins and bonds.</li>
+    </ol>
+  </div>
+</section>
+</div>
+
+<script>
+(function(){
+const IMG='img2/';
+const $=(s,r=document)=>r.querySelector(s);
+const im=(n,w,cls)=>`<img src="${IMG}${n}.webp" ${w?`width="${w}"`:''} ${cls?`class="${cls}"`:''} alt="" draggable="false">`;
+const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function setS(){const w=innerWidth;document.documentElement.style.setProperty('--s',w<480?Math.min(1,(w-32)/390):w<900?.85:.8)}
+setS();addEventListener('resize',setS);
+$('#tt').onclick=()=>{const r=document.documentElement;const d=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches);r.dataset.theme=d?'light':'dark'};
+const topbar=(lvl,coins,mid,right='')=>`<div class="topbar"><div class="pill"><div class="lv"><span>${lvl}</span></div><span class="coin"></span>${coins}</div><div class="pill" style="margin-inline:auto;padding-inline:12px">${mid}</div>${right}</div>`;
+const fairy=()=>{let h='<div class="fairy">';for(let i=0;i<14;i++)h+=`<i class="twk" style="left:${i*27+6}px;top:${i%2?4:0}px;animation-delay:${(i*.37)%2.4}s;background:${i%3?'#f2b632':'#ff7a5c'}"></i>`;return h+'</div>'};
+const steam=(x,y)=>`<div class="ambient steam" style="left:${x}px;top:${y}px;z-index:9">${im('fx-steam',26)}</div><div class="ambient steam b" style="left:${x+14}px;top:${y+4}px;z-index:9">${im('fx-steam',20)}</div>`;
+const hearts=n=>'<span class="hearts">'+'♥'.repeat(n)+'<span style="opacity:.4">'+'♥'.repeat(5-n)+'</span></span>';
+
+/* ============ D1 ============ */
+const st={coins:420,lvl:7,buff:null,dest:'Wet Market · Stop 3',loadout:['b-kosong','b-egg'],sockets:['d-mint',null,null],pts:3,nodes:{},
+ mats:{flour:12,ghee:5,onion:9,masala:7},
+ gear:[{n:'Denim apron',i:'g-apron',lv:2,slot:'Body',worn:1,st:'+6% soak'},{n:'Lucky red towel',i:'g-towel',lv:1,slot:'Off hand',worn:1,st:'+4% crit'},{n:"Chef's gloves",i:'g-gloves',lv:0,slot:'Hands',worn:0,st:'+3% throw speed'},{n:'Kitchen clogs',i:'g-clogs',lv:3,slot:'Feet',worn:1,st:'+5% move'},{n:'Stall bandana',i:'g-band',lv:0,slot:'Head',worn:0,st:'+2 max HP'},{n:"Cook's hairnet",i:'g-net',lv:1,slot:'Head',worn:0,st:'+3% heat'}]};
+const BREADS=[['b-kosong','Kosong','crisp, 1 hit'],['b-egg','Telur','+crit'],['b-mura','Murtabak','splash'],['b-bomb','Roti bomb','AoE'],['b-tissue','Tissue','pierce'],['b-appam','Appam','bounce']];
+const DIPS=[['d-mint','Mint','chills'],['d-dhal','Dhal','sticks'],['d-sambal','Sambal','heat'],['d-fish','Fish curry','soak'],['d-mutton','Mutton','heat+'],['d-cmilk','Cond. milk','slows'],['d-teh','Teh tarik','speed']];
+const FUSE={'d-dhal+d-mint':'Cool Dhal: soak chills for 1 s','d-fish+d-sambal':'Fiery Fish: heat ticks spread','d-mutton+d-sambal':'Double Heat: +30% spicy DoT'};
+const MEALS=[['d-teh','Teh tarik','+10% move'],['b-egg','Telur set','+8% crit'],['d-cmilk','Milo dino','+12% soak']];
+const STOPS=['Pasar Malam · Stop 1','Kopitiam · Stop 2','Wet Market · Stop 3','Food Street · Stop 4'];
+
+const S1=[
+ {id:'tawa',n:'Tawa',ix:75,iy:372,box:[28,314,124,336],y:338},
+ {id:'dips',n:'Dip shelf',ix:195,iy:212,box:[142,186,248,196],y:196},
+ {id:'gear',n:'Gear · Forge',ix:315,iy:372,box:[262,314,364,336],y:338},
+ {id:'pantry',n:'Pantry',ix:60,iy:540,box:[18,486,102,510],y:512},
+ {id:'kopi',n:'Kopi uncle',ix:318,iy:540,box:[270,486,366,510],y:512},
+ {id:'kolam',n:'Kolam · Spec',ix:85,iy:196,box:null,y:164},
+ {id:'order',n:'Order board',ix:310,iy:196,box:null,y:164},
+ {id:'exit',n:'Street · GO',ix:195,iy:596,box:null,y:640}
+];
+const solid=[...S1.filter(s=>s.box).map(s=>s.box),[160,404,232,426],[330,236,360,262],[336,572,364,596]];
+function kolamSvg(){let s='<g fill="none" stroke="#f4ead2" stroke-width="1.4" stroke-linecap="round">';for(let r=0;r<5;r++)for(let c=0;c<4;c++)s+=`<circle cx="${8+c*14.5}" cy="${8+r*15.5}" r="1.5" fill="#f4ead2"/>`;s+='<path d="M30 6 C48 20 48 28 30 40 C12 28 12 20 30 6Z M30 40 C48 52 48 60 30 74 C12 60 12 52 30 40Z"/></g>';return s+'</g>'}
+function uncle(){return `<svg width="48" height="62" viewBox="0 0 48 62"><circle cx="24" cy="14" r="11" fill="#c98c5e"/><path d="M13 11 Q24 -2 35 11 Q30 5 24 5 Q18 5 13 11Z" fill="#cfd3d6"/><rect x="8" y="26" width="32" height="34" rx="12" fill="#f4f1e8"/><rect x="14" y="40" width="20" height="20" rx="4" fill="#1b7f86"/><circle cx="20" cy="14" r="1.6" fill="#2a1d16"/><circle cx="28" cy="14" r="1.6" fill="#2a1d16"/><path d="M19 19 Q24 23 29 19" stroke="#2a1d16" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`}
+const sc1=$('#d1s');
+sc1.innerHTML=`${topbar(st.lvl,'<span id="d1c">'+st.coins+'</span>','<span id="d1dest">Wet Market</span>','<span class="chip" id="d1buff" hidden style="background:#f2b632;color:#2a1d16"></span>')}
+<div id="d1w"><div class="wall">${fairy()}</div><div class="floor"></div>
+ <div class="ent" style="left:195px;top:70px;z-index:1;cursor:default">${im('sign3',120)}</div>
+ <div class="ent" style="left:30px;top:70px;z-index:1;cursor:default">${im('neon',54,'flick')}</div>
+ <div class="ent" data-s="kolam" style="left:85px;top:164px;width:78px"><div style="position:relative;width:78px;height:104px">${im('frame-b',78)}<svg viewBox="0 0 60 80" style="position:absolute;inset:13px 10px;width:58px;height:78px">${kolamSvg()}</svg></div><span class="lab">Kolam · Spec</span></div>
+ <div class="ent" data-s="order" style="left:310px;top:164px"><div style="width:96px;height:84px;border:5px solid #7a4a2a;border-radius:8px;background:#1e3a2c;padding:6px;font:600 10px/1.45 var(--disp);color:#e8f2e0;box-shadow:0 4px 8px #0006">Map: 4 stops<br>Special: Telur Tue<br><span style="color:#f2b632">Orders: 2 waiting</span></div><span class="lab">Order board</span></div>
+ <div class="ent" data-s="dips" style="left:195px;top:198px"><div style="width:130px;height:84px;position:relative"><div style="position:absolute;left:0;right:0;bottom:4px;height:10px;background:#7a4a2a;border-radius:4px"></div><div style="position:absolute;left:4px;right:4px;bottom:14px;display:flex;justify-content:space-between">${['d-mint','d-dhal','d-sambal','d-fish'].map(d=>im(d,30)).join('')}</div><div style="position:absolute;left:20px;right:20px;bottom:48px;display:flex;justify-content:space-between">${['d-mutton','d-cmilk','d-teh'].map(d=>im(d,30)).join('')}</div></div><span class="lab">Dip shelf</span></div>
+ <div class="ent" data-s="tawa" style="left:76px;top:340px">${im('tier1',132)}${steam(46,6)}<span class="lab">Tawa</span></div>
+ <div class="ent" data-s="gear" style="left:313px;top:340px"><div style="position:relative;width:110px;height:104px"><div style="position:absolute;left:6px;right:6px;top:0;height:6px;background:#7a4a2a;border-radius:3px"></div><div style="position:absolute;left:12px;top:2px;display:flex;gap:6px">${im('g-apron',32)}${im('g-towel',30)}${im('g-band',28)}</div><div style="position:absolute;left:0;right:0;bottom:0;height:42px;background:linear-gradient(#aab3ba,#6c7680);border-radius:8px;border-top:4px solid #e6ebef"></div><div style="position:absolute;left:27px;bottom:14px">${im('tawa2',56)}</div></div><span class="lab">Gear · Forge</span></div>
+ <div class="ent" data-s="pantry" style="left:60px;top:512px"><div style="position:relative;width:92px;height:66px;display:flex;align-items:flex-end;justify-content:center;gap:2px;padding-bottom:4px;background:linear-gradient(transparent 60%,#7a4a2a 60% 72%,transparent 72%)">${['m-flour','m-ghee','m-onion','m-masala'].map(m=>im(m,32)).join('')}</div><span class="lab">Pantry</span></div>
+ <div class="ent" data-s="kopi" style="left:318px;top:512px"><div style="position:relative;width:110px;height:92px"><div style="position:absolute;left:6px;top:0">${uncle()}</div><div style="position:absolute;left:36px;top:18px">${im('coffee',72)}</div><div style="position:absolute;left:58px;top:10px">${im('d-teh',30)}</div>${steam(54,-14)}</div><span class="lab">Kopi uncle</span></div>
+ <div class="ent" style="left:196px;top:428px;cursor:default;z-index:428">${im('table',112)}</div>
+ <div class="ent" style="left:345px;top:262px;cursor:default;z-index:262">${im('fairy',48)}</div>
+ <div class="ent" style="left:350px;top:596px;cursor:default;z-index:596">${im('bin',34)}</div>
+ <div class="ent" data-s="exit" style="left:195px;top:640px"><div style="width:130px;height:46px;border-radius:60px 60px 0 0;background:linear-gradient(#1a1020,#3a2430);border:4px solid #7a4a2a;border-bottom:0;display:grid;place-items:center;font:700 13px var(--disp);color:var(--turm);box-shadow:0 -6px 24px #ff9a3d66">GO to street ▾</div></div>
+ <div class="ringw"><div class="ring ringp" id="d1r"></div></div>
+ <div class="kan" id="kan"><div class="sh"></div><img src="${IMG}k-idle.webp" id="kimg" alt="Kannan"></div>
+</div>
+<div class="jz" id="jz"><div class="jk" id="jk"></div></div>
+<div class="hint">Drag the stick, tap the floor, or WASD.<br>E opens the station you are at.</div>
+<button class="gopill" id="d1go" type="button">GO<small id="d1gos">Wet Market · no meal</small></button>`;
+const w1=$('#d1w'),kan=$('#kan'),kimg=$('#kimg'),ring=$('#d1r'),ph1=$("#d1p");
+let kx=195,ky=520,face=0,moving=false,tgt=null,pend=null,near=null,open=null,joy={x:0,y:0},keys={},act=false;
+const KR=9,SP=150;
+function blocked(x,y){if(x<18||x>352||y<180||y>616)return true;for(const b of solid)if(x>b[0]-KR&&x<b[2]+KR&&y>b[1]-4&&y<b[3]+6)return true;return false}
+function posEnt(){kan.style.left=kx+'px';kan.style.top=ky+'px';kan.style.zIndex=Math.round(ky);kan.classList.toggle('fl',face===1)}
+S1.forEach(s=>{const e=w1.querySelector(`[data-s="${s.id}"]`);s.el=e;e.style.zIndex=Math.round(s.y);e.addEventListener('pointerdown',ev=>ev.stopPropagation());e.addEventListener('click',ev=>{ev.stopPropagation();goTo(s)})});
+function goTo(s){if(near===s){openSt(s);return}pend=s;tgt={x:s.ix,y:s.iy};closeSt()}
+function updNear(){let b=null,bd=60;for(const s of S1){const d=Math.hypot(kx-s.ix,(ky-s.iy)*1.3);if(d<bd){bd=d;b=s}}
+ if(b!==near){S1.forEach(s=>s.el.classList.toggle('near',s===b));near=b;ring.classList.toggle('on',!!b);const pr=$('#d1pr');if(pr)pr.remove();
+  if(b&&!open){const p=document.createElement('button');p.id='d1pr';p.className='prompt';p.type='button';p.textContent=b.id==='exit'?'Tap or E: head out':'Tap or E: '+b.n;p.onclick=()=>openSt(b);sc1.appendChild(p)}}
+ if(b){ring.style.left=b.ix+'px';ring.style.top=b.iy+'px'}}
+let last=0;
+function tick(t){const dt=Math.min(.05,(t-last)/1000||0);last=t;
+ let vx=joy.x,vy=joy.y;if(act){if(keys.ArrowLeft||keys.a)vx-=1;if(keys.ArrowRight||keys.d)vx+=1;if(keys.ArrowUp||keys.w)vy-=1;if(keys.ArrowDown||keys.s)vy+=1}
+ const m=Math.hypot(vx,vy);let mv=false;
+ if(m>.12){if(m>1){vx/=m;vy/=m}tgt=null;pend=null}
+ else if(tgt){const dx=tgt.x-kx,dy=tgt.y-ky,d=Math.hypot(dx,dy);if(d<6){tgt=null;vx=vy=0;if(pend){const p=pend;pend=null;updNear();openSt(p)}}else{vx=dx/d;vy=dy/d}}else{vx=vy=0}
+ if(vx||vy){const nx=kx+vx*SP*dt,ny=ky+vy*SP*dt;let ok=false;if(!blocked(nx,ky)){kx=nx;ok=true}if(!blocked(kx,ny)){ky=ny;ok=true}if(!ok)tgt=null;mv=ok;if(Math.abs(vx)>.15)face=vx<0?1:0;if(open&&mv)closeSt()}
+ if(mv!==moving){moving=mv;kimg.classList.toggle('bob',mv);kimg.src=IMG+(mv?'k-lean':'k-idle')+'.webp'}
+ posEnt();updNear();window.__kan={x:kx,y:ky,near:near&&near.id,open};requestAnimationFrame(tick)}
+requestAnimationFrame(tick);
+function pt(e,el){const r=el.getBoundingClientRect(),s=r.width/el.offsetWidth;return{x:(e.clientX-r.left)/s,y:(e.clientY-r.top)/s}}
+w1.addEventListener('pointerdown',e=>{act=true;ph1.focus({preventScroll:true});const p=pt(e,w1);if(p.y<182)p.y=182;if(blocked(p.x,p.y))p.y=Math.min(616,p.y+26);if(!blocked(p.x,p.y)){tgt=p;pend=null;closeSt()}});
+const jz=$('#jz'),jk=$('#jk');let jid=null;
+function jmove(e){const r=jz.getBoundingClientRect(),s=r.width/jz.offsetWidth,R=44;let dx=(e.clientX-(r.left+r.width/2))/s,dy=(e.clientY-(r.top+r.height/2))/s;const d=Math.hypot(dx,dy);if(d>R){dx=dx/d*R;dy=dy/d*R}jk.style.transform=`translate(${dx}px,${dy}px)`;joy.x=dx/R;joy.y=dy/R}
+jz.addEventListener('pointerdown',e=>{jid=e.pointerId;jz.setPointerCapture(jid);act=true;jmove(e)});
+jz.addEventListener('pointermove',e=>{if(e.pointerId===jid)jmove(e)});
+const jend=e=>{if(e.pointerId===jid){jid=null;joy.x=joy.y=0;jk.style.transform=''}};jz.addEventListener('pointerup',jend);jz.addEventListener('pointercancel',jend);
+const KM={ArrowUp:1,ArrowDown:1,ArrowLeft:1,ArrowRight:1,w:1,a:1,s:1,d:1};
+ph1.addEventListener('pointerenter',()=>act=true);ph1.addEventListener('focus',()=>act=true);ph1.addEventListener('pointerleave',()=>{if(document.activeElement!==ph1)act=false});ph1.addEventListener('blur',()=>act=false);
+addEventListener('keydown',e=>{if(!act)return;const k=e.key.length===1?e.key.toLowerCase():e.key;if(KM[k]){keys[k]=1;if(k.startsWith('Arrow'))e.preventDefault();tgt=null;pend=null}
+ else if(k==='e'||k==='Enter'||k===' '){if(near&&!open){openSt(near);e.preventDefault()}}else if(k==='Escape')closeSt()});
+addEventListener('keyup',e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;delete keys[k]});
+addEventListener('blur',()=>keys={});
+function goRun(){const t=document.createElement('div');t.className='toast pop';t.innerHTML=`Heading out<br><small style="font:600 12px var(--body)">${st.dest}${st.buff?' · '+st.buff[1]+' '+st.buff[2]:' · no meal buff'}</small>`;sc1.appendChild(t);setTimeout(()=>t.remove(),1600)}
+$('#d1go').onclick=goRun;
+function refreshTop(){$('#d1dest').textContent=st.dest.split(' · ')[0];const b=$('#d1buff');b.hidden=!st.buff;if(st.buff)b.textContent=st.buff[2];$('#d1gos').textContent=st.dest.split(' · ')[0]+' · '+(st.buff?st.buff[1]:'no meal')}
+function closeSt(){if(!open)return;open=null;const s=$('#d1sh');if(s)s.remove();near=undefined}
+function openSt(s){if(s.id==='exit'){goRun();return}closeSt();const pr=$('#d1pr');if(pr)pr.remove();open=s.id;const d=document.createElement('div');d.className='sheet';d.id='d1sh';d.style.bottom='150px';sc1.appendChild(d);render1(d,s.id,null)}
+function head(t,sub){return `<h4>${t}<button class="x" type="button" data-a="close" aria-label="Close">×</button></h4><div class="sub">${sub}</div>`}
+function render1(d,id,sub){let h='';
+ if(id==='tawa')h=head('Tawa · rotis','Pick up to 3 for your loadout.')+`<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:8px">${BREADS.map(b=>`<button class="cell ${st.loadout.includes(b[0])?'on':''}" data-a="bread" data-v="${b[0]}">${im(b[0])}${b[1]}<small>${b[2]}</small></button>`).join('')}</div><div class="sub" style="margin-top:6px">Loadout ${st.loadout.length}/3</div>`;
+ else if(id==='dips'){const fk=st.sockets.filter(Boolean).sort().join('+');h=head('Dip shelf · sockets','Tap a dip to fill the next katori. Matching pairs fuse.')+`<div style="display:flex;gap:8px;align-items:center;margin:8px 0">${st.sockets.map((s,i)=>`<button class="node" data-a="unsock" data-v="${i}" style="width:48px;height:48px" aria-label="Socket ${i+1}">${s?im(s,34):'+'}</button>`).join('')}<div class="sub" style="flex:1">${FUSE[fk]?'<b style="color:#f2b632">Fusion:</b> '+FUSE[fk]:'Fill two matching dips to fuse.'}</div></div><div class="grid" style="grid-template-columns:repeat(4,1fr)">${DIPS.map(b=>`<button class="cell" data-a="dip" data-v="${b[0]}">${im(b[0])}${b[1]}</button>`).join('')}</div>`}
+ else if(id==='gear'){
+  if(sub==null){const w=st.gear.filter(g=>g.worn).length;h=head('Gear Rack × Forge',`Wear, stash and enhance in one place. Worn ${w}/4 · Stash ${st.gear.length-w}`)+`<div style="display:flex;flex-direction:column;gap:5px;margin-top:8px;max-height:196px;overflow:auto">${st.gear.map((g,i)=>`<button class="cell" data-a="gsel" data-v="${i}" style="flex-direction:row;gap:8px;text-align:left;justify-content:flex-start;${g.worn?'border-color:#f2b632':''}">${im(g.i)}<span style="flex:1">${g.n} <small>+${g.lv} · ${g.slot}</small></span><small>${g.worn?'Worn':'Stash'}</small></button>`).join('')}</div>`}
+  else{const g=st.gear[sub];h=head(g.n+' +'+g.lv,g.slot+' · '+g.st)+`<div style="display:flex;gap:12px;align-items:center;margin:8px 0"><div id="gimg" style="position:relative;width:78px;height:78px;border:3px solid #f2b632;border-radius:16px;display:grid;place-items:center;background:#ffffff10">${im(g.i,60)}</div><div style="flex:1;display:flex;flex-direction:column;gap:6px"><button class="btn" data-a="wear" data-v="${sub}">${g.worn?'Move to stash':'Wear it'}</button><button class="btn" data-a="enh" data-v="${sub}">Enhance +${g.lv+1} · flour ×2, ghee ×1</button><button class="btn ghost" data-a="back">‹ Back to list</button></div></div><div class="sub">Pantry: flour ${st.mats.flour} · ghee ${st.mats.ghee}</div>`}}
+ else if(id==='pantry')h=head('Pantry · materials','Storage in reach. Used by enhance, meals and gifts.')+`<div class="grid" style="grid-template-columns:repeat(4,1fr);margin-top:8px">${[['m-flour','Flour','flour'],['m-ghee','Ghee','ghee'],['m-onion','Onion','onion'],['m-masala','Masala','masala']].map(m=>`<div class="cell" style="cursor:default">${im(m[0])}${m[1]}<small>×${st.mats[m[2]]}</small></div>`).join('')}</div><div class="sub" style="margin-top:6px">Cap 99 each. Enhance needs flour and ghee. Meals use onion and masala.</div>`;
+ else if(id==='kolam')h=head('Kolam board · spec tree',`Points left ${st.pts}. A framed board only; nothing here is stepped on.`)+`<div style="display:flex;justify-content:space-around;margin-top:8px">${['Crisp','Soak','Heat'].map((b,bi)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><span class="fd" style="font-size:13px;color:#f2b632">${b}</span>${[2,1,0].map(n=>{const k=bi+'-'+n,prev=n===0||st.nodes[bi+'-'+(n-1)];return `<button class="node ${st.nodes[k]?'on':prev&&st.pts>0?'av':''}" data-a="node" data-v="${k}" aria-label="${b} node ${n+1}">${n===2?'★':n+1}</button>`}).join('')}</div>`).join('')}</div><div class="sub" style="margin-top:6px">Roots at the bottom. Tap an available node to spend a point.</div>`;
+ else if(id==='order')h=head('Order board · map & specials',"Pick tonight's stop. Specials change daily.")+`<div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">${STOPS.map((s,i)=>`<button class="cell ${st.dest===s?'on':''}" data-a="stop" data-v="${i}" style="flex-direction:row;justify-content:flex-start;gap:8px">${i+1}. ${s.split(' · ')[0]}<small style="margin-left:auto">${i===2?'Telur Tue: egg rotis +15%':'Open'}</small></button>`).join('')}</div>`;
+ else if(id==='kopi')h=head('Kopi uncle · pre-run drink',`One drink, one run. Buff expires on return. Bond ${hearts(3)}`)+`<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:8px">${MEALS.map((m,i)=>`<button class="cell ${st.buff&&st.buff[1]===m[1]?'on':''}" data-a="drink" data-v="${i}">${im(m[0])}${m[1]}<small>${m[2]}</small></button>`).join('')}</div><div class="sub" style="margin-top:6px">"Kosong or siew dai? You decide lah."</div>`;
+ d.innerHTML=h}
+sc1.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t||!open)return;const a=t.dataset.a,v=t.dataset.v,d=$('#d1sh');if(!d)return;
+ if(a==='close')closeSt();
+ else if(a==='bread'){const i=st.loadout.indexOf(v);if(i>=0)st.loadout.splice(i,1);else if(st.loadout.length<3)st.loadout.push(v);render1(d,'tawa')}
+ else if(a==='dip'){const i=st.sockets.indexOf(null);st.sockets[i>=0?i:2]=v;render1(d,'dips')}
+ else if(a==='unsock'){st.sockets[+v]=null;render1(d,'dips')}
+ else if(a==='gsel')render1(d,'gear',+v);else if(a==='back')render1(d,'gear');
+ else if(a==='wear'){st.gear[+v].worn=st.gear[+v].worn?0:1;render1(d,'gear',+v)}
+ else if(a==='enh'){if(st.mats.flour>=2&&st.mats.ghee>=1){st.mats.flour-=2;st.mats.ghee-=1;st.gear[+v].lv++;render1(d,'gear',+v);const g=$('#gimg');if(g){g.classList.add('sizzle');const s=document.createElement('div');s.className='ambient steam';s.style.cssText='left:14px;top:0';s.innerHTML=im('fx-spark',50);g.appendChild(s)}}else{t.textContent='Need flour ×2, ghee ×1';t.classList.add('shake')}}
+ else if(a==='node'){const[b,n]=v.split('-').map(Number);const prev=n===0||st.nodes[b+'-'+(n-1)];if(!st.nodes[v]&&prev&&st.pts>0){st.nodes[v]=1;st.pts--;render1(d,'kolam')}}
+ else if(a==='stop'){st.dest=STOPS[+v];refreshTop();render1(d,'order')}
+ else if(a==='drink'){st.buff=MEALS[+v];refreshTop();render1(d,'kopi')}});
+posEnt();updNear();refreshTop();
+$('#d1b').innerHTML=`${topbar(7,'420','Wet Market')}
+<div style="position:absolute;left:0;right:0;top:76px;height:340px;background:radial-gradient(circle at 70% 60%,#f2b63244,#0000 60%),linear-gradient(#1b7f86,#1b7f86 12%,#4b3f46 12%);opacity:.7"></div>
+<div style="position:absolute;left:20px;top:150px;transform:scale(1.5);transform-origin:0 0">${im('tawa2',90)}</div>
+<div style="position:absolute;left:210px;top:100px;transform:scale(1.7);transform-origin:0 0">${im('g-apron',70)}</div>
+${steam(70,150)}${steam(110,170)}
+<div class="sheet" style="bottom:130px"><h4>Gear Rack × Forge<button class="x" type="button" aria-label="Close">×</button></h4><div class="sub">Wear, stash and enhance in one bench. Worn 3/4 · Stash 3</div>
+<div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">${[['g-apron','Denim apron +2','Body','Worn'],['g-towel','Lucky red towel +1','Off hand','Worn'],['g-clogs','Kitchen clogs +3','Feet','Worn'],['g-gloves',"Chef's gloves +0",'Hands','Stash']].map((g,i)=>`<div class="cell" style="flex-direction:row;gap:8px;justify-content:flex-start;${i===0?'border-color:#f2b632;background:#f2b63222':''}">${im(g[0])}<span style="flex:1;text-align:left">${g[1]}<br><small>${g[2]}</small></span><small>${g[3]}</small></div>`).join('')}</div>
+<div style="display:flex;gap:8px;margin-top:8px"><button class="btn" type="button" style="flex:1">Enhance +3 · flour ×2, ghee ×1</button><button class="btn ghost" type="button">Stash</button></div>
+<div class="sub" style="margin-top:6px;display:flex;gap:10px;align-items:center">Pantry ${im('m-flour',22)}12 ${im('m-ghee',22)}5 <span style="margin-left:auto">Level 2 of 2</span></div></div>
+<button class="gopill" type="button">GO<small>Wet Market · no meal</small></button>`;
+
+/* ============ D2 ============ */
+const V=[
+ {id:'board',x:70,y:560,n:'Kaki Board',sp:'Map and dailies',lit:1,bond:null,line:'Four stops open. Telur Tuesday specials are up.',inc:`<div style="width:78px;height:96px;border:5px solid #7a4a2a;border-radius:8px;background:#1e3a2c;padding:6px;font:600 9px/1.5 var(--disp);color:#e8f2e0">MAP<br>• Pasar Malam<br>• Kopitiam<br>• Wet Market<br><span style="color:#f2b632">+ Specials</span></div>`},
+ {id:'seng',x:260,y:565,n:"Ah Seng's Tawa-Forge",sp:'Forge and enhance',lit:1,bond:3,img:'tier1',w:150,line:'"Bring me the apron. Flour and ghee, I do the rest."'},
+ {id:'raja',x:500,y:590,n:'Prata Raja',sp:'Your stall: loadout, rotis',lit:1,bond:null,img:'tier3',w:190,line:'Your stall. Tier 3. Two more upgrades at story beats 5 and 7.',you:1},
+ {id:'siew',x:740,y:565,n:"Auntie Siew Lan's Dips",sp:'Dip sockets and fusion',lit:1,bond:2,img:'awning1',w:150,line:'"Mint with dhal, very nice. Try, try."',dips:1},
+ {id:'kopi',x:940,y:575,n:'Kopi Uncle',sp:'Pre-run drink buff',lit:1,bond:4,img:'coffee',w:110,line:'"Same as always? Kopi-O kosong for the road."',kopi:1},
+ {id:'mama',x:1115,y:565,n:'Mama Shop',sp:'Pantry and materials',lit:0,bond:0,img:'icebox',w:140,line:'Lights on at story beat 4: a corner shop that stocks flour and ghee.'}];
+const sc2=$('#d2s');
+sc2.innerHTML=`${topbar(7,'420','5 of 9 stalls lit')}
+<div class="vsc" id="vsc"><div class="vw"><div class="vsky"></div><div class="vroof"></div>
+<div class="ambient" style="left:0;right:0;top:100px;height:20px">${Array.from({length:44},(_,i)=>`<i class="twk" style="position:absolute;left:${i*28+4}px;top:${(i%2)*5}px;width:8px;height:8px;border-radius:50%;background:${i%3?'#f2b632':'#ff7a5c'};box-shadow:0 0 8px 2px #f2b632aa;animation-delay:${(i*.31)%2.4}s"></i>`).join('')}</div>
+<div class="vfloor"></div>${[120,330,560,800,1030].map(x=>`<div class="ent" style="left:${x}px;top:250px;cursor:default;opacity:.9">${im("neon",60,"flick")}</div>`).join("")}
+${V.map(v=>`<button class="vst ${v.lit?'':'dim'}" data-v="${v.id}" style="left:${v.x}px;top:${v.y-(v.w?v.w*.9:100)}px;z-index:${v.y}" aria-label="${v.n}">${v.lit?'<div class="glow"></div>':''}${v.img?`<img class="main" src="${IMG}${v.img}.webp" width="${v.w}" alt="">`:`<div class="main">${v.inc}</div>`}${v.dips?`<div style="display:flex;gap:2px;margin-top:-30px;position:relative">${['d-mint','d-dhal','d-sambal'].map(d=>im(d,30)).join('')}</div>`:''}${v.kopi?`<div style="position:absolute;right:-6px;top:-16px">${im('d-teh',30)}</div>${steam(50,-40)}`:''}${v.id==='seng'?`<div style="position:absolute;left:-14px;top:70px">${im('tawa1',48)}</div>`:''}${v.id==='mama'?`<div style="position:absolute;left:0;right:0;top:50px;text-align:center;font:700 13px var(--disp);color:#fff">Beat 4</div>`:''}<span class="nm">${v.lit?'':'Dark · '}${v.n}</span></button>`).join('')}
+<div class="ent" style="left:640px;top:700px;cursor:default;z-index:700">${im('table',110)}</div><div class="ent" style="left:370px;top:715px;cursor:default;z-index:715">${im('stools',70)}</div><div class="ent" style="left:850px;top:720px;cursor:default;z-index:720">${im('stools',70)}</div><div class="ent" style="left:30px;top:690px;cursor:default;z-index:690">${im('fairy',60)}</div>
+<div id="d2k" class="kan" style="left:500px;top:640px;transition:left 1s ease,top 1s ease;z-index:730"><div class="sh"></div><img src="${IMG}k-idle.webp" alt="Kannan"></div>
+</div></div>
+<div class="bub sheet" id="d2bub" style="position:absolute;top:auto"></div>`;
+const vsc=$('#vsc'),d2b=$('#d2bub');
+function sel2(id){const v=V.find(x=>x.id===id);sc2.querySelectorAll('.vst').forEach(b=>b.classList.toggle('sel',b.dataset.v===id));
+ const k=$('#d2k'),ki=k.querySelector('img');k.style.left=(v.x+(id==='raja'?60:50))+'px';k.style.top=(v.y+62)+'px';ki.src=IMG+'k-lean.webp';setTimeout(()=>ki.src=IMG+'k-idle.webp',1000);
+ vsc.scrollTo({left:Math.max(0,v.x-185),behavior:rm?'auto':'smooth'});
+ d2b.innerHTML=`<h4>${v.n}<button class="x" type="button" data-b="x" aria-label="Close">×</button></h4><div class="sub">${v.sp}${v.bond!=null?' · Bond '+hearts(v.bond):''}</div><p style="font:600 13px/1.4 var(--body);margin:6px 0 8px">${v.line}</p><div style="display:flex;gap:6px;align-items:center">${v.lit?`<button class="btn" type="button" data-b="walk">${v.you?'Open my stall':'Step up to the counter'}</button>`:'<span class="chip">Unlocks at story beat 4</span>'}${v.bond!=null&&v.bond<5&&v.lit?`<button class="btn ghost" type="button" data-b="gift" data-v="${id}">Gift onion ${im('m-onion',16)}</button>`:''}</div>`;d2b.hidden=false}
+sc2.addEventListener('click',e=>{const b=e.target.closest('.vst');if(b)return sel2(b.dataset.v);const t=e.target.closest('[data-b]');if(!t)return;
+ if(t.dataset.b==='x')d2b.hidden=true;
+ else if(t.dataset.b==='gift'){const v=V.find(x=>x.id===t.dataset.v);v.bond=Math.min(5,v.bond+1);sel2(v.id);const h=d2b.querySelector('.hearts');if(h)h.classList.add('pop')}
+ else if(t.dataset.b==='walk')t.textContent='Station panel opens (level 1)'});
+sel2('seng');
+$('#d2b').innerHTML=`${topbar(7,'420','Your stall over time')}
+<div style="position:absolute;inset:80px 12px 20px;display:flex;flex-direction:column;gap:10px">
+${[['tier1','Beat 1 · Cart and a tawa','One lamp. Ah Seng nods from next door.'],['tier3','Beat 4 · Awning, signboard','Mama Shop lights up. Two stools appear.'],['tier5','Beat 7 · The RAJA stall','Fairy lights over the lane. Neighbours queue.']].map((t,i)=>`<div style="flex:1;display:flex;gap:12px;align-items:center;background:${i===1?'#f2b63220':'#ffffff0d'};border:2px solid ${i===1?'#f2b632':'#ffffff22'};border-radius:20px;padding:12px;position:relative;overflow:hidden"><div class="ambient" style="inset:0;background:radial-gradient(circle at 25% 60%,#ffb34733,#0000 60%)"></div>${im(t[0],150)}<div style="min-width:0"><div class="fd" style="font-size:17px;font-weight:600">${t[1]}</div><div style="font-size:13px;opacity:.85;margin-top:4px">${t[2]}</div><div style="margin-top:6px">${i===1?'<span class="chip" style="background:#f2b632;color:#2a1d16">You are here</span>':''}</div></div></div>`).join('')}
+<div class="note" style="background:#ffffff0d;border-color:#ffffff22;font-size:13px"><b>Gossip line</b>Auntie Siew Lan: "Your roti smell reach my side already." Neighbours remark on your last run, Hades style.</div></div>`;
+
+/* ============ D3 ============ */
+const sc3=$('#d3s');
+const gears=[['g-apron','Apron',2],['g-towel','Towel',1],['g-gloves','Gloves',0]];
+const d3dips=[['d-mint','Mint'],['d-dhal','Dhal'],['d-sambal','Sambal'],['d-fish','Fish']];
+sc3.innerHTML=`${topbar(7,'420','Workbench')}<div class="cnt"></div>
+<div style="position:absolute;left:10px;top:78px;right:10px;display:flex;gap:6px;align-items:center;z-index:5"><span class="fd" style="font-size:12px;opacity:.8;width:42px">Gear</span>${gears.map((g,i)=>`<div class="drag cell" data-g="${i}" style="width:74px">${im(g[0])}<span>${g[1]} +<b class="gl">${g[2]}</b></span></div>`).join('')}</div>
+<div class="tawa zone" id="z-tawa"><div class="ember flick"></div>${im('tawa2',176,'t')}${steam(60,40)}${steam(110,60)}<div class="fd" style="position:absolute;left:0;right:0;top:80px;text-align:center;font-size:12px;text-shadow:0 1px 3px #000" id="tmsg">Drop gear to enhance</div></div>
+<div class="pot zone" id="z-pot"><div class="potb"></div>${steam(50,-6)}<div class="fd" style="position:absolute;left:0;right:0;top:-14px;text-align:center;font-size:11px">Curry pot · fuse dips</div><div id="potc" style="position:absolute;left:0;right:0;bottom:26px;display:flex;justify-content:center;gap:4px;z-index:3"></div><div id="potm" class="fd" style="position:absolute;left:-4px;right:-4px;top:166px;text-align:center;font-size:11px;color:#f2b632;line-height:1.2">Drop two dips</div></div>
+<div class="zone" style="left:14px;top:352px;width:240px;height:176px"><div id="rotiw" class="drag" style="position:absolute;left:60px;top:30px;width:110px;height:110px">${im('b-kosong',110)}</div>
+ ${[[8,14],[184,40],[96,118]].map((p,i)=>`<div class="katori zone" data-k="${i}" style="left:${p[0]}px;top:${p[1]}px"><img class="k" src="${IMG}katori.webp" alt=""><img class="d" id="kd${i}" alt="" hidden></div>`).join('')}
+ <div class="fd" style="position:absolute;left:0;right:0;bottom:-14px;text-align:center;font-size:12px">Kosong · 3 katori sockets</div></div>
+<div class="tiffin zone" id="z-tf"><div class="tgrip"></div>${[0,1,2].map(i=>`<div class="tf" style="top:${i*50}px" id="tf${i}"></div>`).join('')}<div class="fd" style="position:absolute;left:0;right:0;top:152px;text-align:center;font-size:12px">Tiffin · <b id="tfc">1</b>/3</div></div>
+<div style="position:absolute;left:10px;right:10px;top:548px;display:flex;gap:6px;align-items:center;z-index:5"><span class="fd" style="font-size:12px;opacity:.8;width:38px">Dips</span>${d3dips.map((d,i)=>`<div class="drag cell" data-d="${i}" style="width:72px">${im(d[0])}${d[1]}</div>`).join('')}</div>
+<div class="rack"><div class="jar">${im('m-flour')}Flour 12</div><div class="jar">${im('m-ghee')}Ghee 5</div><div class="jar">${im('m-onion')}Onion 9</div><div class="jar">${im('m-masala')}Masala 7</div><div class="jar">${im('m-egg')}Egg 6</div><div class="jar">${im('m-cmilk')}Milk 3</div></div>
+<div class="fd" style="position:absolute;left:12px;top:624px;font-size:11px;opacity:.85;z-index:5">Spice rack: storage, always in reach</div>
+<button class="btn" id="d3meal" type="button" style="position:absolute;left:12px;bottom:34px;z-index:70;padding:12px 14px">Cook meal</button>
+<button class="gopill" id="d3go" type="button" style="left:auto;right:12px;transform:none;bottom:26px">GO<small id="d3gs">no meal</small></button>`;
+const ph3=sc3.closest('.phone');
+const zones=()=>[['tawa',$('#z-tawa')],['pot',$('#z-pot')],['tf',$('#z-tf')],...[0,1,2].map(i=>['k'+i,sc3.querySelector(`[data-k="${i}"]`)])];
+const potC=[],tfN0=1;let tfN=1;const gl=gears.map(g=>g[2]);
+function sizz(el){el.classList.remove('sizzle');void el.offsetWidth;el.classList.add('sizzle')}
+function drop(kind,i,z){if(!z)return;
+ if(kind==='g'&&z==='tawa'){gl[i]++;sc3.querySelectorAll('.gl')[i].textContent=gl[i];$('#tmsg').textContent=gears[i][1]+' +'+gl[i]+' · sizzle';sizz($('#z-tawa'));const f=document.createElement('div');f.className='ambient pop';f.style.cssText='left:60px;top:40px;z-index:4';f.innerHTML=im('fx-swirl',70);$('#z-tawa').appendChild(f);setTimeout(()=>f.remove(),900)}
+ else if(kind==='d'&&z[0]==='k'){const k=+z[1],d=$('#kd'+k);d.src=IMG+d3dips[i][0]+'.webp';d.hidden=false;sizz(d.parentNode)}
+ else if(kind==='d'&&z==='pot'){if(potC.length>=2)potC.length=0;potC.push(i);$('#potc').innerHTML=potC.map(p=>im(d3dips[p][0],34)).join('');const n=potC.map(p=>d3dips[p][0]).sort().join('+');$('#potm').textContent=potC.length<2?'Drop one more':(FUSE[n]?'Fusion: '+FUSE[n]:'No fusion. Try mint + dhal');sizz($('#z-pot'))}
+ else if(kind==='r'&&z==='tf'){tfN=Math.min(3,tfN+1);for(let j=0;j<3;j++)$('#tf'+j).innerHTML=j<tfN?im('b-kosong',34):'';$('#tfc').textContent=tfN;sizz($('#z-tf'))}
+ else{const t=document.createElement('div');t.className='toast shake';t.textContent='Not here';sc3.appendChild(t);setTimeout(()=>t.remove(),700)}}
+function dragInit(el,kind,idx){el.addEventListener('pointerdown',e=>{e.preventDefault();const r=ph3.getBoundingClientRect(),s=r.width/390;const g=el.querySelector('img').cloneNode();g.className='dghost';g.style.width='56px';ph3.appendChild(g);el.setPointerCapture(e.pointerId);
+ const over=(ev,z)=>{const b=z.getBoundingClientRect();return ev.clientX>b.left&&ev.clientX<b.right&&ev.clientY>b.top&&ev.clientY<b.bottom};
+ const mv=ev=>{g.style.left=((ev.clientX-r.left)/s-28)+'px';g.style.top=((ev.clientY-r.top)/s-28)+'px';zones().forEach(([k,z])=>z.classList.toggle('hot',over(ev,z)))};
+ mv(e);
+ const up=ev=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);g.remove();let hit=null;zones().forEach(([k,z])=>{if(over(ev,z))hit=k;z.classList.remove('hot')});drop(kind,idx,hit)};
+ el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)})}
+sc3.querySelectorAll('[data-g]').forEach(e=>dragInit(e,'g',+e.dataset.g));
+sc3.querySelectorAll('[data-d]').forEach(e=>dragInit(e,'d',+e.dataset.d));
+dragInit($('#rotiw'),'r',0);
+$('#tf0').innerHTML=im('b-kosong',34);
+let meal=-1;$('#d3meal').onclick=()=>{meal=(meal+1)%MEALS.length;$('#d3gs').textContent=MEALS[meal][1]+' '+MEALS[meal][2];sizz($('#d3go'))};
+$('#d3go').onclick=()=>{const t=document.createElement('div');t.className='toast pop';t.textContent='Heading out'+(meal>=0?' · '+MEALS[meal][2]:'');sc3.appendChild(t);setTimeout(()=>t.remove(),1400)};
+$('#d3b').innerHTML=`${topbar(7,'420','Canteen')}<div class="cnt"></div>
+<div class="sheet" style="top:92px;bottom:150px;display:flex;flex-direction:column;gap:8px"><h4>Pre-run meal<button class="x" type="button" aria-label="Close">×</button></h4><div class="sub">Cook once. The buff lasts this run and expires on return.</div>
+<div style="display:flex;gap:6px;justify-content:center;align-items:center;background:#ffffff0d;border-radius:14px;padding:8px"><div class="cell" style="width:70px">${im('m-egg')}Egg ×2</div><span class="fd">+</span><div class="cell" style="width:70px">${im('m-masala')}Masala ×1</div><span class="fd">+</span><div class="cell" style="width:70px">${im('m-onion')}Onion ×1</div></div>
+<div class="fd" style="text-align:center;font-size:13px">simmers into</div>
+<div style="display:flex;gap:10px;align-items:center;border:2px solid #f2b632;background:#f2b63222;border-radius:16px;padding:10px">${im('b-egg',64)}<div><div class="fd" style="font-size:17px;font-weight:600">Sambal Crunch Telur</div><div style="font-size:13px">+12% crit · +6% throw speed</div><div class="sub" style="margin-top:4px">From pantry. Clears when you return.</div></div></div>
+<div class="fd" style="font-size:12px;opacity:.85">Also in the canteen</div>
+<div class="grid" style="grid-template-columns:repeat(3,1fr)">${MEALS.map(m=>`<div class="cell">${im(m[0])}${m[1]}<small>${m[2]}</small></div>`).join('')}</div>
+<div style="margin-top:auto;display:flex;gap:8px"><button class="btn" type="button" style="flex:1">Cook it</button><button class="btn ghost" type="button">Skip</button></div></div>
+<button class="gopill" type="button">GO<small>Sambal Crunch · +12% crit</small></button>`;
+
+/* ============ D4 ============ */
+const sc4=$('#d4s');
+const SK=['#c98c5e','#8a5a3c','#e0b48a','#a0714a'],SH=['#1b7f86','#c4301f','#f2b632','#2f8a4a','#6b3b73'];
+const face4=i=>`<svg width="64" height="74" viewBox="0 0 64 74"><circle cx="32" cy="22" r="15" fill="${SK[i%4]}"/><path d="M16 20 Q32 0 48 20 Q42 10 32 10 Q22 10 16 20Z" fill="${i%2?'#2a1d16':'#cfd3d6'}"/><rect x="10" y="40" width="44" height="34" rx="16" fill="${SH[i%5]}"/><circle cx="26" cy="22" r="2" fill="#2a1d16"/><circle cx="38" cy="22" r="2" fill="#2a1d16"/><path d="M26 29 Q32 34 38 29" stroke="#2a1d16" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
+const NAMES=['Mr Lim','Mdm Devi','Aziz','Siti','Uncle Raj','Ah Hock'],OPTS=['b-kosong','b-egg','b-mura','b-tissue'];
+const g4={t:60,run:0,coin:0,rep:0,served:0,q:[],stock:{},iv:null,ni:0};
+sc4.innerHTML=`${topbar(7,'<span id="d4c">420</span>','Day · <span id="d4t">60</span>s','<span class="chip" style="height:30px" id="d4r">Rep 0</span>')}
+<div style="position:absolute;inset:76px 0 0 0;background:linear-gradient(#e9a85a,#c4301f 30%,#4b2330 60%,#2a1c22)"></div>
+<div class="ambient" style="left:0;right:0;top:76px;height:20px;z-index:3">${Array.from({length:14},(_,i)=>`<i class="twk" style="position:absolute;left:${i*27+6}px;top:${(i%2)*5}px;width:8px;height:8px;border-radius:50%;background:#fff3dc;box-shadow:0 0 8px 2px #fff3dcaa;animation-delay:${(i*.37)%2.4}s"></i>`).join('')}</div>
+<div id="d4q" style="position:absolute;left:0;right:0;top:130px;display:flex;justify-content:space-around;padding:0 6px;min-height:150px"></div>
+<div style="position:absolute;left:0;right:0;top:330px;height:230px;display:flex;align-items:flex-end;justify-content:center"><div style="position:relative;width:340px;height:210px"><div style="position:absolute;left:0;right:0;bottom:0;height:90px;background:linear-gradient(#aab3ba,#6c7680);border-radius:16px 16px 0 0;border-top:6px solid #e6ebef"></div><div style="position:absolute;left:84px;bottom:50px">${im('tawa2',120)}${steam(40,0)}</div><div style="position:absolute;left:206px;bottom:80px">${im('k-cheer',110)}</div></div></div>
+<div class="sheet" style="top:auto;bottom:114px;left:0;right:0;border-radius:20px 20px 0 0"><div class="fd" style="font-size:12px;opacity:.85;margin-bottom:6px">Tonight's haul. Tap the bread the customer asked for.</div><div class="tray">${OPTS.map(o=>`<button class="cell" data-o="${o}">${im(o)}<small id="s-${o}">×0</small></button>`).join('')}</div></div>
+<div id="d4ov" style="position:absolute;inset:0;z-index:85;background:#120c17e6;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;text-align:center;padding:30px"><h3 style="font-size:26px">Open for 60 seconds</h3><p style="font-size:14px;opacity:.85">Regulars queue. Tap the matching bread. Each serve pays coins, rep and a bond heart.</p><button class="btn" id="d4go" type="button" style="font-size:18px;padding:10px 22px">Open shutters</button></div>
+<button class="gopill" type="button" style="font-size:20px">Skip to night<small>Wet Market run</small></button>`;
+function cust(){const i=g4.ni++;return{o:OPTS[Math.floor(Math.random()*4)],n:NAMES[i%6],f:i,p:1}}
+function rq(){$('#d4q').innerHTML=g4.q.map((c,i)=>`<div class="cust" id="c${i}"><div class="ord">${im(c.o)}</div>${face4(c.f)}<div class="chip" style="font-size:11px">${c.n}</div><div class="bar" style="width:60px"><i style="width:${c.p*100}%"></i></div></div>`).join('')}
+function endDay(){clearInterval(g4.iv);g4.run=0;const o=$('#d4ov');o.hidden=false;o.innerHTML=`<h3 style="font-size:26px">Day done</h3><div class="note" style="background:#ffffff10;border-color:#ffffff2a;width:100%"><b>Served ${g4.served}</b>+${g4.coin} coins · Rep +${g4.rep}<br>Bond: Mr Lim <span class="hearts">♥</span> +1</div><p style="font-size:13px;opacity:.85">Goods sold come out of tonight's haul. Never required for power.</p><button class="btn" id="d4go" type="button" style="font-size:18px">Run again</button>`;$('#d4go').onclick=start}
+function start(){Object.assign(g4,{t:60,run:1,coin:0,rep:0,served:0,q:[cust(),cust(),cust()],stock:{'b-kosong':12,'b-egg':8,'b-mura':5,'b-tissue':6}});OPTS.forEach(o=>$('#s-'+o).textContent='×'+g4.stock[o]);$('#d4ov').hidden=true;$('#d4c').textContent=420;$('#d4r').textContent='Rep 0';rq();$('#d4t').textContent=60;clearInterval(g4.iv);g4.iv=setInterval(()=>{g4.t-=.25;$('#d4t').textContent=Math.ceil(g4.t);g4.q.forEach(c=>c.p=Math.max(0,c.p-.0075));rq();if(g4.t<=0)endDay()},250)}
+$('#d4go').onclick=start;
+Object.assign(g4.stock,{'b-kosong':12,'b-egg':8,'b-mura':5,'b-tissue':6});OPTS.forEach(o=>$('#s-'+o).textContent='×'+g4.stock[o]);
+sc4.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{if(!g4.run)return;const o=b.dataset.o,i=g4.q.findIndex(c=>c.o===o);if(i<0||g4.stock[o]<1){b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');return}g4.stock[o]--;$('#s-'+o).textContent='×'+g4.stock[o];g4.served++;g4.coin+=12;g4.rep++;$('#d4c').textContent=420+g4.coin;$('#d4r').textContent='Rep '+g4.rep;g4.q[i]=cust();rq();const c=$('#c'+i);if(c)c.classList.add('pop')});
+$('#d4b').innerHTML=`<div style="position:absolute;inset:0;background:linear-gradient(#ffb85a,#e0502f 22%,#5a2a52 55%,#17101c 85%)"></div>
+<div class="ambient" style="left:0;right:0;top:0;height:300px">${Array.from({length:28},(_,i)=>`<i class="twk" style="position:absolute;left:${(i*97)%360}px;top:${(i*53)%200}px;width:3px;height:3px;border-radius:50%;background:#fff;animation-delay:${(i*.3)%2.4}s"></i>`).join('')}</div>
+<div style="position:absolute;left:0;right:0;top:60px;text-align:center"><div class="fd" style="font-size:30px;font-weight:700;text-shadow:0 2px 8px #0008">Shutters down</div><div style="font-size:14px">Day 12 · Served 9 · +108 coins · Rep +9</div></div>
+<div style="position:absolute;left:30px;right:30px;top:150px;height:280px;display:grid;place-items:center">${im('tier3',260)}<div class="ambient" style="left:20px;right:20px;bottom:30px;height:30px;background:linear-gradient(#8a939b,#4b535a);border-radius:6px;opacity:.96"></div></div>
+<div style="position:absolute;left:16px;right:16px;top:450px;display:flex;flex-direction:column;gap:8px">
+<div class="note" style="background:#120c17cc;border-color:#ffffff2a;color:var(--cream);font-size:13px"><b>Bonds</b><span>Mr Lim <span class="hearts">♥♥♥♡♡</span> · Siti <span class="hearts">♥♥♡♡♡</span><br>Uncle Raj gifted you ${im('m-curry',18)} curry leaves</span></div>
+<div class="note" style="background:#120c17cc;border-color:var(--turm);color:var(--cream);font-size:13px"><b>Tonight: Wet Market</b>Your tiffin: Kosong, Telur. Meal: Sambal Crunch (+12% crit).</div></div>
+<button class="gopill" type="button">GO<small>Start the night run</small></button>`;
+
+/* ============ HUD ============ */
+const eg=[[60,150,60,120],[260,130,-70,160],[40,300,90,40],[300,330,-80,-30],[150,70,20,200]];
+$('#hs').innerHTML=`<div class="road"><div class="roadscroll" style="position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 60px,#ffffff0d 60px 64px)"></div></div>
+<div class="ent" style="left:60px;top:320px;cursor:default">${im('neon',50,'flick')}</div><div class="ent" style="left:318px;top:430px;cursor:default">${im('crates',80)}</div><div class="ent" style="left:70px;top:620px;cursor:default">${im('stools',60)}</div>
+${eg.map((e,i)=>`<div class="foe" style="left:${e[0]}px;top:${e[1]+80}px;--dx:${e[2]}px;--dy:${e[3]}px;animation-delay:${-i}s"></div>`).join('')}
+<div class="kroam" style="position:absolute;left:170px;top:560px"><div class="kan jroam"><div class="sh"></div><img src="${IMG}k-lean.webp" alt="Kannan"></div>${[[-60,-120],[70,-150],[20,-210]].map((d,i)=>`<div class="disc" style="left:-12px;top:-50px;--dx:${d[0]}px;--dy:${d[1]}px;animation-delay:${-i*.35}s">${im('b-kosong',24)}</div>`).join('')}</div>
+<div class="topbar"><div class="pill"><div class="lv"><span>7</span></div><div style="width:64px"><div class="bar" style="height:6px"><i style="width:72%;background:#e5482f"></i></div></div></div><div class="pill" style="margin-inline:auto;padding-inline:12px">Wet Market · 02:41</div><div class="pill"><span class="coin"></span>186 <b style="margin-left:4px;font-size:16px">II</b></div></div>
+<div style="position:absolute;left:12px;right:12px;top:76px;height:6px;border-radius:9px;background:#ffffff22;overflow:hidden;z-index:60"><i style="display:block;width:38%;height:100%;background:var(--turm)"></i></div>
+<div class="chip" style="position:absolute;right:12px;top:92px;z-index:60;background:#f2b632;color:var(--ink)">+12% crit · Sambal Crunch</div>
+<div class="jz"><div class="jk jroam"></div></div>
+<div style="position:absolute;right:16px;bottom:34px;display:flex;flex-direction:column;gap:10px;align-items:center;z-index:70"><div class="fd" style="font-size:11px;opacity:.85">Auto-throw on</div><div style="display:flex;gap:6px">${['d-mint','d-dhal','d-sambal'].map((d,i)=>`<div style="width:46px;height:46px;border-radius:50%;background:#ffffff14;border:3px solid ${i?'#ffffff33':'#f2b632'};display:grid;place-items:center;position:relative">${im(d,28)}${i===1?'<div style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(#0009 0 40%,transparent 0)"></div>':''}</div>`).join('')}</div><div class="btn" style="padding:10px 18px;border-radius:99px;font-size:16px">Dodge</div></div>`;
+})();
+</script>

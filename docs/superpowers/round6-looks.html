@@ -1,0 +1,351 @@
+<title>Prata Raja Round 6 Looks</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
+<style>
+/* Layout: page = intro, then two direction rows; each row = one-line feel + three 390x844 phone frames that wrap/stack and scale down to fit. */
+:root{
+  --bg:#f6efe4; --fg:#3a2414; --mut:#7a5d44; --card:#fffaf0; --line:#e2d3bd; --accent:#c96a12;
+  /* game palette (frames look the same in both page themes) */
+  --cream:#fdf1dc; --ink:#4a2512; --edge:#b8793f; --edge-d:#8d5527; --orange:#f28c28; --orange-d:#c96a12; --night:#3a2113; --red:#d2412f; --leaf:#4f9a5a; --gold:#f5c04a;
+  --head:'Fredoka',system-ui,sans-serif; --body:'Nunito',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d140d;--fg:#f4e6d2;--mut:#b99a7c;--card:#2a1d13;--line:#4a3523;--accent:#f2a24d;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1d140d;--fg:#f4e6d2;--mut:#b99a7c;--card:#2a1d13;--line:#4a3523;--accent:#f2a24d;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:600 16px/1.5 var(--body);padding-inline:16px;padding-block:32px 64px}
+main{max-width:1320px;margin:0 auto}
+h1,h2,h3{font-family:var(--head);margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:clamp(30px,5vw,46px);font-weight:700}
+h2{font-size:28px;font-weight:700}
+.lede{max-width:62ch;color:var(--mut);margin:12px 0 0}
+.dir{margin-top:56px;padding-top:28px;border-top:2px solid var(--line)}
+.feel{max-width:70ch;margin:8px 0 0;color:var(--mut)}
+.tag{display:inline-block;font:700 14px var(--head);background:var(--accent);color:#fff;border-radius:99px;padding:2px 12px;margin-right:10px;vertical-align:middle}
+.row{display:flex;flex-wrap:wrap;gap:24px;margin-top:24px}
+.cell{width:min(390px,100%);min-width:0}
+.cap{font:700 15px var(--head);margin:0 0 10px;color:var(--fg)}
+.cap small{font:600 13px var(--body);color:var(--mut);display:block}
+.fit{width:100%;position:relative}
+.ph{position:absolute;left:0;top:0;width:390px;height:844px;transform-origin:0 0;border-radius:38px;overflow:hidden;background:var(--night);box-shadow:0 0 0 6px #1a1008,0 14px 34px rgba(0,0,0,.35);font-family:var(--body);color:var(--ink)}
+.ph *{box-sizing:border-box}
+.art{position:absolute;left:0;top:0;width:390px;height:693px;object-fit:cover}
+.floor{position:absolute;left:0;right:0;top:640px;bottom:0;background:linear-gradient(#3a2113 0,#2a170c 100%)}
+.abs{position:absolute}
+.hf{font-family:var(--head)}
+/* chunky lipped bits */
+.pill{background:var(--cream);border:3px solid var(--edge);box-shadow:0 3px 0 var(--edge-d);border-radius:99px;font:700 15px var(--head);color:var(--ink);display:flex;align-items:center;gap:6px;padding:4px 12px}
+.btn{border:3px solid var(--orange-d);background:var(--orange);box-shadow:0 6px 0 var(--orange-d);color:var(--ink);font:700 28px var(--head);border-radius:99px;text-align:center;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--orange-d)}
+.coin{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff1a8,#f5c04a 55%,#c98a14);border:2px solid #a8730f;flex:none}
+svg.i{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+/* ambient life */
+.steam{position:absolute;width:14px;height:44px;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.55),rgba(255,255,255,0) 70%);filter:blur(3px);opacity:0;animation:steam 3.4s ease-in infinite}
+@keyframes steam{0%{transform:translate(0,10px) scale(.6);opacity:0}25%{opacity:.7}100%{transform:translate(8px,-46px) scale(1.5);opacity:0}}
+.lamp{position:absolute;width:120px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(255,214,130,.65),rgba(255,214,130,0) 70%);mix-blend-mode:screen;animation:flick 3.1s ease-in-out infinite}
+@keyframes flick{0%,100%{opacity:.75}18%{opacity:.5}30%{opacity:.85}52%{opacity:.6}70%{opacity:.9}}
+.glint{position:absolute;width:20px;height:20px;background:radial-gradient(circle,#fff,rgba(255,255,255,0) 65%);animation:glint 4.2s ease-in-out infinite;opacity:0}
+.glint::before,.glint::after{content:"";position:absolute;left:50%;top:50%;width:2px;height:22px;background:#fff;transform:translate(-50%,-50%);border-radius:2px}
+.glint::after{transform:translate(-50%,-50%) rotate(90deg)}
+@keyframes glint{0%,70%,100%{opacity:0;transform:scale(.4) rotate(0)}80%{opacity:1;transform:scale(1) rotate(25deg)}90%{opacity:0;transform:scale(.6) rotate(45deg)}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.07);opacity:.45}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes ring{to{stroke-dashoffset:0}}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes shine{0%{left:-40%}60%,100%{left:130%}}
+@media (prefers-reduced-motion:reduce){.steam,.lamp,.glint,.hs::before,.bob,.sheet{animation:none!important}}
+
+/* ===== A: Clean dock ===== */
+.a-top{left:12px;right:12px;top:14px;display:flex;align-items:center;gap:8px}
+.a-lv{display:flex;align-items:center;gap:8px;padding:3px 14px 3px 3px}
+.ringw{position:relative;width:40px;height:40px;flex:none}
+.ringw svg{width:40px;height:40px;transform:rotate(-90deg)}
+.ringw b{position:absolute;inset:0;display:grid;place-items:center;font:700 17px var(--head)}
+.a-lv small{font:700 12px var(--body);color:var(--edge-d);display:block;line-height:1.1}
+.a-lv span{font:700 15px var(--head);line-height:1.1;display:block}
+.a-start{left:24px;right:24px;bottom:112px;height:64px;display:flex;align-items:center;justify-content:center;position:absolute;overflow:hidden}
+.a-start::after{content:"";position:absolute;top:0;bottom:0;width:30%;left:-40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);animation:shine 4.5s ease-in-out infinite}
+.dock{position:absolute;left:12px;right:12px;bottom:18px;height:76px;background:var(--cream);border:3px solid var(--edge);box-shadow:0 5px 0 var(--edge-d);border-radius:28px;display:flex;justify-content:space-around;align-items:center;padding:0 4px}
+.dk{display:flex;flex-direction:column;align-items:center;gap:1px;font:700 12px var(--head);color:var(--edge-d);width:64px;padding:6px 0;border-radius:18px;position:relative}
+.dk.on{background:#f8dcae;color:var(--ink)}
+.dk .dot{position:absolute;right:12px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid var(--cream)}
+.a-hint{left:0;right:0;bottom:190px;text-align:center}
+.a-hint span{display:inline-block;background:rgba(58,33,19,.72);color:#fde9c4;font:700 13px var(--body);padding:4px 12px;border-radius:99px}
+.dim{position:absolute;inset:0;background:rgba(40,20,8,.5)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--cream);border-radius:30px 30px 0 0;border-top:4px solid var(--edge);animation:up .5s cubic-bezier(.2,.9,.3,1) both}
+.grab{width:44px;height:5px;border-radius:9px;background:var(--edge);opacity:.5;margin:10px auto 6px}
+.sh-h{display:flex;align-items:center;gap:10px;padding:6px 18px 10px}
+.sh-h h3{font-size:26px;flex:1}
+.x{width:40px;height:40px;border-radius:14px;border:3px solid var(--edge);box-shadow:0 3px 0 var(--edge-d);display:grid;place-items:center;background:var(--cream);font:700 20px var(--head)}
+.seg{display:flex;gap:6px;margin:0 18px 12px;background:#f3dfbb;border-radius:99px;padding:4px}
+.seg b{flex:1;text-align:center;padding:6px 0;border-radius:99px;font:700 15px var(--head);color:var(--edge-d)}
+.seg b.on{background:var(--cream);color:var(--ink);box-shadow:0 2px 0 var(--edge)}
+.slots{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:0 18px}
+.slot{aspect-ratio:1;border-radius:16px;border:3px solid var(--edge);background:#fbe6c2;display:grid;place-items:center;position:relative;font:700 11px var(--head);color:var(--edge-d);text-align:center;line-height:1.1}
+.slot.r{border-color:#4a7fd0;background:#e3ecfb}.slot.e{border-color:#a05bd0;background:#efe3fa}.slot.f{border-color:#8aa05a;background:#eef2dc}
+.slot i{font:700 10px var(--body);position:absolute;bottom:2px;right:5px;font-style:normal;color:var(--ink)}
+.item{margin:12px 18px 0;border:3px solid #a05bd0;border-radius:20px;background:#fff7e6;padding:12px 14px;display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:center}
+.item .pic{width:56px;height:56px;border-radius:14px;background:#efe3fa;border:3px solid #a05bd0;display:grid;place-items:center;color:#7b3fa8}
+.item h4{margin:0;font:700 18px var(--head)}
+.stat{display:flex;justify-content:space-between;font:700 13.5px var(--body);color:var(--ink)}
+.stat em{font-style:normal;color:#2f7d3e}
+.pips{display:flex;gap:4px;margin-top:4px}.pips u{width:16px;height:7px;border-radius:5px;background:#e3cba4;text-decoration:none}.pips u.o{background:var(--orange)}
+.forge{margin:12px 18px 22px;display:flex;gap:10px;align-items:center}
+.forge .btn{font-size:20px;padding:8px 20px;box-shadow:0 4px 0 var(--orange-d);flex:1}
+.mats{display:flex;gap:6px;font:700 13px var(--body)}
+.mats span{background:#fbe6c2;border:2px solid var(--edge);border-radius:99px;padding:1px 8px}
+
+/* run HUD (shared bits) */
+.hud-bg{position:absolute;inset:0;width:390px;height:844px;object-fit:cover;object-position:center top}
+.scrim{position:absolute;left:0;right:0;top:0;height:170px;background:linear-gradient(rgba(30,14,5,.55),rgba(30,14,5,0))}
+.bar{height:12px;border-radius:9px;background:rgba(58,33,19,.55);overflow:hidden;position:relative}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:9px;background:linear-gradient(#ffb04a,#f28c28)}
+.mob{position:absolute;width:38px;height:30px;border-radius:50% 50% 45% 45%;background:radial-gradient(circle at 50% 35%,#b5382a,#6d1d14);box-shadow:0 8px 6px -4px rgba(0,0,0,.35)}
+.mob::before,.mob::after{content:"";position:absolute;top:8px;width:8px;height:8px;background:#ffe9a8;border-radius:50%}
+.mob::before{left:8px}.mob::after{right:8px}
+.num{position:absolute;font:700 20px var(--head);color:#fff4cf;text-shadow:0 2px 0 #7a3b10,0 0 6px #7a3b10;animation:bob 1.6s ease-in-out infinite}
+.hp{left:12px;bottom:12px;width:190px;display:flex;align-items:center;gap:8px;position:absolute}
+.hp .bar{flex:1;height:14px;background:rgba(58,33,19,.7)}.hp .bar i{background:linear-gradient(#f46a55,#d2412f)}
+.heart{width:30px;height:30px;color:var(--red);fill:var(--red);stroke:#7a1d12;stroke-width:1.5}
+.pause{width:44px;height:44px;border-radius:50%;background:var(--cream);border:3px solid var(--edge);box-shadow:0 3px 0 var(--edge-d);display:grid;place-items:center;color:var(--ink)}
+.pause::before{content:"";width:12px;height:16px;border-left:4px solid currentColor;border-right:4px solid currentColor}
+
+/* ===== B: Hotspots ===== */
+.hs{position:absolute;border-radius:18px;cursor:pointer;-webkit-tap-highlight-color:transparent;background:none;border:0;padding:0}
+.hs::before{content:"";position:absolute;inset:-3px;border-radius:20px;border:3px solid rgba(255,236,190,.9);box-shadow:0 0 14px 3px rgba(255,205,110,.65),inset 0 0 12px rgba(255,214,130,.45);animation:pulse 2.6s ease-in-out infinite;opacity:.75}
+.hs.quiet::before{opacity:0;animation:none}
+.hs:hover::before,.hs.on::before,.hs:focus-visible::before{opacity:1;animation:none;background:rgba(255,214,130,.18)}
+.hs:focus-visible{outline:none}
+.lab{position:absolute;left:50%;top:-34px;transform:translate(-50%,6px);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .18s,transform .18s;background:var(--cream);border:3px solid var(--edge);box-shadow:0 3px 0 var(--edge-d);border-radius:99px;padding:2px 12px;font:700 15px var(--head);color:var(--ink);z-index:3}
+.lab::after{content:"";position:absolute;left:50%;bottom:-9px;width:12px;height:12px;background:var(--cream);border-right:3px solid var(--edge);border-bottom:3px solid var(--edge);transform:translateX(-50%) rotate(45deg)}
+.hs:hover .lab,.hs.on .lab,.hs:focus-visible .lab{opacity:1;transform:translate(-50%,0)}
+.lab.lo{top:auto;bottom:-34px}.lab.lo::after{bottom:auto;top:-9px;transform:translateX(-50%) rotate(225deg)}
+.bdg{position:absolute;right:-6px;top:-8px;min-width:22px;height:22px;border-radius:99px;background:var(--red);border:2px solid var(--cream);color:#fff;font:700 12px/18px var(--head);text-align:center;padding:0 5px;z-index:2}
+.bdg.g{background:var(--leaf)}
+.b-top{left:12px;right:12px;top:14px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.b-bar{position:absolute;left:12px;right:12px;bottom:18px;display:flex;align-items:center;gap:10px}
+.b-bar .btn{flex:1;height:64px;display:flex;align-items:center;justify-content:center;gap:8px}
+.rnd{width:58px;height:58px;border-radius:50%;background:var(--cream);border:3px solid var(--edge);box-shadow:0 4px 0 var(--edge-d);display:grid;place-items:center;color:var(--edge-d);position:relative;flex:none}
+.tray{position:absolute;left:12px;right:12px;bottom:96px;background:rgba(58,33,19,.86);border:2px solid #8d5527;border-radius:20px;padding:10px 14px;color:#fde9c4;font:700 13.5px/1.35 var(--body);display:flex;gap:10px;align-items:center}
+.tray b{font:700 16px var(--head);color:#ffd88a}
+.board{position:absolute;left:10px;right:10px;bottom:10px;top:238px;background:#f6e1ba;border:4px solid #7a4a22;border-radius:26px;box-shadow:0 0 0 3px #b8793f inset,0 -10px 30px rgba(0,0,0,.35);padding:22px 16px 14px;animation:up .5s cubic-bezier(.2,.9,.3,1) both;overflow:hidden}
+.board::before{content:"";position:absolute;left:50%;top:-14px;width:26px;height:26px;background:#f6e1ba;border-left:4px solid #7a4a22;border-top:4px solid #7a4a22;transform:translateX(-50%) rotate(45deg);display:none}
+.tree{position:relative;height:350px;margin-top:6px}
+.tree svg{position:absolute;inset:0;width:100%;height:100%}
+.nd{position:absolute;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;border:3px solid var(--edge);background:#fff3da;display:grid;place-items:center;font:700 11px/1 var(--head);text-align:center;color:var(--edge-d)}
+.nd.on{background:var(--orange);border-color:var(--orange-d);color:var(--ink);box-shadow:0 3px 0 var(--orange-d)}
+.nd.buy{border-color:var(--orange-d);animation:pulse 2s ease-in-out infinite;color:var(--ink)}
+.nd.key{width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:18px;transform:rotate(45deg)}
+.nd.key span{transform:rotate(-45deg)}
+.br{position:absolute;bottom:0;font:700 14px var(--head);text-align:center;width:33.3%}
+.sp{display:flex;align-items:center;gap:8px;margin:2px 0 0}
+.sp .pill{font-size:14px;padding:2px 10px}
+
+/* page-level figure notes */
+.notes{margin:20px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 28px;max-width:1100px}
+.notes p{margin:0;font-size:15px;color:var(--mut)}
+.notes b{color:var(--fg);font-family:var(--head)}
+.cmp{margin-top:56px;padding:20px;background:var(--card);border:2px solid var(--line);border-radius:22px;max-width:900px}
+.cmp h2{font-size:24px}
+.cmp ul{margin:12px 0 0;padding-left:20px}.cmp li{margin:4px 0}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-stall" viewBox="0 0 24 24"><path d="M3 10l2-6h14l2 6M3 10h18M5 10v10h14V10M9 20v-5h6v5"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><path d="M4 20l9-9M14 4l6 6-3 3-6-6zM11 7L7 3M17 13l4 4"/></symbol>
+  <symbol id="i-spec" viewBox="0 0 24 24"><path d="M12 21v-6M12 15l-6-5M12 15l6-5M12 15V6"/><circle cx="12" cy="4" r="2"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M12 21s-7-6.5-7-11a7 7 0 0114 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></symbol>
+  <symbol id="i-cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-8-5.5-8-11a4.5 4.5 0 018-2.5A4.5 4.5 0 0120 10c0 5.5-8 11-8 11z"/></symbol>
+  <symbol id="i-towel" viewBox="0 0 24 24"><path d="M5 4h14v6l-3 3 3 3v4H5v-4l3-3-3-3z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z" fill="currentColor"/></symbol>
+</svg>
+
+<main>
+  <h1>Round 6 looks: the stall hub</h1>
+  <p class="lede">Two directions for the home screen, the run HUD and one sheet each. Same painted stall, same Fredoka and Nunito, same chunky lipped buttons. Tap or hover the glowing spots in B. Frames are 390 by 844 phones; copy and numbers are example data from a mid-game save (Kannan Lv 12).</p>
+
+  <section class="dir" id="a">
+    <h2><span class="tag">A</span>Clean dock</h2>
+    <p class="feel">Art first: the stall is the screen, with one thin strip on top, one big Start and a five-icon dock. Everything else lives behind a sheet.</p>
+    <div class="row">
+      <div class="cell"><p class="cap">A1 Stall hub<small>Tawa steam, lamp flicker, jar glint. Start has a slow shine.</small></p>
+        <div class="fit"><div class="ph">
+          <img class="art" src="img/hub.webp" alt="Painted stall: Kannan behind the counter with tawa, dips and tip jar">
+          <div class="floor"></div>
+          <div class="lamp" style="left:150px;top:-26px"></div><div class="lamp" style="left:-20px;top:70px;animation-delay:-1.2s;width:90px"></div>
+          <div class="steam" style="left:290px;top:322px"></div><div class="steam" style="left:318px;top:330px;animation-delay:-1.4s"></div><div class="steam" style="left:340px;top:318px;animation-delay:-2.4s"></div>
+          <div class="glint" style="left:26px;top:352px"></div><div class="glint" style="left:44px;top:366px;animation-delay:-2s;transform:scale(.7)"></div>
+          <div class="abs a-top">
+            <div class="pill a-lv"><div class="ringw"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#fbe6c2" stroke="#e3cba4" stroke-width="5"/><circle cx="20" cy="20" r="16" fill="none" stroke="#f28c28" stroke-width="5" stroke-linecap="round" stroke-dasharray="100.5" stroke-dashoffset="90"/></svg><b>12</b></div><div><span>Kannan</span><small>100 / 1,000 XP</small></div></div>
+            <div style="flex:1"></div>
+            <div class="pill"><span class="coin"></span>2,480</div>
+            <div class="pause" style="width:42px;height:42px"><svg class="i" style="width:22px;height:22px"><use href="#i-cog"/></svg></div>
+          </div>
+          <div class="abs a-hint"><span>Next: Chef’s Special · beat the Cockroach King</span></div>
+          <div class="btn a-start">Start · Kopitiam Street</div>
+          <div class="dock">
+            <div class="dk on"><svg class="i"><use href="#i-stall"/></svg>Stall</div>
+            <div class="dk"><svg class="i"><use href="#i-gear"/></svg>Gear<span class="dot"></span></div>
+            <div class="dk"><svg class="i"><use href="#i-spec"/></svg>Spec<span class="dot" style="background:var(--orange)"></span></div>
+            <div class="dk"><svg class="i"><use href="#i-map"/></svg>Map</div>
+            <div class="dk"><svg class="i"><use href="#i-more"/></svg>More</div>
+          </div>
+        </div></div></div>
+
+      <div class="cell"><p class="cap">A2 Run HUD<small>One top row. XP is a hairline on the screen edge. Coins and DPS sit together.</small></p>
+        <div class="fit"><div class="ph">
+          <img class="hud-bg" src="img/run-bg.webp" alt="Kopitiam Street scrolling past the stall">
+          <div class="scrim"></div>
+          <div class="abs" style="left:0;right:0;top:0;height:6px;background:rgba(58,33,19,.6)"><i style="position:absolute;left:0;top:0;bottom:0;width:46%;background:linear-gradient(90deg,#ffb04a,#f28c28)"></i></div>
+          <div class="abs" style="left:12px;right:12px;top:16px;display:flex;gap:8px;align-items:center">
+            <div class="pill" style="padding:3px 12px 3px 4px"><span class="hf" style="background:var(--orange);border-radius:50%;width:32px;height:32px;display:grid;place-items:center;border:2px solid var(--orange-d)">5</span></div>
+            <div style="flex:1;min-width:0">
+              <div class="hf" style="display:flex;justify-content:space-between;color:#fff4d9;text-shadow:0 2px 0 rgba(58,33,19,.8);font-size:14px;margin-bottom:3px"><span>Kopitiam Street</span><span>408 / 1,200 m</span></div>
+              <div class="bar"><i style="width:34%"></i><span class="abs" style="right:-2px;top:-3px;width:18px;height:18px;border-radius:50%;background:var(--red);border:3px solid var(--cream)"></span></div>
+            </div>
+            <div class="pause"></div>
+          </div>
+          <div class="abs" style="left:12px;top:70px;display:flex;gap:6px"><div class="pill" style="font-size:14px;padding:2px 10px"><span class="coin" style="width:15px;height:15px"></span>3</div><div class="pill" style="font-size:14px;padding:2px 10px">2.7 DPS</div></div>
+          <div class="abs" style="right:12px;top:70px"><div class="pill" style="font-size:14px;padding:2px 12px;background:var(--orange);border-color:var(--orange-d);box-shadow:0 3px 0 var(--orange-d);animation:bob 1.4s ease-in-out infinite">Pick ready ★2</div></div>
+          <div class="mob" style="left:178px;top:178px;transform:scale(.55)"></div><div class="mob" style="left:130px;top:290px;transform:scale(.8)"></div><div class="mob" style="left:236px;top:330px;transform:scale(.9)"></div><div class="mob" style="left:200px;top:420px;transform:scale(1.1)"></div>
+          <div class="num" style="left:254px;top:305px">10</div>
+          <div class="hp"><svg class="heart"><use href="#i-heart"/></svg><div class="bar"><i style="width:82%"></i></div><b class="hf" style="color:#fff4d9;text-shadow:0 2px 0 #3a2113">105</b></div>
+        </div></div></div>
+
+      <div class="cell"><p class="cap">A3 Gear sheet<small>Dock tab “Gear” opens a rounded sheet. Forge is a tab inside it, not a separate station.</small></p>
+        <div class="fit"><div class="ph">
+          <img class="art" src="img/hub.webp" alt="">
+          <div class="floor"></div>
+          <div class="dim"></div>
+          <div class="abs a-top" style="opacity:.85"><div class="pill a-lv"><div class="ringw"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#fbe6c2" stroke="#e3cba4" stroke-width="5"/><circle cx="20" cy="20" r="16" fill="none" stroke="#f28c28" stroke-width="5" stroke-linecap="round" stroke-dasharray="100.5" stroke-dashoffset="90"/></svg><b>12</b></div><div><span>Kannan</span><small>100 / 1,000 XP</small></div></div><div style="flex:1"></div><div class="pill"><span class="coin"></span>2,480</div></div>
+          <div class="sheet" style="top:150px">
+            <div class="grab"></div>
+            <div class="sh-h"><h3>Gear</h3><div class="pill" style="font-size:14px"><span class="coin" style="width:15px;height:15px"></span>2,480</div><div class="x">×</div></div>
+            <div class="seg"><b class="on">Wearing</b><b>Forge</b><b>Rack · 7</b></div>
+            <div class="slots">
+              <div class="slot e"><div><svg class="i" style="width:22px;height:22px"><use href="#i-towel"/></svg><br>Towel</div><i>+6</i></div>
+              <div class="slot r">Head-<br>band<i>+3</i></div>
+              <div class="slot f">Apron<i>+1</i></div>
+              <div class="slot">Gloves<i>–</i></div>
+              <div class="slot">Slip-<br>pers<i>–</i></div>
+            </div>
+            <div class="item"><div class="pic"><svg class="i" style="width:32px;height:32px"><use href="#i-towel"/></svg></div>
+              <div><h4>Seasoned Checked Towel</h4>
+                <div class="stat"><span>Crit chance</span><em>+8%</em></div><div class="stat"><span>Soak splash</span><em>+12%</em></div><div class="stat"><span>Max HP</span><em>+20</em></div>
+                <div class="pips"><u class="o"></u><u class="o"></u><u class="o"></u><u class="o"></u><u class="o"></u><u class="o"></u><u></u><u></u><u></u><u></u></div></div></div>
+            <div class="forge"><div class="mats"><span>Masala 14</span><span>Ghee 6</span></div><div class="btn">Enhance +7 · 320</div></div>
+          </div>
+        </div></div></div>
+    </div>
+    <div class="notes">
+      <p><b>What goes where.</b> Dock: Stall, Gear (rack + forge), Spec, Map. More: Rotis and dips, Recipes, Training, Calendar and Chef’s Special, Tip jar, Tell Kannan, Test Kitchen, Settings.</p>
+      <p><b>What it removes.</b> Seven floating pills, the spec-points banner, the three bottom buttons. The art gets back about 40 percent of the screen.</p>
+      <p><b>Dynamic.</b> Steam, lamp flicker, coin glint, XP ring that fills after a run, red dots on tabs with something ready.</p>
+    </div>
+  </section>
+
+  <section class="dir" id="b">
+    <h2><span class="tag">B</span>Hotspots on the stall</h2>
+    <p class="feel">No menus: the tawa, bowls, rack, window and Kannan himself are the buttons, and a slim bar holds Start. Playful and in-world; discoverable by glow.</p>
+    <div class="row">
+      <div class="cell"><p class="cap">B1 Stall hub<small>Tap or hover a glow for its label. Rack is selected here. Tap Kannan for Spec.</small></p>
+        <div class="fit"><div class="ph" id="bhub">
+          <img class="art" src="img/hub.webp" alt="Painted stall with tappable objects">
+          <div class="floor"></div>
+          <div class="lamp" style="left:150px;top:-26px"></div>
+          <div class="steam" style="left:290px;top:322px"></div><div class="steam" style="left:320px;top:330px;animation-delay:-1.6s"></div>
+          <div class="glint" style="left:26px;top:352px"></div>
+          <div class="abs b-top">
+            <div class="pill" style="padding:3px 12px 3px 3px;gap:6px"><span class="hf" style="background:var(--orange);border:2px solid var(--orange-d);border-radius:50%;width:32px;height:32px;display:grid;place-items:center">12</span>Kannan</div>
+            <div class="pill"><span class="coin"></span>2,480</div>
+          </div>
+          <!-- hotspots: x y w h in frame px -->
+          <button class="hs" style="left:268px;top:312px;width:122px;height:90px" aria-label="Rotis"><span class="lab lo">Rotis &amp; dips</span><span class="bdg g">2</span></button>
+          <button class="hs" style="left:68px;top:368px;width:92px;height:46px" aria-label="Dips"><span class="lab lo">Dips</span></button>
+          <button class="hs on" style="left:2px;top:224px;width:62px;height:104px" aria-label="Gear"><span class="lab" style="left:150%">Gear &amp; Forge</span><span class="bdg">!</span></button>
+          <button class="hs" style="left:92px;top:182px;width:78px;height:150px" aria-label="Spec tree"><span class="lab">Spec tree</span><span class="bdg" style="background:var(--orange)">11</span></button>
+          <button class="hs" style="left:238px;top:170px;width:108px;height:96px" aria-label="Map"><span class="lab">Map of places</span></button>
+          <button class="hs" style="left:100px;top:60px;width:182px;height:78px" aria-label="Chef’s Special"><span class="lab lo">Chef’s Special</span></button>
+          <button class="hs" style="left:10px;top:118px;width:50px;height:78px" aria-label="Calendar"><span class="lab lo">Calendar</span><span class="bdg">!</span></button>
+          <button class="hs" style="left:6px;top:332px;width:52px;height:60px" aria-label="Tip jar"><span class="lab lo" style="left:70%">Tip jar</span></button>
+          <button class="hs" style="left:322px;top:106px;width:64px;height:82px" aria-label="Training"><span class="lab lo" style="left:30%">Training</span></button>
+          <button class="hs" style="left:316px;top:462px;width:74px;height:104px" aria-label="Chests"><span class="lab" style="left:35%">Chests</span><span class="bdg g">1</span></button>
+          <div class="tray"><div style="flex:1;min-width:0"><b>Gear &amp; Forge</b><br>Towel ready to enhance. 7 items on the rack.</div><div class="pill" style="font-size:14px;padding:2px 14px">Open</div></div>
+          <div class="b-bar">
+            <div class="rnd"><svg class="i"><use href="#i-cog"/></svg></div>
+            <div class="btn">Start</div>
+            <div class="rnd" title="Tell Kannan"><svg class="i"><use href="#i-more"/></svg></div>
+          </div>
+        </div></div></div>
+
+      <div class="cell"><p class="cap">B2 Run HUD<small>An order chit for the numbers, a roti that fills for XP, a bell for “pick ready”.</small></p>
+        <div class="fit"><div class="ph">
+          <img class="hud-bg" src="img/run-bg.webp" alt="Kopitiam Street scrolling past the stall">
+          <div class="scrim"></div>
+          <div class="abs" style="left:12px;top:14px;width:178px;background:#fffaf0;border:3px solid var(--edge);border-radius:6px 6px 14px 14px;box-shadow:0 4px 0 var(--edge-d);padding:6px 12px 8px;transform:rotate(-1.5deg)">
+            <div class="hf" style="font-size:13px;color:var(--edge-d);border-bottom:2px dashed var(--edge);padding-bottom:3px;margin-bottom:4px">Order 408 m · Kopitiam St</div>
+            <div class="stat"><span>Coins</span><b class="hf">3</b></div><div class="stat"><span>Damage</span><b class="hf">2.7 / s</b></div>
+            <div class="bar" style="margin-top:6px;height:9px;background:#e3cba4"><i style="width:34%"></i></div>
+          </div>
+          <div class="abs" style="right:12px;top:14px;display:flex;flex-direction:column;align-items:center;gap:8px">
+            <div class="pause" style="width:44px;height:44px"></div>
+            <div class="abs" style="position:relative;width:62px;height:62px">
+              <svg viewBox="0 0 62 62" width="62" height="62"><circle cx="31" cy="31" r="27" fill="#f3c982" stroke="#b8793f" stroke-width="3"/><circle cx="31" cy="31" r="18" fill="none" stroke="#e6a64d" stroke-width="3"/><circle cx="31" cy="31" r="27" fill="none" stroke="#f28c28" stroke-width="7" stroke-dasharray="170" stroke-dashoffset="85" transform="rotate(-90 31 31)" stroke-linecap="round"/></svg>
+              <b class="hf abs" style="inset:0;display:grid;place-items:center;font-size:20px;text-shadow:0 1px 0 #fff3">5</b>
+            </div>
+            <div class="pill" style="font-size:13px;padding:2px 10px;background:var(--orange);border-color:var(--orange-d);box-shadow:0 3px 0 var(--orange-d);animation:bob 1.4s ease-in-out infinite">★2 ready</div>
+          </div>
+          <div class="mob" style="left:178px;top:178px;transform:scale(.55)"></div><div class="mob" style="left:130px;top:290px;transform:scale(.8)"></div><div class="mob" style="left:236px;top:330px;transform:scale(.9)"></div><div class="mob" style="left:200px;top:420px;transform:scale(1.1)"></div>
+          <div class="num" style="left:254px;top:305px">10</div>
+          <div class="hp"><svg class="heart"><use href="#i-heart"/></svg><div class="bar"><i style="width:82%"></i></div><b class="hf" style="color:#fff4d9;text-shadow:0 2px 0 #3a2113">105</b></div>
+        </div></div></div>
+
+      <div class="cell"><p class="cap">B3 Spec tree<small>Tap Kannan and a painted board slides up from the counter. Three branches: Crisp, Soak, Heat.</small></p>
+        <div class="fit"><div class="ph">
+          <img class="art" src="img/hub.webp" alt="">
+          <div class="floor"></div>
+          <div class="abs" style="left:92px;top:182px;width:78px;height:150px;border-radius:18px;border:3px solid rgba(255,236,190,.95);box-shadow:0 0 16px 4px rgba(255,205,110,.7)"></div>
+          <div class="abs b-top"><div class="pill" style="padding:3px 12px 3px 3px;gap:6px"><span class="hf" style="background:var(--orange);border:2px solid var(--orange-d);border-radius:50%;width:32px;height:32px;display:grid;place-items:center">12</span>Kannan</div><div class="pill"><span class="coin"></span>2,480</div></div>
+          <div class="board">
+            <div class="sh-h" style="padding:0 0 8px"><h3>Spec tree</h3><div class="pill" style="font-size:14px;background:var(--orange);border-color:var(--orange-d);box-shadow:0 3px 0 var(--orange-d)">★ 11 points</div><div class="x">×</div></div>
+            <div class="tree">
+              <svg viewBox="0 0 340 350" preserveAspectRatio="none" fill="none" stroke="#b8793f" stroke-width="5" stroke-linecap="round">
+                <path d="M170 320V250M170 250L60 190M170 250V190M170 250L280 190M60 190V120M170 190V120M280 190V120M60 120V50M280 120V50" stroke="#e3cba4"/>
+                <path d="M170 320V250M170 250L60 190M60 190V120" stroke="#f28c28"/>
+                <path d="M170 250V190" stroke="#f28c28"/>
+              </svg>
+              <div class="nd on" style="left:50%;top:91%">Kannan</div>
+              <div class="nd on" style="left:17.6%;top:54%">Crit +4</div><div class="nd on" style="left:50%;top:54%">Soak +6</div><div class="nd buy" style="left:82.3%;top:54%">Heat +5</div>
+              <div class="nd on" style="left:17.6%;top:34%">Flaky</div><div class="nd buy" style="left:50%;top:34%">Dip slot</div><div class="nd" style="left:82.3%;top:34%">Chilli</div>
+              <div class="nd key" style="left:17.6%;top:14%"><span>Golden crisp</span></div><div class="nd key" style="left:82.3%;top:14%"><span>Slow burn</span></div>
+              <div class="br" style="left:0;top:100%;transform:translateY(-4px)"></div>
+            </div>
+            <div class="hf" style="display:flex;justify-content:space-around;font-size:15px;color:var(--edge-d);margin-top:-6px"><span>Crisp</span><span>Soak</span><span>Heat</span></div>
+            <div style="display:flex;gap:10px;margin-top:12px;align-items:center"><div style="flex:1;font:700 13.5px/1.3 var(--body)"><b class="hf">Dip slot</b> Socket a third dip in your roti. 1 point.</div><div class="btn" style="font-size:20px;padding:8px 22px;box-shadow:0 4px 0 var(--orange-d)">Spend ★1</div></div>
+          </div>
+        </div></div></div>
+    </div>
+    <div class="notes">
+      <p><b>What goes where.</b> Tawa: rotis and dips. Bowls: dip collection. Rack: gear and forge. Kannan: spec tree. Window: map of places. Menu board: Chef’s Special. Plus calendar, tip jar, training board, chest.</p>
+      <p><b>What it removes.</b> Every text pill. Labels show only on tap or hover; badges stay for anything ready. Quiet glow pulses so new players find the spots.</p>
+      <p><b>Dynamic.</b> Glow rings, steam, lamp, jar glint, a tray that explains the selected spot, an order chit in the run.</p>
+    </div>
+  </section>
+
+  <section class="cmp">
+    <h2>Quick comparison</h2>
+    <ul>
+      <li><b>A</b> reads cleaner and is cheaper to build (one dock plus the sheets we already have). Weak spot: it is a normal app menu, so the art is only a backdrop.</li>
+      <li><b>B</b> is more charming and in-theme, and fits an ARPG home base. Weak spot: discoverability, tap accuracy on small objects, and each new station needs art space.</li>
+      <li>They mix: B’s glow-and-label hotspots on A’s dock, if the owner likes both.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+// Scale each 390x844 frame to the width of its cell.
+function fit(){document.querySelectorAll('.fit').forEach(function(f){var w=f.clientWidth,s=Math.min(1,w/390);var p=f.firstElementChild;p.style.transform='scale('+s+')';f.style.height=(844*s)+'px'})}
+addEventListener('resize',fit);addEventListener('load',fit);fit();
+// B1: tap a hotspot to select it.
+document.querySelectorAll('#bhub .hs').forEach(function(h){h.addEventListener('click',function(){document.querySelectorAll('#bhub .hs').forEach(function(o){o.classList.remove('on')});h.classList.add('on');var t=document.querySelector('#bhub .tray b');if(t)t.textContent=h.getAttribute('aria-label')})});
+</script>
