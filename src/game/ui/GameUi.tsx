@@ -29,6 +29,7 @@ import type { Hub, HudState } from '../hub';
 import { cardView } from './cardText';
 import { AnalyticsSwitch, FeedbackLayer, TellButton } from './FeedbackSheet'; // [feedback hook]
 import { trackCardPick } from '../telemetry'; // [analytics hook]
+import { fmt, useCountUp } from './format';
 import { Kitchen } from './Kitchen';
 import { RunBuild } from './RunBuild';
 import { Prologue } from './Prologue';
@@ -373,7 +374,7 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
             </div>
             <div className="gu-gold" aria-label={`${hud.gold} gold`}>
               <img src={art('ui/coins')} alt="" />
-              <span>{hud.gold}</span>
+              <span className="gu-shine">{fmt(hud.gold)}</span>
             </div>
             {isTuned() && <span className="gu-version" data-testid="tuned-badge" style={{ position: 'absolute', top: 2, left: 2, background: '#E8702A', color: '#fff', borderRadius: 6, padding: '0 6px' }}>Tuned</span>}
             <button type="button" className="gu-pause" aria-label="Pause" data-testid="ui-pause" onClick={onPause}>
@@ -567,6 +568,10 @@ function Pause({
 function Results({ ended, onAgain, onStall }: { ended: Ended; onAgain: () => void; onStall: () => void }) {
   const r = ended.result;
   const { paid } = ended.payout.rewards;
+  const dist = useCountUp(r.dist ?? r.wave);
+  const kills = useCountUp(r.kills);
+  const coins = useCountUp(ended.payout.rewards.gold);
+  const xp = useCountUp(ended.payout.rewards.kannanXp || ended.payout.rewards.stallXp);
   return (
     <div className="gu-results" data-testid="results">
       <img className="gu-results-art" src={art('scene/wake')} alt="" />
@@ -577,11 +582,11 @@ function Results({ ended, onAgain, onStall }: { ended: Ended; onAgain: () => voi
           <dl className={paid ? 'gu-stats gu-stats--five' : 'gu-stats gu-stats--three'}>
             <div>
               <dt>{r.dist !== undefined ? 'Metres' : 'Waves'}</dt>
-              <dd>{r.dist ?? r.wave}</dd>
+              <dd>{fmt(dist)}</dd>
             </div>
             <div>
               <dt>Kills</dt>
-              <dd>{r.kills}</dd>
+              <dd>{fmt(kills)}</dd>
             </div>
             <div>
               <dt>Level</dt>
@@ -591,11 +596,11 @@ function Results({ ended, onAgain, onStall }: { ended: Ended; onAgain: () => voi
               <>
                 <div>
                   <dt>Coins</dt>
-                  <dd data-testid="results-coins">+{ended.payout.rewards.gold}</dd>
+                  <dd data-testid="results-coins" className="gu-shine">+{fmt(coins)}</dd>
                 </div>
                 <div>
-                  <dt>Kannan XP</dt>
-                  <dd data-testid="results-xp">+{ended.payout.rewards.kannanXp || ended.payout.rewards.stallXp}</dd>
+                  <dt>XP</dt>
+                  <dd data-testid="results-xp">+{fmt(xp)}</dd>
                 </div>
               </>
             )}

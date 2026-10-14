@@ -136,7 +136,7 @@
 
 .fb-context {
   margin: 0;
-  font: 600 12px/1.35 Nunito, system-ui, sans-serif;
+  font: 600 13px/1.35 Nunito, system-ui, sans-serif;
   color: var(--ink); /* 6.5:1 on cream */
 }
 
@@ -146,7 +146,7 @@
   border: 2.5px solid var(--edge);
   border-radius: 14px;
   background: var(--cream);
-  font: 700 14px/1.35 Nunito, system-ui, sans-serif;
+  font: 700 15px/1.35 Nunito, system-ui, sans-serif;
 }
 
 .fb-status--bad {
@@ -191,11 +191,11 @@
 .fb-note, .fb-pair { border: 2px solid var(--edge); border-radius: 14px; padding: 12px; }
 .fb-note summary, .fb-pair summary { cursor: pointer; min-height: 44px; font: 700 16px/1.4 Nunito, system-ui, sans-serif; touch-action: manipulation; }
 .fb-note-body { display: block; white-space: pre-wrap; overflow-wrap: anywhere; font: 600 16px/1.4 Nunito, system-ui, sans-serif; }
-.fb-note-status { display: block; font: 800 14px/1.4 Nunito, system-ui, sans-serif; margin-top: 8px; }
+.fb-note-status { display: block; font: 800 15px/1.4 Nunito, system-ui, sans-serif; margin-top: 8px; }
 .fb-messages { border-left: 3px solid var(--edge); padding-left: 10px; }
-.fb-sheet .fb-context, .fb-sheet .fb-from { font-size: 14px; }
+.fb-sheet .fb-context, .fb-sheet .fb-from { font-size: 15px; }
 
-.fb-note-reference { display: block; font: 600 14px/1.4 Nunito, system-ui, sans-serif; }
+.fb-note-reference { display: block; font: 600 15px/1.4 Nunito, system-ui, sans-serif; }
 
 @media (max-width: 360px) {
   .fb-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }

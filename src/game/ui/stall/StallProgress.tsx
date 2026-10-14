@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import { fmt } from '../format';
 import { progress } from './helpers';
 
 export type Art = (key: string) => string;
@@ -9,7 +10,8 @@ export type Art = (key: string) => string;
 export function StallProgress({ xp, from, art }: { xp: number; from?: number; art: Art }) {
   const end = progress(xp);
   const start = from === undefined ? end : progress(from);
-  const [shown, setShown] = useState({ level: start.level, fraction: start.fraction, snap: false });
+  // Coming to the hub fresh (no `from`), the bar fills up from empty to where it stands.
+  const [shown, setShown] = useState({ level: start.level, fraction: from === undefined ? 0 : start.fraction, snap: false });
   useEffect(() => {
     const timers: number[] = [];
     const at = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
@@ -28,11 +30,11 @@ export function StallProgress({ xp, from, art }: { xp: number; from?: number; ar
         <b data-testid="stall-level">{shown.level}</b>
       </div>
       <div>
-        <span data-testid="kannan-xp">{end.xpLabel}</span>
-        <span data-testid="stall-next">{end.label}</span>
+        <span data-testid="kannan-xp">Kannan · {fmt(end.into)}/{fmt(end.span)} XP</span>
         <div className="gu-bar" role="progressbar" aria-label="Kannan level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(end.fraction * 100)}>
           <i data-snap={shown.snap || undefined} style={{ width: `${shown.fraction * 100}%` }} />
         </div>
+        <span data-testid="stall-next">{end.label}</span>
       </div>
     </div>
   );

@@ -84,9 +84,10 @@
   border-radius: 14px;
   background: var(--cream);
   color: var(--ink);
-  font: 800 13px/1.1 Nunito, system-ui, sans-serif;
+  font: 800 var(--fs-cap)/1.1 Nunito, system-ui, sans-serif;
   white-space: nowrap;
   box-shadow: 0 3px 0 var(--edge-deep);
+  transition: transform 0.09s ease-out, box-shadow 0.09s ease-out;
   pointer-events: auto;
   cursor: pointer;
   touch-action: manipulation;
@@ -102,6 +103,7 @@
 
 .sh-label:active {
   box-shadow: 0 1px 0 var(--edge-deep);
+  transform: translateY(calc(-50% + 2px)) scale(1.03, 0.94);
 }
 
 .sh-label--left {
@@ -117,6 +119,10 @@
   transform: translate(-50%, -50%);
 }
 
+.sh-label--center:active {
+  transform: translate(-50%, calc(-50% + 2px)) scale(1.03, 0.94);
+}
+
 .sh-label img {
   width: 14px;
   height: 18px;
@@ -126,16 +132,17 @@
 .sh-label[data-locked] {
   background: #e4d6bd;
   color: #5b4330;
+  border-style: dashed;
 }
 
 .sh-badge {
-  min-width: 18px;
-  padding: 1px 5px;
+  min-width: 20px;
+  padding: 1px 6px;
   border: 1.5px solid var(--orange-deep);
   border-radius: 999px;
   background: var(--orange);
   color: var(--ink);
-  font: 800 11px/1.3 Nunito, system-ui, sans-serif;
+  font: 800 var(--fs-cap)/1.25 Nunito, system-ui, sans-serif;
   font-style: normal;
   text-align: center;
 }
@@ -149,33 +156,43 @@
   left: calc(var(--safe-left) + 8px);
   right: calc(var(--safe-right) + 8px);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px 8px;
 }
 
 .sh-progress {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
   flex: 1;
-  padding: 4px 10px 4px 6px;
-  border: 2px solid var(--edge);
+  padding: 5px 10px 5px 6px;
+  border: 2.5px solid var(--edge);
   border-radius: 18px;
   background: var(--cream);
-  font-size: 12px;
-  font-weight: 800;
+  box-shadow: 0 3px 0 var(--edge-deep);
 }
 
 .sh-progress > div:last-child {
   flex: 1;
   min-width: 0;
   display: grid;
-  gap: 4px;
+  gap: 3px;
+}
+
+.sh-progress span {
+  font: 800 var(--fs-cap)/1.2 Nunito, system-ui, sans-serif;
+}
+
+/* the next-unlock line is context, so it is quieter than the XP count above the bar */
+.sh-progress span:last-child {
+  font-weight: 700;
+  color: #5b4330;
 }
 
 .sh-progress .gu-bar {
-  height: 10px;
+  height: 12px;
 }
 
 .sh-progress .gu-bar i {
@@ -189,8 +206,8 @@
 .sh-level {
   position: relative;
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   display: grid;
   place-items: center;
 }
@@ -207,7 +224,7 @@
   padding: 1px 5px;
   border-radius: 8px;
   background: var(--cream);
-  font: 700 18px/1.1 Fredoka, system-ui, sans-serif;
+  font: 700 var(--fs-title)/1.1 Fredoka, system-ui, sans-serif;
 }
 
 .sh-coins {
@@ -215,11 +232,13 @@
   flex: none;
   align-items: center;
   gap: 4px;
-  padding: 4px 12px 4px 6px;
-  border: 2px solid var(--edge);
-  border-radius: 18px;
+  padding: 5px 12px 5px 6px;
+  border: 2.5px solid var(--edge);
+  border-radius: 999px;
   background: var(--cream);
-  font: 800 16px/1 Nunito, system-ui, sans-serif;
+  box-shadow: 0 3px 0 var(--edge-deep);
+  font: 800 var(--fs-lead)/1 Nunito, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 
 .sh-coins img {
@@ -271,7 +290,8 @@
   min-height: 48px;
   min-width: 0;
   padding: 8px 6px;
-  font-size: 14px;
+  font-size: var(--fs-body);
+  line-height: 1.1;
 }
 
 /* Hide immediately while the sheet fades in, keeping the footer space and focus return. */
@@ -306,7 +326,8 @@
   overscroll-behavior: contain;
   border-radius: 26px 26px 0 0;
   padding: 16px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 22px) calc(var(--safe-left) + 16px);
-  animation: sh-slide 0.18s ease-out;
+  font: 600 var(--fs-body)/1.4 Nunito, system-ui, sans-serif;
+  animation: sh-slide 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .gu-root .sh-sheet:focus {
@@ -324,6 +345,46 @@
   padding: 4px 0 10px;
   background: var(--cream);
 }
+
+.sh-sheet-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sh-sheet-title img {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+/* Section header inside a sheet: a small icon and a title, the same everywhere. */
+.sh-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 0;
+  font: 600 var(--fs-title)/1.2 Fredoka, system-ui, sans-serif;
+}
+
+.sh-section img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+/* Everything in a sheet below its heading rises in, one after another. */
+.sh-sheet > :nth-child(n + 2) {
+  animation: gu-rise 0.3s ease-out backwards;
+}
+.sh-sheet > :nth-child(2) { animation-delay: 50ms; }
+.sh-sheet > :nth-child(3) { animation-delay: 90ms; }
+.sh-sheet > :nth-child(4) { animation-delay: 130ms; }
+.sh-sheet > :nth-child(5) { animation-delay: 170ms; }
+.sh-sheet > :nth-child(6) { animation-delay: 210ms; }
+.sh-sheet > :nth-child(n + 7) { animation-delay: 250ms; }
 
 .gu-root .sh-sheet .gu-heading {
   font-size: 28px;
@@ -344,8 +405,22 @@
 }
 
 .sh-balance {
-  font-size: 13px;
-  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  padding: 4px 14px 4px 6px;
+  border: 2px solid var(--edge);
+  border-radius: 999px;
+  background: var(--cream);
+  font: 800 var(--fs-body)/1.2 Nunito, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-balance img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
 }
 
 .sh-locked {
@@ -375,8 +450,8 @@
 
 .sh-slots {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .sh-tile {
@@ -392,10 +467,15 @@
   border-radius: 14px;
   background: var(--cream);
   color: var(--ink);
-  font: 700 12px/1.2 Nunito, system-ui, sans-serif;
+  font: 700 var(--fs-cap)/1.2 Nunito, system-ui, sans-serif;
   cursor: pointer;
   touch-action: manipulation;
   overflow-wrap: anywhere;
+  transition: transform 0.09s ease-out;
+}
+
+.sh-tile:active {
+  transform: scale(1.02, 0.95);
 }
 
 .sh-tile[aria-pressed='true'] {
@@ -420,7 +500,7 @@
 }
 
 .sh-slots .sh-tile b {
-  font-size: 11px;
+  font-size: var(--fs-cap);
 }
 
 .sh-inventory {
@@ -432,9 +512,32 @@
 .sh-detail {
   display: grid;
   gap: 8px;
-  border: 2px solid var(--edge);
+  border: 2.5px solid var(--edge);
   border-radius: 18px;
-  padding: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.sh-detail > b {
+  font: 600 var(--fs-title)/1.2 Fredoka, system-ui, sans-serif;
+}
+
+.sh-pips {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.sh-pips i {
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 2.5px solid var(--edge-deep);
+  border-radius: 50%;
+}
+
+.sh-pips i.on {
+  background: var(--orange);
+  box-shadow: inset 0 -2px 0 var(--orange-deep);
 }
 
 .sh-calendar {
@@ -447,7 +550,7 @@
   display: grid;
   gap: 3px;
   padding: 10px;
-  border: 2px solid var(--edge);
+  border: 2.5px solid var(--edge);
   border-radius: 12px;
 }
 
@@ -546,6 +649,16 @@
   font-size: 24px;
 }
 
+/* The payout builds up: each block rises in after the one above it. */
+.sh-result-body > :nth-child(n + 2) {
+  animation: gu-rise 0.35s ease-out backwards;
+}
+.sh-result-body > :nth-child(2) { animation-delay: 80ms; }
+.sh-result-body > :nth-child(3) { animation-delay: 180ms; }
+.sh-result-body > :nth-child(4) { animation-delay: 280ms; }
+.sh-result-body > :nth-child(5) { animation-delay: 380ms; }
+.sh-result-body > :nth-child(n + 6) { animation-delay: 480ms; }
+
 .gu-root .gu-stats--three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -556,7 +669,7 @@
   padding: 10px 14px;
   border: 2px dashed var(--edge);
   border-radius: 14px;
-  font: 600 17px/1.25 Fredoka, system-ui, sans-serif;
+  font: 600 var(--fs-lead)/1.25 Fredoka, system-ui, sans-serif;
 }
 
 .sh-unlocks,
@@ -569,13 +682,13 @@
 }
 
 .sh-gains {
-  font: 700 14px/1.2 Nunito, system-ui, sans-serif;
+  font: 700 var(--fs-body)/1.2 Nunito, system-ui, sans-serif;
   gap: 4px 10px;
 }
 
 .sh-unlocks .gu-newbest {
-  padding: 3px 10px;
-  font-size: 13px;
+  padding: 4px 12px;
+  font-size: var(--fs-cap);
 }
 
 .sh-gain {
@@ -637,7 +750,7 @@
   border: 2.5px solid var(--edge);
   border-radius: 18px;
   background: var(--cream);
-  font: 700 14px/1.2 Nunito, system-ui, sans-serif;
+  font: 700 var(--fs-body)/1.2 Nunito, system-ui, sans-serif;
   pointer-events: auto;
 }
 
@@ -719,16 +832,27 @@
 .sh-dip-collection progress { width: 100%; accent-color: var(--ink); }
 .sh-dip-collection .sh-detail { overflow-wrap: anywhere; }
 
-.sh-collection-entry { position: absolute; top: 43%; left: 54%; transform: translateX(-50%); width: 124px; min-height: 44px; padding: 8px; font-size: 14px; }
+.sh-collection-entry { position: absolute; top: 43%; left: 54%; transform: translateX(-50%); width: 132px; min-height: 44px; padding: 8px; font-size: var(--fs-body); }
+.sh-collection-entry:active { transform: translateX(-50%) translateY(3px) scale(1.03, 0.93); }
 
-.sh-dip-receipt { gap: 4px; text-align: left; font-size: 14px; line-height: 1.25; }
+.sh-dip-receipt { gap: 2px; padding: 8px 12px; text-align: left; font-size: var(--fs-body); line-height: 1.22; }
 .sh-dip-receipt p { margin: 0; }
 
 .sh-spec {
-  font-size: 11px;
+  flex-basis: 100%;
+  justify-self: start;
+  width: max-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 4px 12px;
+  border: 2px solid var(--edge);
+  border-radius: 999px;
+  background: var(--cream);
+  font: 700 var(--fs-cap)/1.25 Nunito, system-ui, sans-serif;
+}
+
+.sh-spec b {
   font-weight: 800;
-  line-height: 1.2;
-  text-align: right;
 }
 
 /* Milestone visitor (Visitor.tsx): a small sheet over the hub. */
@@ -738,25 +862,77 @@
   text-align: center;
 }
 .sh-visitor-who {
-  font-weight: 700;
+  font: 600 var(--fs-title)/1.2 Fredoka, system-ui, sans-serif;
 }
 .sh-visitor-art {
-  font-size: 64px;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 104px;
+  height: 104px;
+  border: 3px solid var(--edge);
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 4px 0 var(--orange-deep);
+  font-size: 60px;
   line-height: 1;
-  width: 96px;
-  height: 96px;
   object-fit: contain;
+  animation: gu-pop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1.2) 0.1s backwards;
 }
 .gu-root .sh-visitor .sh-visitor-line {
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
   white-space: normal;
   text-align: center;
+  font-size: var(--fs-lead);
+  line-height: 1.3;
 }
 .sh-visitor-tap {
-  display: block;
-  font-size: 12px;
-  opacity: 0.7;
+  font: 700 var(--fs-cap)/1 Nunito, system-ui, sans-serif;
+  color: #5b4330;
 }
 .sh-visitor-perk,
 .sh-visitor-gift {
-  font-weight: 600;
+  padding: 6px 14px;
+  border: 2px solid var(--edge);
+  border-radius: 999px;
+  font-weight: 700;
+}
+.sh-visitor-gift {
+  background: var(--orange);
+  border-color: var(--orange-deep);
+}
+
+.sh-section--big {
+  justify-content: center;
+  font-size: var(--fs-head);
+}
+
+/* A recipe or evolution: the picture beside its name and cost, the button underneath. */
+.sh-recipes .sh-detail {
+  grid-template-columns: 56px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
+}
+
+.sh-recipes .sh-detail > * {
+  grid-column: 2;
+}
+
+.sh-recipes .sh-detail > .sh-item-art {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  width: 56px;
+  height: 56px;
+}
+
+.sh-recipes .sh-detail > .gu-btn {
+  grid-column: 1 / -1;
+}
+
+.sh-sheet-head .gu-btn {
+  min-width: 52px;
+  padding: 0 0 4px;
+  font-size: 30px;
 }
