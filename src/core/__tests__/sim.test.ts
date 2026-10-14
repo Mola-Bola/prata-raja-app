@@ -576,16 +576,18 @@ describe('enemies', () => {
     expect(w.player.hp).toBe(70);
   });
 
-  it('contact damage: dps x time, aggregated into one playerHit per 0.5 s, hurt animation on', () => {
+  it('contact strikes keep full-cycle DPS, stack attackers and retain the 0.5 s damage aggregator', () => {
     const w = noBread(mkWorld(makeContent()));
     addEnemy(w, ANT, 0, 30, { state: 'attack' });
     addEnemy(w, ANT, 80, 30, { state: 'attack', elite: true });
     const ev = play(w, 2.2);
-    expect(w.player.hp).toBeCloseTo(100 - 2.2 * (5 + 7.5), 1);
+    expect(w.player.hp).toBeCloseTo(100 - 2 * (5 + 7.5), 1); // two complete strikes; the third is still preparing
     const hits = of(ev, 'playerHit');
     expect(hits.every((h) => h.source === 'contact')).toBe(true);
-    expect(hits.length).toBe(4);
+    expect(hits.length).toBe(2); // no empty events during recovery
     expect(hits.reduce((s, h) => s + h.dmg, 0)).toBeCloseTo(25, 0);
+    expect(w.player.hurtAnim).toBe(0);
+    play(w, .2); // a new strike starts after the windup, and hurt motion returns
     expect(w.player.hurtAnim).toBeGreaterThan(0);
   });
 
@@ -886,7 +888,7 @@ describe('run lifecycle', () => {
   it('Second Helping: one revive at half hp, shoves the crowd back and wipes enemy shots; then the next death ends the run', () => {
     const w = mkWorld(makeContent(), { stats: { revives: 1 } });
     w.player.breads = [];
-    const ants = [addEnemy(w, ANT, -50, 30, { state: 'attack' }), addEnemy(w, ANT, 50, 100)];
+    const ants = [addEnemy(w, ANT, -50, 30, { state: 'attack', contactClock: .3 }), addEnemy(w, ANT, 50, 100)];
     const far = addEnemy(w, ANT, 100, 600);
     w.player.hp = 0.01;
     const ev = play(w, 0.05);
@@ -899,7 +901,7 @@ describe('run lifecycle', () => {
     expect(far.y).toBe(600);
 
     w.player.hp = 0.001;
-    addEnemy(w, ANT, 0, 30, { state: 'attack' });
+    addEnemy(w, ANT, 0, 30, { state: 'attack', contactClock: .3 });
     const end = play(w, 0.2);
     expect(w.phase).toBe('lost');
     expect(of(end, 'runEnd')).toEqual([{ t: 'runEnd', won: false }]);

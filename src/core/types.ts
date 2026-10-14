@@ -292,6 +292,8 @@ export type Enemy = {
   statuses: Status[];
   /** walk: approaching; hold: parked (shooter/healer/boss); attack: at the counter; fuse: exploder ticking; escape: a thief flying away. */
   state: 'walk' | 'hold' | 'attack' | 'fuse' | 'escape' | 'dead';
+  /** Normal counter attack cycle clock (s), independent of dash/summoner t; absent before arrival. */
+  contactClock?: number;
   /** Generic per-state timer (s). */
   t: number;
   /** Seconds since spawn (zigzag phase etc.). */

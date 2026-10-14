@@ -1,4 +1,5 @@
 // Enemy behaviour per step: statuses and knockback, the walk/hold/attack state machine for every archetype, and enemy shots.
+import { advanceContactAttack, CONTACT_REACH_SLACK as AT_COUNTER, CONTACT_STRIKE, normalContactEnemy } from '../contactAttack';
 import { isDisabled, speedMul, tickStatuses } from '../status';
 import { remainingKnockback } from '../knockback';
 import { FIELD, type Enemy } from '../types';
@@ -8,7 +9,6 @@ import { DOT_BURN, DOT_SUGAR, dotDamage, flushDot, killEnemy } from './hit';
 import { spawnEnemy } from './spawn';
 
 /** Slack for "at the counter" (the walk clamps enemies to reachY; a shove moves them well off it). */
-const AT_COUNTER = 0.5;
 const CONTACT_EVERY = 0.5;
 const PI2 = Math.PI * 2;
 
@@ -26,8 +26,9 @@ function lateralX(e: Enemy): number {
 }
 
 /** Contact damage while at the counter. Aggregated into one 'playerHit' per CONTACT_EVERY (flushContact). */
-function contact(c: Ctx, e: Enemy): void {
-  const dmg = e.def.contactDps * (e.elite ? ELITE_CONTACT : 1) * (1 + c.p.stats.dmgTakenPct) * c.dt;
+function contact(c: Ctx, e: Enemy, contactDt: number): void {
+  const active = normalContactEnemy(e) ? advanceContactAttack(e, contactDt) / CONTACT_STRIKE : contactDt;
+  const dmg = e.def.contactDps * (e.elite ? ELITE_CONTACT : 1) * (1 + c.p.stats.dmgTakenPct) * active;
   if (dmg <= 0) return;
   c.p.hp -= dmg;
   c.p.hurtAnim = 0.2;
@@ -45,13 +46,14 @@ export function flushContact(c: Ctx, force = false): void {
 }
 
 /** Plain walk toward the counter (walker, tank, splitter, shielded, runner, flyer, swarm and the walking half of the rest). */
-function walk(c: Ctx, e: Enemy): void {
+function walk(c: Ctx, e: Enemy, contactDt = c.dt): void {
   if (e.state === 'attack') {
     if (e.y <= FIELD.reachY + AT_COUNTER) {
-      contact(c, e);
+      contact(c, e, contactDt);
       return;
     }
     e.state = 'walk';
+    delete e.contactClock;
   }
   const slow = speedMul(e);
   e.cooldowns._mt = cdGet(e, '_mt') + c.dt * slow;
@@ -61,6 +63,7 @@ function walk(c: Ctx, e: Enemy): void {
   if (e.y <= FIELD.reachY) {
     e.y = FIELD.reachY;
     e.state = 'attack';
+    if (normalContactEnemy(e)) e.contactClock = 0;
   }
 }
 
@@ -105,9 +108,9 @@ function fireEnemyShot(c: Ctx, e: Enemy, tx: number): void {
   emit(c, { t: 'enemyShot', uid: e.uid });
 }
 
-function updateShooter(c: Ctx, e: Enemy): void {
+function updateShooter(c: Ctx, e: Enemy, contactDt: number): void {
   const r = e.def.ranged;
-  if (!r) return walk(c, e);
+  if (!r) return walk(c, e, contactDt);
   if (!holdAt(c, e)) return;
   const cd = e.cooldowns;
   if (cdGet(e, '_aim') === 1) {
@@ -128,9 +131,9 @@ function updateShooter(c: Ctx, e: Enemy): void {
   }
 }
 
-function updateHealer(c: Ctx, e: Enemy): void {
+function updateHealer(c: Ctx, e: Enemy, contactDt: number): void {
   const h = e.def.heal;
-  if (!h) return walk(c, e);
+  if (!h) return walk(c, e, contactDt);
   if (!holdAt(c, e)) return;
   const amount = h.hps * c.dt;
   for (const o of c.w.enemies) {
@@ -139,9 +142,9 @@ function updateHealer(c: Ctx, e: Enemy): void {
   }
 }
 
-function updateSummoner(c: Ctx, e: Enemy): void {
+function updateSummoner(c: Ctx, e: Enemy, contactDt: number): void {
   const s = e.def.summon;
-  walk(c, e);
+  walk(c, e, contactDt);
   if (!s) return;
   e.t -= c.dt;
   if (e.t > 0) return;
@@ -192,6 +195,11 @@ export function updateEnemies(c: Ctx): void {
   for (let i = 0; i < w.enemies.length; i++) {
     const e = w.enemies[i];
     if (!alive(e)) continue;
+    let contactDt = dt;
+    if (normalContactEnemy(e) && isDisabled(e)) {
+      const held = Math.max(...e.statuses.filter(s => s.id === 'freeze' || s.id === 'stun').map(s => s.time));
+      contactDt = Math.max(0, dt - held);
+    }
     e.age += dt;
     if (e.flash > 0) e.flash = Math.max(0, e.flash - dt);
     if (e.knock > 0) {
@@ -199,6 +207,11 @@ export function updateEnemies(c: Ctx): void {
       const move = e.knock - remaining;
       e.y = Math.min(e.y + move, MAX_ENEMY_Y);
       e.knock = remaining;
+    }
+    // A shove cancels the pending strike even while frozen/stunned; returning gets a fresh windup.
+    if (normalContactEnemy(e) && e.y > FIELD.reachY + AT_COUNTER) {
+      delete e.contactClock;
+      if (e.state === 'attack') e.state = 'walk';
     }
     if (e.statuses.length > 0 || cdGet(e, '_da') > 0) {
       const burning = e.statuses.some((s) => s.id === 'burn');
@@ -226,19 +239,19 @@ export function updateEnemies(c: Ctx): void {
     }
     switch (e.def.kind) {
       case 'shooter':
-        updateShooter(c, e);
+        updateShooter(c, e, contactDt);
         break;
       case 'healer':
-        updateHealer(c, e);
+        updateHealer(c, e, contactDt);
         break;
       case 'summoner':
-        updateSummoner(c, e);
+        updateSummoner(c, e, contactDt);
         break;
       case 'exploder':
         updateExploder(c, e);
         break;
       default:
-        walk(c, e);
+        walk(c, e, contactDt);
     }
   }
   flushContact(c);

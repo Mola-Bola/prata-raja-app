@@ -4,6 +4,7 @@
 // clocks each frame; nothing here uses a Phaser tween.
 import * as Phaser from 'phaser';
 
+import { contactAttackPhase, normalContactEnemy } from '@/core/contactAttack';
 import type { Enemy, EnemyKind, Projectile, World } from '@/core/types';
 
 import type { Layout, Projector } from './layout';
@@ -109,6 +110,7 @@ export class Actors {
   private now = 0;
   private handX = 0;
   private handY = 0;
+  private readonly calm = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   private enemies: EnemyView[] = [];
   private enemyMap = new Map<number, EnemyView>();
@@ -390,9 +392,31 @@ export class Actors {
         rot += v.lean * 0.2;
         v.body.setFlipX(escaping);
       }
-      v.attacking = e.state === 'attack' && !disabled;
+      const ordinaryContact = normalContactEnemy(e);
+      const contactPhase = contactAttackPhase(e);
+      v.attacking = e.state === 'attack' && !disabled && !ordinaryContact;
       let attackY = 0;
-      if (v.attacking) {
+      if (ordinaryContact) {
+        v.attackT = 0;
+        if (contactPhase && !this.calm) {
+          const { phase, progress } = contactPhase;
+          if (phase === 'windup') {
+            const prep = progress * progress;
+            attackY = -7 * u * prep;
+            smy *= 1 - 0.14 * prep;
+            smx *= 1 + 0.12 * prep;
+            rot -= 0.1 * prep;
+          } else if (phase === 'strike') {
+            const lunge = Math.sin(Math.PI * progress);
+            attackY = 16 * u * lunge;
+            smy *= 1 + 0.18 * lunge;
+            smx *= 1 - 0.12 * lunge;
+            rot += 0.12 * lunge;
+          } else {
+            attackY = -3 * u * (1 - progress);
+          }
+        }
+      } else if (v.attacking) {
         v.attackT = Math.max(0, v.attackT - dt);
         if (v.attackT > 0) {
           const elapsed = 0.16 - v.attackT;
