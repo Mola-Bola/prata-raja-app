@@ -28,7 +28,7 @@ The owner directs changes at a high level ("make the cards rounder", "rename Hom
 | Dates and amounts | `src/domain/format.ts` (`fmtDate`, `daysUntil`, `todayIso`, `addDays`, `parseTypedDate`, `parseAmount`) |
 | Who can see/do what | Supabase migrations (RLS). Add a pgTAP test in `supabase/tests/` for every table |
 | The foundation tables (profiles, feedback, feedback_messages, releases, app_config, private_config, ota_updates) and their functions | `supabase/migrations/20260101000010_foundation.sql`, `…20_cloud_ota.sql`, `…21_function_grants.sql`. Add your own in new migrations, never by editing these; regenerate `src/data/database.types.ts` with `npm run gen:types` |
-| Working the owner's feedback / shipping updates | `docs/FEEDBACK.md`, `scripts/feedback.mjs`, `scripts/ship-cloud.mjs`, `docs/UPDATES.md` |
+| Working the owner's feedback / shipping updates | `docs/archive/FEEDBACK.md` (archived), `scripts/feedback.mjs`, `scripts/ship-cloud.mjs`, `docs/UPDATES.md` |
 
 ## UI primitives (src/ui, Oleh's round-5 "Sunday market" system; import from `@/ui`)
 
