@@ -10,11 +10,11 @@ export const RECIPES: readonly Recipe[] = [
   { id: 'rc-egg-telur', unlocks: { kind: 'bread', id: 'egg-telur' }, costs: { flour: 3, egg: 3, milk: 1 } },
   { id: 'rc-naan', unlocks: { kind: 'bread', id: 'naan' }, costs: { flour: 5, ghee: 2, milk: 1 } },
   { id: 'rc-garlic-naan', unlocks: { kind: 'bread', id: 'garlic-naan' }, costs: { flour: 4, ghee: 2, onion: 1 } },
-  { id: 'rc-murtabak', unlocks: { kind: 'bread', id: 'murtabak' }, costs: { flour: 4, egg: 2, onion: 2, spice: 1 } },
-  { id: 'rc-vadai', unlocks: { kind: 'bread', id: 'vadai' }, costs: { flour: 2, onion: 2, spice: 2 } },
-  { id: 'rc-sambal', unlocks: { kind: 'dip', id: 'sambal' }, costs: { onion: 2, spice: 3, sugar: 1 } },
+  { id: 'rc-murtabak', unlocks: { kind: 'bread', id: 'murtabak' }, costs: { flour: 4, egg: 2, onion: 2, masala: 1 } },
+  { id: 'rc-vadai', unlocks: { kind: 'bread', id: 'vadai' }, costs: { flour: 2, onion: 2, masala: 2 } },
+  { id: 'rc-sambal', unlocks: { kind: 'dip', id: 'sambal' }, costs: { onion: 2, masala: 3, sugar: 1 } },
   { id: 'rc-ghee', unlocks: { kind: 'dip', id: 'ghee' }, costs: { milk: 4, sugar: 1 } },
-  { id: 'rc-mutton-curry', unlocks: { kind: 'dip', id: 'mutton-curry' }, costs: { spice: 3, onion: 2, ghee: 1 } },
+  { id: 'rc-mutton-curry', unlocks: { kind: 'dip', id: 'mutton-curry' }, costs: { masala: 3, onion: 2, ghee: 1 } },
   { id: 'rc-condensed-milk', unlocks: { kind: 'dip', id: 'condensed-milk' }, costs: { milk: 3, sugar: 2 } },
 ];
 function foodKnown(save: SaveV2, kind: 'bread' | 'dip', id: BreadId | DipId, unlock: string): boolean {

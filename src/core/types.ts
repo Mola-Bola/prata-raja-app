@@ -442,6 +442,8 @@ export type RunResult = {
   won: boolean;
   wave: number;
   kills: number;
+  /** Kills per enemy kind (drives material drops). TODO(lead): fill from the sim; absent = all kills count as 'walker'. */
+  killsByKind?: Partial<Record<EnemyKind, number>>;
   bossKills: number;
   time: number;
   level: number;

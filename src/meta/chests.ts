@@ -4,12 +4,12 @@ import { RARITIES, type ChestPity, type GearItem, type Rarity, type SaveV2 } fro
 
 /** Cadence counters do not reset on a lucky natural drop. Every twentieth also satisfies fifth-chest pity.
  *  `unlocks` are the player's unlocks at drop time: the item's slot is always one they can already wear. */
-export function rollChest(rng: Rng, pity: ChestPity, minRarity: Rarity, unlocks: SaveV2['unlocks']): { item: GearItem; pity: ChestPity } {
+export function rollChest(rng: Rng, pity: ChestPity, minRarity: Rarity, unlocks: SaveV2['unlocks'], ilvl = 1): { item: GearItem; pity: ChestPity } {
   const rare = pity.rare + 1;
   const epic = pity.epic + 1;
   const minimum = RARITIES[Math.max(RARITIES.indexOf(minRarity), epic >= 20 ? 3 : rare >= 5 ? 2 : 0)];
   return {
-    item: rollItem(rng, { source: 'chest', minRarity: minimum, slots: dropSlots(unlocks) }),
+    item: rollItem(rng, { source: 'chest', minRarity: minimum, slots: dropSlots(unlocks), ilvl }),
     pity: { rare: rare % 5, epic: epic % 20, opened: pity.opened + 1 },
   };
 }

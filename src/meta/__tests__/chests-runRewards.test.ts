@@ -64,10 +64,12 @@ describe('run rewards', () => {
     expect(applyRunResult(freshSaveV2(), { ...RUN, wave: 2 }, makeRng(1), NOW).rewards.paid).toBe(true);
     expect(MIN_PAID_WAVE).toBe(2);
   });
-  it.each([0, 4, 5, 9, 10, 15])('grants two material units per five survived waves (%i)', waves => {
-    const { rewards } = applyRunResult(freshSaveV2(), { ...RUN, wave: waves + 1 }, makeRng(2), NOW);
-    expect(Object.values(rewards.materials).reduce((a, b) => a + b, 0)).toBe(Math.floor(waves / 5) * 2);
-    if (waves === 5) expect(Object.keys(rewards.materials)).toHaveLength(2);
+  it('pays materials from kills, deterministically, and banks them', () => {
+    const run = { ...RUN, wave: 6, kills: 600, bossKills: 1 };
+    const a = applyRunResult(freshSaveV2(), run, makeRng(2), NOW);
+    expect(a).toEqual(applyRunResult(freshSaveV2(), run, makeRng(2), NOW));
+    expect(Object.values(a.rewards.materials).reduce((x, y) => x + y, 0)).toBeGreaterThan(0);
+    for (const [m, n] of Object.entries(a.rewards.materials)) expect(a.save.materials[m as keyof typeof a.save.materials]).toBe(n);
   });
   it('updates v1 totals, materials, pity, unlocks and idle baseline without mutation', () => {
     const save = freshSaveV2(); save.gold = 10; save.materials.flour = 2; save.stallXp = 140;

@@ -1,4 +1,6 @@
 import { CONTENT } from '../content';
+import { MATERIAL_DROPS } from '../content/drops';
+import { makeRng } from '../core/rng';
 import { grantDipUse, type DipReceipt } from './dipProgression';
 import type { Rng } from '../core/rng';
 import type { RunResult } from '../core/types';
@@ -21,6 +23,20 @@ export type RunRewards = {
   materials: Partial<Record<Material, number>>;
   dipReceipts: DipReceipt[];
 };
+
+/** Material drops for a run: one roll per kill from the kind's table. Deterministic in (seed, kills per kind). */
+export function rollMaterialDrops(seed: number, result: Pick<RunResult, 'kills' | 'bossKills' | 'killsByKind'>): Partial<Record<Material, number>> {
+  const rng = makeRng(seed);
+  const out: Partial<Record<Material, number>> = {};
+  const byKind: [string, number][] = Object.entries(result.killsByKind ?? { walker: result.kills }).sort(([a], [b]) => a < b ? -1 : 1);
+  byKind.push(['boss', result.bossKills]);
+  for (const [kind, n] of byKind) {
+    const table = MATERIAL_DROPS[kind as keyof typeof MATERIAL_DROPS];
+    if (!table) continue;
+    for (let i = 0; i < Math.min(n, 5000); i++) for (const m of MATERIALS) if (table[m] && rng.chance(table[m]!)) out[m] = (out[m] ?? 0) + 1;
+  }
+  return out;
+}
 
 export function applyRunResult<S extends SaveV2 | SaveV3>(save: S, result: RunResult, rng: Rng, now: Date): { save: S; rewards: RunRewards } {
   // Every run goes in the records; only one that got past wave 1 pays.
@@ -46,16 +62,9 @@ export function applyRunResult<S extends SaveV2 | SaveV3>(save: S, result: RunRe
   const stallXp = runXp(waves, result.bossKills);
   const kannanXp = runKannanXp(waves, result.bossKills, result.kills);
   const unlocks = { ...save.unlocks, ...unlocksForXp(kannanXpOf(save) + ('kannanXp' in save ? kannanXp : stallXp)) };
-  const chest = rollChest(rng, save.chestPity, 'common', unlocks);
+  const chest = rollChest(rng, save.chestPity, 'common', unlocks, 1 + waves);
   const item = { ...chest.item, uid: `run-${save.runs + 1}-chest-${chest.pity.opened}-${chest.item.uid}` };
-  const materials: Partial<Record<Material, number>> = {};
-  for (let i = 0; i < Math.floor(waves / 5); i++) {
-    const pool = [...MATERIALS];
-    for (let j = 0; j < 2; j++) {
-      const type = pool.splice(rng.int(0, pool.length - 1), 1)[0];
-      materials[type] = (materials[type] ?? 0) + 1;
-    }
-  }
+  const materials = rollMaterialDrops(rng.int(0, 0xffffffff), result);
   const inventoryMaterials = { ...save.materials };
   for (const type of MATERIALS) inventoryMaterials[type] += materials[type] ?? 0;
   const dipProgress = grantDipUse(save as SaveV2, result, CONTENT);
