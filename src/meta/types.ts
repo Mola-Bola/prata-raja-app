@@ -47,3 +47,12 @@ export type SaveV2 = Omit<SaveV1, 'v'> & {
    *  never lose it); opening only reveals it, and until then the item stays out of the gear rack. */
   pendingChests: string[];
 };
+
+/** v3 (Direction 2.0): story beats replace level gates, one persistent Kannan level, stall components. Everything in v2 is kept. */
+export type SaveV3 = Omit<SaveV2, 'v'> & {
+  v: 3;
+  /** Story beats done (e.g. 'prologue', 'kopitiam-street-done'). */
+  beats: string[];
+  kannanXp: number;
+  stall: { parts: Record<string, number> };
+};
