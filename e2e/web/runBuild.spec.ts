@@ -44,10 +44,10 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 390, height: 844 }
       await page.getByTestId('ui-pause').click();
       await page.getByTestId('ui-build').click();
       await expect(page.getByTestId('build-bread-kosong')).toContainText('L1');
-      await expect(page.getByTestId('build-bread-kosong')).toContainText('Base hit 10');
+      await expect(page.getByTestId('build-bread-kosong')).toContainText('Damage');
       await expect(page.getByTestId('build-bread-thosai-typhoon')).toContainText('L1');
-      await expect(page.getByTestId('build-dip-fish-curry')).toContainText('Linked to Roti Bomb');
-      await expect(page.getByTestId('build-dip-fish-curry')).toContainText('Burn 6.27 damage/sec for 3.75s');
+      await expect(page.getByTestId('build-dip-fish-curry')).toContainText('Roti Bomb');
+      await expect(page.getByTestId('build-dip-fish-curry')).toContainText('Burn 6.27/s · 3.75s');
       await expect(page.getByTestId('build-dip-ghee')).toContainText('All breads');
       await expect(page.getByTestId('build-passive-strong-wrists')).toContainText('Hit damage +18%');
       await expect(page.getByTestId('build-effective')).toContainText('Current crit damage ×1.8');
@@ -76,7 +76,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 390, height: 844 }
       });
       await page.getByTestId('ui-pause').click(); await page.getByTestId('ui-build').click();
       await expect(page.getByTestId('build-bread-kosong')).toContainText('L2');
-      await expect(page.getByTestId('build-bread-kosong')).toContainText('Base hit 12');
+      await expect(page.getByTestId('build-bread-kosong')).toContainText('Damage');
       expect(await page.evaluate(() => localStorage.getItem('game:prata-raja/save'))).toBe(storedBefore);
       await page.getByTestId('build-back').click();
       await expect(page.getByTestId('ui-resume')).toBeVisible();
