@@ -11,3 +11,4 @@ Append-only, newest on top, one line per ingest/change/lint.
 - 2026-10-14: One Kannan level with spec points and milestone perks; Crisp & Soak axes; ARPG direction recorded; web always revalidates with update bar.
 - 2026-10-14: Research: malleable dev flow, story milestones, ARPG refs, decomp status audit, decomp RPG systems, decomp scrolling flow.
 - 2026-10-15: Forge bench at the stall (enhance UI, single-affix reroll, Codex masala/chilli/curry-leaves icons); see gear-v2.
+- 2026-10-14: Balance tune after street finds (BALANCE_SEEDS=300): Appam base cooldown 1.0 to 1.25 (solo signature 42% to 12%); Roti Bomb cooldown 1.4 to 1.3 (solo signature 9% to 18%); ch2 untouched (solo 23%).
