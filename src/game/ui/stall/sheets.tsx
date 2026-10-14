@@ -16,7 +16,7 @@ import { SLOTS, TRAINING_IDS, type GearItem, type SaveV2 } from '@/meta/types';
 
 import { pipText } from '../cardText';
 import { Switch, toggleSetting } from '../settings';
-import { chestArt, evolutionRecipes, giftLabel, mergeCandidates, mergeGear, pityLines, rackItems, statLines, titleCase, unlockLevel } from './helpers';
+import { chestArt, evolutionRecipes, giftLabel, mergeCandidates, mergeGear, pityLines, rackItems, statLines, titleCase, unlockBeat } from './helpers';
 import type { Art } from './StallProgress';
 
 export type Commit = (update: (save: SaveV2) => SaveV2) => void;
@@ -68,7 +68,7 @@ export function GearSheet({ save, commit, art }: Ctx) {
               ) : !save.unlocks[slot] ? (
                 <>
                   <img className="sh-item-art" src={art('ui/lock')} alt="" />
-                  <span>Level {unlockLevel(slot)}</span>
+                  <span>{unlockBeat(slot)}</span>
                 </>
               ) : (
                 <span>Empty</span>
@@ -101,7 +101,7 @@ export function GearSheet({ save, commit, art }: Ctx) {
       {item && (
         <section className="sh-detail" data-testid="gear-detail">
           <b>{titleCase(item.baseId)}</b>
-          <p>{save.unlocks[item.slot] ? 'Ready for your next daydream.' : `Wear it now. Its slot opens at stall level ${unlockLevel(item.slot)}.`}</p>
+          <p>{save.unlocks[item.slot] ? 'Ready for your next daydream.' : `Wear it now. Its slot opens: ${unlockBeat(item.slot)}.`}</p>
           {statLines(itemStats(item)).map((line) => (
             <span key={line}>{line}</span>
           ))}
@@ -231,7 +231,7 @@ export function ChestsSheet({ save, commit, art }: Ctx) {
             {statLines(itemStats(revealed)).map((line) => (
               <span key={line}>{line}</span>
             ))}
-            <p>{save.unlocks.gear ? 'Tucked into your gear rack.' : `Kept safe until the rack opens (stall level ${unlockLevel('gear')}).`}</p>
+            <p>{save.unlocks.gear ? 'Tucked into your gear rack.' : `Kept safe until the rack opens: ${unlockBeat('gear')}.`}</p>
           </div>
         </div>
       )}
@@ -299,7 +299,7 @@ export function SettingsSheet({ save, commit }: Pick<Ctx, 'save' | 'commit'>) {
 }
 
 export function SignatureSheet({ save, commit, art }: Ctx) {
-  if (!save.unlocks.signature) return <p>Unlocks at stall level 9.</p>;
+  if (!save.unlocks.signature) return <p>Unlocks: {unlockBeat('signature')}.</p>;
   return <>
     <p>Start each daydream with your favourite bread. The first two Fish Curry, Condensed Milk or Mint Chutney picks link to it.</p>
     <div className="sh-inventory">

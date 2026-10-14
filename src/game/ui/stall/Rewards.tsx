@@ -22,7 +22,7 @@ export function Rewards({ before, payout, art }: { before: SaveV2; payout: Payou
         <p className="sh-unlocks" role="status" data-testid="results-unlocks">
           {unlocks.map((name) => (
             <span className="gu-newbest" key={name}>
-              {name} unlocked!
+              Unlocked: {name}
             </span>
           ))}
         </p>

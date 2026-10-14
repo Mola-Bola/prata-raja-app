@@ -11,7 +11,7 @@ import { chapterUnlocked } from '@/meta/chapters';
 import type { SaveV2 } from '@/meta/types';
 
 import { DipCollection } from './DipCollection';
-import { HOTSPOTS, PANELS, readyBadges, unlockLevel, type Panel } from './helpers';
+import { HOTSPOTS, PANELS, readyBadges, unlockBeat, type Panel } from './helpers';
 import { SignatureSheet, CalendarSheet, ChestsSheet, GearSheet, IdleSheet, PreviewSheet, RecipeSheet, SettingsSheet, TrainingSheet, type Commit } from './sheets';
 import { StallProgress, type Art } from './StallProgress';
 import { openFeedback } from '../FeedbackSheet'; // [feedback hook]
@@ -84,7 +84,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
       </header>
       <footer className="sh-footer" inert={!!panel}>
         <button type="button" className="gu-btn" data-testid="stall-signature" onClick={() => open('signature')}>
-          Signature · {save.unlocks.signature ? CONTENT.breads[save.signatureBread].name : 'Level 9'}
+          Signature · {save.unlocks.signature ? CONTENT.breads[save.signatureBread].name : unlockBeat('signature')}
         </button>
         <button type="button" className="gu-btn gu-btn--primary gu-btn--wide sh-start" data-testid="stall-start" onClick={() => chapterUnlocked(save, 'hawker-night') ? open('chapters') : onStart(CONTENT.chapters[0].id)}>
           Start
@@ -125,7 +125,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
           {locked ? (
             <div className="sh-locked" data-testid="stall-locked">
               <img src={art('ui/lock')} alt="" />
-              <p>Unlocks at stall level {unlockLevel(spot.flag!)}</p>
+              <p>Unlocks: {unlockBeat(spot.flag!)}</p>
               {panel === 'recipes' && <p>Cook evolved breads here from stall level 6.</p>}
               {panel === 'special' && <PreviewSheet kind={panel} art={art} />}
             </div>
