@@ -56,6 +56,8 @@ export type StationId = 'tawa' | 'dips' | 'gear' | 'pantry' | 'spec' | 'orders' 
 export type HubEvents = {
   /** Kannan walked into range of a station (its panel opens) or out of range of all of them (null: it closes). */
   hubStation: { id: StationId | null };
+  /** Counts to show as badges on the hub's signs (unopened chests: Pantry and Gear). */
+  hubBadges: { chests: number };
   kitchenStart: { seed: number; tuning: KitchenTuning; flakyKosong?: boolean };
   kitchenStats: KitchenStats;
   kitchenEnd: { reason: 'won' | 'lost' | 'stopped'; stats: KitchenStats };

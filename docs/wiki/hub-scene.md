@@ -1,6 +1,6 @@
 # Walkable stall hub (HubScene)
 
-Status: live on branch claude/r8-hub (milestone 3 of docs/plans/round8-fusion.md). Last change: 2026-10-15 (hub polish: floor, one back wall, pan above the open sheet, two NPCs).
+Status: live on branch claude/r8-hub (milestone 3 of docs/plans/round8-fusion.md). Last change: 2026-10-15 (readability redesign: U layout, permanent signs, near glow/lift, first-visit tips, uncle bark, GO docked in panel footer).
 
 The home screen between runs. A Phaser `HubScene` draws a three-quarter room from real atlas frames (room/*): terrazzo floor,
 back wall, counters, kopi stall with the uncle, tawa, doorway (Exit), stools, fairy lights. Kannan walks with a floating
@@ -27,3 +27,5 @@ fan shadow were already placed; web e2e specs still expect `stall-hub` after Sta
 
 Research used: docs/research/hub-design.md (anti-tedium 1, 3, 5, 6: short walks, one GO from anywhere, panels <= 2 levels).
 Skipped on purpose: Dave-style business loop, village growth.
+
+Readability (r8-hubread): stations form a U (kopi, tawa, door along the back wall; gear, pantry, table cluster down the left; orders, dips, spec down the right), ~100 wide, 155 apart. Every station has a permanent sign (icon + 1-2 word name, `Station.label/icon` in layout.ts) hung on its art; within NEAR (RANGE+14) the sign lights warm, the art gets a gold silhouette outline and grows 4% (not with reduced motion), a verb tag appears (`Station.verb`) and the floor ring shows: one at a time. Pantry and Gear signs carry a coral badge with the unopened-chest count (hub event `hubBadges`). Soft ellipse shadows under props. Kannan's first walk near the uncle shows "Kopi before you go?" for 2 s. First time a station panel opens: a one-line tip (src/game/ui/hub/tips.ts, bridge key prata-raja/hub-tips, not the save). GO docks in the open panel's footer; the meal chip sits under the top bar; Gear panel has "Open chests (N)". Removed the two floating NPCs (student, auntie).

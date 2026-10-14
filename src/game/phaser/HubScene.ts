@@ -7,8 +7,10 @@ import * as Phaser from 'phaser';
 import { FRAME_ATLAS } from '../atlas';
 import { startMusic, stopMusic } from '../audio/music';
 import { playSfx } from '../audio/sfx';
+import { brand } from '@/ui/brand';
+
 import type { Hub, StationId } from '../hub';
-import { BOUNDS, DECALS, PROPS, RANGE, ROOM_H, ROOM_W, route, SPEED, STATIONS, START, step, stationById, stationNear, type Prop } from './hub/layout';
+import { BOUNDS, DECALS, PROPS, NEAR, RANGE, ROOM_H, ROOM_W, route, SPEED, STATIONS, START, step, stationById, stationNear, type Prop } from './hub/layout';
 
 type Dir = 'down' | 'up' | 'left' | 'right';
 type Pt = { x: number; y: number };
@@ -19,10 +21,17 @@ const JOY_R = 56; // joystick travel, design units
 const DRAG = 10; // a touch that moves this far (px) is the joystick, not a tap
 const FLOOR_TRIM = 10; // px cut from every edge of a floor tile
 const KANNAN_H = 92; // Kannan's drawn height, design units
-// Station labels: the React overlay's cream text on the glass pill (GameUi.css --cream, and --glass at 0.78).
+// Station signs: the React overlay's cream text on the glass pill (GameUi.css --cream, and --glass at 0.78); lit, a warm pill.
+const hex = (c: string): number => parseInt(c.slice(1), 16);
 const LABEL_INK = '#FFF4E0';
 const LABEL_PILL = 0x22140a;
-const LABEL_PILL_ALPHA = 0.78;
+const LABEL_PILL_ALPHA = 0.85;
+const WARM = hex(brand.semantic.light.warnContainer);
+const WARM_INK = brand.semantic.light.onWarnContainer;
+const EXIT_GREEN = hex(brand.light.primary);
+const SIGN_H = 28; // sign pill height, design units (text is 15 px at 390 wide)
+const LIFT = 1.04; // the near station's art grows by this
+type Sign = { tag: Phaser.GameObjects.Container; pill: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text; icon?: Phaser.GameObjects.Image; verb: Phaser.GameObjects.Container; w: number; hot: boolean | null; badge: Phaser.GameObjects.Container };
 const reducedMotion = (): boolean => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const frame = (name: string): { key: string; frame: string } => ({ key: FRAME_ATLAS[name], frame: name });
 
@@ -38,7 +47,14 @@ export class HubScene extends Phaser.Scene {
   private uncle?: Placed;
   private fan?: Phaser.GameObjects.Image;
   private rings = new Map<StationId, Phaser.GameObjects.Image>();
-  private labels = new Map<StationId, { tag: Phaser.GameObjects.Container; text: Phaser.GameObjects.Text; pill: Phaser.GameObjects.Graphics }>();
+  private signs = new Map<StationId, Sign>();
+  private halos = new Map<StationId, Phaser.GameObjects.Image>();
+  private lift = new Map<StationId, number>();
+  private near: StationId | null = null; // the one station whose sign is lit (closest within NEAR)
+  private bubble?: { tag: Phaser.GameObjects.Container; until: number };
+  private barked = false;
+  private chests = 0; // unopened chests: a badge on the Pantry and Gear signs
+  private shadows: { img: Phaser.GameObjects.Image; x: number; y: number; w: number }[] = [];
   private joyBase!: Phaser.GameObjects.Image;
   private joyKnob!: Phaser.GameObjects.Image;
   private pos: Pt = { ...START };
@@ -61,6 +77,7 @@ export class HubScene extends Phaser.Scene {
 
   create(): void {
     this.hub = this.registry.get('hub') as Hub;
+    this.hub.on('hubBadges', ({ chests }) => { this.chests = chests; });
     this.reduceMotion = reducedMotion();
     this.cameras.main.setBackgroundColor(0xd8c5a6);
     this.build();
@@ -121,6 +138,7 @@ export class HubScene extends Phaser.Scene {
     this.joyBase.setVisible(false);
     this.joyKnob.setVisible(false);
     this.setStation(null);
+    this.near = null;
     this.tweens.killTweensOf(this.cameras.main);
     this.cameras.main.setScroll(0, 0);
   }
@@ -158,6 +176,13 @@ export class HubScene extends Phaser.Scene {
       this.propArt.set(p, placed);
       if (p.frame.startsWith('room/npc-')) this.bobbers.push({ p: placed, phase: this.bobbers.length * 1.7 });
     }
+    // Soft ellipse shadows under every standing thing: they tie the three-quarter props to the flat floor.
+    const soften = (x: number, y: number, w: number) => {
+      const img = this.add.image(0, 0, 'shadow').setDepth(y - 0.6).setAlpha(0.35);
+      this.shadows.push({ img, x, y, w });
+    };
+    for (const p of PROPS) soften(p.x, p.y - 2, p.w * 0.95);
+    soften(82, 322, 40);
     const uncle = this.image('room/npc-uncle-ah-seng', 54, 320);
     this.uncle = { img: uncle, x: 82, y: 322, w: 54 };
     this.placed.push(this.uncle);
@@ -172,18 +197,62 @@ export class HubScene extends Phaser.Scene {
       const ring = this.image('roomui/station-prompt-ring', 64, st.y - 1000 + 1, 0.5).setVisible(false);
       this.placed.push({ img: ring, x: st.x, y: st.y, w: 64 });
       this.rings.set(st.id, ring);
-      // A glass pill behind the name: the pill is drawn in relayout(), once the text has its size.
-      const text = this.add.text(0, 0, st.label, { fontFamily: 'Fredoka, system-ui, sans-serif', fontSize: '14px', color: LABEL_INK }).setOrigin(0.5, 1);
-      const pill = this.add.graphics();
-      const tag = this.add.container(0, 0, [pill, text]).setDepth(9500);
-      this.labels.set(st.id, { tag, text, pill });
+      // The halo: the station's own art as a warm silhouette just behind it (an outline) while it is the near one.
+      const prop = PROPS.find((q) => q.station === st.id)!;
+      const halo = this.image(prop.frame, prop.w * 1.08, prop.y - 0.1).setTint(WARM).setTintMode(Phaser.TintModes.FILL).setAlpha(0).setVisible(false);
+      this.placed.push({ img: halo, x: prop.x, y: prop.y, w: prop.w * 1.08 });
+      this.halos.set(st.id, halo);
+      this.lift.set(st.id, 1);
+      this.signs.set(st.id, this.makeSign(st));
     }
+    this.bubble = { tag: this.makeBubble('Kopi before you go?'), until: 0 };
     this.shadow = this.add.image(0, 0, 'shadow').setDepth(0);
     this.kannan = this.add.image(0, 0, FRAME_ATLAS['kannan/walk-down-idle'], 'kannan/walk-down-idle').setOrigin(0.5, 1);
     const jb = frame('roomui/joystick-base'), jk = frame('roomui/joystick-knob-v2');
     // Screen-fixed: the joystick is placed in screen px, so it must not move with the camera pan.
     this.joyBase = this.add.image(0, 0, jb.key, jb.frame).setDepth(20000).setAlpha(0.85).setVisible(false).setScrollFactor(0);
     this.joyKnob = this.add.image(0, 0, jk.key, jk.frame).setDepth(20001).setVisible(false).setScrollFactor(0);
+  }
+
+  /** A hanging sign: icon + 1-2 word name on a pill, and (hidden until near) a verb tag above it. Drawn in drawSign(). */
+  private makeSign(st: (typeof STATIONS)[number]): Sign {
+    const text = this.add.text(0, 0, st.label, { fontFamily: 'Fredoka, system-ui, sans-serif', fontSize: '15px', fontStyle: '700', color: LABEL_INK }).setOrigin(0, 0.5).setResolution(2);
+    const pill = this.add.graphics();
+    const icon = st.icon ? this.add.image(0, 0, FRAME_ATLAS[st.icon], st.icon).setOrigin(0, 0.5) : undefined;
+    if (icon) icon.setScale(22 / icon.frame.realHeight);
+    const vtext = this.add.text(0, 0, st.verb, { fontFamily: 'Nunito, system-ui, sans-serif', fontSize: '13px', fontStyle: '800', color: WARM_INK }).setOrigin(0.5).setResolution(2);
+    const vw = vtext.width + 16;
+    const vpill = this.add.graphics().fillStyle(WARM, 1).fillRoundedRect(-vw / 2, -9, vw, 18, 9).lineStyle(1.5, hex(brand.light.onSurface), 0.6).strokeRoundedRect(-vw / 2, -9, vw, 18, 9);
+    const verb = this.add.container(0, -SIGN_H - 12, [vpill, vtext]).setVisible(false);
+    const bt = this.add.text(0, 0, '!', { fontFamily: 'Fredoka, system-ui, sans-serif', fontSize: '13px', fontStyle: '700', color: '#FFFFFF' }).setOrigin(0.5).setResolution(2);
+    const badge = this.add.container(0, 0, [this.add.graphics().fillStyle(hex(brand.semantic.light.coral), 1).fillCircle(0, 0, 10).lineStyle(2, hex(LABEL_INK), 1).strokeCircle(0, 0, 10), bt]).setVisible(false);
+    const tag = this.add.container(0, 0, [pill, ...(icon ? [icon] : []), text, verb, badge]).setDepth(9500);
+    return { tag, pill, text, icon, verb, w: 0, hot: null, badge };
+  }
+
+  private makeBubble(msg: string): Phaser.GameObjects.Container {
+    const text = this.add.text(0, 0, msg, { fontFamily: 'Fredoka, system-ui, sans-serif', fontSize: '14px', fontStyle: '600', color: brand.light.onSurface }).setOrigin(0.5).setResolution(2);
+    const w = text.width + 20, h = 28;
+    const g = this.add.graphics().fillStyle(hex(brand.light.surface), 1).fillRoundedRect(-w / 2, -h / 2, w, h, 12).fillTriangle(-6, h / 2 - 1, 6, h / 2 - 1, -10, h / 2 + 9)
+      .lineStyle(2, hex(brand.light.onSurface), 0.7).strokeRoundedRect(-w / 2, -h / 2, w, h, 12);
+    return this.add.container(0, 0, [g, text]).setDepth(9600).setVisible(false);
+  }
+
+  /** (Re)draw a sign's pill for its resting or lit look; only when that changes (or the text got its real width). */
+  private drawSign(id: StationId, hot: boolean): void {
+    const sg = this.signs.get(id)!;
+    const iconW = sg.icon ? 22 * (sg.icon.frame.realWidth / sg.icon.frame.realHeight) : 0;
+    const w = 12 + (sg.icon ? iconW + 6 : 0) + sg.text.width + 14;
+    if (sg.hot === hot && sg.w === w) return;
+    sg.hot = hot; sg.w = w;
+    const exit = id === 'exit';
+    const fill = hot ? WARM : exit ? EXIT_GREEN : LABEL_PILL;
+    sg.pill.clear().fillStyle(fill, hot ? 1 : exit ? 1 : LABEL_PILL_ALPHA).fillRoundedRect(-w / 2, -SIGN_H, w, SIGN_H, SIGN_H / 2)
+      .lineStyle(2, hot ? hex(brand.light.onSurface) : hex(LABEL_INK), hot ? 0.8 : 0.55).strokeRoundedRect(-w / 2, -SIGN_H, w, SIGN_H, SIGN_H / 2);
+    let x = -w / 2 + 12;
+    if (sg.icon) { sg.icon.setPosition(x, -SIGN_H / 2); x += iconW + 6; }
+    sg.text.setPosition(x, -SIGN_H / 2 + 1).setColor(hot ? WARM_INK : LABEL_INK);
+    sg.badge.setPosition(w / 2 - 2, -SIGN_H + 2);
   }
 
   private relayout(): void {
@@ -197,11 +266,16 @@ export class HubScene extends Phaser.Scene {
       p.img.setScale(k).setPosition(Math.round((p.x - ROOM_W / 2) * this.s) - FLOOR_TRIM * k, Math.round(p.row * ROOM_W * this.s) - FLOOR_TRIM * k);
     }
     for (const st of STATIONS) {
-      const { tag, text, pill } = this.labels.get(st.id)!;
-      const w = text.width + 16, h = text.height + 6;
-      pill.clear().fillStyle(LABEL_PILL, LABEL_PILL_ALPHA).fillRoundedRect(-w / 2, -text.height - 3, w, h, h / 2);
-      tag.setPosition(st.x * this.s, (st.y - 22) * this.sy).setScale(this.s * 0.95);
+      const sg = this.signs.get(st.id)!;
+      const prop = this.propArt.get(PROPS.find((q) => q.station === st.id)!)!;
+      // The art has about a fifth of empty margin above its content: hang the sign on the content.
+      const h = (prop.w * prop.img.frame.realHeight) / prop.img.frame.realWidth;
+      sg.hot = null; // the font may have loaded since: measure again
+      this.drawSign(st.id, st.id === this.near);
+      sg.tag.setPosition(prop.x * this.s, (prop.y - h * 0.82 - 4) * this.sy).setScale(this.s);
     }
+    if (this.uncle && this.bubble) this.bubble.tag.setPosition(this.uncle.x * this.s, (this.uncle.y - 66) * this.sy).setScale(this.s);
+    for (const sh of this.shadows) sh.img.setPosition(sh.x * this.s, sh.y * this.sy).setScale((sh.w * this.s) / 64, (sh.w * 0.22 * this.s) / 64);
     this.joyBase.setScale((120 * this.s) / this.joyBase.frame.realWidth);
     this.joyKnob.setScale((48 * this.s) / this.joyKnob.frame.realWidth);
     this.drawKannan();
@@ -316,6 +390,7 @@ export class HubScene extends Phaser.Scene {
   }
 
   private updateStation(): void {
+    this.near = stationNear(this.pos.x, this.pos.y, NEAR)?.id ?? null;
     const near = stationNear(this.pos.x, this.pos.y);
     let id: StationId | null = near?.id ?? null;
     // Out of range: the panel closes (with a little slack so the edge does not flicker). Held open while still close.
@@ -345,13 +420,40 @@ export class HubScene extends Phaser.Scene {
     else this.tweens.add({ targets: cam, scrollY: to, duration: 250, ease: 'Sine.easeInOut' });
   }
 
+  /** Kannan's first walk near the kopi uncle each session: a 2 s speech bubble. */
+  private updateBark(): void {
+    const b = this.bubble;
+    if (!b || !this.uncle) return;
+    if (!this.barked && Math.hypot(this.uncle.x - this.pos.x, this.uncle.y - this.pos.y) < 90) {
+      this.barked = true;
+      b.until = this.clock + 2;
+      b.tag.setVisible(true);
+    }
+    if (b.tag.visible && this.clock > b.until) b.tag.setVisible(false);
+  }
+
   private animateProps(): void {
     for (const [sid, ring] of this.rings) {
-      const on = sid === this.current;
+      const on = sid === this.near;
       ring.setVisible(on);
       if (on) ring.setAlpha(this.reduceMotion ? 0.9 : 0.7 + 0.3 * Math.sin(this.clock * 4));
-      this.labels.get(sid)!.tag.setAlpha(on ? 1 : 0.82);
+      const sg = this.signs.get(sid)!;
+      this.drawSign(sid, on);
+      sg.verb.setVisible(on);
+      const badged = (sid === 'pantry' || sid === 'gear') && this.chests > 0;
+      sg.badge.setVisible(badged);
+      if (badged) (sg.badge.list[1] as Phaser.GameObjects.Text).setText(String(this.chests));
+      // The lit station lifts a little (a 4% grow, eased); reduced motion only glows.
+      const prop = PROPS.find((q) => q.station === sid)!;
+      const art = this.propArt.get(prop)!.img, halo = this.halos.get(sid)!;
+      const want = on && !this.reduceMotion ? LIFT : 1;
+      const k = this.lift.get(sid)! + (want - this.lift.get(sid)!) * 0.25;
+      this.lift.set(sid, k);
+      const base = (prop.w * this.s) / art.frame.realWidth;
+      art.setScale(base * k);
+      halo.setVisible(on).setAlpha(on ? 0.9 : 0).setScale(base * 1.08 * k);
     }
+    this.updateBark();
     if (this.fan && !this.reduceMotion) this.fan.setAngle(this.clock * 40);
     if (this.uncle && !this.reduceMotion) this.uncle.img.setScale(this.uncle.img.scaleX, ((this.uncle.w * this.s) / (this.uncle.img.frame.realWidth)) * (1 + Math.sin(this.clock * 2) * 0.012));
     if (!this.reduceMotion) for (const b of this.bobbers) {
