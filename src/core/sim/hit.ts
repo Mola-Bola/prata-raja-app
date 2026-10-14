@@ -44,7 +44,7 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
   if (e.hp > 0 && e.state !== 'dead' && r.dmg > 0) creditDipUse(w, breadId);
   e.hp -= r.dmg;
   e.flash = HIT_FLASH;
-  emit(c, { t: 'hit', uid: e.uid, x: e.x, y: e.y, dmg: r.dmg, crit: r.crit, color: null });
+  emit(c, { t: 'hit', uid: e.uid, x: e.x, y: e.y, dmg: r.dmg, crit: r.crit, color: null, breadId });
   if (st) {
     if (st.healOnHit) {
       const hp = Math.min(st.healOnHit, p.stats.maxHp - p.hp);

@@ -384,7 +384,7 @@ export type Card = {
 
 export type GameEvent =
   | { t: 'throw'; breadId: BreadId; x: number }
-  | { t: 'hit'; uid: number; x: number; y: number; dmg: number; crit: boolean; color: string | null }
+  | { t: 'hit'; uid: number; x: number; y: number; dmg: number; crit: boolean; color: string | null; breadId?: BreadId }
   | { t: 'dot'; uid: number; x: number; y: number; dmg: number; color: string }
   | { t: 'shieldHit'; uid: number; x: number; y: number }
   | { t: 'shieldBreak'; uid: number; x: number; y: number }
