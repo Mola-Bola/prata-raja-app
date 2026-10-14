@@ -44,3 +44,5 @@
 .hb-materials { display: flex; flex-wrap: wrap; gap: 6px; }
 
 @media (prefers-reduced-motion: reduce) { .hb-sheet { animation: none; } .hb-go { transition: none; } }
+
+.hb-meal { position: absolute; z-index: 3; right: calc(var(--safe-right) + 12px); bottom: calc(var(--safe-bottom) + 80px); max-width: 148px; padding: 2px 10px; border-radius: 999px; background: var(--glass); color: var(--cream); font: 700 var(--fs-cap)/1.4 Nunito, system-ui, sans-serif; text-align: center; pointer-events: none; }

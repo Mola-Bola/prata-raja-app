@@ -1,6 +1,7 @@
 # Wiki log
 Append-only, newest on top, one line per ingest/change/lint.
 
+- 2026-10-15: Walkable stall hub (HubScene + HubOverlay): joystick/tap/WASD, 8 stations with panels, GO pill, old stall via Settings. Branch claude/r8-hub.
 - 2026-10-14: Teh tarik haste pour (caramel ribbon cup to hand, droplets, caramel trail, froth puff; reduced motion tint only); Kannan hurt zone 34 -> 30 u (balance in band at 300 seeds; 26 u broke the bands) with a floor ellipse that flashes on hit. Branch claude/tarik-hitbox.
 - 2026-10-14: Wiki created (index, 20 pages, research/INDEX.md, stale-code, archive of DEPTH/ROADMAP/SPEC/OWNER-SUMMARY-DEPTH/FEEDBACK/reviews). Lint: none yet.
 - 2026-10-14: Research added: knowledge-practices; more decomps (TTYD, D2 sockets, SoM mastery, FFTA jobs); culture sensitivities became standing rules (music: thavil, no urumi).

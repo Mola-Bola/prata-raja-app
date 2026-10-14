@@ -5,6 +5,8 @@
 import * as Phaser from 'phaser';
 
 import { FRAME_ATLAS } from '../atlas';
+import { startMusic, stopMusic } from '../audio/music';
+import { playSfx } from '../audio/sfx';
 import type { Hub, StationId } from '../hub';
 import { BOUNDS, DECALS, PROPS, RANGE, ROOM_H, ROOM_W, route, SPEED, STATIONS, START, step, stationById, stationNear, type Prop } from './hub/layout';
 
@@ -15,6 +17,7 @@ type Placed = { img: Phaser.GameObjects.Image; x: number; y: number; w: number; 
 const FPS = 8;
 const JOY_R = 56; // joystick travel, design units
 const DRAG = 10; // a touch that moves this far (px) is the joystick, not a tap
+const FLOOR_TRIM = 10; // px cut from every edge of a floor tile
 const KANNAN_H = 92; // Kannan's drawn height, design units
 const frame = (name: string): { key: string; frame: string } => ({ key: FRAME_ATLAS[name], frame: name });
 
@@ -53,7 +56,7 @@ export class HubScene extends Phaser.Scene {
   create(): void {
     this.hub = this.registry.get('hub') as Hub;
     this.reduceMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    this.cameras.main.setBackgroundColor(0x2a1a10);
+    this.cameras.main.setBackgroundColor(0xd8c5a6);
     this.build();
     const kb = this.input.keyboard;
     const k = (...codes: string[]) => codes.map((c) => kb!.addKey(c, false));
@@ -88,6 +91,7 @@ export class HubScene extends Phaser.Scene {
     this.scene.sleep('RunScene');
     this.scene.wake('HubScene');
     this.dismissed = null;
+    startMusic('hub');
     // The loop sleeps whenever no run is live (RunScene.update); the queued scene changes need a step to happen.
     if (!this.game.loop.running) {
       if (this.scale.getParentBounds()) this.scale.refresh();
@@ -99,6 +103,7 @@ export class HubScene extends Phaser.Scene {
     if (this.sys.isSleeping() || !this.sys.isActive()) return;
     this.scene.sleep('HubScene');
     this.scene.wake('RunScene');
+    stopMusic(); // the run starts its own
   }
 
   private onSleep(): void {
@@ -128,8 +133,8 @@ export class HubScene extends Phaser.Scene {
   private build(): void {
     // Floor: terrazzo tiles (the frame is a seamless square).
     for (let r = 0; r < 6; r++) for (let c = 0; c < 2; c++) {
-      const img = this.image('room/hawker-floor-terrazzo', ROOM_W / 2, -1000, 0);
-      this.placed.push({ img, x: c * (ROOM_W / 2) + ROOM_W / 4, y: 0, w: ROOM_W / 2 + 1, row: r });
+      const img = this.image('room/hawker-floor-terrazzo-v2', ROOM_W / 2, -1000, 0).setOrigin(0, 0).setCrop(FLOOR_TRIM, FLOOR_TRIM, 384 - 2 * FLOOR_TRIM, 384 - 2 * FLOOR_TRIM);
+      this.placed.push({ img, x: c * (ROOM_W / 2) + ROOM_W / 4, y: 0, w: ROOM_W / 2 + 5, row: r });
     }
     for (const d of DECALS) {
       const img = this.image(d.frame, d.w, d.depth).setAlpha(d.alpha ?? 1);
@@ -144,8 +149,10 @@ export class HubScene extends Phaser.Scene {
     const uncle = this.image('room/npc-uncle-ah-seng', 54, 320);
     this.uncle = { img: uncle, x: 82, y: 322, w: 54 };
     this.placed.push(this.uncle);
-    const lights = this.image('room/fairy-light-string', ROOM_W, 9000, 0);
-    this.placed.push({ img: lights, x: ROOM_W / 2, y: 6, w: ROOM_W + 20 });
+    for (const x of [100, 290]) {
+      const lights = this.image('room/fairy-light-string', 200, 9000, 0);
+      this.placed.push({ img: lights, x, y: -34, w: 200 });
+    }
     this.fan = this.image('room/ceiling-fan-shadow', 240, 8000, 0.5).setAlpha(0.14);
     this.placed.push({ img: this.fan, x: 195, y: 520, w: 240 });
 
@@ -168,8 +175,10 @@ export class HubScene extends Phaser.Scene {
     this.s = W / ROOM_W;
     this.sy = H / ROOM_H;
     for (const p of this.placed) {
-      this.place(p.img, p.x, p.y, p.w);
-      if (p.row !== undefined) p.img.setY(p.row * (ROOM_W / 2) * this.s);
+      if (p.row === undefined) { this.place(p.img, p.x, p.y, p.w); continue; }
+      // A floor tile: its art's edge is a lighter line, so trim it and let the tiles overlap by a pixel.
+      const k = ((ROOM_W / 2) * this.s + 1) / (384 - 2 * FLOOR_TRIM);
+      p.img.setScale(k).setPosition(Math.round((p.x - ROOM_W / 4) * this.s) - FLOOR_TRIM * k, Math.round(p.row * (ROOM_W / 2) * this.s) - FLOOR_TRIM * k);
     }
     for (const st of STATIONS) this.labels.get(st.id)!.setPosition(st.x * this.s, (st.y - 22) * this.sy).setScale(this.s * 0.95);
     this.joyBase.setScale((120 * this.s) / this.joyBase.frame.realWidth);
@@ -264,7 +273,9 @@ export class HubScene extends Phaser.Scene {
       const moved = Math.hypot(this.pos.x - before.x, this.pos.y - before.y);
       this.stuckFor = this.path.length && moved < 0.2 * m * SPEED * dt ? this.stuckFor + dt : 0;
       if (this.stuckFor > 0.4) { this.path = []; this.stuckFor = 0; }
+      const before2 = Math.floor(this.animT * FPS / 2);
       this.animT += dt;
+      if (Math.floor(this.animT * FPS / 2) !== before2) playSfx('step'); // a footfall on every second frame
     } else this.animT = 0;
     this.drawKannan();
     this.updateStation();

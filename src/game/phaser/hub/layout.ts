@@ -28,7 +28,6 @@ export const PROPS: Prop[] = [
   { frame: 'room/pantry-shelves', x: 62, y: 745, w: 124, hw: 52, d: 26, station: 'pantry' },
   { frame: 'room/dip-shelf', x: 340, y: 600, w: 92, hw: 36, d: 22, station: 'dips' },
   { frame: 'room/spec-board', x: 338, y: 740, w: 92, hw: 34, d: 14, station: 'spec' },
-  { frame: 'room/pillar', x: 18, y: 345, w: 40, hw: 12, d: 10 },
 ];
 
 /** Decoration with no footprint. `depth` fixed: floors under everything, lights and fan shadow over it. */

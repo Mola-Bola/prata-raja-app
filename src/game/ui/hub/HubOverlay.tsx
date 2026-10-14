@@ -3,7 +3,7 @@
 // panels reuse the old stall's sheets (src/game/ui/stall/*), at most two levels deep (station, then a tab). The GO pill is always
 // there and starts a run exactly as the old stall's Start button did. The overlay ignores touches except on its own controls,
 // so the joystick and tap-to-walk go to the canvas.
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { CONTENT } from '@/content';
 import { chapterUnlocked } from '@/meta/chapters';
@@ -19,6 +19,9 @@ import { ForgeSheet } from '../stall/Forge';
 import { progress, titleCase, unlockBeat } from '../stall/helpers';
 import type { Art } from '../stall/StallProgress';
 import { Visitor } from '../stall/Visitor';
+import { playSfx } from '../../audio/sfx';
+import { KopiMeal, mealLabel } from '../meal/KopiMeal';
+import { SpecTree } from '../spec/SpecTree';
 import { openFeedback } from '../FeedbackSheet'; // [feedback hook]
 import '../stall/Stall.css';
 import './HubOverlay.css';
@@ -36,6 +39,12 @@ export function HubOverlay({ hub, save, commit, art, afterRun, onStart, onStory,
   const [visitor, setVisitor] = useState(() => (afterRun ? dueMilestone(save) : null));
   useEffect(() => hub.on('hubStation', ({ id }) => { setStation(id); if (id) setHeld(null); }), [hub]);
   const shown: Open | null = held ?? station;
+  const wasShown = useRef<Open | null>(null);
+  useEffect(() => {
+    if (shown && !wasShown.current) playSfx('stationOpen');
+    else if (!shown && wasShown.current) playSfx('stationClose');
+    wasShown.current = shown;
+  }, [shown]);
   const close = () => {
     setHeld(null);
     hub.controls?.hubDismiss?.();
@@ -62,10 +71,11 @@ export function HubOverlay({ hub, save, commit, art, afterRun, onStart, onStory,
       <button type="button" className="hb-go" data-testid="hub-go" aria-label="Go" onClick={go}>
         <img src={art('roomui/go-pill')} alt="" />
       </button>
+      {mealLabel(save) && <span className="hb-meal" data-testid="hub-meal">{mealLabel(save)}</span>}
       <button type="button" className="gu-btn hb-tell" data-testid="hub-tell" onClick={openFeedback}>Tell Kannan</button>
       {shown && (
         <Panel key={shown} id={shown} close={close} art={art}>
-          <Content id={shown} save={save} commit={commit} art={art} onStart={onStart} onStory={onStory} onOldStall={onOldStall} onKitchen={onKitchen} onTune={onTune} walkTo={(s) => { setHeld(null); hub.controls?.hubWalkTo?.(s); }} />
+          <Content id={shown} save={save} commit={commit} art={art} onStart={onStart} onStory={onStory} onOldStall={onOldStall} onKitchen={onKitchen} onTune={onTune} close={close} walkTo={(s) => { setHeld(null); hub.controls?.hubWalkTo?.(s); }} />
         </Panel>
       )}
       {visitor && <Visitor due={visitor} commit={commit} art={art} onDone={() => setVisitor(null)} />}
@@ -105,9 +115,9 @@ function Tabs({ tabs }: { tabs: { name: string; flag?: UnlockFlag; save: SaveV2;
   );
 }
 
-type ContentProps = { id: Open; save: SaveV2; commit: Commit; art: Art; onStart: (c: string) => void; onStory: () => void; onOldStall: () => void; onKitchen: () => void; onTune?: () => void; walkTo: (s: StationId) => void };
+type ContentProps = { id: Open; save: SaveV2; commit: Commit; art: Art; onStart: (c: string) => void; onStory: () => void; onOldStall: () => void; onKitchen: () => void; onTune?: () => void; walkTo: (s: StationId) => void; close: () => void };
 
-function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitchen, onTune, walkTo }: ContentProps) {
+function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitchen, onTune, walkTo, close }: ContentProps) {
   const now = new Date();
   const chapters = (
     <div data-testid="hub-chapters">
@@ -142,7 +152,7 @@ function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitche
     case 'spec':
       return (
         <Tabs tabs={[
-          { name: 'Spec tree', ...t, body: <p data-testid="hub-spec-stub">Spec tree — coming tonight. You hold {specPointsOf(save)} spec points.</p> },
+          { name: 'Spec tree', ...t, body: <SpecTree save={save} commit={commit} onClose={close} /> },
           { name: 'Training', flag: 'training', ...t, body: <TrainingSheet save={save} commit={commit} art={art} /> },
         ]} />
       );
@@ -155,7 +165,7 @@ function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitche
         ]} />
       );
     case 'kopi':
-      return <p data-testid="hub-kopi-stub">Kopi uncle’s meal — coming tonight.</p>;
+      return <KopiMeal save={save} commit={commit} onClose={close} />;
     case 'exit':
       return chapters;
     case 'settings':
