@@ -153,7 +153,7 @@ export default function GameRoot({ haptic, save, load, track, insets, info }: Pr
           this whole box 4 px of hidden scroll (a focus or scrollIntoView then shifted every screen by 4 px). */}
       <div ref={parent} style={{ position: 'absolute', inset: 0, display: 'flex', overflow: 'hidden' }} />
       {/* The overlay ignores touches (they go to the game) except on its own buttons. */}
-      <GameUi hub={hub} bridge={bridge} />
+      <GameUi hub={hub} bridge={bridge} info={info} />
     </div>
   );
 }

@@ -87,7 +87,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
           Signature · {save.unlocks.signature ? CONTENT.breads[save.signatureBread].name : 'Level 9'}
         </button>
         <button type="button" className="gu-btn gu-btn--primary gu-btn--wide sh-start" data-testid="stall-start" onClick={() => chapterUnlocked(save, 'hawker-night') ? open('chapters') : onStart(CONTENT.chapters[0].id)}>
-          Start daydream
+          Start
         </button>
         <button type="button" className="gu-btn" data-testid="stall-kitchen" onClick={onKitchen}>{brandWords.words.kitchen}</button>
         <button type="button" className="gu-btn" data-testid="stall-tell" onClick={openFeedback}>

@@ -251,7 +251,7 @@ test('a first launch starts run 1 at once; a returning player opens the stall; a
   const v1 = { v: 1, bestWave: 5, runs: 4, wins: 1, gold: 123, totalKills: 90, lastPlayed: new Date(Date.now() - 2 * HOUR).toISOString(), settings: { sfx: false, music: true, haptics: false } };
   await withSave(page, v1);
   await page.goto('/play');
-  await expect(tid(page, 'ui-start')).toHaveText('Open the stall');
+  await expect(tid(page, 'ui-start')).toHaveText('Continue');
   await expect(tid(page, 'ui-start')).toBeEnabled();
   expect(await stored(page)).toEqual(v1); // reading it changed nothing on disk
   await tid(page, 'ui-start').click();
@@ -440,7 +440,7 @@ test('a save that cannot be read leaves the title with Try again and never write
   await page.goto('/play');
   await expect(tid(page, 'ui-start')).toHaveText('Try again');
   await tid(page, 'ui-start').click();
-  await expect(tid(page, 'ui-start')).toHaveText('Open the stall');
+  await expect(tid(page, 'ui-start')).toHaveText('Continue');
   await tid(page, 'ui-start').click();
   await expect(tid(page, 'stall-coins')).toHaveText('999');
   expect(await stored(page)).toMatchObject({ gold: 999, runs: 7 });

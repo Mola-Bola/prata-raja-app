@@ -186,6 +186,42 @@
   cursor: default;
 }
 
+/* Title tools (Intro, build) sit under the logo, out of the Start pill's measured spot. */
+.gu-title-tools {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.gu-link {
+  pointer-events: auto;
+  padding: 6px 8px;
+  border: 0;
+  background: none;
+  color: var(--cream);
+  font: 700 15px/1 Nunito, system-ui, sans-serif;
+  text-decoration: underline;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* The build label: small, quiet, never a button. */
+.gu-version {
+  margin: 0;
+  font: 600 12px/1.2 Nunito, system-ui, sans-serif;
+  color: var(--cream);
+  opacity: 0.85;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.gu-sheet .gu-version {
+  color: var(--ink);
+  opacity: 0.7;
+  text-shadow: none;
+  text-align: center;
+}
+
 /* ── HUD (during a run) ─────────────────────────────────────────────────────── */
 
 .gu-hud {

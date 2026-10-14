@@ -5,7 +5,8 @@
 // the Sound and Haptics toggles) goes through the save store (saveStore.ts).
 //
 // Flow: title -> (first launch) prologue -> run 1, no hub -> wake-up screen with the payout -> "Daydream again" or "Back to
-// stall" -> the hub -> its Start button -> the next run, started with the gear and training the save holds.
+// stall" -> the hub -> its Start button -> the next run, started with the gear and training the save holds. The title's
+// "Intro" link replays the prologue and returns to the title.
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { CSSProperties } from 'react';
 
@@ -20,6 +21,7 @@ import { applyRunResult } from '@/meta/runRewards';
 import type { SaveV2 } from '@/meta/types';
 
 import { ASSET_URLS } from '../assets';
+import type { AppInfo } from '../appInfo';
 import type { Bridge, HapticKind } from '../bridgeTypes';
 import type { Hub, HudState } from '../hub';
 import { cardView } from './cardText';
@@ -54,12 +56,13 @@ function buzz(bridge: UiBridge, on: boolean, kind: HapticKind): void {
   if (on) bridge.haptic(kind).catch(() => {});
 }
 
-export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
+export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info?: AppInfo }) {
   const chapter = useRef(CONTENT.chapters[0].id);
   const runHud = useRef<HudState | null>(null);
   const [pausedHud, setPausedHud] = useState<HudState | null>(null);
   const [screen, setScreen] = useState<Screen>(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('kitchen') === '1' ? 'kitchen' : 'title');
-  const replayingStory = useRef(false);
+  /** Where the prologue goes when it ends: null for the first-run path (run 1 starts), else the screen that asked for it. */
+  const storyReturn = useRef<Screen | null>(null);
   const [runId, setRunId] = useState(0);
   const [offer, setOffer] = useState<Offer | null>(null);
   const [paused, setPaused] = useState(false);
@@ -192,11 +195,13 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
   const begin = () => {
     if (!save) return;
     if (shouldShowPrologue(save)) {
-      replayingStory.current = false;
+      storyReturn.current = null;
       setScreen('story');
     } else if (save.runs === 0) start();
     else setScreen('stall');
   };
+
+  const version = buildLabel(info);
 
   return (
     <div className="gu-root" data-testid="game-ui">
@@ -213,15 +218,17 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
           best={save?.bestWave ?? 0}
           firstRun={!save || save.runs === 0}
           state={load.failed ? 'failed' : save && sceneReady ? 'ready' : 'loading'}
+          version={version}
           onStart={begin}
+          onIntro={() => { storyReturn.current = 'title'; setScreen('story'); }}
           onRetry={() => setLoad((l) => ({ attempt: l.attempt + 1, failed: false }))}
         />
       )}
-      {screen === 'stall' && save && <StallHub save={save} commit={store.commit} onStart={start} onKitchen={enterKitchen} onStory={() => { replayingStory.current = true; setScreen('story'); }} art={art} />}
+      {screen === 'stall' && save && <StallHub save={save} commit={store.commit} onStart={start} onKitchen={enterKitchen} onStory={() => { storyReturn.current = 'stall'; setScreen('story'); }} art={art} />}
       {screen === 'kitchen' && <Kitchen hub={hub} ready={sceneReady} onStart={() => { ticket.current = null; }} onExit={() => setScreen(save ? 'stall' : 'title')} />}
       {screen === 'story' && <Prologue onDone={() => {
         store.commit(finishPrologue);
-        if (replayingStory.current) setScreen('stall');
+        if (storyReturn.current) setScreen(storyReturn.current);
         else start();
       }} />}
       {screen === 'run' && (
@@ -233,6 +240,7 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
       {screen === 'run' && paused && (
         <Pause
           hud={pausedHud}
+          version={version}
           sound={save?.settings.sfx ?? true}
           haptics={save?.settings.haptics ?? true}
           onResume={resume}
@@ -249,14 +257,27 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
 
 type TitleState = 'loading' | 'ready' | 'failed';
 
-function Title({ best, firstRun, state, onStart, onRetry }: { best: number; firstRun: boolean; state: TitleState; onStart: () => void; onRetry: () => void }) {
-  const label = state === 'failed' ? 'Try again' : state === 'loading' ? 'Warming the tawa…' : firstRun ? 'Start daydream' : 'Open the stall';
+/** The build, for the title and the pause sheet: the app's version, then the update the phone runs (or the platform on web). */
+function buildLabel(info?: AppInfo): string | null {
+  if (!info?.version) return null;
+  const update = info.updateId ? (info.updateId === 'built-in' ? 'built-in' : info.updateId.slice(0, 8)) : info.platform;
+  return `v${info.version} · ${update}`;
+}
+
+function Title({ best, firstRun, state, version, onStart, onIntro, onRetry }: {
+  best: number; firstRun: boolean; state: TitleState; version: string | null; onStart: () => void; onIntro: () => void; onRetry: () => void;
+}) {
+  const label = state === 'failed' ? 'Try again' : state === 'loading' ? 'Warming the tawa…' : firstRun ? 'Start' : 'Continue';
   return (
     <div className="gu-splash">
       <img className="gu-cover" src={art('scene/hero')} alt="" />
       <header className="gu-splash-top">
         <img className="gu-logo" src={art('ui/logo')} alt={brandWords.appName} />
         {best > 0 && <p className="gu-chip">Best: wave {best}</p>}
+        <div className="gu-title-tools">
+          {state === 'ready' && <button type="button" className="gu-link" data-testid="title-intro" onClick={onIntro}>Intro</button>}
+          {version && <span className="gu-version" data-testid="build-version">{version}</span>}
+        </div>
       </header>
       <footer className="gu-splash-foot">
         <p className="gu-chip" role={state === 'failed' ? 'alert' : undefined}>
@@ -436,6 +457,7 @@ function CardButton({ card, index, onPick }: { card: Card; index: number; onPick
 
 function Pause({
   hud,
+  version,
   sound,
   haptics,
   onResume,
@@ -444,6 +466,7 @@ function Pause({
   onToggle,
 }: {
   hud: HudState | null;
+  version: string | null;
   sound: boolean;
   haptics: boolean;
   onResume: () => void;
@@ -488,6 +511,7 @@ function Pause({
           <AnalyticsSwitch />
         </div>
         </>}
+        {version && <p className="gu-version" data-testid="build-version">{version}</p>}
       </section>
     </div>
   );
