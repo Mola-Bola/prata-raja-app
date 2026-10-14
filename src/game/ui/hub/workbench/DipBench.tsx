@@ -71,7 +71,7 @@ export function DipBench({ save, commit, art }: { save: SaveV2; commit: Commit; 
         })}
       </div>
       <div className="wb-row">
-      <button type="button" className="gu-btn" data-testid="wb-add-socket" disabled={!canAddSocket(save, bread)}
+      <button type="button" className="u-plain" data-testid="wb-add-socket" disabled={!canAddSocket(save, bread)}
         onClick={() => { if (undo.run('Katori added', s => addSocket(s, bread))) playSfx('socket'); }}>
         {socketCount(save, bread) >= MAX_SOCKETS ? 'All katori open' : '+1 katori'}
       </button>

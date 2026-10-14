@@ -8,6 +8,7 @@ import { CONTENT } from '@/content';
 import type { Hub, HudState } from '../../hub';
 import { ASSET_URLS } from '../../assets';
 import { fmt } from '../format';
+import '../system';
 import './FreeRunHud.css';
 
 /** The sim's dash cooldown (FREE.dashCd). HudState does not expose it, so the button times it on its own. */
@@ -98,7 +99,7 @@ function DodgeButton({ hub }: { hub: Hub }) {
   return (
     <button
       type="button"
-      className={cooling ? 'fr-dodge fr-dodge--cool' : 'fr-dodge fr-dodge--ready'}
+      className={cooling ? 'u-go u-round fr-dodge fr-dodge--cool' : 'u-go u-round fr-dodge fr-dodge--ready'}
       aria-label="Dodge"
       aria-disabled={cooling}
       data-testid="free-dodge"

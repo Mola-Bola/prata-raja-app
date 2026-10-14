@@ -1,5 +1,5 @@
 /* Tell Kannan sheet (FeedbackSheet.tsx). It sits inside .gu-root, so the overlay's tokens (--cream, --ink, --orange, --edge …)
-   and the .gu-modal / .gu-sheet / .gu-btn pieces from GameUi.css apply. Text is ink on cream (about 13:1); red is a border only. */
+   and the .gu-modal / .gu-sheet pieces from GameUi.css apply; buttons are the shared tiers (system.css). Text is ink on cream (13:1). */
 
 .fb-sheet {
   width: min(100%, 420px);
@@ -18,54 +18,14 @@
 }
 
 .fb-sheet .gu-heading {
-  font-size: 30px;
+  font: var(--f-hero);
   text-align: left;
-}
-
-.fb-x {
-  pointer-events: auto;
-  flex: none;
-  width: 48px;
-  height: 48px;
-  padding: 0 0 3px;
-  border: 3px solid var(--edge);
-  border-radius: 16px;
-  background: var(--cream);
-  color: var(--ink);
-  font: 600 28px/1 Fredoka, system-ui, sans-serif;
-  box-shadow: 0 4px 0 var(--edge-deep);
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.fb-x:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 var(--edge-deep);
 }
 
 .fb-chips {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.fb-chip {
-  pointer-events: auto;
-  min-height: 44px;
-  padding: 6px 2px;
-  border: 2.5px solid var(--edge);
-  border-radius: 999px;
-  background: var(--cream);
-  color: var(--ink);
-  font: 700 15px/1 Nunito, system-ui, sans-serif;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.fb-chip[aria-checked='true'] {
-  border-color: var(--orange-deep);
-  background: var(--orange);
-  box-shadow: 0 3px 0 var(--orange-deep);
+  gap: var(--sp-2);
 }
 
 .fb-box {
@@ -78,10 +38,10 @@
   box-sizing: border-box;
   width: 100%;
   border: 3px solid var(--edge);
-  border-radius: 16px;
+  border-radius: var(--r-s);
   background: var(--cream);
   color: var(--ink);
-  /* 16px or more, or iOS Safari zooms the page when the field takes focus */
+  /* the one 16 px in the system: iOS Safari zooms the page when a field under 16 px takes focus */
   font: 600 16px/1.35 Nunito, system-ui, sans-serif;
   /* the overlay turns text selection off; a field must keep it to take typing */
   -webkit-user-select: text;
@@ -91,13 +51,13 @@
 .fb-text {
   display: block;
   min-height: 116px;
-  padding: 12px 50px 12px 14px;
+  padding: var(--sp-3) 50px var(--sp-3) var(--sp-3);
   resize: none;
 }
 
 .fb-input {
   min-height: 46px;
-  padding: 8px 14px;
+  padding: var(--sp-2) var(--sp-3);
 }
 
 .fb-text::placeholder,
@@ -120,33 +80,35 @@
   height: 44px;
   padding: 0 0 2px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: transparent;
   color: var(--ink);
-  font: 600 26px/1 Fredoka, system-ui, sans-serif;
+  display: grid;
+  place-items: center;
+  font-size: var(--t-btn);
   cursor: pointer;
   touch-action: manipulation;
 }
 
 .fb-from {
   display: grid;
-  gap: 4px;
-  font: 700 13px/1.2 Nunito, system-ui, sans-serif;
+  gap: var(--sp-1);
+  font: var(--f-cap);
 }
 
 .fb-context {
   margin: 0;
-  font: 600 13px/1.35 Nunito, system-ui, sans-serif;
-  color: var(--ink); /* 6.5:1 on cream */
+  font: var(--f-cap);
+  color: var(--ink); /* 13:1 on cream */
 }
 
 .fb-status {
   margin: 0;
-  padding: 10px 12px;
-  border: 2.5px solid var(--edge);
-  border-radius: 14px;
+  padding: var(--sp-3);
+  border: 3px solid var(--edge);
+  border-radius: var(--r-s);
   background: var(--cream);
-  font: 700 15px/1.35 Nunito, system-ui, sans-serif;
+  font: var(--f-body);
 }
 
 .fb-status--bad {
@@ -158,13 +120,6 @@
   text-align: center;
 }
 
-.fb-sheet .gu-btn:disabled,
-.fb-chip:disabled,
-.fb-x:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
 /* The Analytics switch sits under Sound and Haptics, across both columns. */
 .fb-switch {
   grid-column: 1 / -1;
@@ -173,29 +128,28 @@
 /* Results: the note button floats in the corner so the payout panel keeps its height. */
 .fb-results-tell {
   position: absolute;
-  top: max(10px, var(--gu-safe-top, 0px));
-  right: 10px;
+  top: max(var(--sp-3), var(--gu-safe-top, 0px));
+  right: var(--sp-3);
 }
 
-.fb-results-tell .gu-btn {
-  min-height: 40px;
-  padding: 6px 14px;
-  font-size: 15px;
+.fb-results-tell .u-plain {
+  min-height: var(--touch);
+  padding: var(--sp-1) var(--sp-3);
+  font: var(--f-body);
 }
 
-.fb-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.fb-chip[aria-selected='true'] { border-color: var(--orange-deep); background: var(--orange); }
-.fb-compose:not([hidden]), .fb-notes, .fb-reply, .fb-pair[open] { display: grid; gap: 12px; }
+.fb-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+.fb-compose:not([hidden]), .fb-notes, .fb-reply, .fb-pair[open] { display: grid; gap: var(--sp-3); }
 .fb-compose[hidden] { display: none; }
-.fb-notes-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.fb-note, .fb-pair { border: 2px solid var(--edge); border-radius: 14px; padding: 12px; }
-.fb-note summary, .fb-pair summary { cursor: pointer; min-height: 44px; font: 700 16px/1.4 Nunito, system-ui, sans-serif; touch-action: manipulation; }
-.fb-note-body { display: block; white-space: pre-wrap; overflow-wrap: anywhere; font: 600 16px/1.4 Nunito, system-ui, sans-serif; }
-.fb-note-status { display: block; font: 800 15px/1.4 Nunito, system-ui, sans-serif; margin-top: 8px; }
-.fb-messages { border-left: 3px solid var(--edge); padding-left: 10px; }
-.fb-sheet .fb-context, .fb-sheet .fb-from { font-size: 15px; }
+.fb-notes-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.fb-note, .fb-pair { border: 2px solid var(--edge); border-radius: var(--r-s); padding: var(--sp-3); }
+.fb-note summary, .fb-pair summary { cursor: pointer; min-height: var(--touch); font: var(--f-body); touch-action: manipulation; }
+.fb-note-body { display: block; white-space: pre-wrap; overflow-wrap: anywhere; font: var(--f-body); }
+.fb-note-status { display: block; font: var(--f-body); margin-top: var(--sp-2); }
+.fb-messages { border-left: 3px solid var(--edge); padding-left: var(--sp-3); }
+.fb-sheet .fb-context, .fb-sheet .fb-from { font: var(--f-body); }
 
-.fb-note-reference { display: block; font: 600 15px/1.4 Nunito, system-ui, sans-serif; }
+.fb-note-reference { display: block; font: var(--f-body); }
 
 @media (max-width: 360px) {
   .fb-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }

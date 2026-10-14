@@ -26,6 +26,7 @@ import { playSfx } from '../../audio/sfx';
 import { KopiMeal, mealLabel } from '../meal/KopiMeal';
 import { SpecTree } from '../spec/SpecTree';
 import { openFeedback } from '../FeedbackSheet'; // [feedback hook]
+import '../system';
 import '../stall/Stall.css';
 import { markTipSeen, seenTips, TIPS } from './tips';
 import './HubOverlay.css';
@@ -34,7 +35,7 @@ type Props = { hub: Hub; save: SaveV2; commit: Commit; art: Art; afterRun: boole
 type Open = StationId | 'settings';
 
 const TITLES: Record<Open, string> = { tawa: 'Tawa', dips: 'Dip shelf', gear: 'Gear rack and forge', pantry: 'Pantry', spec: 'Spec board', orders: 'Orders', kopi: 'Kopi uncle', exit: 'Out to the street', settings: 'Settings' };
-const ICONS: Partial<Record<Open, string>> = { tawa: 'roomui/icon-tawa', dips: 'roomui/icon-katori', gear: 'roomui/icon-anvil-tawa', pantry: 'roomui/icon-pantry-sack', orders: 'roomui/icon-chalkboard', kopi: 'roomui/icon-kopi-cup' };
+const ICONS: Partial<Record<Open, string>> = { tawa: 'roomui/icon-tawa', dips: 'roomui/icon-katori', gear: 'roomui/icon-anvil-tawa', pantry: 'roomui/icon-pantry-sack', orders: 'roomui/icon-chalkboard', kopi: 'roomui/icon-kopi-cup', spec: 'hub/star', settings: 'hub/settings', exit: 'hub/stall-badge' };
 
 export function HubOverlay({ hub, save, commit, art, afterRun, onStart, onStory, onOldStall, onKitchen, onTune }: Props) {
   const [station, setStation] = useState<StationId | null>(null);
@@ -71,18 +72,18 @@ export function HubOverlay({ hub, save, commit, art, afterRun, onStart, onStory,
           <b>{level}</b>
           <i style={{ width: `${Math.round(fraction * 100)}%` }} />
         </div>
-        <span className="hb-spec" data-testid="hub-spec">★ {specPointsOf(save)}</span>
+        <span className="hb-spec" data-testid="hub-spec"><img src={art('hub/star')} alt="" />{specPointsOf(save)}</span>
         <span className="hb-coins" data-testid="hub-coins">
           <img src={art('roomui/coin-pill')} alt="" />
           <b>{fmt(save.gold)}</b>
         </span>
-        <button type="button" className="hb-cog" data-testid="hub-settings" aria-label="Settings" onClick={() => setHeld('settings')}>
+        <button type="button" className="u-plain u-round hb-cog" data-testid="hub-settings" aria-label="Settings" onClick={() => setHeld('settings')}>
           <img src={art('hub/settings')} alt="" />
         </button>
       </header>
       {!shown && goBtn}
       {mealLabel(save) && <span className="hb-meal" data-testid="hub-meal">{mealLabel(save)}</span>}
-      <button type="button" className="gu-btn hb-tell" data-testid="hub-tell" onClick={openFeedback}>Tell Kannan</button>
+      <button type="button" className="u-plain hb-tell" data-testid="hub-tell" onClick={openFeedback}>Tell Kannan</button>
       {shown && (
         <Panel key={shown} id={shown} close={close} art={art} footer={goBtn}>
           <Content id={shown} save={save} commit={commit} art={art} onStart={onStart} onStory={onStory} onOldStall={onOldStall} onKitchen={onKitchen} onTune={onTune} close={close} walkTo={(s) => { setHeld(null); hub.controls?.hubWalkTo?.(s); }} />
@@ -105,11 +106,11 @@ function Panel({ id, close, art, footer, children }: { id: Open; close: () => vo
     return () => { live = false; };
   }, [id]);
   return (
-    <section className="gu-sheet hb-sheet" role="dialog" aria-label={TITLES[id]} data-testid="hub-panel" data-station={id} onKeyDown={(e) => e.key === 'Escape' && close()}>
+    <section className="gu-sheet hb-sheet u-sheet-in" role="dialog" aria-label={TITLES[id]} data-testid="hub-panel" data-station={id} onKeyDown={(e) => e.key === 'Escape' && close()}>
       <header className="hb-sheet-head">
         {icon && <img src={art(icon)} alt="" />}
         <h2 className="gu-heading">{TITLES[id]}</h2>
-        <button type="button" className="gu-btn" data-testid="hub-close" aria-label="Close panel" onClick={close}>×</button>
+        <button type="button" className="u-plain u-round" data-testid="hub-close" aria-label="Close panel" onClick={close}><i className="ic ic-x" aria-hidden="true" /></button>
       </header>
       {tip && <p className="hb-tip" data-testid="hub-tip">{tip}</p>}
       {children}
@@ -126,7 +127,7 @@ function Tabs({ tabs }: { tabs: { name: string; flag?: UnlockFlag; save: SaveV2;
     <>
       {tabs.length > 1 && (
         <div className="hb-tabs" role="tablist">
-          {tabs.map((x, n) => <button key={x.name} type="button" role="tab" aria-selected={n === i} className="hb-tab" data-testid={`hub-tab-${x.name.toLowerCase().replace(/\W+/g, '-')}`} onClick={() => setI(n)}>{x.name}</button>)}
+          {tabs.map((x, n) => <button key={x.name} type="button" role="tab" aria-selected={n === i} className="u-chip" data-testid={`hub-tab-${x.name.toLowerCase().replace(/\W+/g, '-')}`} onClick={() => setI(n)}>{x.name}</button>)}
         </div>
       )}
       {t.flag && !t.save.unlocks[t.flag] ? (
@@ -142,14 +143,14 @@ function GearStation({ save, commit, art }: { save: SaveV2; commit: Commit; art:
   const n = save.pendingChests.length;
   if (chests) return (
     <>
-      <button type="button" className="gu-btn" data-testid="gear-back" onClick={() => setChests(false)}>Back to gear</button>
+      <button type="button" className="u-plain" data-testid="gear-back" onClick={() => setChests(false)}><i className="ic ic-back" aria-hidden="true" />Back to gear</button>
       <ChestsSheet save={save} commit={commit} art={art} />
     </>
   );
   const t = { save, art };
   return (
     <>
-      {n > 0 && <button type="button" className="gu-btn hb-chests" data-testid="gear-open-chests" onClick={() => setChests(true)}>Open chests ({n})</button>}
+      {n > 0 && <button type="button" className="u-go hb-chests" data-testid="gear-open-chests" onClick={() => setChests(true)}>Open chests ({n})</button>}
       <Tabs tabs={[{ name: 'Wear', flag: 'gear', ...t, body: <GearSheet save={save} commit={commit} art={art} /> }, { name: 'Forge', flag: 'gear', ...t, body: <GearBench save={save} commit={commit} art={art} /> }]} />
     </>
   );
@@ -162,7 +163,7 @@ function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitche
   const chapters = (
     <div data-testid="hub-chapters">
       {CONTENT.chapters.filter((ch) => chapterUnlocked(save, ch.id)).map((ch) => (
-        <button key={ch.id} type="button" className="gu-btn sh-chapter" data-testid={`chapter-${ch.id}`} onClick={() => onStart(ch.id)}>
+        <button key={ch.id} type="button" className="u-plain sh-chapter" data-testid={`chapter-${ch.id}`} onClick={() => onStart(ch.id)}>
           <img src={art(ch.background)} alt="" />
           {ch.name}
         </button>
@@ -212,10 +213,10 @@ function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitche
       return (
         <>
           <SettingsSheet save={save} commit={commit} />
-          <button type="button" className="gu-btn" data-testid="settings-story" onClick={onStory}>Story</button>
-          <button type="button" className="gu-btn" data-testid="settings-old-stall" onClick={onOldStall}>Old stall menu</button>
-          <button type="button" className="gu-btn" data-testid="hub-kitchen" onClick={onKitchen}>Kitchen</button>
-          {onTune && <button type="button" className="gu-btn" data-testid="hub-tune" onClick={onTune}>Tune</button>}
+          <button type="button" className="u-plain" data-testid="settings-story" onClick={onStory}>Story</button>
+          <button type="button" className="u-plain" data-testid="settings-old-stall" onClick={onOldStall}>Old stall menu</button>
+          <button type="button" className="u-plain" data-testid="hub-kitchen" onClick={onKitchen}>Kitchen</button>
+          {onTune && <button type="button" className="u-plain" data-testid="hub-tune" onClick={onTune}>Tune</button>}
         </>
       );
   }

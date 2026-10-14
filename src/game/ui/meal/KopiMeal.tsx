@@ -2,6 +2,7 @@
 import { MATERIALS, type Material, type SaveV2 } from '@/meta/types';
 import { canCookMeal, cookMeal, mealEffect, mealLabel, mealOf, MEALS } from '@/meta/meals';
 import type { Commit } from '../stall/sheets';
+import '../system';
 import '../spec/SpecTree.css';
 
 export { mealLabel };
@@ -13,7 +14,7 @@ export function KopiMeal({ save, commit, onClose, embedded }: { save: SaveV2; co
       {!embedded && (
         <header className="spec-top">
           <h2>Kopi uncle</h2>
-          <button type="button" className="gu-btn spec-close" data-testid="meal-close" onClick={onClose}>Close</button>
+          <button type="button" className="u-plain u-round" aria-label="Close" data-testid="meal-close" onClick={onClose}><i className="ic ic-x" aria-hidden="true" /></button>
         </header>
       )}
       <p data-testid="meal-status">{waiting ? `Ready for your next run: ${mealLabel(save)}` : 'Cook one meal. It lasts for your next run.'}</p>
@@ -23,7 +24,7 @@ export function KopiMeal({ save, commit, onClose, embedded }: { save: SaveV2; co
           <p>{m.line}</p>
           <p className="spec-spent">{MATERIALS.filter(k => m.cost[k]).map((k: Material) => `${m.cost[k]} ${k} (have ${save.materials[k]})`).join(' · ')}</p>
           <div className="spec-actions">
-            <button type="button" className="gu-btn gu-btn--primary" data-testid={`cook-meal-${m.id}`} disabled={!canCookMeal(save, m.id)} onClick={() => commit(s => cookMeal(s, m.id))}>Cook</button>
+            <button type="button" className="u-go" data-testid={`cook-meal-${m.id}`} disabled={!canCookMeal(save, m.id)} onClick={() => commit(s => cookMeal(s, m.id))}>Cook</button>
           </div>
         </article>
       ))}

@@ -141,6 +141,23 @@ export const brand = {
       dash: '#46507A',
     },
   },
+  /** The game overlay's own colours (cream, ink, orange: src/game/ui). src/ui/gameTokens.ts turns them into CSS variables
+   *  and src/ui/__tests__/gameTokens.test.ts checks every text pairing. `redText` is the red for words (red itself is 3.98:1 on cream). */
+  game: {
+    cream: '#FFF4E0',
+    ink: '#3B2414',
+    muted: '#5B4330',
+    orange: '#F28C28',
+    orangeDeep: '#B5651D',
+    red: '#D9452B',
+    redText: '#B3321B',
+    edge: '#A9764A',
+    edgeDeep: '#7E4E2A',
+    gold: '#FFD36B',
+    glass: '#22140A',
+    glassAlpha: 0.78,
+    glassEdge: 'rgba(255, 244, 224, 0.5)',
+  },
   /** Pastel circles behind a person's initial (ink text on them passes AA). */
   avatarPastels: ['#FFC1B4', '#BFE3FF', '#CFF3A8', '#FFE08A', '#E4CCFF', '#B9F0E3', '#FFD1E8'],
   /** The ink for an initial on an avatar pastel. */

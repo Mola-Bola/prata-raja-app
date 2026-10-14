@@ -48,7 +48,7 @@ export function FeedbackNotes({ identity, secretSaved, onBusy }: { identity: Dev
   return <div className="fb-notes" data-testid="feedback-notes">
     <div className="fb-notes-head">
       <p className="fb-context">Notes sent from this device.</p>
-      <button type="button" className="fb-chip" data-testid="feedback-refresh" disabled={busy || !pair} onClick={() => void run(refresh)}>Refresh</button>
+      <button type="button" className="u-chip" data-testid="feedback-refresh" disabled={busy || !pair} onClick={() => void run(refresh)}>Refresh</button>
     </div>
     {busy && <p role="status" className="fb-context">Connecting…</p>}
     {error && <p role="alert" className="fb-status fb-status--bad" data-testid="feedback-notes-error">{error}</p>}

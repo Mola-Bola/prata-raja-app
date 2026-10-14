@@ -20,7 +20,7 @@ export function Visitor({ due, commit, art, onDone }: { due: Due; commit: Commit
         <p className="sh-visitor-who">{v.who}</p>
         {portrait ? <img className="sh-visitor-art" src={portrait} alt="" /> : <span className="sh-visitor-art" aria-hidden="true">{v.emoji ?? '🙂'}</span>}
         {step === 0 ? (
-          <button type="button" className="gu-btn sh-visitor-line" data-testid="visitor-line" autoFocus onClick={() => setStep(1)}>
+          <button type="button" className="u-plain sh-visitor-line" data-testid="visitor-line" autoFocus onClick={() => setStep(1)}>
             {v.lines[0]}
             <span className="sh-visitor-tap">tap</span>
           </button>
@@ -29,7 +29,7 @@ export function Visitor({ due, commit, art, onDone }: { due: Due; commit: Commit
             <p className="sh-visitor-line" data-testid="visitor-line2">{v.lines[1]}</p>
             <p className="sh-visitor-perk" data-testid="visitor-perk">Perk: {perk}</p>
             <p className="sh-visitor-gift" data-testid="visitor-gift">Gift: {v.gift}</p>
-            <button type="button" className="gu-btn gu-btn--primary gu-btn--wide" data-testid="visitor-thanks" autoFocus onClick={() => { commit((s) => markVisitorSeen(s, level)); onDone(); }}>
+            <button type="button" className="u-go u-wide" data-testid="visitor-thanks" autoFocus onClick={() => { commit((s) => markVisitorSeen(s, level)); onDone(); }}>
               Thanks!
             </button>
           </>

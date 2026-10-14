@@ -1,0 +1,94 @@
+/* The game UI system (docs/wiki/ui-system.md). Tokens are in tokens.css (generated). Three button tiers + a round variant,
+   one panel anatomy, the type classes. Every control is at least 44 px; text on every fill is ink. */
+
+.t-hero { font: var(--f-hero); }
+.t-title { font: var(--f-title); }
+.t-btn { font: var(--f-btn); }
+.t-body { font: var(--f-body); }
+.t-cap { font: var(--f-cap); }
+
+/* Tier base: 3 px edge, lip shadow, 18 r, 52 high (44 min). */
+.u-go, .u-plain, .u-chip, .u-round {
+  box-sizing: border-box;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  margin: 0;
+  color: var(--ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--m-press) ease-out, box-shadow var(--m-press) ease-out;
+}
+.u-go, .u-plain {
+  min-width: var(--touch);
+  min-height: 52px;
+  padding: var(--sp-2) var(--sp-5);
+  border: 3px solid var(--edge);
+  border-radius: var(--r-m);
+  font: var(--f-btn);
+  box-shadow: 0 4px 0 var(--edge-deep);
+}
+.u-plain { background: var(--cream); }
+.u-go { background: var(--orange); border-color: var(--orange-deep); box-shadow: 0 4px 0 var(--orange-deep); }
+.u-go:active, .u-plain:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--edge-deep); }
+.u-go:active { box-shadow: 0 1px 0 var(--orange-deep); }
+.u-wide { width: 100%; }
+
+/* Chip: tabs, filters, toggles. Selected = orange. */
+.u-chip {
+  min-height: var(--touch);
+  padding: var(--sp-1) var(--sp-4);
+  border: 3px solid var(--edge);
+  border-radius: var(--r-full);
+  background: var(--cream);
+  font: var(--f-body);
+}
+.u-chip[aria-selected='true'], .u-chip[aria-pressed='true'], .u-chip[aria-checked='true'], .u-chip.is-on { background: var(--orange); border-color: var(--orange-deep); }
+.u-chip small { font: var(--f-cap); }
+.u-chip:active { transform: translateY(2px); }
+
+/* Round: Dodge, Pause, close. 44 by default, .u-round--lg is 56. Sits on a plain or go fill. */
+.u-round {
+  width: var(--touch);
+  height: var(--touch);
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 3px solid var(--edge);
+  border-radius: var(--r-full);
+  background: var(--cream);
+  box-shadow: 0 3px 0 var(--edge-deep);
+  font: var(--f-btn);
+}
+.u-round--lg { width: 56px; height: 56px; }
+.u-round.u-go { background: var(--orange); border-color: var(--orange-deep); box-shadow: 0 3px 0 var(--orange-deep); }
+.u-round:active { transform: translateY(2px); }
+
+.u-go:disabled, .u-plain:disabled, .u-chip:disabled, .u-round:disabled { opacity: 0.5; cursor: default; }
+.u-go:focus-visible, .u-plain:focus-visible, .u-chip:focus-visible, .u-round:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+/* Link-style text action (Reset all). */
+.u-link { pointer-events: auto; min-height: var(--touch); padding: var(--sp-1) var(--sp-3); border: 0; background: none; color: var(--edge-deep); font: var(--f-cap); text-decoration: underline; cursor: pointer; }
+.u-link:disabled { opacity: 0.5; cursor: default; }
+
+/* Panels: sheets rise in 220 ms and fade out in 140 ms; reduced motion = fades only. */
+@keyframes u-rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes u-fade { from { opacity: 0; } to { opacity: 1; } }
+.u-sheet-in { animation: u-rise var(--m-in) var(--m-ease); }
+.u-fade-out { transition: opacity var(--m-out) ease-in; }
+
+/* Control glyphs (one set, drawn in CSS so they follow the ink colour): x, back, lock, info. */
+.ic { display: inline-block; width: 1em; height: 1em; background: currentColor; flex: none; -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat; }
+.ic-x { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 5l14 14M19 5L5 19' stroke='black' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.ic-back { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M15 4L7 12l8 8' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.ic-info { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M12 2a10 10 0 100 20 10 10 0 000-20zm-1.5 8h3v8h-3zm1.5-4.5a1.7 1.7 0 110 3.4 1.7 1.7 0 010-3.4z'/%3E%3C/svg%3E"); }
+.ic-check { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12.5l5 5L20 6.5' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.ic-lock { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10V7a5 5 0 0110 0v3h1.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 014 20.5v-9A1.5 1.5 0 015.5 10zm2 0h6V7a3 3 0 00-6 0z'/%3E%3C/svg%3E"); }
+
+@media (prefers-reduced-motion: reduce) {
+  .u-sheet-in { animation: u-fade var(--m-in) linear; }
+  .u-go, .u-plain, .u-chip, .u-round { transition: none; }
+  .u-go:active, .u-plain:active, .u-chip:active, .u-round:active { transform: none; }
+}

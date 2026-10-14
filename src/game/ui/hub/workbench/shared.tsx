@@ -4,6 +4,7 @@ import { MATERIALS, type Material, type SaveV2 } from '@/meta/types';
 import { fmt } from '../../format';
 import { titleCase } from '../../stall/helpers';
 import type { Art } from '../../stall/StallProgress';
+import '../../system';
 import './workbench.css';
 
 export type Cost = { gold: number; materials: Partial<Record<Material, number>> };

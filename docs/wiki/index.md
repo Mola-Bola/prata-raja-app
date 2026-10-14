@@ -28,6 +28,7 @@ Map of what is built. Steering lives in [DIRECTION.md](../../DIRECTION.md) (wins
 - [Cards -> street finds](cards-street-finds.md) - experimental bridge.
 
 ## UI
+- [Game UI system](ui-system.md) - built. Tokens (generated from brand.ts), 5 type sizes, 3 button tiers; GameUi.css not yet migrated.
 - [Overlay, build sheet, tune panel](ui-overlay.md) - live.
 - [Walkable stall hub](hub-scene.md) - branch claude/r8-hub.
 - [Workbench](workbench.md) - drag gear to tawa, dips to katori / curry pot (fusion), tiffin; branch claude/r8-bench.

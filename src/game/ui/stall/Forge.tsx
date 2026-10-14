@@ -86,7 +86,7 @@ export function ForgeSheet({ save, commit, art }: { save: SaveV2; commit: Commit
               <span>{statLabel(a.stat)} <b>{formatStat(a.stat, a.value, true)}</b></span>
               {a.tier && <em className={`fg-chip fg-chip--${a.tier}`}>{a.tier}</em>}
               {item.ilvl !== undefined && (
-                <button type="button" className="gu-btn" data-testid="forge-reroll" disabled={!rCost || short(save, rCost)} onClick={() => { commit(s => rerollAffix(s, item.uid, k)); playSfx('uiTap'); }}>Reroll</button>
+                <button type="button" className="u-plain" data-testid="forge-reroll" disabled={!rCost || short(save, rCost)} onClick={() => { commit(s => rerollAffix(s, item.uid, k)); playSfx('uiTap'); }}>Reroll</button>
               )}
             </div>
           ))}
@@ -98,7 +98,7 @@ export function ForgeSheet({ save, commit, art }: { save: SaveV2; commit: Commit
                 <span key={k} className="fg-delta">{statLabel(k)}: {formatStat(k, now[k] ?? 0)} → <b>{formatStat(k, next[k]!)}</b></span>
               ))}
               <CostRow save={save} cost={eCost} art={art} />
-              <button type="button" className="gu-btn gu-btn--primary" data-testid="forge-enhance" disabled={short(save, eCost)} onClick={doEnhance}>Enhance +{n + 1}</button>
+              <button type="button" className="u-go" data-testid="forge-enhance" disabled={short(save, eCost)} onClick={doEnhance}>Enhance +{n + 1}</button>
               <span>Never breaks. A miss costs nothing.</span>
             </>
           ) : <p>Fully forged at +{MAX_ENHANCE}.</p>}
