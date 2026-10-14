@@ -19,6 +19,11 @@ const JOY_R = 56; // joystick travel, design units
 const DRAG = 10; // a touch that moves this far (px) is the joystick, not a tap
 const FLOOR_TRIM = 10; // px cut from every edge of a floor tile
 const KANNAN_H = 92; // Kannan's drawn height, design units
+// Station labels: the React overlay's cream text on the glass pill (GameUi.css --cream, and --glass at 0.78).
+const LABEL_INK = '#FFF4E0';
+const LABEL_PILL = 0x22140a;
+const LABEL_PILL_ALPHA = 0.78;
+const reducedMotion = (): boolean => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const frame = (name: string): { key: string; frame: string } => ({ key: FRAME_ATLAS[name], frame: name });
 
 export class HubScene extends Phaser.Scene {
@@ -33,7 +38,7 @@ export class HubScene extends Phaser.Scene {
   private uncle?: Placed;
   private fan?: Phaser.GameObjects.Image;
   private rings = new Map<StationId, Phaser.GameObjects.Image>();
-  private labels = new Map<StationId, Phaser.GameObjects.Text>();
+  private labels = new Map<StationId, { tag: Phaser.GameObjects.Container; text: Phaser.GameObjects.Text; pill: Phaser.GameObjects.Graphics }>();
   private joyBase!: Phaser.GameObjects.Image;
   private joyKnob!: Phaser.GameObjects.Image;
   private pos: Pt = { ...START };
@@ -56,7 +61,7 @@ export class HubScene extends Phaser.Scene {
 
   create(): void {
     this.hub = this.registry.get('hub') as Hub;
-    this.reduceMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    this.reduceMotion = reducedMotion();
     this.cameras.main.setBackgroundColor(0xd8c5a6);
     this.build();
     const kb = this.input.keyboard;
@@ -91,6 +96,7 @@ export class HubScene extends Phaser.Scene {
   private enter(): void {
     this.scene.sleep('RunScene');
     this.scene.wake('HubScene');
+    this.reduceMotion = reducedMotion(); // the phone's setting may have changed while a run was on
     this.dismissed = null;
     startMusic('hub');
     // The loop sleeps whenever no run is live (RunScene.update); the queued scene changes need a step to happen.
@@ -138,7 +144,7 @@ export class HubScene extends Phaser.Scene {
     // speckle reads as calm texture rather than noise.
     for (let r = 0; r < 4; r++) {
       const img = this.image('room/hawker-floor-terrazzo-v2', ROOM_W, -1000, 0).setOrigin(0, 0).setCrop(FLOOR_TRIM, FLOOR_TRIM, 384 - 2 * FLOOR_TRIM, 384 - 2 * FLOOR_TRIM);
-      img.setTint(0xd9c4a2).setAlpha(0.8);
+      img.setTint(r === 0 ? 0xb9a07c : 0xd9c4a2).setAlpha(0.8); // the top row sits behind the back wall: darker, so its gaps read as shade
       this.placed.push({ img, x: ROOM_W / 2, y: 0, w: ROOM_W, row: r });
     }
     for (const d of DECALS) {
@@ -166,8 +172,11 @@ export class HubScene extends Phaser.Scene {
       const ring = this.image('roomui/station-prompt-ring', 64, st.y - 1000 + 1, 0.5).setVisible(false);
       this.placed.push({ img: ring, x: st.x, y: st.y, w: 64 });
       this.rings.set(st.id, ring);
-      const label = this.add.text(0, 0, st.label, { fontFamily: 'Fredoka, system-ui, sans-serif', fontSize: '14px', color: '#FFF4E0', stroke: '#3B2414', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(9500);
-      this.labels.set(st.id, label);
+      // A glass pill behind the name: the pill is drawn in relayout(), once the text has its size.
+      const text = this.add.text(0, 0, st.label, { fontFamily: 'Fredoka, system-ui, sans-serif', fontSize: '14px', color: LABEL_INK }).setOrigin(0.5, 1);
+      const pill = this.add.graphics();
+      const tag = this.add.container(0, 0, [pill, text]).setDepth(9500);
+      this.labels.set(st.id, { tag, text, pill });
     }
     this.shadow = this.add.image(0, 0, 'shadow').setDepth(0);
     this.kannan = this.add.image(0, 0, FRAME_ATLAS['kannan/walk-down-idle'], 'kannan/walk-down-idle').setOrigin(0.5, 1);
@@ -187,7 +196,12 @@ export class HubScene extends Phaser.Scene {
       const k = (ROOM_W * this.s + 1) / (384 - 2 * FLOOR_TRIM);
       p.img.setScale(k).setPosition(Math.round((p.x - ROOM_W / 2) * this.s) - FLOOR_TRIM * k, Math.round(p.row * ROOM_W * this.s) - FLOOR_TRIM * k);
     }
-    for (const st of STATIONS) this.labels.get(st.id)!.setPosition(st.x * this.s, (st.y - 22) * this.sy).setScale(this.s * 0.95);
+    for (const st of STATIONS) {
+      const { tag, text, pill } = this.labels.get(st.id)!;
+      const w = text.width + 16, h = text.height + 6;
+      pill.clear().fillStyle(LABEL_PILL, LABEL_PILL_ALPHA).fillRoundedRect(-w / 2, -text.height - 3, w, h, h / 2);
+      tag.setPosition(st.x * this.s, (st.y - 22) * this.sy).setScale(this.s * 0.95);
+    }
     this.joyBase.setScale((120 * this.s) / this.joyBase.frame.realWidth);
     this.joyKnob.setScale((48 * this.s) / this.joyKnob.frame.realWidth);
     this.drawKannan();
@@ -321,7 +335,7 @@ export class HubScene extends Phaser.Scene {
     this.panFor(id ? this.pos.y : null);
   }
 
-  /** The open sheet covers the lower half of the screen: slide the room up so Kannan stands above it (0.38 of the height), and back
+  /** The open sheet covers the lower 55% of the screen: slide the room up so Kannan stands above it (0.38 of the height), and back
    *  down on close. A 250 ms tween; reduced motion jumps. */
   private panFor(y: number | null): void {
     const cam = this.cameras.main;
@@ -336,7 +350,7 @@ export class HubScene extends Phaser.Scene {
       const on = sid === this.current;
       ring.setVisible(on);
       if (on) ring.setAlpha(this.reduceMotion ? 0.9 : 0.7 + 0.3 * Math.sin(this.clock * 4));
-      this.labels.get(sid)!.setAlpha(on ? 1 : 0.82);
+      this.labels.get(sid)!.tag.setAlpha(on ? 1 : 0.82);
     }
     if (this.fan && !this.reduceMotion) this.fan.setAngle(this.clock * 40);
     if (this.uncle && !this.reduceMotion) this.uncle.img.setScale(this.uncle.img.scaleX, ((this.uncle.w * this.s) / (this.uncle.img.frame.realWidth)) * (1 + Math.sin(this.clock * 2) * 0.012));

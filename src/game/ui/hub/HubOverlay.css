@@ -1,5 +1,5 @@
 /* The walkable hub's overlay (HubOverlay.tsx): top bar, GO pill, station panel. Tokens come from .gu-root (GameUi.css). */
-.hb-root { position: absolute; inset: 0; pointer-events: none; }
+.hb-root { position: absolute; inset: 0; pointer-events: none; --hb-go-h: 58px; /* the GO pill's height at 148 px wide (256 x 99 art) */ }
 
 .hb-top {
   position: absolute; top: calc(var(--safe-top) + 10px); left: calc(var(--safe-left) + 10px); right: calc(var(--safe-right) + 10px);
@@ -28,8 +28,8 @@
 
 .hb-sheet {
   position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; pointer-events: auto;
-  max-height: 46%; overflow-y: auto; overscroll-behavior: contain;
-  border-radius: 26px 26px 0 0; padding: 12px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 84px) calc(var(--safe-left) + 16px);
+  max-height: 55%; overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 26px 26px 0 0; padding: 12px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 14px + var(--hb-go-h) + 12px) calc(var(--safe-left) + 16px); /* the end of the scroll clears GO */
   font: 600 var(--fs-body)/1.4 Nunito, system-ui, sans-serif;
   animation: hb-rise 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
