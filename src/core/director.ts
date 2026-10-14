@@ -5,7 +5,7 @@
 // returns SpawnRequests that sim.ts turns into enemies (same rng stream, same spawn functions as waves).
 import type { Rng } from './rng';
 import { ENEMY_COST, spawnPick, type SpawnRequest } from './waves';
-import type { ChapterDef, Enemy, World } from './types';
+import type { ChapterDef, Enemy, SpawnLane, World } from './types';
 
 /** Cruise speed in metres per second (the stall slows to a halt over the last BRAKE metres before the boss). */
 export const CRUISE = 5;
@@ -47,6 +47,18 @@ export function waveEquivalent(chapter: ChapterDef, dist: number): number {
 
 export type FlowOut = { spawns: SpawnRequest[]; won: boolean };
 
+/** Share of spawns that come in from the sides: 20% at the start of the street, 40% by the boss (about 30% on average). */
+const SIDE_CHANCE = { from: 0.2, to: 0.4 };
+
+/** Pick a lane for one enemy pick. Swarm clouds always come ahead. Draws from rng, so it is deterministic per seed. */
+function pickLane(world: World, rng: Rng, id: string): SpawnLane {
+  const frac = Math.min(1, world.dist / bossAtOf(world.chapter));
+  const side = rng.chance(SIDE_CHANCE.from + (SIDE_CHANCE.to - SIDE_CHANCE.from) * frac);
+  const right = rng.chance(0.5);
+  if (!side || world.content.enemies[id].kind === 'swarm') return 'ahead';
+  return right ? 'right' : 'left';
+}
+
 const living = (e: Enemy) => e.state !== 'dead';
 
 /** Advance the flow by dt. Call once per sim step while the run is live. */
@@ -81,7 +93,10 @@ export function flowTick(world: World, dt: number, rng: Rng): FlowOut {
     if (fits.length === 0) break;
     const id = rng.weighted(fits, (k) => pr.mix[k]);
     world.credit -= ENEMY_COST[world.content.enemies[id].kind];
+    const lane = pickLane(world, rng, id);
+    const from = out.length;
     spawnPick(world, rng, id, pr.eliteChance, out);
+    for (let i = from; i < out.length; i++) out[i].lane = lane;
   }
   return { spawns: out, won: false };
 }

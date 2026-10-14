@@ -74,6 +74,25 @@ describe('flow director', () => {
     expect(spawned).toBe(false);
   }, 60_000);
 
+  it('side and ahead lanes: same seed gives the same lanes, and some spawns come from the sides', () => {
+    /** Lane of every enemy in a bot run, in spawn order (uid order). */
+    const lanesOf = (seed: number): string[] => {
+      const w = createRun({ seed, content: CONTENT });
+      const seen = new Map<number, string>();
+      for (let i = 0; i < 30 * 120 && w.phase !== 'won' && w.phase !== 'lost'; i++) {
+        if (w.phase === 'levelup') chooseCard(w, autoPick(w));
+        else step(w, 1 / 30, autoInput(w));
+        for (const e of w.enemies) if (!seen.has(e.uid)) seen.set(e.uid, e.lane ?? 'ahead');
+      }
+      return [...seen.values()];
+    };
+    const a = lanesOf(9);
+    expect(lanesOf(9)).toEqual(a);
+    const sides = a.filter((l) => l !== 'ahead').length;
+    expect(sides).toBeGreaterThan(0);
+    expect(a.filter((l) => l === 'ahead').length).toBeGreaterThan(sides);
+  }, 60_000);
+
   it('the autoplay bot finishes flow runs without timing out', () => {
     for (const seed of [1, 2, 3]) {
       const r = simulateRun({ seed, content: CONTENT, maxTime: 1200 });

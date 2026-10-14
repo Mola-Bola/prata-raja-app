@@ -284,11 +284,16 @@ export type Status = {
   amount: number;
 };
 
+/** Where a spawn enters: straight ahead down the street, or from the left or right edge partway down the field. */
+export type SpawnLane = 'ahead' | 'left' | 'right';
+
 export type Enemy = {
   uid: number;
   def: EnemyDef | BossDef;
   boss: boolean;
   elite: boolean;
+  /** Side spawns only (absent = ahead). */
+  lane?: SpawnLane;
   x: number;
   y: number;
   hp: number;
