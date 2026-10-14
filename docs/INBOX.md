@@ -1,3 +1,40 @@
 # Inbox (monitor output)
 
-last run: never
+last run: 2026-10-14 22:05 AEDT (window: since 2026-10-14 00:00 AEDT, first run)
+
+## 2026-10-14 22:05 AEDT (first pass, versions 0.2.2 to 0.4.39)
+
+Counts: 26 run_start, 16 run_end (12 wins, 4 losses), 32 app_open (49 sessions with app_open per first query), 0 $exception, 0 app_error. Only 0.4.39 (live) has 1 session so far, no runs yet.
+
+New notes (9 from digest, none were in INBOX before):
+- 6e457239 idea (hub): splinter/cluster effect on damage, pratas flaking and disintegrating
+- 97cf030f change (wave 2): teh tarik effect visuals
+- 6cf4f726 change (wave 2): thosai animation does not roll
+- f4281f5c bug (wave 9): crazy haptics when fighting ice enemies
+- 9dbbbd1d idea (hub): burger baron icon shows cockroach; hitboxes too big; ice animation distracting; fire is just a small icon; effects not tied to dips
+- 1a5f2b2b idea (wave 7): stats page, power-up lookup, DPS counter
+- 934d904d change (wave 7): game too staggered, waits between waves, want faster pacing
+- 6bc229d2 bug (wave 10): mobs keep spawning after Cockroach King dies
+- e038168e question (Home, Uzzy): how to start a run (answered in chat; ask if still stuck)
+
+Errors: none. No $exception events in window, no crash, no save loss, no cannot-start signal.
+
+Pacing signals:
+- Abandoned runs (run_start with no run_end): about 10 sessions. Under 30s: 3 (0.4.25 13s, 0.4.12 23s, 0.4.2 19s). Longer: 0.4.6 about 3 min at 13 events, 0.4.13 about 94s.
+- Early deaths: 0.4.9 run ended at wave 1 after 4s; 0.4.12 run ended at wave 0 after 1s.
+- Completed runs run 243 to 431s (wave 8 to 10). Shorter runs cluster on 0.4.11 to 0.4.13. Longer runs on 0.4.35 and 0.4.36. No kill events in the taxonomy, so kill gaps cannot be measured.
+
+Replay links (session ids, watch these first):
+- 01a137c4-d669-7cae-893c-622f548e6542 (0.4.9, died wave 1 at 4s)
+- 01a13977-670e-7cc2-b468-ea5073745b97 (0.4.12, 1s run, quit at wave 0)
+- 01a13786-4789-7638-8488-ee874598e68c (0.4.6, 13 events, abandoned about 3 min)
+- 01a13980-ad97-72c0-bc8d-687db7a7b753 (0.4.13, abandoned at about 94s)
+- 01a13846-5e33-7159-b04a-f318b3302228 (0.4.11, 72 events, 3 runs, longest session)
+
+Suggested slices:
+- 6bc229d2 spawns after boss death: boss-finish slice (bug, fix first)
+- f4281f5c ice haptics at wave 9: contact-attack slice
+- 934d904d pacing: balance-tested pacing slice (abandon data above supports it)
+- 9dbbbd1d hitbox and ice/fire visuals: visuals polish slice
+- 1a5f2b2b stats/DPS: later round
+- 6e457239, 97cf030f, 6cf4f726: visuals polish slice
