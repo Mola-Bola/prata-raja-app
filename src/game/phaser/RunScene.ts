@@ -16,6 +16,7 @@ import { playSfx, setSfxEnabled, unlockAudio, type SfxName } from '../audio/sfx'
 import type { Bridge, HapticKind } from '../bridgeTypes';
 import type { Hub, HudState, KitchenStats } from '../hub';
 import { Actors } from './actors';
+import { RunDamageRate } from './runDamageRate';
 import { FeedbackGate, strongerHaptic } from './combatFeedback';
 import { DangerCue } from './danger';
 import { Fx } from './fx';
@@ -70,6 +71,7 @@ export class RunScene extends Phaser.Scene {
   private paused = false;
   private kitchenTuning: KitchenTuning | null = null;
   private damageShown = 0;
+  private damageRate = new RunDamageRate();
   private bootRequest = 0;
   private levelUpOpen = false;
   /** The run is over (won, lost, or Kannan woke up early): the world stays on screen, frozen, until the next start or quit. */
@@ -235,6 +237,7 @@ export class RunScene extends Phaser.Scene {
   /** Stop the run where it is (the sim does not step, the frame is left as drawn). */
   private hold(): void {
     this.paused = true;
+    if (this.world) this.publishHud(this.world, HUD_PERIOD);
     this.trauma = 0;
     this.hitStop = 0;
     this.drag.release();
@@ -289,6 +292,7 @@ export class RunScene extends Phaser.Scene {
     this.bootRequest++;
     this.kitchenTuning = null;
     this.damageShown = 0;
+    this.damageRate.reset();
     this.world = null;
     this.ended = false;
     this.wokeEarly = false;
@@ -449,7 +453,7 @@ export class RunScene extends Phaser.Scene {
     let boss: HudState['boss'] = null;
     for (const e of w.enemies) {
       if (e.boss && e.state !== 'dead') {
-        boss = { name: e.def.name, hp: Math.max(0, e.hp), maxHp: e.maxHp };
+        boss = { name: e.def.name, sprite: e.def.sprite, hp: Math.max(0, e.hp), maxHp: e.maxHp };
         break;
       }
     }
@@ -467,7 +471,14 @@ export class RunScene extends Phaser.Scene {
       time: w.time,
       boss,
       breads: p.breads.map((b) => ({ id: b.id, level: b.level })),
-      dips: p.dips.map((d) => ({ id: d.id, level: d.level })),
+      dips: p.dips.map((d) => ({ ...d })),
+      passives: p.passives.map((item) => ({ ...item })),
+      stats: { ...p.stats },
+      buffs: p.buffs.map((buff) => ({ ...buff })),
+      revivesLeft: p.revivesLeft,
+      dipSimmer: { ...w.loadout?.dipSimmer },
+      signatureBread: w.loadout?.signatureBread,
+      shownDps: this.damageRate.read(w.time),
     });
   }
 
@@ -518,7 +529,10 @@ export class RunScene extends Phaser.Scene {
     this.hapticBatch = { kind: null, gap: 0 };
     for (let i = 0; i < events.length; i++) {
       const ev = events[i];
-      if (this.kitchenTuning && (ev.t === 'hit' || ev.t === 'dot')) this.damageShown += Math.max(0, ev.dmg);
+      if (ev.t === 'hit' || ev.t === 'dot') {
+        this.damageRate.add(w.time, ev.dmg);
+        if (this.kitchenTuning) this.damageShown += Math.max(0, ev.dmg);
+      }
       switch (ev.t) {
         case 'throw': {
           this.stall.release();

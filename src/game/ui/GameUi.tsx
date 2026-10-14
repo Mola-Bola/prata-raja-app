@@ -26,6 +26,7 @@ import { cardView } from './cardText';
 import { AnalyticsSwitch, FeedbackLayer, TellButton } from './FeedbackSheet'; // [feedback hook]
 import { trackCardPick } from '../telemetry'; // [analytics hook]
 import { Kitchen } from './Kitchen';
+import { RunBuild } from './RunBuild';
 import { Prologue } from './Prologue';
 import { createSaveStore } from './saveStore';
 import { Switch, toggleSetting, type SettingKey } from './settings';
@@ -55,6 +56,8 @@ function buzz(bridge: UiBridge, on: boolean, kind: HapticKind): void {
 
 export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
   const chapter = useRef(CONTENT.chapters[0].id);
+  const runHud = useRef<HudState | null>(null);
+  const [pausedHud, setPausedHud] = useState<HudState | null>(null);
   const [screen, setScreen] = useState<Screen>(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('kitchen') === '1' ? 'kitchen' : 'title');
   const replayingStory = useRef(false);
   const [runId, setRunId] = useState(0);
@@ -102,9 +105,11 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
 
   useEffect(() => {
     const offs = [
+      hub.on('hud', (snapshot) => { runHud.current = snapshot; }),
       hub.on('kitchenStart', () => { ticket.current = null; setOffer(null); setPaused(false); setEnded(null); setScreen('kitchen'); }),
       hub.on('runStart', ({ seed }) => {
         ticket.current = { seed, paid: false };
+        runHud.current = null;
         setScreen('run');
         setOffer(null);
         setPaused(false);
@@ -112,7 +117,7 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
         setRunId((n) => n + 1);
       }),
       // The renderer held the run on its own (the app went to the background): show the pause sheet.
-      hub.on('paused', () => setPaused(true)),
+      hub.on('paused', () => { setPausedHud(runHud.current); setPaused(true); }),
       hub.on('levelUp', ({ offer: cards, rerolls, level }) =>
         setOffer((prev) => ({ n: (prev?.n ?? 0) + 1, cards, rerolls, level })),
       ),
@@ -155,8 +160,9 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
     }
   };
   const pause = () => {
-    setPaused(true);
     hub.controls?.pause();
+    setPausedHud(runHud.current);
+    setPaused(true);
   };
   const resume = () => {
     setPaused(false);
@@ -226,6 +232,7 @@ export function GameUi({ hub, bridge }: { hub: Hub; bridge: UiBridge }) {
       )}
       {screen === 'run' && paused && (
         <Pause
+          hud={pausedHud}
           sound={save?.settings.sfx ?? true}
           haptics={save?.settings.haptics ?? true}
           onResume={resume}
@@ -333,10 +340,11 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
           <div className="gu-xp">
             <span className="gu-level">Lv {hud.level}</span>
             <Bar pct={hud.xp / hud.xpToNext} />
+            <span className="gu-dps" data-testid="run-dps" aria-label={`Shown damage per second: ${hud.shownDps.toFixed(1)}`}>DPS <b>{hud.shownDps.toFixed(1)}</b></span>
           </div>
           {hud.boss && (
             <div className="gu-boss">
-              <img src={art('ui/boss-badge')} alt="" />
+              <img src={art(hud.boss.sprite)} alt="" data-testid="boss-portrait" />
               <div className="gu-boss-body">
                 <span className="gu-boss-name">{hud.boss.name}</span>
                 <Bar pct={hud.boss.hp / hud.boss.maxHp} tone="boss" />
@@ -427,6 +435,7 @@ function CardButton({ card, index, onPick }: { card: Card; index: number; onPick
 }
 
 function Pause({
+  hud,
   sound,
   haptics,
   onResume,
@@ -434,6 +443,7 @@ function Pause({
   onQuit,
   onToggle,
 }: {
+  hud: HudState | null;
   sound: boolean;
   haptics: boolean;
   onResume: () => void;
@@ -441,10 +451,27 @@ function Pause({
   onQuit: () => void;
   onToggle: (key: SettingKey) => void;
 }) {
+  const [build, setBuild] = useState(false);
+  const sheet = useRef<HTMLElement>(null);
+  useEffect(() => { sheet.current?.querySelector<HTMLElement>('[data-focus]')?.focus(); }, [build]);
   return (
     <div className="gu-modal">
-      <section className="gu-sheet" role="dialog" aria-label="Paused">
+      <section ref={sheet} className={`gu-sheet gu-pause-sheet${build ? ' gu-pause-sheet--build' : ''}`} role="dialog" aria-modal="true" aria-label={build ? 'Current build' : 'Paused'} onKeyDown={e => {
+        if (e.key === 'Escape') { if (build) setBuild(false); else onResume(); }
+        if (e.key !== 'Tab') return;
+        const controls = sheet.current?.querySelectorAll<HTMLElement>('button:not(:disabled),[tabindex="0"]');
+        if (!controls?.length) return;
+        const first = controls[0], last = controls[controls.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }}>
+        {build && hud ? <>
+          <header className="gu-build-heading"><h2 className="gu-heading">Current build</h2><button type="button" className="gu-btn" data-focus data-testid="build-back" onClick={() => setBuild(false)}>Back</button></header>
+          <RunBuild hud={hud} />
+          <button type="button" className="gu-btn gu-btn--primary gu-btn--wide" data-testid="build-resume" onClick={onResume}>Resume</button>
+        </> : <>
         <h2 className="gu-heading">Paused</h2>
+        <button type="button" className="gu-btn gu-btn--wide" data-focus data-testid="ui-build" disabled={!hud} onClick={() => setBuild(true)}>Current build & stats</button>
         <button type="button" className="gu-btn gu-btn--primary gu-btn--wide" data-testid="ui-resume" onClick={onResume}>
           Resume
         </button>
@@ -460,6 +487,7 @@ function Pause({
           <Switch label="Haptics" on={haptics} onClick={() => onToggle('haptics')} />
           <AnalyticsSwitch />
         </div>
+        </>}
       </section>
     </div>
   );

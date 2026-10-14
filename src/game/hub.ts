@@ -1,7 +1,7 @@
 // The one seam between the Phaser renderer (src/game/phaser/*) and the React DOM overlays (src/game/ui/*).
 // The renderer owns the World and publishes; the UI listens and calls GameControls. Neither imports the other.
 import type { KitchenConfig, KitchenTuning } from '@/core/kitchen';
-import type { BreadId, Card, DipId, Loadout, RunPhase, RunResult } from '@/core/types';
+import type { Buff, Card, Loadout, OwnedBread, OwnedDip, OwnedPassive, PlayerStats, RunPhase, RunResult, SpriteKey } from '@/core/types';
 
 export type HudState = {
   wave: number;
@@ -15,9 +15,17 @@ export type HudState = {
   kills: number;
   /** Seconds since the run started. */
   time: number;
-  boss: { name: string; hp: number; maxHp: number } | null;
-  breads: { id: BreadId; level: number }[];
-  dips: { id: DipId; level: number }[];
+  boss: { name: string; sprite: SpriteKey; hp: number; maxHp: number } | null;
+  breads: Pick<OwnedBread, 'id' | 'level'>[];
+  dips: OwnedDip[];
+  passives: OwnedPassive[];
+  stats: PlayerStats;
+  buffs: Buff[];
+  revivesLeft: number;
+  dipSimmer: Loadout['dipSimmer'];
+  signatureBread: Loadout['signatureBread'];
+  /** Hit + DoT event damage in the last five simulation seconds, including overkill. */
+  shownDps: number;
 };
 
 /** Hit and DoT numbers shown on screen, including overkill; not effective HP removed. */

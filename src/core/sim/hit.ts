@@ -1,4 +1,4 @@
-import { dipMatchesBread } from '../dipLinks';
+import { linkedDipEffect } from '../dipLinks';
 import { creditDipUse, matchingDipLink, simmerEffect } from '../dipProgression';
 // Damage rules: a bread hit on an enemy, dip chain/sambal side effects, DoT bookkeeping, kills, XP and gold.
 import { rollHit, xpToNext } from '../stats';
@@ -68,12 +68,8 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
       if (linkedBase !== hitBase) continue;
     }
     const base = def.levels[d.level - 1];
-    const bonus = d.linkedBread && dipMatchesBread(def, w.content.breads[d.linkedBread]);
-    const matchedFx = !bonus ? base
-      : base.type === 'burn' ? { ...base, dps: base.dps * 1.25, time: base.time * 1.25 }
-        : base.type === 'sugar' ? { ...base, slowTime: base.slowTime * 1.25, crashStun: base.crashStun * 1.25 }
-          : base.type === 'chill' ? { ...base, time: base.time * 1.25, freezeTime: base.freezeTime * 1.25 } : base;
-    const fx = bonus && matchingDipLink(w.content, d, breadId) ? simmerEffect(d.id, matchedFx, w.loadout?.dipSimmer?.[d.id]) : matchedFx;
+    const matchedFx = linkedDipEffect(w.content, d);
+    const fx = matchingDipLink(w.content, d, breadId) ? simmerEffect(d.id, matchedFx, w.loadout?.dipSimmer?.[d.id]) : matchedFx;
     // A volley/orbit cannot farm Sticky stacks several times in the same instant.
     if (d.linkedBread && base.type === 'sugar') {
       const last = e.cooldowns._linkedSugar;

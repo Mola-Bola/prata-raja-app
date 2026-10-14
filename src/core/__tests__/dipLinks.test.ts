@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../../content';
 import { applyCard, drawOffer } from '../cards';
-import { dipMatchesBread, isLinkableDip } from '../dipLinks';
+import { dipMatchesBread, isLinkableDip, linkedDipEffect } from '../dipLinks';
+import { matchingDipLink, simmerEffect } from '../dipProgression';
 import { createKitchenRun } from '../kitchen';
 import { makeRng } from '../rng';
 import { createRun } from '../sim';
@@ -30,6 +31,26 @@ function hit(c: Ctx, bread: BreadId) {
 }
 
 describe('dip tag contract', () => {
+  it.each([1, 10, 20])('the displayed linked effect agrees with real hits at simmer L%s', simmer => {
+    for (const id of ['fish-curry', 'mint-chutney', 'condensed-milk'] as const) {
+      for (const target of [undefined, 'roti-bomb', 'inferno-bomb', 'vadai'] as const) {
+        const c = context(id, target);
+        c.p.dips[0].level = 3;
+        c.w.loadout = { dipSimmer: { [id]: simmer } };
+        const dip = c.p.dips[0];
+        const linked = linkedDipEffect(c.w.content, dip);
+        const displayed = matchingDipLink(c.w.content, dip, target) ? simmerEffect(id, linked, simmer) : linked;
+        const bread = target ?? 'roti-bomb';
+        const enemy = hit(c, bread);
+        if (displayed.type === 'burn') expect(enemy.statuses.find(s => s.id === 'burn')).toMatchObject({ dps: displayed.dps, time: displayed.time });
+        if (displayed.type === 'chill') expect(enemy.statuses.find(s => s.id === 'chill')).toMatchObject({ time: displayed.time });
+        if (displayed.type === 'sugar') expect(enemy.statuses.find(s => s.id === 'sugarSlow')).toMatchObject({ time: displayed.slowTime });
+        if (target) expect(hit(c, target === 'vadai' ? 'kosong' : 'vadai').statuses).toEqual([]);
+        expect(c.w.content.dips[id].levels[2]).toEqual(CONTENT.dips[id].levels[2]);
+      }
+    }
+  });
+
   it('declares every current base tag and inherits through evolution', () => {
     for (const b of Object.values(CONTENT.breads)) expect(b.tags).toEqual(tags[(b.evolvedFrom?.bread ?? b.id) as keyof typeof tags]);
     expect(CONTENT.dips['fish-curry'].matchingTags).toEqual(['lob', 'heat', 'stuffed']);

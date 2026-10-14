@@ -5,7 +5,7 @@ import type { GameEvent, World } from '@/core/types';
 import type { Bridge } from '../bridgeTypes';
 import { RunScene } from '../phaser/RunScene';
 import { BootScene } from '../phaser/BootScene';
-import type { KitchenStats } from '../hub';
+import type { HudState, KitchenStats } from '../hub';
 import { createHub } from '../hub';
 
 vi.mock('phaser', () => ({ Scene: class {}, TintModes: { MULTIPLY: 0, FILL: 1 } }));
@@ -42,6 +42,7 @@ type Driver = {
   startKitchen(config: KitchenConfig): void; tuneKitchen(tuning: KitchenTuning): void; stopKitchen(): void;
   quit(): void; handle(world: World, events: GameEvent[]): void; endRun(world: World): void;
   publishHud(world: World, dt: number): void; kitchenStats(): KitchenStats | null;
+  hold(): void;
 };
 function scene(search = '') {
   vi.stubGlobal('window', { location: { search }, __world: null });
@@ -63,6 +64,40 @@ function finish(world: World, won: boolean) {
 }
 
 describe('kitchen renderer lifecycle through the hub', () => {
+  it('freezes an independent current build snapshot and resets normal-run damage', () => {
+    const { driver, hub, save } = scene();
+    let snapshot: HudState | null = null;
+    hub.on('hud', h => { snapshot = h; });
+    driver.start(123);
+    const w = driver.world!;
+    w.player.dips = [{ id: 'fish-curry', level: 2, linkedBread: 'roti-bomb' }];
+    w.player.passives = [{ id: 'strong-wrists', level: 3 }];
+    w.player.buffs = [{ id: 'haste', time: 2, stacks: 0, hitCount: 5 }];
+    w.time = 2;
+    driver.handle(w, [{ t: 'hit', uid: 1, x: 0, y: 0, dmg: 1000, crit: false, color: null },
+      { t: 'dot', uid: 1, x: 0, y: 0, dmg: 20, color: '#ffffff' }]);
+    driver.hold();
+    expect(driver.paused).toBe(true);
+    expect(snapshot).toMatchObject({ shownDps: 510, time: 2, dips: w.player.dips, passives: w.player.passives, buffs: w.player.buffs, stats: w.player.stats });
+    const held = snapshot! as HudState;
+    w.player.dips[0].level = 4; w.player.stats.maxHp = 999; w.player.buffs[0].time = 0;
+    expect(held.dips[0].level).toBe(2); expect(held.stats.maxHp).toBe(100); expect(held.buffs[0].time).toBe(2);
+    w.time = 7; driver.publishHud(w, 1);
+    expect((snapshot! as HudState).shownDps).toBe(0);
+    driver.start(456); driver.publishHud(driver.world!, 1);
+    expect(snapshot).toMatchObject({ shownDps: 0, dips: [], passives: [], buffs: [] });
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it.each(Object.values(CONTENT.bosses))('publishes the actual boss portrait: $name', def => {
+    const { driver, hub } = scene(); const hud = vi.fn(); hub.on('hud', hud);
+    driver.start(123);
+    const w = driver.world!;
+    w.enemies.push({ def, boss: true, state: 'idle', hp: 10, maxHp: 20 } as unknown as World['enemies'][number]);
+    driver.publishHud(w, 1);
+    expect(hud.mock.calls.at(-1)?.[0].boss).toEqual({ name: def.name, sprite: def.sprite, hp: 10, maxHp: 20 });
+  });
+
   it.each([true, false])('keeps kitchen terminal events separate and never saves or tracks; won=%s', (won) => {
     const { driver, hub, save, track } = scene();
     const normal = vi.fn(), starts = vi.fn(), ends = vi.fn();
