@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 
-import { SIGNUP_OPEN, useAuth, useAuthProviders } from '@/data';
+import { isOwnerEmail, SIGNUP_OPEN, useAuth, useAuthProviders } from '@/data';
 import { APP_NAME, BigButton, Screen, space, TextField, useAppTheme, useToast, Wordmark } from '@/ui';
 
 export default function SignIn() {
@@ -25,6 +25,7 @@ export default function SignIn() {
     setBusy(true);
     try {
       if (mode === 'in') await signIn(email, password);
+      else if (!(await isOwnerEmail(email))) throw new Error('This kitchen is private.');
       else await signUp(email, password, name);
     } catch (e) {
       toast.error(e);

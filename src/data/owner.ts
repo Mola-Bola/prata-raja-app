@@ -1,7 +1,9 @@
 // Owner allow-list: EXPO_PUBLIC_OWNER_EMAIL_SHA256 (comma-separated SHA-256 hex of lower-cased emails, set at build time).
 // Unset: any signed-in user passes (dev, e2e). Set: only listed owners play and sign-up is hidden.
 export const OWNER_HASHES = (process.env.EXPO_PUBLIC_OWNER_EMAIL_SHA256 ?? '').split(',').map((h: string) => h.trim().toLowerCase()).filter(Boolean);
-export const SIGNUP_OPEN = OWNER_HASHES.length === 0;
+/** Sign-up stays open; with an owner list only a listed email may create an account (checked in sign-in.tsx; the wall and the
+ *  notes function enforce it anyway). */
+export const SIGNUP_OPEN = true;
 
 export async function sha256Hex(text: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
