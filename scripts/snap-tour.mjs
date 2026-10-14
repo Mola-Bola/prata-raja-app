@@ -39,6 +39,7 @@ if (local) {
   const envFile = [join(ROOT, '.env'), join(ROOT, '../../../.env')].find(existsSync);
   const env = { ...process.env };
   for (const l of envFile ? readFileSync(envFile, 'utf8').split('\n') : []) { const m = l.match(/^([A-Z0-9_]+)=(.*)$/); if (m) env[m[1]] = m[2].replace(/^["']|["']$/g, ''); }
+  env.EXPO_PUBLIC_OWNER_EMAIL_SHA256 = ''; // no login wall in the local tour build (.env.production carries the owner list)
   execFileSync('npx', ['expo', 'export', '-p', 'web', '--clear'], { cwd: ROOT, stdio: 'ignore', env });
   server = spawn('node', ['scripts/serve-web.mjs', '8199'], { cwd: ROOT, stdio: 'ignore' }); // (killed in finally)
   await new Promise((r) => setTimeout(r, 800));
