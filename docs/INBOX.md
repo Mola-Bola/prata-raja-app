@@ -1,6 +1,23 @@
 # Inbox (monitor output)
 
-last run: 2026-10-15 00:48 AEDT (window: since 2026-10-14 23:50 AEDT)
+last run: 2026-10-15 00:50 AEDT (window: since 2026-10-15 00:48 AEDT)
+
+## 2026-10-15 00:50 AEDT (window 00:48 to 00:50, quiet)
+
+Counts: 0 sessions with run/level events, 0 run_start, 0 run_end, 0 $exception, 0 app_error. 1 event in window: release_shipped at 00:49:28 AEDT, with no app_version property (same gap as the 00:31 ship).
+
+New notes: none. The digest's 9 open notes (6e457239, e038168e, 9dbbbd1d, 97cf030f, 6cf4f726, f4281f5c, 1a5f2b2b, 934d904d, 6bc229d2) are all already in INBOX. Status changes: none.
+
+Errors: none. No crash, no save loss, no cannot-start signal.
+
+Pacing signals: no runs in window.
+
+Replay links: none (no sessions in window).
+
+Suggested slices:
+- release_shipped still has no app_version (2 of 2 ships in this run window): add app_version to the release emitter so ships can be matched to builds.
+
+Note: the window is 2 minutes, so this pass is almost empty by design. Earlier-day events were checked only to confirm the cutoff; the explicit-UTC query returned just the release event.
 
 ## 2026-10-15 00:48 AEDT (window 23:50 to 00:48, quiet)
 
