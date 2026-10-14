@@ -159,12 +159,14 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
     return () => offs.forEach((off) => off());
   }, [hub, store]);
 
-  const enterKitchen = () => { ticket.current = null; setOffer(null); setPaused(false); setEnded(null); hub.controls?.quit(); setScreen('kitchen'); };
+  const [returned, setReturned] = useState(false); // the stall was reached from a run's results: a milestone visitor may come
+  const enterKitchen = () => { setReturned(false); ticket.current = null; setOffer(null); setPaused(false); setEnded(null); hub.controls?.quit(); setScreen('kitchen'); };
 
   const toggle = (key: SettingKey) => store.commit(toggleSetting(key));
 
   /** A fresh run with whatever the stall holds right now (the newest save, so a purchase a moment ago counts). */
   const start = (chapterId = chapter.current) => {
+    setReturned(false);
     const cur = store.current;
     if (cur) {
       chapter.current = chapterUnlocked(cur, chapterId) ? chapterId : CONTENT.chapters[0].id;
@@ -197,6 +199,7 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
   };
   const toStall = () => {
     setEnded(null);
+    setReturned(true);
     setScreen('stall');
     hub.controls?.quit(); // the run is over: this only clears its frozen frame
   };
@@ -233,7 +236,7 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
           onRetry={() => setLoad((l) => ({ attempt: l.attempt + 1, failed: false }))}
         />
       )}
-      {screen === 'stall' && save && <StallHub save={save} commit={store.commit} onStart={start} onKitchen={enterKitchen} onStory={() => { storyReturn.current = 'stall'; setScreen('story'); }} art={art} />}
+      {screen === 'stall' && save && <StallHub save={save} commit={store.commit} onStart={start} onKitchen={enterKitchen} onStory={() => { storyReturn.current = 'stall'; setScreen('story'); }} art={art} afterRun={returned} />}
       {screen === 'kitchen' && <Kitchen hub={hub} ready={sceneReady} onStart={() => { ticket.current = null; }} onExit={() => setScreen(save ? 'stall' : 'title')} />}
       {screen === 'story' && <Prologue onDone={() => {
         store.commit(finishPrologue);
