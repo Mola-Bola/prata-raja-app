@@ -19,3 +19,4 @@ Append-only, newest on top, one line per ingest/change/lint.
 - 2026-10-15: Round 8 meta: dip sockets (sockets.ts), spec tree (specTree.ts + SpecTree.tsx), pre-run meals (meals.ts + KopiMeal.tsx); save fields sockets/spec/meal via migrateMeta (no version bump).
 - 2026-10-15: Damage pipeline (r8-dmg): damage.ts (base, conversion, increased, more, crit, pierce falloff), ENEMY_HARD_CAP 40, unique hooks (crit splash, first-hit freeze, clogs) wired via loadout.hooks.
 - 2026-10-15: Free-movement runs behind `controlMode` (Tune knob `mode.free`, `?move=free`): joystick, auto-throw at nearest, dash i-frames, pests chase Kannan, boss arena lock, kiting bot, balance variant; see sim-core.
+- 15 Oct r8-tune: free movement is now the default control mode (counter via ?move=counter / Tune mode.free=0); Kosong cooldown 0.84, FREE pestSpeed 1.31 / bossHp 1.25; 300-seed bands pass for both modes.

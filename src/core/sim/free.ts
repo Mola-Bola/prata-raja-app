@@ -1,5 +1,5 @@
 // Free-movement mode (content.tune.controlMode 'free'): Kannan walks a 2D patch of the street with a joystick, dashes with i-frames,
-// pests chase him and shooters aim at him. Counter mode (the default) never touches this file's behaviour: Player.y stays 0.
+// pests chase him and shooters aim at him. Counter mode (opt-in: controlMode 'counter') never touches this file's behaviour: Player.y stays 0.
 import { FIELD, type Content, type World } from '../types';
 import { clamp, emit, hyp, type Ctx } from './ctx';
 
@@ -15,7 +15,7 @@ export const FREE = {
   /** Share of the throw rate kept while walking (Multitasker can raise it). */
   moveFire: 0.5,
   /** Pests move at this x their counter-mode speed. */
-  pestSpeed: 1.45,
+  pestSpeed: 1.31,
   /** Pest contact reach = def.radius x this + kannanRadius. */
   contactScale: 0.7,
   /** A shooter/healer parks this fraction of its holdY away from Kannan. */
@@ -23,12 +23,12 @@ export const FREE = {
   /** Enemy shot hit radius on Kannan (u), added to the shot's own radius. */
   shotHit: 0.8 * FIELD.kannanRadius,
   /** Boss hp x this in free mode (Kannan throws while kiting, so the fight is otherwise too short). */
-  bossHp: 1.3,
+  bossHp: 1.25,
   /** Boss: seconds of calm after it parks before its first attack. */
   bossBeat: 1.5,
 } as const;
 
-export const isFreeMode = (content: Content): boolean => content.tune?.controlMode === 'free';
+export const isFreeMode = (content: Content): boolean => content.tune?.controlMode !== 'counter';
 export const isFree = (c: Ctx | { w: World } | World): boolean => isFreeMode(('w' in c ? c.w : c).content);
 
 /** Joystick walk, dash and i-frames for one step. */
