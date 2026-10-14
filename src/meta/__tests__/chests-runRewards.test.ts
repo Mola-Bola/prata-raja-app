@@ -7,24 +7,25 @@ import { applyRunResult, MIN_PAID_WAVE } from '../runRewards';
 import { RARITIES, type SaveV2 } from '../types';
 
 const NOW = new Date('2026-10-12T00:00:00Z');
+const ALL_OPEN = { towel: true, headband: true, apron: true, gloves: true, slippers: true } as const;
 const RUN: RunResult = { won: false, wave: 1, kills: 5, bossKills: 0, time: 10, level: 1, gold: 999, breads: [], dips: [] };
 describe('chests', () => {
   it('guarantees every fifth Rare+ and every twentieth Epic+, over multiple cycles', () => {
     let pity = freshSaveV2().chestPity; const rng = makeRng(5);
     for (let n = 1; n <= 80; n++) {
-      const roll = rollChest(rng, pity); pity = roll.pity;
+      const roll = rollChest(rng, pity, 'common', ALL_OPEN); pity = roll.pity;
       if (n % 5 === 0) expect(RARITIES.indexOf(roll.item.rarity)).toBeGreaterThanOrEqual(2);
       if (n % 20 === 0) expect(RARITIES.indexOf(roll.item.rarity)).toBeGreaterThanOrEqual(3);
       expect(pity).toEqual({ rare: n % 5, epic: n % 20, opened: n });
     }
   });
   it('preserves an explicit minimum and honours fifth-chest pity with Uncommon minimum', () => {
-    expect(RARITIES.indexOf(rollChest(makeRng(1), { rare: 4, epic: 4, opened: 4 }, 'uncommon').item.rarity)).toBeGreaterThanOrEqual(2);
-    expect(RARITIES.indexOf(rollChest(makeRng(1), { rare: 4, epic: 19, opened: 19 }, 'raja').item.rarity)).toBe(5);
+    expect(RARITIES.indexOf(rollChest(makeRng(1), { rare: 4, epic: 4, opened: 4 }, 'uncommon', ALL_OPEN).item.rarity)).toBeGreaterThanOrEqual(2);
+    expect(RARITIES.indexOf(rollChest(makeRng(1), { rare: 4, epic: 19, opened: 19 }, 'raja', ALL_OPEN).item.rarity)).toBe(5);
   });
   it('is deterministic and does not mutate pity', () => {
     const pity = { rare: 4, epic: 19, opened: 19 };
-    expect(rollChest(makeRng(1), pity)).toEqual(rollChest(makeRng(1), pity));
+    expect(rollChest(makeRng(1), pity, 'common', ALL_OPEN)).toEqual(rollChest(makeRng(1), pity, 'common', ALL_OPEN));
     expect(pity).toEqual({ rare: 4, epic: 19, opened: 19 });
   });
 });

@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { makeRng } from '../../core/rng';
 import { BASE_STATS } from '../../core/stats';
-import { AFFIX_POOLS, equipItem, GEAR_BASES, itemStats, merge3, RARITY_INFO, rollItem, upgradeCost, upgradeItem } from '../gear';
+import { AFFIX_POOLS, dropSlots, equipItem, GEAR_BASES, itemStats, merge3, RARITY_INFO, rollItem, upgradeCost, upgradeItem } from '../gear';
+import { rollChest } from '../chests';
+import { applyRunResult } from '../runRewards';
+import type { RunResult } from '../../core/types';
 import { freshSaveV2 } from '../migrate';
 import { RARITIES, SLOTS } from '../types';
 
@@ -85,13 +88,30 @@ describe('gear', () => {
     expect(upgradeItem(save, 'missing')).toBe(save);
     expect(upgradeItem({ ...save, unlocks: {} }, item.uid)).toMatchObject({ gold: 40 });
   });
-  it('equips an owned item into its slot only when gear and that slot are unlocked', () => {
-    const item = rollItem(makeRng(1), { slot: 'towel', rarity: 'common' });
+  it('equips an owned item only when the rack is open; an item above the stall level is still wearable', () => {
+    const item = rollItem(makeRng(1), { slot: 'slippers', rarity: 'common' });
     const save = { ...freshSaveV2(), inventory: [item], unlocks: { gear: true } };
-    expect(equipItem(save, item.uid)).toBe(save);
-    const equipped = equipItem({ ...save, unlocks: { gear: true, towel: true } }, item.uid);
-    expect(equipped.equipped).toEqual({ towel: item.uid });
+    expect(equipItem({ ...save, unlocks: {} }, item.uid)).toEqual({ ...save, unlocks: {} });
+    const equipped = equipItem(save, item.uid);
+    expect(equipped.equipped).toEqual({ slippers: item.uid });
     expect(equipItem(equipped, 'missing')).toBe(equipped);
-    expect(equipItem({ ...save, unlocks: { towel: true } }, item.uid).equipped).toEqual({});
+    expect(equipItem({ ...freshSaveV2(), inventory: [item], unlocks: { gear: true }, pendingChests: [item.uid] }, item.uid).equipped).toEqual({});
+  });
+  it('never rolls a gear drop in a slot the player cannot wear yet', () => {
+    expect(dropSlots({ gear: true, towel: true, headband: true })).toEqual(['towel', 'headband']);
+    expect(dropSlots({})).toEqual(['towel']);
+    const rng = makeRng(21);
+    const open = { gear: true, towel: true, headband: true } as const;
+    for (let i = 0; i < 300; i++) expect(['towel', 'headband']).toContain(rollChest(rng, freshSaveV2().chestPity, 'common', open).item.slot);
+  });
+  it('a run at stall level 1 only drops towel gear, and a run that levels the stall widens the pool', () => {
+    const run = (stallXp: number, seed: number) => {
+      const save = { ...freshSaveV2(), stallXp };
+      return applyRunResult(save, { won: false, wave: 4, kills: 5, bossKills: 0, time: 10, level: 1, gold: 0, breads: [], dips: [] } as RunResult, makeRng(seed), new Date('2026-10-12T00:00:00Z')).rewards.chest!;
+    };
+    for (let seed = 1; seed <= 200; seed++) expect(run(0, seed).slot).toBe('towel');
+    // 1300 XP is stall level 6: towel, headband, apron and gloves are open at drop time; slippers (level 7) is not.
+    const slots = new Set(Array.from({ length: 400 }, (_, seed) => run(1300, seed + 1).slot));
+    expect([...slots].sort()).toEqual(['apron', 'gloves', 'headband', 'towel']);
   });
 });

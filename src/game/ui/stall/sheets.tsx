@@ -60,15 +60,15 @@ export function GearSheet({ save, commit, art }: Ctx) {
           return (
             <button type="button" className="sh-tile" key={slot} data-testid={`gear-slot-${slot}`} onClick={() => setUid(worn?.uid ?? null)} aria-label={`${titleCase(slot)}${worn ? `: ${titleCase(worn.baseId)}` : ''}`}>
               <b>{titleCase(slot)}</b>
-              {!save.unlocks[slot] ? (
-                <>
-                  <img className="sh-item-art" src={art('ui/lock')} alt="" />
-                  <span>Level {unlockLevel(slot)}</span>
-                </>
-              ) : worn ? (
+              {worn ? (
                 <>
                   <img className="sh-item-art" src={art(`gear/${worn.baseId}`)} alt="" />
                   <span>Lv {worn.level}</span>
+                </>
+              ) : !save.unlocks[slot] ? (
+                <>
+                  <img className="sh-item-art" src={art('ui/lock')} alt="" />
+                  <span>Level {unlockLevel(slot)}</span>
                 </>
               ) : (
                 <span>Empty</span>
@@ -101,7 +101,7 @@ export function GearSheet({ save, commit, art }: Ctx) {
       {item && (
         <section className="sh-detail" data-testid="gear-detail">
           <b>{titleCase(item.baseId)}</b>
-          <p>{save.unlocks[item.slot] ? 'Ready for your next daydream.' : `Unlocks at stall level ${unlockLevel(item.slot)}`}</p>
+          <p>{save.unlocks[item.slot] ? 'Ready for your next daydream.' : `Wear it now. Its slot opens at stall level ${unlockLevel(item.slot)}.`}</p>
           {statLines(itemStats(item)).map((line) => (
             <span key={line}>{line}</span>
           ))}

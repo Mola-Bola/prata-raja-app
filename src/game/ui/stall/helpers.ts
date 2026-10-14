@@ -124,7 +124,7 @@ export function readyBadges(save: SaveV2, now: Date): Partial<Record<Panel, stri
   if (save.unlocks.training && TRAINING_IDS.some(id => save.training[id] < TRAINING_COSTS.length && save.gold >= TRAINING_COSTS[save.training[id]])) badges.training = true;
   if (save.unlocks.gear) {
     const rack = rackItems(save);
-    if (SLOTS.some(slot => save.unlocks[slot] && !save.equipped[slot] && rack.some(i => i.slot === slot))) badges.gear = true;
+    if (SLOTS.some(slot => !save.equipped[slot] && rack.some(i => i.slot === slot))) badges.gear = true;
   }
   return badges;
 }

@@ -55,7 +55,7 @@ export function claim(save: SaveV2, now: Date, tzOffsetMinutes: number) {
     rewards.materials[type] = (rewards.materials[type] ?? 0) + 1;
     materials[type]++;
   }
-  const chest = 'chest' in gift ? rollChest(rng, save.chestPity, 'rare') : null;
+  const chest = 'chest' in gift ? rollChest(rng, save.chestPity, 'rare', save.unlocks) : null;
   if (chest) rewards.chest = { ...chest.item, uid: `daily-${dayString(today)}-${chest.pity.opened}-${chest.item.uid}` };
   const next: SaveV2 = {
     ...save, gold: save.gold + rewards.gold, materials,

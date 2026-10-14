@@ -41,7 +41,8 @@ export function applyRunResult(save: SaveV2, result: RunResult, rng: Rng, now: D
   const tips = Number.isFinite(result.gold) ? Math.max(0, Math.floor(result.gold)) : 0;
   const gold = 20 + 12 * waves + 60 * result.bossKills + tips;
   const stallXp = runXp(waves, result.bossKills);
-  const chest = rollChest(rng, save.chestPity);
+  const unlocks = { ...save.unlocks, ...unlocksForXp(save.stallXp + stallXp) };
+  const chest = rollChest(rng, save.chestPity, 'common', unlocks);
   const item = { ...chest.item, uid: `run-${save.runs + 1}-chest-${chest.pity.opened}-${chest.item.uid}` };
   const materials: Partial<Record<Material, number>> = {};
   for (let i = 0; i < Math.floor(waves / 5); i++) {
@@ -57,7 +58,7 @@ export function applyRunResult(save: SaveV2, result: RunResult, rng: Rng, now: D
   const next: SaveV2 = {
     ...save, ...records, dipXp: dipProgress.dipXp, gold: save.gold + gold, stallXp: save.stallXp + stallXp,
     inventory: [...save.inventory, item], materials: inventoryMaterials,
-    chestPity: chest.pity, unlocks: { ...save.unlocks, ...unlocksForXp(save.stallXp + stallXp) },
+    chestPity: chest.pity, unlocks,
     pendingChests: [...save.pendingChests, item.uid],
   };
   return { save: next, rewards: { paid: true, gold, stallXp, chest: item, materials, dipReceipts: dipProgress.receipts } };

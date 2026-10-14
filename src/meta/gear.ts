@@ -1,7 +1,7 @@
 import type { Rng } from '../core/rng';
 import { BASE_STATS } from '../core/stats';
 import type { PlayerStats } from '../core/types';
-import { RARITIES, type Affix, type GearBaseId, type GearItem, type Rarity, type SaveV2, type Slot } from './types';
+import { RARITIES, SLOTS, type Affix, type GearBaseId, type GearItem, type Rarity, type SaveV2, type Slot } from './types';
 
 export const GEAR_BASES: Record<GearBaseId, Slot> = {
   'faded-kopitiam-towel': 'towel', 'sweat-stained-towel': 'towel', 'lucky-red-towel': 'towel',
@@ -32,7 +32,13 @@ const MAIN_STATS: Record<Slot, Partial<PlayerStats>> = {
   gloves: { throwSpeedPct: .03 }, slippers: { moveSpeed: BASE_STATS.moveSpeed * .03 },
 };
 
-export type RollOptions = { baseId?: GearBaseId; slot?: Slot; rarity?: Rarity; minRarity?: Rarity; source?: 'drop' | 'chest' | 'boss'; uid?: string };
+/** Slots the player can wear at drop time. Stall level 1 has none open: the gear rack opens at level 2 with the towel, so that is the cap. */
+export function dropSlots(unlocks: SaveV2['unlocks']): readonly Slot[] {
+  const open = SLOTS.filter(slot => unlocks[slot]);
+  return open.length ? open : SLOTS.slice(0, 1);
+}
+
+export type RollOptions = { baseId?: GearBaseId; slot?: Slot; slots?: readonly Slot[]; rarity?: Rarity; minRarity?: Rarity; source?: 'drop' | 'chest' | 'boss'; uid?: string };
 export function rollItem(rng: Rng, opts: RollOptions = {}): GearItem {
   const max = opts.source === 'chest' || opts.source === 'boss' ? 5 : 2;
   const min = RARITIES.indexOf(opts.minRarity ?? 'common');
@@ -40,7 +46,9 @@ export function rollItem(rng: Rng, opts: RollOptions = {}): GearItem {
   if (opts.rarity && RARITIES.indexOf(opts.rarity) < min) throw new Error('Rarity is below minimum');
   if (opts.baseId && opts.slot && GEAR_BASES[opts.baseId] !== opts.slot) throw new Error('Base does not match slot');
   const rarity = opts.rarity ?? rng.weighted(RARITIES.slice(min, max + 1), r => RARITY_INFO[r].weight);
-  const bases = (Object.keys(GEAR_BASES) as GearBaseId[]).filter(id => !opts.slot || GEAR_BASES[id] === opts.slot);
+  const allowed = opts.slots ?? SLOTS;
+  const bases = (Object.keys(GEAR_BASES) as GearBaseId[]).filter(id => (!opts.slot || GEAR_BASES[id] === opts.slot) && allowed.includes(GEAR_BASES[id]));
+  if (!bases.length) throw new Error('No gear base fits the allowed slots');
   const baseId = opts.baseId ?? rng.pick(bases);
   const slot = GEAR_BASES[baseId];
   const pool = [...AFFIX_POOLS[slot]];
@@ -68,10 +76,11 @@ export function upgradeItem(save: SaveV2, uid: string): SaveV2 {
   if (!save.unlocks.gear || !item || save.pendingChests.includes(uid) || save.gold < upgradeCost(item) || !Number.isFinite(upgradeCost(item))) return save;
   return { ...save, gold: save.gold - upgradeCost(item), inventory: save.inventory.map(i => i.uid === uid ? { ...i, level: i.level + 1 } : i) };
 }
-/** Puts an owned item in its slot, replacing the old one. Locked gear, locked slots and items still in a closed chest are refused. */
+/** Puts an owned item in its slot, replacing the old one. Locked gear and items still in a closed chest are refused.
+ *  A slot's stall-level gate is not checked: an item above the player's level can always be worn (its level only scales stats). */
 export function equipItem(save: SaveV2, uid: string): SaveV2 {
   const item = save.inventory.find(i => i.uid === uid);
-  if (!item || !save.unlocks.gear || !save.unlocks[item.slot] || save.pendingChests.includes(uid) || save.equipped[item.slot] === uid) return save;
+  if (!item || !save.unlocks.gear || save.pendingChests.includes(uid) || save.equipped[item.slot] === uid) return save;
   return { ...save, equipped: { ...save.equipped, [item.slot]: uid } };
 }
 export function itemStats(item: GearItem): Partial<PlayerStats> {
