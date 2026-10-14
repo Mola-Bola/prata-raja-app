@@ -11,7 +11,7 @@ import { kannanBar } from '@/meta/kannan';
 import { nextUnlock, UNLOCK_TABLE } from '@/meta/stall';
 import { beatLabel } from '@/meta/story';
 import { claim } from '@/meta/streak';
-import { TRAINING_COSTS } from '@/meta/training';
+import { TRAINING_COSTS, trainingOpen } from '@/meta/training';
 import { RARITIES, SLOTS, TRAINING_IDS, type GearItem, type Rarity, type SaveV2, type UnlockFlag } from '@/meta/types';
 
 export type Panel = 'special' | 'calendar' | 'training' | 'recipes' | 'gear' | 'idle' | 'chests';
@@ -127,7 +127,7 @@ export function readyBadges(save: SaveV2, now: Date): Partial<Record<Panel, stri
   if (jar > 0) badges.idle = `+${jar}`;
   if (claim(save, now, -now.getTimezoneOffset()).rewards.day > 0) badges.calendar = true;
   if (save.pendingChests.length) badges.chests = String(save.pendingChests.length);
-  if (save.unlocks.training && TRAINING_IDS.some(id => save.training[id] < TRAINING_COSTS.length && save.gold >= TRAINING_COSTS[save.training[id]])) badges.training = true;
+  if (save.unlocks.training && TRAINING_IDS.some(id => trainingOpen(save, id) && save.training[id] < TRAINING_COSTS.length && save.gold >= TRAINING_COSTS[save.training[id]])) badges.training = true;
   if (save.unlocks.gear) {
     const rack = rackItems(save);
     if (SLOTS.some(slot => !save.equipped[slot] && rack.some(i => i.slot === slot))) badges.gear = true;

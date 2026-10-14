@@ -11,7 +11,7 @@ import { openChest } from '@/meta/chests';
 import { equipItem, itemStats, RARITY_INFO, upgradeCost, upgradeItem } from '@/meta/gear';
 import { collect, preview } from '@/meta/idle';
 import { claim, STREAK_REWARDS } from '@/meta/streak';
-import { buyTraining, respec, TRAINING_COSTS, TRAINING_STATS } from '@/meta/training';
+import { buyTraining, respec, TRAINING_COSTS, TRAINING_STATS, trainingOpen } from '@/meta/training';
 import { SLOTS, TRAINING_IDS, type GearItem, type SaveV2 } from '@/meta/types';
 
 import { pipText } from '../cardText';
@@ -123,7 +123,7 @@ export function TrainingSheet({ save, commit }: Ctx) {
   return (
     <>
       <span className="sh-balance">{save.gold} coins in the jar</span>
-      {TRAINING_IDS.map((id) => {
+      {TRAINING_IDS.filter((id) => trainingOpen(save, id)).map((id) => {
         const step = save.training[id];
         const cost: number | undefined = TRAINING_COSTS[step];
         return (
