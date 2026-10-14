@@ -125,7 +125,6 @@ export class Actors {
   private now = 0;
   private handX = 0;
   private handY = 0;
-  private reduceMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   private enemies: EnemyView[] = [];
   private enemyMap = new Map<number, EnemyView>();
@@ -142,7 +141,7 @@ export class Actors {
     private imgs: ImagePool,
     private discs: DiscPool,
     private fx: Fx,
-    private reduceMotion: boolean,
+    private reduceMotion: boolean = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
   ) {}
 
   setLayout(l: Layout): void {

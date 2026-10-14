@@ -102,7 +102,7 @@ function renderer(reduced: boolean) {
     }) },
   };
   const discs = new DiscPool(scene as never);
-  const actors = new Actors({ ppu: 1, s: 1, sx: 200, sy: 400, at() { return this; } } as never, new ImagePool(scene as never), discs) as unknown as {
+  const actors = new Actors({ ppu: 1, s: 1, sx: 200, sy: 400, at() { return this; } } as never, new ImagePool(scene as never), discs, {} as never) as unknown as {
     drawShots(w: World, alpha: number, dt: number): void; clearShots(): void;
     shotMap: Map<number, { disc: { img: ReturnType<typeof sprite>; cont: ReturnType<typeof scene.add.container> }; texMax: number }>;
   };
