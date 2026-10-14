@@ -21,6 +21,8 @@ export type GearItem = {
   ilvl?: number; seed?: number; version?: number;
   /** Forge steps, 0..MAX_ENHANCE. Never lost. */
   enhance?: number;
+  /** Affix rerolls done at the forge; salts the next roll so it is deterministic. */
+  rerolls?: number;
   /** Unique rule-hook id (src/meta/uniques.ts). */
   uniqueId?: string;
 };

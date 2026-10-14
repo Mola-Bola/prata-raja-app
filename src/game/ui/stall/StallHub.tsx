@@ -13,6 +13,7 @@ import { dueMilestone } from '@/meta/milestones';
 import type { SaveV2 } from '@/meta/types';
 
 import { DipCollection } from './DipCollection';
+import { ForgeSheet } from './Forge';
 import { fmt } from '../format';
 import { chestArt, HOTSPOTS, PANELS, readyBadges, unlockBeat, type Panel } from './helpers';
 import { SignatureSheet, CalendarSheet, ChestsSheet, GearSheet, IdleSheet, PreviewSheet, RecipeSheet, SettingsSheet, TrainingSheet, type Commit } from './sheets';
@@ -26,7 +27,7 @@ export type { Art } from './StallProgress';
 /** afterRun: the hub was reached from a run's results, so a due milestone visitor comes to the stall. */
 export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, art, afterRun }: { onTune?: () => void; save: SaveV2; commit: Commit; onStart: (chapterId: string) => void; onStory: () => void; onKitchen: () => void; art: Art; afterRun?: boolean }) {
   // A sheet is a prop's panel, or the settings cog's.
-  const [panel, setPanel] = useState<Panel | 'settings' | 'chapters' | 'signature' | 'dips' | null>(null);
+  const [panel, setPanel] = useState<Panel | 'settings' | 'chapters' | 'signature' | 'dips' | 'forge' | null>(null);
   const [now, setNow] = useState(() => new Date());
   const [visitor, setVisitor] = useState(() => (afterRun ? dueMilestone(save) : null));
   useEffect(() => {
@@ -35,11 +36,11 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, ar
   }, []);
   const perk = nextPerk(kannanLevel(kannanXpOf(save)));
   const badges = readyBadges(save, now);
-  const open = (id: Panel | 'settings' | 'chapters' | 'signature' | 'dips') => {
+  const open = (id: Panel | 'settings' | 'chapters' | 'signature' | 'dips' | 'forge') => {
     setNow(new Date());
     setPanel(id);
   };
-  const spot = panel && panel !== 'settings' && panel !== 'chapters' && panel !== 'signature' && panel !== 'dips' ? HOTSPOTS[panel] : null;
+  const spot = panel && panel !== 'settings' && panel !== 'chapters' && panel !== 'signature' && panel !== 'dips' && panel !== 'forge' ? HOTSPOTS[panel] : null;
   const locked = !!spot?.flag && !save.unlocks[spot.flag];
   return (
     <div className="sh-hub" data-testid="stall-hub">
@@ -78,6 +79,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, ar
           );
         })}
         <button type="button" className="gu-btn sh-collection-entry" data-testid="stall-dips" onClick={() => open('dips')}>Dip collection</button>
+        <button type="button" className="gu-btn sh-collection-entry sh-forge-entry" data-testid="stall-forge" onClick={() => open('forge')}>Forge</button>
       </div>
       <header className="sh-top" inert={!!panel || !!visitor}>
         <StallProgress xp={kannanXpOf(save)} art={art} />
@@ -111,6 +113,11 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, ar
           <DipCollection save={save} art={art} />
         </Sheet>
       )}
+      {panel === 'forge' && (
+        <Sheet title="Forge" icon={art('ui/crown')} onClose={() => setPanel(null)}>
+          <ForgeSheet save={save} commit={commit} art={art} />
+        </Sheet>
+      )}
       {panel === 'signature' && (
         <Sheet title="Signature" icon={art('ui/crown')} onClose={() => setPanel(null)}>
           <SignatureSheet save={save} commit={commit} art={art} />
@@ -132,7 +139,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, onTune, ar
           <button type="button" className="gu-btn" data-testid="settings-story" onClick={onStory}>Story</button>
         </Sheet>
       )}
-      {panel && panel !== 'settings' && panel !== 'chapters' && panel !== 'signature' && panel !== 'dips' && spot && (
+      {panel && panel !== 'settings' && panel !== 'chapters' && panel !== 'signature' && panel !== 'dips' && panel !== 'forge' && spot && (
         <Sheet title={spot.label} icon={SHEET_ICON[panel as Panel]?.(art)} onClose={() => setPanel(null)}>
           {locked ? (
             <div className="sh-locked" data-testid="stall-locked">

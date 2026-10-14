@@ -9,3 +9,4 @@ Append-only, newest on top, one line per ingest/change/lint.
 - 2026-10-14: Flow balance retune; tune panel (`?tune=1`); milestone visitors at Kannan levels 5/10/15/20/25.
 - 2026-10-14: One Kannan level with spec points and milestone perks; Crisp & Soak axes; ARPG direction recorded; web always revalidates with update bar.
 - 2026-10-14: Research: malleable dev flow, story milestones, ARPG refs, decomp status audit, decomp RPG systems, decomp scrolling flow.
+- 2026-10-15: Forge bench at the stall (enhance UI, single-affix reroll, Codex masala/chilli/curry-leaves icons); see gear-v2.

@@ -60,10 +60,30 @@
         "h": 512
       }
     },
+    "gear/cooks-hairnet": {
+      "frame": {
+        "x": 1630,
+        "y": 244,
+        "w": 234,
+        "h": 170
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 11,
+        "w": 234,
+        "h": 170
+      },
+      "sourceSize": {
+        "w": 256,
+        "h": 192
+      }
+    },
     "gear/denim-apron": {
       "frame": {
-        "x": 1570,
-        "y": 1646,
+        "x": 1822,
+        "y": 1682,
         "w": 222,
         "h": 238
       },
@@ -120,50 +140,10 @@
         "h": 256
       }
     },
-    "gear/plain-headband": {
-      "frame": {
-        "x": 1773,
-        "y": 243,
-        "w": 234,
-        "h": 179
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 11,
-        "y": 11,
-        "w": 234,
-        "h": 179
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 201
-      }
-    },
-    "hub/chef-special": {
-      "frame": {
-        "x": 1796,
-        "y": 1646,
-        "w": 201,
-        "h": 238
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 11,
-        "y": 9,
-        "w": 201,
-        "h": 238
-      },
-      "sourceSize": {
-        "w": 221,
-        "h": 256
-      }
-    },
     "hub/recipe-book": {
       "frame": {
-        "x": 1716,
-        "y": 1404,
+        "x": 1388,
+        "y": 2,
         "w": 226,
         "h": 238
       },
@@ -180,30 +160,10 @@
         "h": 256
       }
     },
-    "hub/tip-jar": {
-      "frame": {
-        "x": 1388,
-        "y": 2,
-        "w": 201,
-        "h": 238
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 11,
-        "y": 9,
-        "w": 201,
-        "h": 238
-      },
-      "sourceSize": {
-        "w": 223,
-        "h": 256
-      }
-    },
     "hub/training": {
       "frame": {
-        "x": 1716,
-        "y": 1162,
+        "x": 1591,
+        "y": 1682,
         "w": 227,
         "h": 238
       },
@@ -340,10 +300,50 @@
         "h": 480
       }
     },
-    "materials/ghee": {
+    "materials/chilli": {
+      "frame": {
+        "x": 1716,
+        "y": 1162,
+        "w": 274,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 274,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 274,
+        "h": 256
+      }
+    },
+    "materials/curryLeaves": {
       "frame": {
         "x": 1340,
-        "y": 1640,
+        "y": 1682,
+        "w": 247,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 247,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 247,
+        "h": 256
+      }
+    },
+    "materials/ghee": {
+      "frame": {
+        "x": 1618,
+        "y": 2,
         "w": 226,
         "h": 238
       },
@@ -357,6 +357,26 @@
       },
       "sourceSize": {
         "w": 244,
+        "h": 256
+      }
+    },
+    "materials/masala": {
+      "frame": {
+        "x": 1716,
+        "y": 1422,
+        "w": 269,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 269,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 269,
         "h": 256
       }
     },
@@ -378,26 +398,6 @@
       "sourceSize": {
         "w": 146,
         "h": 256
-      }
-    },
-    "passives/strong-wrists": {
-      "frame": {
-        "x": 1773,
-        "y": 2,
-        "w": 238,
-        "h": 237
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 9,
-        "y": 9,
-        "w": 238,
-        "h": 237
-      },
-      "sourceSize": {
-        "w": 256,
-        "h": 255
       }
     },
     "ui/card": {
@@ -442,7 +442,7 @@
     },
     "ui/lock": {
       "frame": {
-        "x": 1593,
+        "x": 1848,
         "y": 2,
         "w": 176,
         "h": 238

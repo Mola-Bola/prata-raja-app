@@ -145,3 +145,28 @@ export function enhance<S extends SaveV2>(save: S, uid: string): S {
   for (const [m, c] of Object.entries(cost.materials)) materials[m as Material] -= c!;
   return { ...save, gold: save.gold - cost.gold, materials, inventory: save.inventory.map(i => i.uid === uid ? { ...i, enhance: n + 1 } : i) };
 }
+
+/** Forge bench: cost to reroll one affix. Scales with the item's ilvl; masala is the spice that re-seasons it. */
+export function rerollCost(item: Pick<GearItem, 'ilvl'>): { gold: number; materials: Partial<Record<Material, number>> } {
+  const ilvl = item.ilvl ?? 1;
+  return { gold: 20 + 10 * ilvl, materials: { masala: 1 + Math.floor(ilvl / 8) } };
+}
+/** Rerolls affix `index` of a v2 item inside the same ilvl window with a new seed salt (uid + reroll count); the other affixes
+ *  stay. The same save + uid + count always gives the same result. Unchanged save when it can't (legacy item, bad index, short on cost). */
+export function rerollAffix<S extends SaveV2>(save: S, uid: string, index: number): S {
+  const item = save.inventory.find(i => i.uid === uid);
+  if (!item || item.ilvl === undefined || !item.affixes[index] || save.pendingChests.includes(uid)) return save;
+  const cost = rerollCost(item);
+  if (save.gold < cost.gold || Object.entries(cost.materials).some(([m, c]) => save.materials[m as Material] < c!)) return save;
+  const n = item.rerolls ?? 0;
+  const rng = makeRng(hashStr(`${item.baseId}|${item.ilvl}|${item.seed}|${item.uid}|reroll|${n}|${index}`));
+  const kept = new Set(item.affixes.filter((_, i) => i !== index).map(a => a.id));
+  const def = rng.pick(AFFIX_POOLS[item.slot].filter(d => !kept.has(d.id)));
+  const tiers = AFFIX_TIER_LVLS.flatMap((lvl, i) => lvl <= item.ilvl! && lvl >= item.ilvl! / 2 ? [i] : []);
+  const [lo, hi] = affixRange(def, tiers.length ? rng.pick(tiers) : 0);
+  const u = rng.next();
+  const rolled: Affix = { id: def.id, stat: def.stat, value: Number((lo + (hi - lo) * u).toFixed(4)), tier: AFFIX_BANDS[Math.min(2, Math.floor(u * 3))] };
+  const materials = { ...save.materials };
+  for (const [m, c] of Object.entries(cost.materials)) materials[m as Material] -= c!;
+  return { ...save, gold: save.gold - cost.gold, materials, inventory: save.inventory.map(i => i.uid === uid ? { ...i, rerolls: n + 1, affixes: i.affixes.map((a, k) => k === index ? rolled : a) } : i) };
+}

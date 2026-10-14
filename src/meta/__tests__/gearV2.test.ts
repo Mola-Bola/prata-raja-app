@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { makeRng } from '../../core/rng';
 import { STAT_REGISTRY } from '../../core/statRegistry';
 import { MATERIAL_DROPS } from '../../content/drops';
-import { AFFIX_TIER_LVLS, deriveAffixes, enhance, enhanceCost, GEAR_BASES, itemStats, MAX_ENHANCE, RARITY_INFO, regenAffixes, rollItem } from '../gear';
+import { AFFIX_POOLS, AFFIX_TIER_LVLS, affixRange, deriveAffixes, rerollAffix, rerollCost, enhance, enhanceCost, GEAR_BASES, itemStats, MAX_ENHANCE, RARITY_INFO, regenAffixes, rollItem } from '../gear';
 import { freshSaveV2, parseSaveV2 } from '../migrate';
 import { rollMaterialDrops } from '../runRewards';
 import { activeHooks, critSplashDamage, firstHitFreeze, UNIQUES } from '../uniques';
@@ -93,5 +93,32 @@ describe('uniques', () => {
     expect(critSplashDamage([], 100).damage).toBe(0);
     expect(firstHitFreeze([{ kind: 'firstHitFreeze', seconds: 1.5 }], false)).toBe(1.5);
     expect(firstHitFreeze([{ kind: 'firstHitFreeze', seconds: 1.5 }], true)).toBe(0);
+  });
+});
+
+describe('rerollAffix', () => {
+  const item = { ...rollItem(makeRng(9), { source: 'chest', rarity: 'epic', ilvl: 20 }), uid: 'r' };
+  const rich = (): SaveV2 => ({ ...freshSaveV2(), gold: 1e9, inventory: [item], materials: Object.fromEntries(MATERIALS.map(m => [m, 99])) as SaveV2['materials'] });
+  it('is deterministic, keeps the other affixes, pays the cost and counts up', () => {
+    const a = rerollAffix(rich(), 'r', 1);
+    expect(rerollAffix(rich(), 'r', 1)).toEqual(a);
+    const out = a.inventory[0];
+    expect(out.affixes[0]).toEqual(item.affixes[0]);
+    expect(out.affixes).toHaveLength(item.affixes.length);
+    expect(new Set(out.affixes.map(x => x.id)).size).toBe(out.affixes.length);
+    expect(out.rerolls).toBe(1);
+    expect(a.gold).toBe(1e9 - rerollCost(item).gold);
+    expect(a.materials.masala).toBe(99 - rerollCost(item).materials.masala!);
+    expect(rerollAffix(a, 'r', 1).inventory[0].rerolls).toBe(2);
+  });
+  it('stays in the ilvl window and refuses when poor or on a bad index', () => {
+    const [, hi] = affixRange(AFFIX_POOLS[item.slot].find(d => d.id === rerollAffix(rich(), 'r', 0).inventory[0].affixes[0].id)!, 4);
+    expect(rerollAffix(rich(), 'r', 0).inventory[0].affixes[0].value).toBeLessThanOrEqual(hi);
+    const poor = { ...rich(), gold: 0 };
+    expect(rerollAffix(poor, 'r', 0)).toBe(poor);
+    expect(rerollAffix(rich(), 'r', 9).inventory[0].rerolls).toBeUndefined();
+  });
+  it('is dearer at higher ilvl', () => {
+    expect(rerollCost({ ilvl: 40 }).gold).toBeGreaterThan(rerollCost({ ilvl: 5 }).gold);
   });
 });

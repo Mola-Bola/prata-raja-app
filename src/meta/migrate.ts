@@ -42,6 +42,7 @@ function parseItem(value: unknown): GearItem | null {
     ...(Number.isSafeInteger(item.seed) ? { seed: item.seed as number } : {}),
     ...(Number.isSafeInteger(item.version) ? { version: item.version as number } : {}),
     ...(Number.isSafeInteger(item.enhance) ? { enhance: Math.min(MAX_ENHANCE, num(item.enhance)) } : {}),
+    ...(Number.isSafeInteger(item.rerolls) && num(item.rerolls) >= 0 ? { rerolls: num(item.rerolls) } : {}),
     ...(typeof item.uniqueId === 'string' ? { uniqueId: item.uniqueId } : {}),
   };
   const base = { uid: item.uid, baseId, slot, rarity, level: item.level as number, ...meta };
