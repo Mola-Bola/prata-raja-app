@@ -25,7 +25,15 @@ export type SfxName =
   | 'win'
   | 'lose'
   | 'coin'
-  | 'uiTap';
+  | 'uiTap'
+  | 'step'
+  | 'stationOpen'
+  | 'stationClose'
+  | 'enhance'
+  | 'fuse'
+  | 'socket'
+  | 'dash'
+  | 'cook';
 
 // ZzFX params, in order: volume, randomness, frequency, attack, sustain, release, shape,
 // shapeCurve, slide, deltaSlide, pitchJump, pitchJumpTime, repeatTime, noise, modulation,
@@ -38,8 +46,10 @@ export type SfxName =
 /** Sounds synthesized with raw WebAudio instead of ZzFX. */
 export type ProcName = 'crit' | 'blast' | 'splash' | 'meteor' | 'zone' | 'freeze';
 const PROC: ReadonlySet<string> = new Set<ProcName>(['crit', 'blast', 'splash', 'meteor', 'zone', 'freeze']);
+/** Quiet hub and kitchen cues, WebAudio too (see LIGHT). They skip the combat voice cap so footsteps never steal a crit's voice. */
+export type LightName = 'step' | 'stationOpen' | 'stationClose' | 'enhance' | 'fuse' | 'socket' | 'dash' | 'cook';
 
-export const SFX_PARAMS: Record<Exclude<SfxName, 'throw' | 'hit' | ProcName>, readonly number[]> = {
+export const SFX_PARAMS: Record<Exclude<SfxName, 'throw' | 'hit' | ProcName | LightName>, readonly number[]> = {
   // small pop
   kill: [0.6, 0.05, 260, 0.002, 0, 0.085, 0, 1, 5, 0, 0, 0, 0, 0.05, 0, 0, 0, 1, 0, 0, -700],
   // quick zappy crackle
@@ -77,7 +87,7 @@ export const SFX_PARAMS: Record<Exclude<SfxName, 'throw' | 'hit' | ProcName>, re
 const SAME_GAP_MS = 40;
 const SLAP_GAP_MS = 25;
 /** Sounds that come in bursts (a volley landing, several biters at the counter) get a longer gap, so a burst is one sound. */
-const MIN_GAP_MS: Partial<Record<SfxName, number>> = { playerHurt: 450, crit: 90, blast: 90, splash: 110, meteor: 220, zone: 260, freeze: 120 };
+const MIN_GAP_MS: Partial<Record<SfxName, number>> = { playerHurt: 450, crit: 90, blast: 90, splash: 110, meteor: 220, zone: 260, freeze: 120, step: 90 };
 const BURST_SFX: ReadonlySet<SfxName> = new Set<SfxName>(['hit', 'throw']);
 const BURST_MAX = 12;
 const BURST_WINDOW_MS = 1000;
@@ -280,6 +290,50 @@ function playCombat(ctx: AudioContext, name: ProcName): void {
   play(ctx, ctx.currentTime, 1 + (Math.random() * 2 - 1) * 0.08);
 }
 
+/** Light cues, all quiet. `v` is a random pitch factor of +-5%, drawn per play. */
+const LIGHT: Record<LightName, (c: AudioContext, t: number, v: number) => void> = {
+  // Soft slipper on terrazzo: a tiny lowpassed scuff with a faint thud under it.
+  step: (c, t, v) => {
+    noise(c, t, 'lowpass', 1400 * v, 500 * v, 1.2, 0.12, 0.002, 0.05);
+    tone(c, t, 'sine', 170 * v, 110 * v, 0.03, 0.06, 0.002, 0.04);
+  },
+  // Light steel katori clink: a bright ring with one inharmonic overtone.
+  stationOpen: (c, t, v) => {
+    tone(c, t, 'sine', 2300 * v, 2280 * v, 0.01, 0.16, 0.001, 0.18);
+    tone(c, t, 'sine', 3450 * v, 3400 * v, 0.01, 0.06, 0.001, 0.09);
+  },
+  // Same clink, softer and lower, for closing.
+  stationClose: (c, t, v) => {
+    tone(c, t, 'sine', 1500 * v, 1480 * v, 0.01, 0.13, 0.001, 0.14);
+    tone(c, t, 'sine', 2250 * v, 2220 * v, 0.01, 0.04, 0.001, 0.08);
+  },
+  // Tawa sizzle, about 0.4 s: a highpassed noise bed that fades, with a few crackles on top.
+  enhance: (c, t, v) => {
+    noise(c, t, 'highpass', 3000 * v, 5500 * v, 0.7, 0.2, 0.02, 0.38);
+    for (let i = 0; i < 6; i++) noise(c, t + 0.02 + i * 0.06 + Math.random() * 0.03, 'highpass', 5000 * v, 7000, 1, 0.1, 0.001, 0.005);
+  },
+  // Curry pot bubbling: three low pops, each a short falling blip.
+  fuse: (c, t, v) => {
+    for (let i = 0; i < 3; i++) tone(c, t + i * 0.12 + Math.random() * 0.01, 'sine', 260 * v, 170 * v, 0.05, 0.22, 0.002, 0.06);
+  },
+  // Katori set down on the counter: a muted clunk.
+  socket: (c, t, v) => {
+    tone(c, t, 'triangle', 220 * v, 140 * v, 0.03, 0.28, 0.001, 0.07);
+    noise(c, t, 'lowpass', 900, 400, 0.8, 0.12, 0.001, 0.05);
+  },
+  // Run dodge: a quick airy whoosh, filter sweeping up.
+  dash: (c, t, v) => noise(c, t, 'bandpass', 400 * v, 2200 * v, 1.2, 0.3, 0.02, 0.16),
+  // Kopi pour: a short noise glide that rises as the cup fills.
+  cook: (c, t, v) => noise(c, t, 'bandpass', 900 * v, 2400 * v, 2, 0.22, 0.03, 0.22),
+};
+/** Every light cue name; these are never ZzFX params. */
+export const LIGHT_SFX: readonly SfxName[] = Object.keys(LIGHT) as LightName[];
+const LIGHT_SET: ReadonlySet<string> = new Set<string>(LIGHT_SFX);
+
+function playLight(ctx: AudioContext, name: LightName): void {
+  LIGHT[name](ctx, ctx.currentTime, 1 + (Math.random() * 2 - 1) * 0.05);
+}
+
 type Sound = { play: () => unknown };
 
 type ZzfxModule = {
@@ -332,6 +386,10 @@ export function playSfx(name: SfxName, bread?: BreadId): void {
   try {
     if (name === 'throw' || name === 'hit') {
       playSlap(zzfx.ZZFX.audioContext, slapPlan(bread, Math.random), name === 'throw' ? 0.35 : 0.6);
+      return;
+    }
+    if (LIGHT_SET.has(name)) {
+      playLight(zzfx.ZZFX.audioContext, name as LightName);
       return;
     }
     if (PROC.has(name)) {

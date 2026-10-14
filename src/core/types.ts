@@ -460,7 +460,9 @@ export type RunResult = {
 };
 
 /** Permanent bonuses from the stall (gear, training) applied at run start. S1 passes {}. */
-export type Loadout = { /** Saved simmer levels, frozen at run start; absent in Kitchen. */ dipSimmer?: Partial<Record<DipId, number>>; stats?: Partial<PlayerStats>; startBread?: BreadId; signatureBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[]; /** Level-up rerolls per run (default 1). */ rerolls?: number; /** Persistent Kannan level; scales the flow speed ramp a little. */ kannanLevel?: number };
+export type Loadout = { /** Saved simmer levels, frozen at run start; absent in Kitchen. */ dipSimmer?: Partial<Record<DipId, number>>; stats?: Partial<PlayerStats>; startBread?: BreadId; signatureBread?: BreadId; breadPool?: BreadId[]; dipPool?: DipId[]; /** Level-up rerolls per run (default 1). */ rerolls?: number; /** Persistent Kannan level; scales the flow speed ramp a little. */ kannanLevel?: number;
+  /** Socketed dips (src/meta/sockets.ts): the run starts with these at level 1, linked to startBread. createRun must copy them into player.dips. */ startDips?: { id: DipId; linkedBread?: BreadId }[];
+  /** Cooked meal id (src/meta/meals.ts); its stats are already inside `stats`, this is for the HUD chip. */ mealId?: string };
 
 export type World = {
   /** Dev/test only (?god=1): Kannan takes no damage. */

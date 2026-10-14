@@ -49,6 +49,8 @@ export function applyRunResult<S extends SaveV2 | SaveV3>(save: S, result: RunRe
     bestWave: Math.max(save.bestWave, result.wave), runs: save.runs + 1,
     wins: save.wins + Number(result.won), totalKills: save.totalKills + result.kills,
     lastPlayed: now.toISOString(),
+    // The cooked meal is eaten by the run that just ended, paid or not.
+    ...('meal' in save ? { meal: null } : {}),
     idle: save.idle.lastCollectedAt ? { ...save.idle } : { lastCollectedAt: now.toISOString() },
   };
   if (result.wave < MIN_PAID_WAVE) {

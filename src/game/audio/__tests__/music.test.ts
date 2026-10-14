@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BPM, MODES, SONG_BARS, barAt, degreeMidi, genSection, midiHz, stepPlan, stepSeconds, stepsDue } from '../music';
+import { BPM, HUB_BPM, MODES, SONG_BARS, barAt, degreeMidi, genHubSection, genSection, midiHz, stepPlan, stepSeconds, stepsDue } from '../music';
 
 describe('music', () => {
   it('maps degrees across octaves', () => {
@@ -40,5 +40,21 @@ describe('music', () => {
     expect(stepPlan(3, 0, false, 0.8, false).thavilRoll).toBe(true);
     expect(stepPlan(13, 3, true, 0, false).fillTom).toBe(true);
     expect(stepPlan(13, 2, false, 0, false).fillTom).toBe(false);
+  });
+  it('generates a calm hub loop: Mohanam at 96 BPM, deterministic per seed, thinner lead, sparse drums', () => {
+    const h = genHubSection(61);
+    expect(genHubSection(61)).toEqual(h);
+    expect(HUB_BPM).toBe(96);
+    expect(h.bpm).toBe(96);
+    expect(h.mode).toBe('mohanam');
+    const perBar = (s: { bars: { lead: unknown[] }[] }) => s.bars.reduce((n, b) => n + b.lead.length, 0) / s.bars.length;
+    expect(perBar(h)).toBeLessThan(perBar(genSection('mayamalavagowla', 8, 11, BPM)));
+    for (const bar of h.bars) for (const n of bar.lead) expect(n.step + n.len).toBeLessThanOrEqual(16);
+    expect(barAt(8, false, true).bar).toBe(barAt(0, false, true).bar); // the hub loops its own 8 bars
+    expect(barAt(0, false, true).section.bpm).toBe(96);
+    expect(stepPlan(0, 0, false, 0, false, true).kick).toBe(true);
+    expect(stepPlan(8, 0, false, 0, false, true).kick).toBe(true);
+    expect(stepPlan(6, 0, false, 0, false, true).kick).toBe(false);
+    expect(stepPlan(4, 0, false, 1, false, true).snare).toBe(false);
   });
 });

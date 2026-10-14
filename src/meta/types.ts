@@ -74,4 +74,10 @@ export type SaveV3 = Omit<SaveV2, 'v'> & {
   stall: { parts: Record<string, number> };
   /** Kannan levels whose milestone visitor has been thanked (or was already past when the field was added). */
   seenMilestones: number[];
+  /** Dip sockets per bread (round 8): array length = sockets, null = empty. Never longer than MAX_SOCKETS. */
+  sockets: Record<string, (DipId | null)[]>;
+  /** Spec tree nodes learned (src/meta/specTree.ts). Spent points are not stored: `specPoints` is the unspent balance. */
+  spec: { nodes: string[] };
+  /** The meal cooked for the NEXT run (src/meta/meals.ts); cleared when a run ends. */
+  meal: { id: string } | null;
 };
