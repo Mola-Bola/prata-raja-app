@@ -15,7 +15,10 @@ import type { Hub, StationId } from '../../hub';
 import { fmt } from '../format';
 import { SettingsSheet, SignatureSheet, CalendarSheet, ChestsSheet, GearSheet, IdleSheet, PreviewSheet, RecipeSheet, TrainingSheet, type Commit } from '../stall/sheets';
 import { DipCollection } from '../stall/DipCollection';
-import { ForgeSheet } from '../stall/Forge';
+import { DipBench } from './workbench/DipBench';
+import { GearBench } from './workbench/GearBench';
+import { PotBench } from './workbench/PotBench';
+import { TiffinBench } from './workbench/TiffinBench';
 import { progress, titleCase, unlockBeat } from '../stall/helpers';
 import type { Art } from '../stall/StallProgress';
 import { Visitor } from '../stall/Visitor';
@@ -132,11 +135,11 @@ function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitche
   const t = { save, art };
   switch (id) {
     case 'tawa':
-      return <Tabs tabs={[{ name: 'Roti', ...t, body: <SignatureSheet save={save} commit={commit} art={art} /> }, { name: 'Recipes', flag: 'recipeBook', ...t, body: <RecipeSheet save={save} commit={commit} art={art} /> }]} />;
+      return <Tabs tabs={[{ name: 'Roti', ...t, body: <SignatureSheet save={save} commit={commit} art={art} /> }, { name: 'Tiffin', flag: 'signature', ...t, body: <TiffinBench save={save} commit={commit} art={art} /> }, { name: 'Recipes', flag: 'recipeBook', ...t, body: <RecipeSheet save={save} commit={commit} art={art} /> }]} />;
     case 'dips':
-      return <DipCollection save={save} art={art} />;
+      return <Tabs tabs={[{ name: 'Katori', ...t, body: <DipBench save={save} commit={commit} art={art} /> }, { name: 'Curry pot', ...t, body: <PotBench save={save} commit={commit} art={art} /> }, { name: 'Collection', ...t, body: <DipCollection save={save} art={art} /> }]} />;
     case 'gear':
-      return <Tabs tabs={[{ name: 'Wear', flag: 'gear', ...t, body: <GearSheet save={save} commit={commit} art={art} /> }, { name: 'Forge', flag: 'gear', ...t, body: <ForgeSheet save={save} commit={commit} art={art} /> }]} />;
+      return <Tabs tabs={[{ name: 'Wear', flag: 'gear', ...t, body: <GearSheet save={save} commit={commit} art={art} /> }, { name: 'Forge', flag: 'gear', ...t, body: <GearBench save={save} commit={commit} art={art} /> }]} />;
     case 'pantry':
       return (
         <Tabs tabs={[

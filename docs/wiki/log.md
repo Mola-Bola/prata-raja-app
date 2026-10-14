@@ -20,3 +20,4 @@ Append-only, newest on top, one line per ingest/change/lint.
 - 2026-10-15: Round 8 meta: dip sockets (sockets.ts), spec tree (specTree.ts + SpecTree.tsx), pre-run meals (meals.ts + KopiMeal.tsx); save fields sockets/spec/meal via migrateMeta (no version bump).
 - 2026-10-15: Damage pipeline (r8-dmg): damage.ts (base, conversion, increased, more, crit, pierce falloff), ENEMY_HARD_CAP 40, unique hooks (crit splash, first-hit freeze, clogs) wired via loadout.hooks.
 - 2026-10-15: Free-movement runs behind `controlMode` (Tune knob `mode.free`, `?move=free`): joystick, auto-throw at nearest, dash i-frames, pests chase Kannan, boss arena lock, kiting bot, balance variant; see sim-core.
+- 2026-10-15: Workbench (r8-bench): pointer drag-and-drop + undo toast in the hub panels; gear to tawa enhances, dips to katori, curry-pot fusion (fusion.ts, `fusions` save field), tiffin (`tiffin` field) via migrateMeta; no version bump.
