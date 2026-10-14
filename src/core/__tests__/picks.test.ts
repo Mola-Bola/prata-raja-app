@@ -8,6 +8,8 @@ import { createRun, step } from '../sim';
 import type { PassiveId, World } from '../types';
 
 const DT = 1 / 30;
+/** Counter mode keeps the old auto-granted find with a swap window; free mode's tiffin pickup is in finds-pickup.test.ts. */
+const COUNTER = { ...CONTENT, tune: { ...CONTENT.tune, controlMode: 'counter' as const } };
 
 /** Step until `until` holds (or the cap), keeping the bot alive. */
 function runUntil(w: World, until: (x: World) => boolean, cap = 240 * 30): void {
@@ -18,7 +20,7 @@ function runUntil(w: World, until: (x: World) => boolean, cap = 240 * 30): void 
 }
 
 const fresh = (seed = 11): World => {
-  const w = createRun({ seed, content: CONTENT });
+  const w = createRun({ seed, content: COUNTER });
   w.phase = 'wave';
   w.wave = 1;
   return w;

@@ -465,6 +465,7 @@ export type GameEvent =
   | { t: 'bossTell'; attackId: string; name: string; kind: BossAttack['kind']; xs: number[]; width: number; time: number; /** Free mode: the street y of each marked spot. */ ys?: number[] }
   | { t: 'bossPhase'; phase: number }
   | { t: 'revive' }
+  | { t: 'findMissed'; x: number; y: number }
   | { t: 'runEnd'; won: boolean };
 
 export type RunPhase = 'intro' | 'wave' | 'levelup' | 'won' | 'lost';
@@ -550,7 +551,11 @@ export type World = {
   /** Flow runs: street finds granted so far, oldest first, and the one still inside its swap window. */
   finds?: Card[];
   find?: ActiveFind;
+  /** Free-mode flow runs: the tiffin on the street (its three cards are drawn when it spawns). `open` = Kannan touched it and the choice is up. */
+  pickup?: FindPickup;
 };
+
+export type FindPickup = { x: number; y: number; offer: Card[]; open?: boolean };
 
 /** A street find just handed over: auto-granted; `alts` are the swap offers; `t` is the sim seconds left to swap. */
 export type ActiveFind = { card: Card; alts: Card[]; t: number; n: number; swapped?: boolean };

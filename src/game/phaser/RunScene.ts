@@ -403,6 +403,38 @@ export class RunScene extends Phaser.Scene {
     this.cameras.main.setScroll(0, 0);
   }
 
+  // ── Street gift (free mode's tiffin pickup, src/core/finds.ts) ──
+
+  private gift: { body: Phaser.GameObjects.Image; ring: Phaser.GameObjects.Image; label: Phaser.GameObjects.Text } | null = null;
+
+  /** The tiffin on the street: ~64 px, a soft bob, a glow ring and a "Gift" label. `k` null hides it. */
+  private drawPickup(k: { x: number; y: number } | null): void {
+    if (!k) {
+      if (this.gift) for (const o of [this.gift.body, this.gift.ring, this.gift.label]) o.setVisible(false);
+      return;
+    }
+    const g = (this.gift ??= {
+      ring: this.imgs.get('roomui/station-prompt-ring').setDepth(D.enemyShot - 2),
+      body: this.imgs.get('room/tiffin-carrier').setDepth(D.enemyShot - 1),
+      label: this.add.text(0, 0, 'Gift', { fontFamily: 'Fredoka, system-ui, sans-serif', fontStyle: 'bold', fontSize: '16px', color: '#fff4e0', stroke: '#2b1a10', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(D.enemyShot),
+    });
+    const P = this.proj.at(k.x, k.y);
+    const size = 64 * this.l.u * Math.max(P.s, 1);
+    const t = this.uiTime;
+    const bob = this.reduceMotion ? 0 : Math.sin(t * 4) * 0.06 * size;
+    const cy = P.sy - size * 0.5 + bob;
+    g.body.setVisible(true).setScale(size / g.body.width).setPosition(P.sx, cy);
+    g.ring.setVisible(true).setScale((size * 1.7) / g.ring.width).setPosition(P.sx, P.sy - size * 0.1).setAlpha(this.reduceMotion ? 0.8 : 0.65 + 0.25 * Math.sin(t * 5));
+    g.label.setVisible(true).setScale(Math.max(1, this.l.u)).setPosition(P.sx, cy - size * 0.55);
+  }
+
+  /** The gift scrolled past: a small floater where it went. */
+  private missedGift(x: number, y: number): void {
+    const P = this.proj.at(x, y);
+    const text = this.add.text(P.sx, P.sy - 30 * this.l.u, 'Missed a gift', { fontFamily: 'Fredoka, system-ui, sans-serif', fontStyle: 'bold', fontSize: '15px', color: '#fff4e0', stroke: '#2b1a10', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(D.number);
+    this.tweens.add({ targets: text, y: text.y - 50 * this.l.u, alpha: 0, duration: 1100, ease: 'Sine.easeOut', onComplete: () => text.destroy() });
+  }
+
   private choose(i: number): void {
     const w = this.world;
     if (!w || this.kitchenTuning || w.phase !== 'levelup') return;
@@ -426,7 +458,7 @@ export class RunScene extends Phaser.Scene {
     // The cards swallow touches: a finger that was down will not report its release to the canvas.
     this.drag.release();
     this.joy.release();
-    this.hub.emit('levelUp', { offer: w.offer, rerolls: w.rerolls, level: w.player.level - w.pendingLevelUps + 1, left: w.pendingLevelUps });
+    this.hub.emit('levelUp', { offer: w.offer, rerolls: w.rerolls, level: w.player.level - w.pendingLevelUps + 1, left: w.pendingLevelUps, ...(w.pickup ? { find: true } : {}) });
   }
 
   /** The Sound and Haptics switches live in the save, which the overlay writes. Read them when a run starts or resumes. */
@@ -512,6 +544,7 @@ export class RunScene extends Phaser.Scene {
       this.actors.draw(w, alpha, this.uiTime, dt);
       this.publishHud(w, dt);
     }
+    this.drawPickup(w && !this.ended ? w.pickup ?? null : null);
     this.tele.draw(w ? w.time : 0, l.u);
     if (w && !fk) this.danger.update(w, l, this.uiTime, this.reduceMotion);
     else if (fk) this.danger.clear();
@@ -756,6 +789,9 @@ export class RunScene extends Phaser.Scene {
           }
           break;
         }
+        case 'findMissed':
+          this.missedGift(ev.x, ev.y);
+          break;
         case 'revive':
           this.fx.spawn('fx/levelup-ring', this.stall.chestX, this.stall.feetY, D.fxTop, 0.9, 50 * this.l.u, 260 * this.l.u).add().fade(0.85, 0, 0.3);
           this.fx.spawn('fx/heal', this.stall.chestX, this.stall.chestY, D.fxTop, 0.9, 50 * this.l.u, 90 * this.l.u).fade(1, 0, 0.5);

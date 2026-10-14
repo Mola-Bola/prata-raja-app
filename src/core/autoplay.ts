@@ -84,6 +84,9 @@ function risk(w: World, ds: Danger2[], x: number, y: number): number {
   return r;
 }
 
+/** Risk units per 200 u of distance to a street gift. High on purpose: finds decide a run (no finds = 0% wins), so the bot beelines
+ *  for a gift, and only a real threat (a shot about to land, 40) turns it aside. */
+const GIFT_PULL = 25;
 const lastDirs = new WeakMap<World, number>();
 /** Free-mode bot: stand and throw until pests close in or something is about to land, then step to the least risky spot and dash out of trouble. */
 function autoInputFree(w: World): RunInput {
@@ -93,12 +96,14 @@ function autoInputFree(w: World): RunInput {
   const reach = p.stats.moveSpeed * FREE.speedMul * LOOKAHEAD;
   const lastDir = lastDirs.get(w) ?? -1;
   let best = -1;
-  let bestRisk = here - 0.5; // staying put is the default; moving must clearly help
+  const gift = w.pickup && !w.pickup.open ? w.pickup : null;
+  const pull = (x: number, y: number): number => (gift ? (GIFT_PULL * Math.hypot(x - gift.x, y - gift.y)) / 200 : 0);
+  let bestRisk = here + pull(p.x, p.y) - 0.5; // staying put is the default; moving must clearly help
   for (let i = 0; i < DIRS; i++) {
     const [cx, cy] = CANDIDATES[i];
     const nx = Math.max(-FIELD.kannanMaxX, Math.min(FIELD.kannanMaxX, p.x + cx * reach));
     const ny = Math.max(FIELD.freeMinY, Math.min(FIELD.freeMaxY, p.y + cy * reach));
-    const r = risk(w, ds, nx, ny) - (i === lastDir ? 0.6 : 0);
+    const r = risk(w, ds, nx, ny) + pull(nx, ny) - (i === lastDir ? 0.6 : 0);
     if (r < bestRisk) {
       best = i;
       bestRisk = r;

@@ -64,7 +64,7 @@ export type HubEvents = {
   /** About 10 times a second while a run is live. */
   hud: HudState;
   /** The run paused for a pick; the UI shows the cards and answers with controls.choose/reroll. */
-  levelUp: { offer: Card[]; rerolls: number; level: number; /** Picks waiting including this one. */ left?: number };
+  levelUp: { offer: Card[]; rerolls: number; level: number; /** Picks waiting including this one. */ left?: number; /** Free mode: Kannan walked into a street tiffin. The same pause, but a find choice (no reroll, no level). */ find?: boolean };
   waveStart: { wave: number; waves: number };
   boss: { name: string };
   runEnd: RunResult;
