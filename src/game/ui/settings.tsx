@@ -2,7 +2,7 @@
 // two fields of the save, through the save store, so what one shows the other shows.
 import type { SaveV2 } from '@/meta/types';
 
-export type SettingKey = 'sfx' | 'haptics';
+export type SettingKey = 'sfx' | 'music' | 'haptics';
 
 /** The save update for flipping one switch. */
 export const toggleSetting = (key: SettingKey) => (save: SaveV2): SaveV2 => ({ ...save, settings: { ...save.settings, [key]: !save.settings[key] } });
