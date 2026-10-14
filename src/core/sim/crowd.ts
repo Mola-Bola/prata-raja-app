@@ -14,6 +14,8 @@ export const CROWD = {
   push: 320,
   /** Approach offset: each pest aims this many radians off the straight line to Kannan (+/-). */
   fan: 0.9,
+  /** A pest spawns up to this far (u) off the lane the director picked, so a wave does not enter as one file. */
+  spawnSpread: 110,
   /** Speed factor band at spawn: 1 +/- this. */
   speedJitter: 0.15,
   /** The ring pests aim for sits this far beyond their contact reach. */
@@ -68,8 +70,10 @@ export function aimAt(px: number, py: number, e: Enemy, slotR: number, out: { x:
     return;
   }
   const a = Math.atan2(dy, dx) + th;
-  out.x = px + Math.cos(a) * slotR;
-  out.y = py + Math.sin(a) * slotR;
+  // The ring widens with distance, so a pack that spawns together splits up on the way in instead of at the last moment.
+  const r = slotR + Math.min(260, 0.3 * (d - slotR));
+  out.x = px + Math.cos(a) * r;
+  out.y = py + Math.sin(a) * r;
 }
 
 /** One separation pass over the living pests, after they moved. */

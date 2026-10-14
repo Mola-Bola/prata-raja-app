@@ -30,6 +30,7 @@ import { HurtZone } from './hurtZone';
 import { TehPour } from './tehPour';
 import { DragInput, FreeInput } from './input';
 import { FreeKannan } from './freeKannan';
+import { HURT_TRAUMA, MAGNET_U, pickupBurst, STOP } from './feel';
 import { makeLayout, Projector, type Layout } from './layout';
 import { CURRY, D, HAZARD, HUD_PERIOD, MAX_STEPS, SHAKE_SHARE, STEEL, STEP, TRAUMA_DECAY } from './look';
 import { DiscPool, ImagePool } from './pools';
@@ -285,6 +286,7 @@ export class RunScene extends Phaser.Scene {
     this.world = w;
     this.free = isFreeMode(w.content);
     if (!this.free) this.freeKannan.hide();
+    this.actors.freeShots = this.free;
     window.__world = w;
     this.paused = false;
     this.levelUpOpen = false;
@@ -483,6 +485,8 @@ export class RunScene extends Phaser.Scene {
     this.actors.setHand((fk ? fk.handX : this.stall.handX) - home.sx, (fk ? fk.handY : this.stall.handY) - home.sy);
     this.fx.tx = fk ? fk.chestX : this.stall.chestX;
     this.fx.ty = fk ? fk.chestY : this.stall.chestY;
+    this.fx.magR = MAGNET_U * l.u;
+    this.fx.kv = 210 * l.u * 1.6;
     // Teh tarik haste: a caramel ribbon from the cup to his hand, and caramel trails on the breads in flight.
     const live = w && !this.ended ? w : null;
     this.actors.setHaste(this.stall.pouring);
@@ -727,7 +731,7 @@ export class RunScene extends Phaser.Scene {
           break;
         }
         case 'bossPhase': {
-          this.stop(0.06);
+          this.stop(this.free ? STOP.boss : 0.06);
           this.addTrauma(0.8);
           const v = this.actors.viewOf(this.bossUid(w));
           if (v) {
@@ -754,9 +758,11 @@ export class RunScene extends Phaser.Scene {
     if (cue?.kind) this.buzz(cue.kind, cue.gap);
     // Gold earned this step flies to the counter as coins.
     if (w.gold - this.lastGold >= 1 && this.lastKill.on) {
-      const n = Math.min(3, Math.floor(w.gold - this.lastGold));
+      const gain = Math.floor(w.gold - this.lastGold);
+      const n = Math.min(3, gain);
       const u = this.l.u;
-      for (let i = 0; i < n; i++) {
+      if (this.free) pickupBurst(this.fx, 'dips/coin', this.lastKill.x, this.lastKill.y, 5 + (gain >= 3 ? 1 : 0) + (gain >= 6 ? 2 : 0), u, this.hits++, 28 * u, 1);
+      else for (let i = 0; i < n; i++) {
         this.fx
           .spawn('dips/coin', this.lastKill.x, this.lastKill.y, D.fxTop, 0.6 + 0.06 * i, 22 * u, 14 * u)
           .fade(1, 1, 0)
@@ -793,7 +799,9 @@ export class RunScene extends Phaser.Scene {
     if (!ev.color && this.dipColors.length > 0 && ((this.hits++ & 1) === 0 || ev.crit)) {
       this.fx.spawn('fx/curry-splash', sx, cy, D.fx - 1, 0.3, 22 * u * s, 56 * u * s).tint(this.dipTint()).fade(0.9, 0, 0.2).spin(ev.uid * 2.1, 0);
     }
-    this.fx.number(ev.uid, sx, v ? v.topY : P.sy - 36 * u * P.s, ev.dmg, ev.crit ? 1 : ev.color ? 2 : 0, P.s);
+    // Free runs: numbers only on crits and on elites / bosses (density cap); every other hit reads from its spark.
+    if (!this.free || ev.crit || (v && (v.elite || v.boss))) this.fx.number(ev.uid, sx, v ? v.topY : P.sy - 36 * u * P.s, ev.dmg, ev.crit ? 1 : ev.color ? 2 : 0, P.s);
+    if (this.free && ev.crit) this.stop(STOP.crit);
     if (ev.crit) {
       this.critUid = ev.uid;
       this.fx.critMark(sx, v ? v.topY : P.sy - 36 * u * P.s, this.reduceMotion);
@@ -845,7 +853,7 @@ export class RunScene extends Phaser.Scene {
     this.lastKill.y = cy;
     this.lastKill.on = true;
     this.sfx('kill');
-    if (ev.elite && this.critUid === ev.uid) this.stop(0.05);
+    if (ev.elite && (this.free || this.critUid === ev.uid)) this.stop(STOP.elite);
     if (ev.elite) {
       this.addTrauma(0.3);
       for (let i = 0; i < 3; i++) {
@@ -924,7 +932,19 @@ export class RunScene extends Phaser.Scene {
     }
   }
 
+  /** Free runs: every hit that lands is one i-frame window apart, so no gating: shake, red slap on Kannan, bread-slap sound. */
+  private onHurtFree(ev: Extract<GameEvent, { t: 'playerHit' }>): void {
+    this.hits++;
+    this.addTrauma(HURT_TRAUMA[ev.source === 'boss' ? 'boss' : ev.source === 'contact' ? 'contact' : 'shot']);
+    this.buzz('medium', 150);
+    const u = this.l.u;
+    const fk = this.freeKannan;
+    this.fx.spawn('fx/impact', fk.chestX, fk.chestY, D.fxTop, 0.22, 50 * u, 130 * u).tint(HAZARD).fade(1, 0);
+    this.sfx('playerHurt');
+  }
+
   private onPlayerHit(ev: Extract<GameEvent, { t: 'playerHit' }>): void {
+    if (this.free) return this.onHurtFree(ev);
     this.buzz('light', 250);
     if (!this.damageGate.allow(performance.now())) return;
     if (ev.source === 'contact') this.actors.counterHit();
@@ -943,6 +963,10 @@ export class RunScene extends Phaser.Scene {
     const u = this.l.u;
     const n = Math.max(1, Math.min(3, Math.ceil(ev.amount / 3)));
     const cy = P.sy - 14 * u * P.s;
+    if (this.free) {
+      pickupBurst(this.fx, 'dips/xp-orb', P.sx, cy, n, u, ev.amount | 0, 24 * u, 0.6);
+      return;
+    }
     for (let i = 0; i < n; i++) {
       this.fx
         .spawn('dips/xp-orb', P.sx + (i - (n - 1) / 2) * 10 * u, cy, D.fxTop, 0.5 + 0.06 * i, 24 * u * Math.max(0.6, P.s), 12 * u)

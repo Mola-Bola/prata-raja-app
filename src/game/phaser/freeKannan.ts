@@ -35,6 +35,7 @@ export class FreeKannan {
   private prevY = 0;
   private dir: Dir = 'up';
   private walkT = 0;
+  private blinkT = 0;
   private trail: { x: number; y: number }[] = [];
   private dashFade = 0;
   private cur = '';
@@ -89,6 +90,9 @@ export class FreeKannan {
       this.cur = name;
       for (const g of this.ghosts) setImage(g, name);
     }
+    // Hit: red for 80 ms, then blink while the i-frames last.
+    this.blinkT += dt;
+    const blink = (p.iT ?? 0) > 0 && p.hurtAnim <= 0.12 && Math.floor(this.blinkT * 16) % 2 === 0;
     const k = (HEIGHT_SHARE * l.kannan.h * s) / NATIVE_H;
     const dashing = p.dashT > 0;
     this.dashFade = dashing ? 1 : Math.max(0, this.dashFade - dt / 0.18);
@@ -100,9 +104,9 @@ export class FreeKannan {
       .setVisible(true)
       .setPosition(sx, sy - bob)
       .setScale(k * (horiz ? stretch : 1 / Math.sqrt(stretch)), k * (horiz ? 1 / Math.sqrt(stretch) : stretch))
-      .setAlpha(dashing ? 0.75 : 1)
+      .setAlpha(dashing ? 0.75 : blink ? 0.4 : 1)
       .setDepth(sy < l.counter.top ? D.enemy + sy + 0.5 : D.kannan);
-    if (p.hurtAnim > 0) this.body.setTint(0xff9a8a);
+    if (p.hurtAnim > 0.12) this.body.setTint(0xff3a2a);
     else this.body.clearTint();
     this.shadow.setVisible(true).setPosition(sx, sy).setScale(1.1 * s * (l.kannan.w / 64) * 0.4, 0.35 * s * (l.kannan.w / 64) * 0.4).setAlpha(0.5);
     // Afterimages trail the last few frames' positions while a dash lasts.

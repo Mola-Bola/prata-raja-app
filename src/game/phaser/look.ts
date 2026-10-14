@@ -120,7 +120,7 @@ export const MAX_NUMBERS = 24;
 export const ENEMY_SCALE_FLOOR = 0.48;
 export const NUMBER_SCALE_FLOOR = 0.85;
 export const NUMBER_COLOR = { big: '#ff713d', chip: '#ffdf57', dot: '#ff9a3d' };
-export const MAX_PARTICLES = 160;
+export const MAX_PARTICLES = 240;
 export const TRAUMA_DECAY = 1.0;
 /** Shake offset at trauma 1 as a share of the screen width. */
 export const SHAKE_SHARE = 0.025;

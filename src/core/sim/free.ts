@@ -14,6 +14,8 @@ export const FREE = {
   dashCd: 1.2,
   /** Share of the throw rate kept while walking (Multitasker can raise it). */
   moveFire: 0.5,
+  /** Fastest a bread may throw (s) however much attack speed stacks (combat-feel.md). */
+  cdFloor: 0.3,
   /** Pests move at this x their counter-mode speed. */
   pestSpeed: 1.31,
   /** Pest contact reach = def.radius x this + kannanRadius. */

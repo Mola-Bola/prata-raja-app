@@ -116,6 +116,8 @@ const HOVER: Record<string, number> = { tissue: 30, murtabak: 7, chapati: 18, ap
 const HOVER_DEFAULT = 16;
 /** Launch squash length (s), and the wobble rate as a share of the spin rate (a frisbee tumbles slower than it spins). */
 const LAUNCH_T = 0.1;
+/** Free runs: size boost on thrown breads. */
+const SHOT_BOOST = 1.45;
 /** Hit splat: how far the bread flattens and widens over its 120 ms exit. */
 const SPLAT_X = 0.45;
 const SPLAT_Y = 0.5;
@@ -154,6 +156,8 @@ export class Actors {
   private zoneStamp = new Map<number, number>();
   private corpses: Corpse[] = [];
   private trailCount = 0;
+  /** Free runs: thrown breads are drawn bigger, spin faster and leave a longer trail (combat-feel.md). */
+  freeShots = false;
   private spent: { v: ShotView | null; t: number }[] = Array.from({ length: 24 }, () => ({ v: null, t: 0 }));
 
   constructor(
@@ -816,14 +820,16 @@ export class Actors {
       }
     }
     if (s.loaded || s.charged) v.dia *= 1.65;
+    if (this.freeShots && !enemy && (s.motion === 'straight' || s.motion === 'boomerang')) v.dia *= SHOT_BOOST;
     if (s.charged) {
       const image = v.img ?? v.disc?.img;
       if (image) image.scene.tweens.add({ targets: image, alpha: 0.6, duration: 140, yoyo: true, repeat: 2 });
     }
     // Three fading copies per moving bread, capped at 48 atlas images for the whole arena.
-    if (!enemy && !this.reduceMotion && !s.flake && (s.motion === 'straight' || s.motion === 'boomerang' || s.motion === 'lob') && this.trailCount < 48) {
-      for (let i = 0; i < 3; i++) v.trail.push({ img: this.imgs.get(s.sprite).setVisible(false), x: 0, y: 0, k: 1, spin: 0, t: 1 });
-      this.trailCount += 3;
+    if (!enemy && !this.reduceMotion && !s.flake && (s.motion === 'straight' || s.motion === 'boomerang' || s.motion === 'lob') && this.trailCount < 60) {
+      const n = this.freeShots ? 5 : 3;
+      for (let i = 0; i < n; i++) v.trail.push({ img: this.imgs.get(s.sprite).setVisible(false), x: 0, y: 0, k: 1, spin: 0, t: 1 });
+      this.trailCount += n;
     }
     this.shots.push(v);
     this.shotMap.set(s.uid, v);
@@ -893,7 +899,7 @@ export class Actors {
       v.age += dt;
       const lift = v.hover * P.ppu * sc;
       const k = ((v.dia * P.ppu * sc * layers) / v.texMax) * (1 + v.hover / 240);
-      const spin = s.motion === 'boomerang' ? s.spin * 1.8 : s.spin;
+      const spin = (s.motion === 'boomerang' ? s.spin * 1.8 : s.spin);
       let ky = k * DISC_SQUASH;
       let kx = k;
       let bank = 0;

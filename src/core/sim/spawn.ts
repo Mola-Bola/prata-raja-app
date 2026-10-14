@@ -20,6 +20,7 @@ export function spawnEnemy(c: Ctx, def: EnemyDef | BossDef, x: number, opts: { y
   const boss = opts.boss ?? false;
   const side = !boss && opts.lane !== undefined && opts.lane !== 'ahead';
   if (side) x = opts.lane === 'left' ? -SIDE_EDGE : SIDE_EDGE;
+  else if (!boss && isFree(c)) x = clamp(x + rng.range(-CROWD.spawnSpread, CROWD.spawnSpread), -FIELD.halfWidth + 20, FIELD.halfWidth - 20);
   const y = opts.y ?? (side ? SIDE_Y + rng.range(0, 120) : (def.drain?.y ?? SPAWN_Y) + rng.range(0, 40));
   const scale = waveHpScale(w.chapter, w.waveF ?? Math.max(1, w.wave)) * (elite ? 3 : 1);
   const hp = def.hp * scale * (boss && w.chapter.mode === 'flow' ? w.chapter.bossHp ?? 1 : 1) * (boss && isFree(c) ? FREE.bossHp : 1);

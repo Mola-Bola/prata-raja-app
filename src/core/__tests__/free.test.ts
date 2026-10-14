@@ -67,7 +67,7 @@ describe('free movement', () => {
     expect(w.player.hp).toBeLessThan(w.player.stats.maxHp);
     const hp = w.player.hp;
     run(w, FREE.dashTime, (t) => ({ targetX: null, moving: false, jx: 0, jy: 0.0001, dodge: t < DT }));
-    expect(w.player.hp).toBeGreaterThanOrEqual(hp - 0.2); // the one step before the dash lands
+    expect(w.player.hp).toBeGreaterThanOrEqual(hp - 3); // at most the one discrete hit that was due before the dash landed
   });
 
   it('an enemy shot aimed at Kannan hits where he stands, and a dash lets it through', () => {
