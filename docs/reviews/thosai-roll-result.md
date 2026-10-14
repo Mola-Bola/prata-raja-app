@@ -39,3 +39,11 @@ The first full check/export pipeline ran against the rejected gradient candidate
 Full mandatory checks and exact-source web export/browser validation remain for the lead's quieter-window gate. No further full retry or export was performed during the disk hold. Real-phone comfort/readability remains unverified.
 
 Final candidate static checks: `npx tsc --noEmit` and focused ESLint over actors, texture helper, source tests and browser fixture **passed**. The only initial type error was ImageData's ArrayBuffer requirement; the mapper now declares its freshly allocated output buffer precisely. Frozen commit and branch CI status are supplied in the handoff.
+
+## Review 86 successor correction
+
+Review 86 found that the first cylinder cache guard matched every `motion: 'wave'` projectile. Typhoon uses the distinct `evolutions/thosai-typhoon` tornado artwork, so the shared cylinder texture could replace its art depending on spawn order. The successor restricts both cylinder preparation and frame selection to exactly `s.sprite === 'breads/thosai'`. Typhoon retains its existing artwork, 0.7 rad orientation and original holder geometry; it does not populate the cylinder cache.
+
+The focused suite now has **9 passing tests**: four additional actual Actors/cache cases cover normal→Typhoon and Typhoon→normal, both motion settings, clear/restart order reversal, exact texture/frame identities, pooled-holder reuse and one normal-only cached texture (none for reduced motion). The new cases leave each projectile unchanged. `npx tsc --noEmit` and focused ESLint passed for this successor. No full export/check/browser retry was performed during the disk hold.
+
+Remote job 38496056938 remains tied to the earlier `048f83d` candidate. It was not cancelled, and its results are not successor validation. Exact-source browser/full verification remains outstanding for the new frozen SHA.

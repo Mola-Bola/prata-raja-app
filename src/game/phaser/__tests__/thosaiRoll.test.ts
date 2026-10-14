@@ -149,3 +149,33 @@ for (const reduced of [false, true]) it(`actual Actors wave/pool behavior (reduc
   expect(textures.get(THOSAI_TEXTURE)).toBe(shared);
   expect(createCanvas).toHaveBeenCalledTimes(reduced ? 0 : 1);
 });
+
+
+for (const reduced of [false, true]) for (const typhoonFirst of [false, true]) {
+  it(`keeps each wave's exact artwork across order and restart (Typhoon first ${typhoonFirst}, reduced ${reduced})`, () => {
+    const { actors, shot, w, textures, createCanvas } = renderer(reduced);
+    const sprites = typhoonFirst ? ['evolutions/thosai-typhoon', 'breads/thosai'] : ['breads/thosai', 'evolutions/thosai-typhoon'];
+    let holder: unknown;
+    // Two runs through the same cache, reversing the first/second order after the simulated restart.
+    for (const name of [...sprites, ...sprites.toReversed()]) {
+      const current = { ...shot, uid: shot.uid++, sprite: name } as Projectile;
+      w.projectiles = [current];
+      const before = JSON.stringify(current);
+      actors.drawShots(w, 1, 0);
+      const view = actors.shotMap.get(current.uid)!;
+      if (holder) expect(view.disc).toBe(holder);
+      holder = view.disc;
+      const cylinder = name === 'breads/thosai' && !reduced;
+      expect(view.disc.img.texture.key).toBe(cylinder ? THOSAI_TEXTURE : name);
+      expect(view.disc.img.frame.name).toBe(cylinder ? 'roll-0' : name);
+      expect(view.disc.img.rotation).toBe(cylinder ? 0 : 0.7);
+      expect(view.texMax).toBe(256);
+      expect(view.disc.cont.scaleX).toBeCloseTo(240 / (256 * 1.18));
+      expect(view.disc.cont.scaleY / view.disc.cont.scaleX).toBeCloseTo(0.52);
+      expect(JSON.stringify(current)).toBe(before);
+      actors.clearShots();
+    }
+    expect(textures.size).toBe(reduced ? 0 : 1);
+    expect(createCanvas).toHaveBeenCalledTimes(reduced ? 0 : 1);
+  });
+}

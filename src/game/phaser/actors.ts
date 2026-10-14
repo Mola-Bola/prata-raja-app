@@ -696,7 +696,7 @@ export class Actors {
       if (s.motion === 'wave') {
         // The thosai roll lies diagonal in its art: turn it level, then the container stretches it across the street.
         v.disc.img.setRotation(0.7);
-        if (!this.reduceMotion) {
+        if (!this.reduceMotion && s.sprite === 'breads/thosai') {
           prepareThosaiTexture(v.disc.img.scene, v.disc.img);
           if (v.disc.img.scene.textures.exists(THOSAI_TEXTURE)) v.disc.img.setTexture(THOSAI_TEXTURE, 'roll-0').setRotation(0);
         }
@@ -774,7 +774,7 @@ export class Actors {
         const widthPx = 2 * s.radius * P.ppu * sc;
         const kx = widthPx / (v.texMax * 1.18);
         d.cont.setPosition(sx, sy).setScale(kx, kx * 0.52).setDepth(D.shot + sy);
-        if (!this.reduceMotion && d.img.texture.key === THOSAI_TEXTURE) d.img.setFrame(`roll-${thosaiRollFrame(y, 2 * s.radius)}`);
+        if (!this.reduceMotion && s.sprite === 'breads/thosai' && d.img.texture.key === THOSAI_TEXTURE) d.img.setFrame(`roll-${thosaiRollFrame(y, 2 * s.radius)}`);
         continue;
       }
       const layers = 1 - (s.flakesShed ?? 0) * 0.08;
