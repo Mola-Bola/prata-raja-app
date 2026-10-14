@@ -38,7 +38,7 @@ import { StallHub } from './stall/StallHub';
 
 type UiBridge = Pick<Bridge, 'haptic' | 'save' | 'load'>;
 type Screen = 'title' | 'stall' | 'run' | 'results' | 'story' | 'kitchen';
-type Offer = { n: number; cards: Card[]; rerolls: number; level: number };
+type Offer = { n: number; cards: Card[]; rerolls: number; level: number; left: number; laterOk: boolean; first: number };
 type Ended = { result: RunResult; line: string; tip: string; newBest: boolean; before: SaveV2; payout: Payout };
 type Banner = { n: number; text: string; boss: boolean };
 /** One live run. `paid` flips the moment its result is applied, so a repeated runEnd for the same run pays nothing. */
@@ -65,6 +65,7 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
   const storyReturn = useRef<Screen | null>(null);
   const [runId, setRunId] = useState(0);
   const [offer, setOffer] = useState<Offer | null>(null);
+  const batch = useRef({ first: 0, left: 0 });
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState<Ended | null>(null);
   const [load, setLoad] = useState<{ attempt: number; failed: boolean }>({ attempt: 0, failed: false });
@@ -113,6 +114,7 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
       hub.on('runStart', ({ seed }) => {
         ticket.current = { seed, paid: false };
         runHud.current = null;
+        batch.current = { first: 0, left: 0 };
         setScreen('run');
         setOffer(null);
         setPaused(false);
@@ -121,8 +123,14 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
       }),
       // The renderer held the run on its own (the app went to the background): show the pause sheet.
       hub.on('paused', () => { setPausedHud(runHud.current); setPaused(true); }),
-      hub.on('levelUp', ({ offer: cards, rerolls, level }) =>
-        setOffer((prev) => ({ n: (prev?.n ?? 0) + 1, cards, rerolls, level })),
+      hub.on('levelUp', ({ offer: cards, rerolls, level, left = 1, laterOk = false }) =>
+        // `first` remembers how many were waiting when this batch opened, so the header can say "Pick 2 of 3".
+        setOffer((prev) => {
+          // A pick that leaves fewer waiting continues the batch; anything else starts one.
+          const b = batch.current;
+          batch.current = b.left > left ? { first: b.first, left } : { first: left, left };
+          return { n: (prev?.n ?? 0) + 1, cards, rerolls, level, left, laterOk, first: batch.current.first };
+        }),
       ),
       hub.on('runEnd', (result) => {
         // Exactly once per run: the ticket is spent before anything else happens, so a second runEnd for the same run
@@ -236,7 +244,7 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
         <Hud key={runId} hub={hub} firstRun={save?.runs === 0} modal={!!offer || paused} onPause={pause} />
       )}
       {screen === 'run' && offer && (
-        <LevelUp offer={offer} onPick={pickCard} onReroll={() => hub.controls?.reroll()} />
+        <LevelUp offer={offer} onPick={pickCard} onReroll={() => hub.controls?.reroll()} onLater={() => { hub.controls?.deferPicks(); batch.current = { first: 0, left: 0 }; setOffer(null); }} />
       )}
       {screen === 'run' && paused && (
         <Pause
@@ -410,11 +418,12 @@ function Bar({ pct, tone = 'xp' }: { pct: number; tone?: 'xp' | 'hp' | 'boss' })
   );
 }
 
-function LevelUp({ offer, onPick, onReroll }: { offer: Offer; onPick: (i: number) => void; onReroll: () => void }) {
+function LevelUp({ offer, onPick, onReroll, onLater }: { offer: Offer; onPick: (i: number) => void; onReroll: () => void; onLater: () => void }) {
   return (
     <div className="gu-modal">
       <section className="gu-levelup" role="dialog" aria-label={`Level ${offer.level}: pick a card`}>
         <h2 className="gu-heading">Level {offer.level}!</h2>
+        {offer.first > 1 && <p className="gu-pick-count" data-testid="pick-count">Pick {offer.first - offer.left + 1} of {offer.first}</p>}
         <div className="gu-cards" key={offer.n}>
           {offer.cards.map((card, i) => (
             <CardButton key={i} card={card} index={i} onPick={() => onPick(i)} />
@@ -423,6 +432,11 @@ function LevelUp({ offer, onPick, onReroll }: { offer: Offer; onPick: (i: number
         {offer.rerolls > 0 && (
           <button type="button" className="gu-btn gu-btn--cream" data-testid="ui-reroll" onClick={onReroll}>
             Reroll ×{offer.rerolls}
+          </button>
+        )}
+        {offer.laterOk && (
+          <button type="button" className="gu-btn gu-btn--cream" data-testid="ui-later" onClick={onLater}>
+            Later{offer.left > 1 ? ` (${offer.left} waiting)` : ''}
           </button>
         )}
       </section>

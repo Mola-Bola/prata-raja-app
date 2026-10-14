@@ -8,7 +8,7 @@ import { CONTENT } from '@/content';
 import { bossAtOf, isFlow } from '@/core/director';
 import { autoInput, autoPick } from '@/core/autoplay';
 import { SAVE_KEY } from '@/core/save';
-import { chooseCard, createRun, drainEvents, openPicks, reroll, step } from '@/core/sim';
+import { chooseCard, createRun, deferPicks, drainEvents, openPicks, reroll, step } from '@/core/sim';
 import { FIELD, type BreadId, type GameEvent, type Loadout, type RunInput, type RunResult, type World } from '@/core/types';
 import { computeLoadout } from '@/meta/loadout';
 import { parseSaveV3 } from '@/meta/migrate';
@@ -141,6 +141,10 @@ export class RunScene extends Phaser.Scene {
       choose: (i) => this.choose(i),
       reroll: () => this.rerollOffer(),
       openPicks: () => this.openPicksNow(),
+      deferPicks: () => {
+        const w = this.world;
+        if (w && deferPicks(w)) this.levelUpOpen = false;
+      },
       pause: () => this.hold(),
       resume: () => {
         this.paused = false;
@@ -354,7 +358,7 @@ export class RunScene extends Phaser.Scene {
     this.levelUpOpen = true;
     // The cards swallow touches: a finger that was down will not report its release to the canvas.
     this.drag.release();
-    this.hub.emit('levelUp', { offer: w.offer, rerolls: w.rerolls, level: w.player.level - w.pendingLevelUps + 1 });
+    this.hub.emit('levelUp', { offer: w.offer, rerolls: w.rerolls, level: w.player.level - w.pendingLevelUps + 1, left: w.pendingLevelUps, laterOk: isFlow(w.chapter) });
   }
 
   /** The Sound and Haptics switches live in the save, which the overlay writes. Read them when a run starts or resumes. */

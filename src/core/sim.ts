@@ -116,6 +116,16 @@ function showPicks(world: World, rng: Rng): void {
   world.offer = nextOffer(world, rng);
 }
 
+/** Flow runs: close the open picks and keep the rest queued for the next stop or the chip ("Later"). */
+export function deferPicks(world: World): boolean {
+  if (world.phase !== 'levelup' || !isFlow(world.chapter)) return false;
+  world.phase = 'wave';
+  world.offer = [];
+  world.calmT = 0;
+  world.pickAt = nextPickStop(world.dist, bossAtOf(world.chapter));
+  return true;
+}
+
 export function reroll(world: World): boolean {
   if (world.phase !== 'levelup' || world.rerolls <= 0) return false;
   const rng = makeRng(world.rngState);

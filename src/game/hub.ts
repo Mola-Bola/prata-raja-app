@@ -53,7 +53,7 @@ export type HubEvents = {
   /** About 10 times a second while a run is live. */
   hud: HudState;
   /** The run paused for a pick; the UI shows the cards and answers with controls.choose/reroll. */
-  levelUp: { offer: Card[]; rerolls: number; level: number };
+  levelUp: { offer: Card[]; rerolls: number; level: number; /** Picks waiting including this one; laterOk when they can be put off. */ left?: number; laterOk?: boolean };
   waveStart: { wave: number; waves: number };
   boss: { name: string };
   runEnd: RunResult;
@@ -74,6 +74,8 @@ export type GameControls = {
   reroll(): void;
   /** Flow runs: open the queued level-up picks now (the "Pick ready" chip). */
   openPicks(): void;
+  /** Flow runs: close the picks and keep them queued ("Later"). */
+  deferPicks(): void;
   pause(): void;
   resume(): void;
   /** Abandon the run and go back to the title. */

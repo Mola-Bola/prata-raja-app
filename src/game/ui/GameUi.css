@@ -887,3 +887,9 @@
     transition: none !important;
   }
 }
+
+.gu-pick-count {
+  margin: -6px 0 6px;
+  font-weight: 700;
+  opacity: 0.85;
+}
