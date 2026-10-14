@@ -1,0 +1,46 @@
+/* The walkable hub's overlay (HubOverlay.tsx): top bar, GO pill, station panel. Tokens come from .gu-root (GameUi.css). */
+.hb-root { position: absolute; inset: 0; pointer-events: none; }
+
+.hb-top {
+  position: absolute; top: calc(var(--safe-top) + 10px); left: calc(var(--safe-left) + 10px); right: calc(var(--safe-right) + 10px);
+  display: flex; align-items: center; gap: 8px;
+}
+.hb-level { position: relative; width: 62px; height: 56px; flex: none; display: grid; place-items: center; }
+.hb-level img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.hb-level b { position: relative; font: 700 22px/1 Fredoka, system-ui, sans-serif; color: var(--cream); text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5); }
+.hb-level i { position: absolute; left: 8px; bottom: 0; height: 5px; max-width: calc(100% - 16px); border-radius: 3px; background: var(--gold); }
+.hb-spec { padding: 2px 8px; border-radius: 999px; background: var(--glass); color: var(--cream); font: 700 var(--fs-cap)/1.4 Nunito, system-ui, sans-serif; }
+.hb-coins { position: relative; margin-left: auto; width: 112px; height: 46px; display: grid; place-items: center; }
+.hb-coins img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.hb-coins b { position: relative; padding-left: 24px; font: 700 18px/1 Fredoka, system-ui, sans-serif; color: var(--cream); text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5); }
+.hb-cog { pointer-events: auto; flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--glass); display: grid; place-items: center; cursor: pointer; }
+.hb-cog img { width: 26px; height: 26px; }
+
+/* GO: always bottom right, over any open panel (the panel pads its end to clear it). */
+.hb-go {
+  position: absolute; z-index: 3; right: calc(var(--safe-right) + 12px); bottom: calc(var(--safe-bottom) + 14px);
+  width: 148px; padding: 0; border: 0; background: none; pointer-events: auto; cursor: pointer; touch-action: manipulation;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45)); transition: transform 0.09s ease-out;
+}
+.hb-go:active { transform: translateY(3px) scale(0.96); }
+.hb-go img { display: block; width: 100%; }
+.hb-tell { position: absolute; z-index: 3; right: calc(var(--safe-right) + 10px); top: calc(var(--safe-top) + 72px); min-height: 40px; padding: 6px 12px; font-size: 15px; }
+
+.hb-sheet {
+  position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; pointer-events: auto;
+  max-height: 46%; overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 26px 26px 0 0; padding: 12px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 84px) calc(var(--safe-left) + 16px);
+  font: 600 var(--fs-body)/1.4 Nunito, system-ui, sans-serif;
+  animation: hb-rise 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes hb-rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.hb-sheet-head { position: sticky; top: -12px; z-index: 1; display: flex; align-items: center; gap: 10px; padding: 2px 0 8px; background: var(--cream); }
+.hb-sheet-head img { width: 36px; height: 36px; object-fit: contain; }
+.hb-sheet-head .gu-heading { flex: 1; text-align: left; font-size: 24px; }
+.hb-sheet-head .gu-btn { min-height: 44px; min-width: 44px; padding: 4px 12px; font-size: 24px; }
+.hb-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.hb-tab { pointer-events: auto; min-height: 40px; padding: 6px 14px; border: 2.5px solid var(--edge); border-radius: 999px; background: var(--cream); color: var(--ink); font: 700 15px/1 Nunito, system-ui, sans-serif; cursor: pointer; }
+.hb-tab[aria-selected='true'] { background: var(--orange); border-color: var(--orange-deep); }
+.hb-materials { display: flex; flex-wrap: wrap; gap: 6px; }
+
+@media (prefers-reduced-motion: reduce) { .hb-sheet { animation: none; } .hb-go { transition: none; } }

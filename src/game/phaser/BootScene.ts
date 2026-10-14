@@ -49,5 +49,6 @@ export class BootScene extends Phaser.Scene {
     makeShadow(this);
     makeStatusTextures(this);
     this.scene.start('RunScene', { pending: this.pending, pendingKitchen: this.pendingKitchen });
+    this.scene.launch('HubScene'); // queued after RunScene, so it can add its controls onto RunScene's; it puts itself to sleep
   }
 }
