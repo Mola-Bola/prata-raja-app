@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../../content';
-import { autoInput, autoPick, simulateRun, type BotOptions } from '../autoplay';
+import { autoFind, autoInput, autoPick, simulateRun, type BotOptions } from '../autoplay';
 import { chooseCard, createRun, drainEvents, step } from '../sim';
 import { computeLoadout } from '../../meta/loadout';
 import { freshSaveV2 } from '../../meta/migrate';
@@ -46,7 +46,7 @@ function measureRun(seed: number, maxBreads: number): Measured {
   const options: BotOptions = { maxBreads };
   for (let i = 0; i < MAX_TIME * 60 + 1000 && world.phase !== 'won' && world.phase !== 'lost' && world.time < MAX_TIME; i++) {
     if (world.phase === 'levelup') chooseCard(world, autoPick(world, options));
-    else step(world, dt, autoInput(world));
+    else { step(world, dt, autoInput(world)); autoFind(world, options); }
     for (const ev of drainEvents(world)) {
       if (ev.t === 'playerHit') {
         taken += ev.dmg;

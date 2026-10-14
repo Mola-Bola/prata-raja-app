@@ -11,11 +11,12 @@
 //  - Kannan.moving is true while he still slides toward targetX (|x - targetX| > 1) as well as while input.moving is set; he throws in neither.
 //  - after chooseCard / revive / step the phase is one of intro | wave | levelup | won | lost; events never repeat once drained.
 import { applyCard, drawOffer } from './cards';
+import { grantFind } from './finds';
 import { makeRng, type Rng } from './rng';
 import { computeStats, xpToNext } from './stats';
 import { tickBuffs } from './status';
 import { FIELD, type Card, type Content, type GameEvent, type Loadout, type Player, type RunInput, type World } from './types';
-import { bossAtOf, flowTick, isFlow, nextPickStop, pickDue, waveEquivalent } from './director';
+import { bossAtOf, flowTick, isFlow, nextPickStop, findDue, waveEquivalent } from './director';
 import { spawnTick, startWave, waveDone, type SpawnRequest } from './waves';
 import { alive, clamp, dirtyMods, emit, type Ctx } from './sim/ctx';
 import { flushContact, updateEnemies, updateEnemyShots } from './sim/enemies';
@@ -47,7 +48,7 @@ export function createRun(opts: { seed: number; content: Content; chapterId?: st
     seed, rngState: seed >>> 0, content, chapter, time: 0, phase: 'intro', wave: 0, waveTime: 0, budgetLeft: 0, spawnClock: 0, dist: 0, credit: 0,
     player, enemies: [], projectiles: [], zones: [], nextUid: 1, kills: 0, bossKills: 0, gold: 0, pendingLevelUps: 0, offer: [], recentOffers: [],
     rerolls: loadout?.rerolls ?? 1, events: [], result: null, loadout, dipUseXp: {}, dipLastCredit: {}, contactAcc: 0, contactT: 0,
-    pickAt: nextPickStop(0, bossAtOf(chapter)), calmT: 0,
+    pickAt: nextPickStop(0, bossAtOf(chapter)),
   };
 }
 
@@ -100,30 +101,9 @@ export function chooseCard(world: World, index: number): void {
   world.rngState = rng.state;
 }
 
-/** Flow runs: the HUD's "Pick ready" chip opens the queued picks now. The pause is the player's choice. */
-export function openPicks(world: World): boolean {
-  if (world.phase !== 'wave' || !isFlow(world.chapter) || world.pendingLevelUps <= 0) return false;
-  world.calmT = 0;
-  world.pickAt = nextPickStop(world.dist, bossAtOf(world.chapter));
-  const rng = makeRng(world.rngState);
-  showPicks(world, rng);
-  world.rngState = rng.state;
-  return true;
-}
-
 function showPicks(world: World, rng: Rng): void {
   world.phase = 'levelup';
   world.offer = nextOffer(world, rng);
-}
-
-/** Flow runs: close the open picks and keep the rest queued for the next stop or the chip ("Later"). */
-export function deferPicks(world: World): boolean {
-  if (world.phase !== 'levelup' || !isFlow(world.chapter)) return false;
-  world.phase = 'wave';
-  world.offer = [];
-  world.calmT = 0;
-  world.pickAt = nextPickStop(world.dist, bossAtOf(world.chapter));
-  return true;
 }
 
 export function reroll(world: World): boolean {
@@ -161,7 +141,7 @@ function stepOnce(w: World, dt: number, input: RunInput): void {
   }
   if (w.phase === 'wave') runDirector(c);
   sweepDead(w);
-  // Flow runs queue level-ups for a calm stop (director.pickDue); waves offer them at once.
+  // Waves offer level-ups at once; flow runs hand out street finds instead (finds.ts).
   if (w.pendingLevelUps > 0 && !isFlow(w.chapter) && (w.phase === 'wave' || w.phase === 'intro')) showPicks(w, rng);
   w.rngState = rng.state;
 }
@@ -210,7 +190,8 @@ function beginWave(c: Ctx, wave: number): void {
 function runDirector(c: Ctx): void {
   const { w } = c;
   if (isFlow(w.chapter)) {
-    if (pickDue(w, c.dt)) return showPicks(w, c.rng);
+    if (w.find && (w.find.t -= c.dt) <= 0) w.find = undefined;
+    if (findDue(w)) grantFind(w, c.rng);
     const f = flowTick(w, c.dt, c.rng);
     for (const r of f.spawns) spawnRequest(c, r);
     if (f.won) endRun(c, true);

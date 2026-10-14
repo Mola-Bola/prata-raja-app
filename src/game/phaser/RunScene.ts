@@ -7,9 +7,10 @@ import { applyKitchenTuning, createKitchenRun, DEFAULT_KITCHEN_TUNING, type Kitc
 import { CONTENT } from '@/content';
 import { pres, tunedContent } from '../tuneStore';
 import { bossAtOf, isFlow } from '@/core/director';
-import { autoInput, autoPick } from '@/core/autoplay';
+import { autoFind, autoInput, autoPick } from '@/core/autoplay';
+import { swapFind } from '@/core/finds';
 import { SAVE_KEY } from '@/core/save';
-import { chooseCard, createRun, deferPicks, drainEvents, openPicks, reroll, step } from '@/core/sim';
+import { chooseCard, createRun, drainEvents, reroll, step } from '@/core/sim';
 import { FIELD, type BreadId, type GameEvent, type Loadout, type RunInput, type RunResult, type World } from '@/core/types';
 import { computeLoadout } from '@/meta/loadout';
 import { parseSaveV3 } from '@/meta/migrate';
@@ -153,10 +154,9 @@ export class RunScene extends Phaser.Scene {
       stopKitchen: () => this.stopKitchen(),
       choose: (i) => this.choose(i),
       reroll: () => this.rerollOffer(),
-      openPicks: () => this.openPicksNow(),
-      deferPicks: () => {
+      swapFind: (i) => {
         const w = this.world;
-        if (w && deferPicks(w)) this.levelUpOpen = false;
+        if (w && !this.paused && swapFind(w, i)) this.sfx('cardPick');
       },
       pause: () => this.hold(),
       resume: () => {
@@ -367,16 +367,11 @@ export class RunScene extends Phaser.Scene {
     if (w && !this.kitchenTuning && reroll(w)) this.openLevelUp(w);
   }
 
-  private openPicksNow(): void {
-    const w = this.world;
-    if (w && !this.kitchenTuning && openPicks(w)) this.openLevelUp(w);
-  }
-
   private openLevelUp(w: World): void {
     this.levelUpOpen = true;
     // The cards swallow touches: a finger that was down will not report its release to the canvas.
     this.drag.release();
-    this.hub.emit('levelUp', { offer: w.offer, rerolls: w.rerolls, level: w.player.level - w.pendingLevelUps + 1, left: w.pendingLevelUps, laterOk: isFlow(w.chapter) });
+    this.hub.emit('levelUp', { offer: w.offer, rerolls: w.rerolls, level: w.player.level - w.pendingLevelUps + 1, left: w.pendingLevelUps });
   }
 
   /** The Sound and Haptics switches live in the save, which the overlay writes. Read them when a run starts or resumes. */
@@ -431,6 +426,7 @@ export class RunScene extends Phaser.Scene {
     let alpha = 1;
     if (w && !this.ended) {
       alpha = this.stepSim(w, dt);
+      if (this.url.bot) autoFind(w);
       if (w.phase === 'levelup' && !this.kitchenTuning) {
         if (this.url.bot) this.choose(autoPick(w));
         else if (!this.levelUpOpen) this.openLevelUp(w);
@@ -503,7 +499,7 @@ export class RunScene extends Phaser.Scene {
       wave: w.wave,
       waves: w.chapter.waves.length,
       route: isFlow(w.chapter) ? { name: w.chapter.name, dist: w.dist, bossAt: bossAtOf(w.chapter) } : null,
-      pendingPicks: isFlow(w.chapter) && w.phase !== 'levelup' ? w.pendingLevelUps : 0,
+      find: w.find ?? null,
       hp: Math.max(0, p.hp),
       maxHp: p.stats.maxHp,
       xp: p.xp,

@@ -224,14 +224,35 @@
 
 /* ── HUD (during a run) ─────────────────────────────────────────────────────── */
 
-.gu-pick-chip {
+.gu-find {
   position: absolute;
-  top: calc(var(--safe-top) + 142px); /* below the level bar and DPS pill */
+  left: calc(var(--safe-left) + 12px);
   right: calc(var(--safe-right) + 12px);
-  padding: 6px 12px;
-  font-size: 14px;
+  bottom: calc(var(--safe-bottom) + 96px);
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 10px 12px 12px;
+  background: var(--cream);
+  color: var(--ink);
+  border: 3px solid var(--edge);
+  border-radius: 14px;
+  box-shadow: 0 4px 0 var(--edge-deep);
   pointer-events: auto;
+  overflow: hidden;
+  animation: gu-find-in 0.35s cubic-bezier(0.2, 1.2, 0.4, 1) both;
 }
+.gu-find-row { display: flex; align-items: center; gap: 10px; }
+.gu-find-row img { width: 40px; height: 40px; object-fit: contain; flex: none; }
+.gu-find-row > div { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px; line-height: 1.25; }
+.gu-find-row b { font-size: 14px; }
+.gu-find-row em { opacity: 0.65; font-size: 12px; }
+.gu-find .gu-btn { padding: 6px 12px; font-size: 14px; }
+.gu-find-alts { display: flex; gap: 8px; margin-top: 8px; }
+.gu-find-alts .gu-btn { flex: 1; display: flex; flex-direction: column; font-size: 12px; text-align: left; }
+.gu-find-timer { position: absolute; left: 0; bottom: 0; height: 4px; width: 100%; background: var(--orange); transform-origin: left; animation: gu-find-timer 3s linear forwards; }
+@keyframes gu-find-in { from { transform: translateY(140%); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes gu-find-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .gu-find { animation: none; } }
 
 .gu-hud {
   position: absolute;

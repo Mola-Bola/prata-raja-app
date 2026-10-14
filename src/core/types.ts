@@ -257,6 +257,9 @@ export type ChapterDef = {
   background: SpriteKey;
   /** HP multiplier per wave: hp * (1 + hpPerWave * (wave - 1)). */
   hpPerWave: number;
+  /** Flow retune knobs (balance tests): multiplier on the street's threat per second and on the boss's hp. Default 1. */
+  pressure?: number;
+  bossHp?: number;
   /** 'flow' (the default for normal play): no waves, the director spends the rows of `waves` as a pressure curve over distance.
    *  Anything else (or absent) runs the classic waves. Test Kitchen asks for waves. */
   mode?: 'flow' | 'waves';
@@ -509,9 +512,13 @@ export type World = {
   contactT?: number;
   /** Flow runs: the next calm stop for queued picks (metres; see director.nextPickStop). Unset = the next one from dist. */
   pickAt?: number;
-  /** Flow runs: seconds left in the ease to a calm stop before queued picks show (0 = cruising). */
-  calmT?: number;
+  /** Flow runs: street finds granted so far, oldest first, and the one still inside its swap window. */
+  finds?: Card[];
+  find?: ActiveFind;
 };
+
+/** A street find just handed over: auto-granted; `alts` are the swap offers; `t` is the sim seconds left to swap. */
+export type ActiveFind = { card: Card; alts: Card[]; t: number; n: number; swapped?: boolean };
 
 /** What the renderer sends each frame. targetX: field x under the finger while dragging, else null. */
 export type RunInput = { targetX: number | null; moving: boolean };

@@ -1,5 +1,6 @@
 // A simple bot for balance sims and tests: dodges what is about to land, otherwise stands still and throws.
 import { MAX_BREADS } from './cards';
+import { swapFind } from './finds';
 import { chooseCard, createRun, drainEvents, step } from './sim';
 import { dangers, type Danger } from './sim/danger';
 import { FIELD, type Card, type Content, type Loadout, type RunInput, type RunResult, type World } from './types';
@@ -120,6 +121,20 @@ export function autoPick(w: World, o: BotOptions = {}): number {
   return best;
 }
 
+/** The bot's answer to a fresh street find: swap to an alternative it values more than the granted one (e.g. no new breads
+ *  past maxBreads). Call once per frame after step(). */
+export function autoFind(w: World, o: BotOptions = {}): void {
+  const f = w.find;
+  if (!f || f.swapped || !f.alts.length) return;
+  const maxBreads = o.maxBreads ?? MAX_BREADS;
+  // The granted card is already applied, so a new roti/dip counts as new (not owned) and one past maxBreads is worth nothing.
+  const granted = f.card.level > 1 ? cardValue(w, f.card, maxBreads)
+    : f.card.kind === 'bread' ? (w.player.breads.length <= maxBreads ? 95 : 0) : f.card.kind === 'dip' ? 80 : cardValue(w, f.card, maxBreads);
+  let best = 0;
+  f.alts.forEach((c, i) => { if (cardValue(w, c, maxBreads) > cardValue(w, f.alts[best], maxBreads)) best = i; });
+  if (cardValue(w, f.alts[best], maxBreads) > granted) swapFind(w, best);
+}
+
 /** One whole run with the bot at 30 steps per second. Ends on win, loss or maxTime sim-seconds (then won = false). */
 export function simulateRun(opts: BotOptions & { seed: number; content: Content; maxTime?: number; chapterId?: string; loadout?: Loadout }): RunResult {
   const world = createRun({ seed: opts.seed, content: opts.content, chapterId: opts.chapterId, loadout: opts.loadout });
@@ -129,6 +144,7 @@ export function simulateRun(opts: BotOptions & { seed: number; content: Content;
   for (let i = 0; i < maxTime * 60 + 1000 && world.phase !== 'won' && world.phase !== 'lost' && world.time < maxTime; i++) {
     if (world.phase === 'levelup') chooseCard(world, autoPick(world, opts));
     else step(world, dt, autoInput(world));
+    autoFind(world, opts);
     drainEvents(world);
   }
   const p = world.player;
