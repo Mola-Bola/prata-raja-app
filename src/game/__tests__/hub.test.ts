@@ -186,7 +186,7 @@ describe('kitchen renderer lifecycle through the hub', () => {
   it('queues kitchen controls through asset loading and lets a later normal start replace them', () => {
     const hub = createHub(), start = vi.fn();
     const boot = new BootScene();
-    Object.assign(boot, { registry: { get: () => hub, set: vi.fn() }, load: { on: vi.fn(), once: vi.fn() }, scene: { start } });
+    Object.assign(boot, { registry: { get: () => hub, set: vi.fn() }, load: { on: vi.fn(), once: vi.fn() }, scene: { start, launch: vi.fn() } });
     boot.preload();
     hub.controls!.startKitchen(config);
     hub.controls!.tuneKitchen({ ...DEFAULT_KITCHEN_TUNING, damage: 3 });
