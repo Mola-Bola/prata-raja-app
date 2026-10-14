@@ -10,6 +10,7 @@ export const CHAPTERS: ChapterDef[] = [
     hpPerWave: 0.03,
     mode: 'flow',
     bossAt: 1200,
+    floor: 'street/floor/kopitiam',
     props: [], // off until the floor itself scrolls (owner 14 Oct); was ['kopitiam-lamp-post', 'kopitiam-drain-grate', 'kopitiam-plastic-stools', 'kopitiam-coffee-table']
     waves: [
       { budget: 10, duration: 22, mix: { 'sugar-ant': 1 }, eliteChance: 0 },
@@ -60,6 +61,7 @@ const nightIds: Record<string, string> = {
 };
 CHAPTERS.push({
   id: 'hawker-night', name: 'Hawker Centre Night', background: 'scene/background2', hpPerWave: .06, mode: 'flow', bossAt: 1200,
+  floor: 'street/floor/hawker-centre',
   props: [], // off until the floor itself scrolls (owner 14 Oct); was ['hawker-centre-neon-lamp', 'hawker-centre-steel-bin', 'hawker-centre-plastic-stools', 'hawker-centre-hawker-table']
   waves: CHAPTERS[0].waves.map(wave => ({ ...wave,
     mix: Object.fromEntries(Object.entries(wave.mix).map(([id, weight]) => [nightIds[id], weight])),

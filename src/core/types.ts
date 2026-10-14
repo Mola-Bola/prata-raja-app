@@ -264,6 +264,9 @@ export type ChapterDef = {
   bossAt?: number;
   /** Roadside prop sprites ('street/<name>') the run view scrolls along both kerbs; none = bare street. */
   props?: string[];
+  /** Scrolling ground texture ('street/floor/<place>'): the road and both pavements seen from above, drawn as a perspective plane that
+   *  moves with world.dist. Absent = the painted background's own static floor ('painted'). */
+  floor?: string;
   waves: WaveDef[];
 };
 

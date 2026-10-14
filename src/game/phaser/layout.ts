@@ -86,7 +86,7 @@ export class Projector {
   s = 1;
   /** Street width opens smoothly from the vanishing point to the fighting lanes. */
   laneScale = 1;
-  private f = 1;
+  f = 1;
 
   setLayout(l: Layout): void {
     this.view = l.view;
