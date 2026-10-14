@@ -44,7 +44,7 @@ export function createRun(opts: { seed: number; content: Content; chapterId?: st
   const player: Player = {
     x: 0, y: isFreeMode(content) ? FREE.startY : 0, dashT: 0, dashCd: 0, dashDx: 0, dashDy: 1, faceX: 0, faceY: 1, dodgeHeld: false, targetX: 0, moving: false, hp: stats.maxHp, stats,
     breads: [{ id: loadout?.startBread ?? 'kosong', level: 1, cd: 0.4, volleyLeft: 0, volleyT: 0 }],
-    dips: [], passives: [], buffs: [], level: 1, xp: 0, xpToNext: xpToNext(1), revivesLeft: stats.revives, throwAnim: 0, hurtAnim: 0,
+    dips: (loadout?.startDips ?? []).map((d) => ({ ...d, level: 1 })), passives: [], buffs: [], level: 1, xp: 0, xpToNext: xpToNext(1), revivesLeft: stats.revives, throwAnim: 0, hurtAnim: 0,
   };
   return {
     seed, rngState: seed >>> 0, content, chapter, time: 0, phase: 'intro', wave: 0, waveTime: 0, budgetLeft: 0, spawnClock: 0, dist: 0, credit: 0,
