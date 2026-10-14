@@ -1,15 +1,15 @@
 // The one seam between the Phaser renderer (src/game/phaser/*) and the React DOM overlays (src/game/ui/*).
 // The renderer owns the World and publishes; the UI listens and calls GameControls. Neither imports the other.
 import type { KitchenConfig, KitchenTuning } from '@/core/kitchen';
-import type { Buff, Card, Loadout, OwnedBread, OwnedDip, OwnedPassive, PlayerStats, RunPhase, RunResult, SpriteKey } from '@/core/types';
+import type { ActiveFind, Buff, Card, Loadout, OwnedBread, OwnedDip, OwnedPassive, PlayerStats, RunPhase, RunResult, SpriteKey } from '@/core/types';
 
 export type HudState = {
   wave: number;
   waves: number;
   /** Flow runs: the chapter's name and the metres travelled / to the boss (null in wave runs). */
   route: { name: string; dist: number; bossAt: number } | null;
-  /** Level-ups queued for a calm stop (flow runs): the HUD's "Pick ready" chip. 0 hides it. */
-  pendingPicks: number;
+  /** Flow runs: the street find just handed over (null once its swap window closes). */
+  find: ActiveFind | null;
   hp: number;
   maxHp: number;
   xp: number;
@@ -53,7 +53,7 @@ export type HubEvents = {
   /** About 10 times a second while a run is live. */
   hud: HudState;
   /** The run paused for a pick; the UI shows the cards and answers with controls.choose/reroll. */
-  levelUp: { offer: Card[]; rerolls: number; level: number; /** Picks waiting including this one; laterOk when they can be put off. */ left?: number; laterOk?: boolean };
+  levelUp: { offer: Card[]; rerolls: number; level: number; /** Picks waiting including this one. */ left?: number };
   waveStart: { wave: number; waves: number };
   boss: { name: string };
   runEnd: RunResult;
@@ -72,10 +72,8 @@ export type GameControls = {
   stopKitchen(): void;
   choose(index: number): void;
   reroll(): void;
-  /** Flow runs: open the queued level-up picks now (the "Pick ready" chip). */
-  openPicks(): void;
-  /** Flow runs: close the picks and keep them queued ("Later"). */
-  deferPicks(): void;
+  /** Flow runs: swap the street find just granted for alternative `index` (once, inside its window). */
+  swapFind(index: number): void;
   pause(): void;
   resume(): void;
   /** Abandon the run and go back to the title. */

@@ -1,4 +1,6 @@
 import { linkedDipEffect } from '../dipLinks';
+import { isFlow } from '../director';
+import { levelNudge } from '../finds';
 import { creditDipUse, matchingDipLink, simmerEffect } from '../dipProgression';
 // Damage rules: a bread hit on an enemy, dip chain/sambal side effects, DoT bookkeeping, kills, XP and gold.
 import { rotiCrisp, SOAK_RADIUS, soakFor } from '../soak';
@@ -198,7 +200,8 @@ function addXp(c: Ctx, amount: number): void {
     p.xp -= p.xpToNext;
     p.level++;
     p.xpToNext = xpToNext(p.level);
-    w.pendingLevelUps++;
+    if (isFlow(w.chapter)) levelNudge(w); // flow runs hand out street finds (finds.ts) instead of cards
+    else w.pendingLevelUps++;
     emit(c, { t: 'levelUp', level: p.level });
     const heal = Math.min(p.stats.healOnLevelUpPct * p.stats.maxHp, p.stats.maxHp - p.hp);
     if (heal > 0 && p.hp > 0) {

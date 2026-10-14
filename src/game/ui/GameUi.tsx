@@ -26,7 +26,7 @@ import { ASSET_URLS } from '../assets';
 import type { AppInfo } from '../appInfo';
 import type { Bridge, HapticKind } from '../bridgeTypes';
 import type { Hub, HudState } from '../hub';
-import { cardView } from './cardText';
+import { cardView, findView } from './cardText';
 import { AnalyticsSwitch, FeedbackLayer, TellButton } from './FeedbackSheet'; // [feedback hook]
 import { trackCardPick } from '../telemetry'; // [analytics hook]
 import { fmt, useCountUp } from './format';
@@ -41,7 +41,7 @@ import { StallHub } from './stall/StallHub';
 
 type UiBridge = Pick<Bridge, 'haptic' | 'save' | 'load'>;
 type Screen = 'title' | 'stall' | 'run' | 'results' | 'story' | 'kitchen';
-type Offer = { n: number; cards: Card[]; rerolls: number; level: number; left: number; laterOk: boolean; first: number };
+type Offer = { n: number; cards: Card[]; rerolls: number; level: number; left: number; first: number };
 type Ended = { result: RunResult; line: string; tip: string; newBest: boolean; before: SaveV2; payout: Payout };
 type Banner = { n: number; text: string; boss: boolean };
 /** One live run. `paid` flips the moment its result is applied, so a repeated runEnd for the same run pays nothing. */
@@ -131,13 +131,13 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
       }),
       // The renderer held the run on its own (the app went to the background): show the pause sheet.
       hub.on('paused', () => { setPausedHud(runHud.current); setPaused(true); }),
-      hub.on('levelUp', ({ offer: cards, rerolls, level, left = 1, laterOk = false }) =>
+      hub.on('levelUp', ({ offer: cards, rerolls, level, left = 1 }) =>
         // `first` remembers how many were waiting when this batch opened, so the header can say "Pick 2 of 3".
         setOffer((prev) => {
           // A pick that leaves fewer waiting continues the batch; anything else starts one.
           const b = batch.current;
           batch.current = b.left > left ? { first: b.first, left } : { first: left, left };
-          return { n: (prev?.n ?? 0) + 1, cards, rerolls, level, left, laterOk, first: batch.current.first };
+          return { n: (prev?.n ?? 0) + 1, cards, rerolls, level, left, first: batch.current.first };
         }),
       ),
       hub.on('runEnd', (result) => {
@@ -256,7 +256,7 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
         <Hud key={runId} hub={hub} firstRun={save?.runs === 0} modal={!!offer || paused} onPause={pause} />
       )}
       {screen === 'run' && offer && (
-        <LevelUp offer={offer} onPick={pickCard} onReroll={() => hub.controls?.reroll()} onLater={() => { hub.controls?.deferPicks(); batch.current = { first: 0, left: 0 }; setOffer(null); }} />
+        <LevelUp offer={offer} onPick={pickCard} onReroll={() => hub.controls?.reroll()} />
       )}
       {screen === 'run' && paused && !tuneOpen && (
         <Pause
@@ -365,6 +365,7 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
 
   return (
     <div className="gu-hud">
+      {hud?.find && <FindToast key={hud.find.n} find={hud.find} onSwap={(i) => hub.controls?.swapFind(i)} />}
       {hud && (
         <>
           <div className="gu-topbar">
@@ -388,11 +389,6 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
               </span>
               <Bar pct={hud.route.dist / hud.route.bossAt} />
             </div>
-          )}
-          {hud.pendingPicks > 0 && (
-            <button type="button" className="gu-chip gu-pick-chip" data-testid="pick-chip" onClick={() => hub.controls?.openPicks()}>
-              Pick ready ★{hud.pendingPicks}
-            </button>
           )}
           <div className="gu-xp">
             <span className="gu-level">Lv {hud.level}</span>
@@ -426,6 +422,34 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
   );
 }
 
+/** A street find: slides in at the bottom, already granted. "Swap?" opens two alternatives for the rest of its window. */
+function FindToast({ find, onSwap }: { find: NonNullable<HudState['find']>; onSwap: (i: number) => void }) {
+  const [open, setOpen] = useState(false);
+  const v = findView(find.card);
+  return (
+    <aside className="gu-find" data-testid="street-find" aria-live="polite">
+      <div className="gu-find-row">
+        <img src={art(v.sprite)} alt="" />
+        <div>
+          <b>{v.title}</b>
+          <span>{v.line}</span>
+          {v.flavour && <em>{v.flavour}</em>}
+        </div>
+        {find.alts.length > 0 && !open && <button type="button" className="gu-btn gu-btn--cream" data-testid="find-swap" onClick={() => setOpen(true)}>Swap?</button>}
+      </div>
+      {open && find.alts.length > 0 && (
+        <div className="gu-find-alts">
+          {find.alts.map((alt, i) => {
+            const a = findView(alt);
+            return <button key={i} type="button" className="gu-btn gu-btn--cream" data-testid="find-alt" onClick={() => onSwap(i)}><b>{a.title}</b><span>{a.line}</span></button>;
+          })}
+        </div>
+      )}
+      <i className="gu-find-timer" />
+    </aside>
+  );
+}
+
 function Bar({ pct, tone = 'xp' }: { pct: number; tone?: 'xp' | 'hp' | 'boss' }) {
   return (
     <span className={`gu-bar gu-bar--${tone}`}>
@@ -434,7 +458,7 @@ function Bar({ pct, tone = 'xp' }: { pct: number; tone?: 'xp' | 'hp' | 'boss' })
   );
 }
 
-function LevelUp({ offer, onPick, onReroll, onLater }: { offer: Offer; onPick: (i: number) => void; onReroll: () => void; onLater: () => void }) {
+function LevelUp({ offer, onPick, onReroll }: { offer: Offer; onPick: (i: number) => void; onReroll: () => void }) {
   return (
     <div className="gu-modal">
       <section className="gu-levelup" role="dialog" aria-label={`Level ${offer.level}: pick a card`}>
@@ -448,11 +472,6 @@ function LevelUp({ offer, onPick, onReroll, onLater }: { offer: Offer; onPick: (
         {offer.rerolls > 0 && (
           <button type="button" className="gu-btn gu-btn--cream" data-testid="ui-reroll" onClick={onReroll}>
             Reroll ×{offer.rerolls}
-          </button>
-        )}
-        {offer.laterOk && (
-          <button type="button" className="gu-btn gu-btn--cream" data-testid="ui-later" onClick={onLater}>
-            Later{offer.left > 1 ? ` (${offer.left} waiting)` : ''}
           </button>
         )}
       </section>

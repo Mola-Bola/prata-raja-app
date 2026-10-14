@@ -8,6 +8,9 @@ export const CHAPTERS: ChapterDef[] = [
     background: 'scene/background',
     // Flow retune (BALANCE_SEEDS=300): HP climbs gently along the street; the boss carries the late difficulty (its hp is higher).
     hpPerWave: 0.03,
+    // Street finds retune (BALANCE_SEEDS=300): finds are weaker than cards, so the street presses harder and the boss is lighter.
+    pressure: 2,
+    bossHp: 0.75,
     mode: 'flow',
     bossAt: 1200,
     floor: 'street/floor/kopitiam',
@@ -60,7 +63,7 @@ const nightIds: Record<string, string> = {
   'tiffin-beetle': 'drumstick-knight', 'ice-kacang-sprite': 'kopi-ghost', 'kettle-spirit': 'chope-spirit', 'durian-bomb': 'rojak-bomb',
 };
 CHAPTERS.push({
-  id: 'hawker-night', name: 'Hawker Centre Night', background: 'scene/background2', hpPerWave: .06, mode: 'flow', bossAt: 1200,
+  id: 'hawker-night', name: 'Hawker Centre Night', background: 'scene/background2', hpPerWave: .06, mode: 'flow', bossAt: 1200, pressure: 1.2, bossHp: 0.9,
   floor: 'street/floor/hawker-centre',
   props: [], // stools still read as floating stickers (owner 14 Oct); was ['hawker-centre-hawker-table', 'hawker-centre-plastic-stools'] // table + stool rows beside the tiled aisle
   waves: CHAPTERS[0].waves.map(wave => ({ ...wave,

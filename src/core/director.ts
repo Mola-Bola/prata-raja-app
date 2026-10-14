@@ -7,15 +7,20 @@ import type { Rng } from './rng';
 import { ENEMY_COST, spawnPick, type SpawnRequest } from './waves';
 import type { ChapterDef, Enemy, SpawnLane, World } from './types';
 
-/** Cruise speed in metres per second (the stall slows to a halt over the last BRAKE metres before the boss). */
-export const CRUISE = 5;
+/** Stall speed in metres per second: CRUISE at the start of the street, easing (smoothstep over distance) up to CRUISE_LATE at the
+ *  boss mark. The stall slows to a halt over the last BRAKE metres before the boss. Both are Tune-panel knobs. */
+export const CRUISE = 4;
+export const CRUISE_LATE = 7.5;
+/** Mob flow per second scales with speed / SPEED_REF, so threat per metre stays what the street rows say (they were tuned at 5 m/s). */
+const SPEED_REF = 5;
+/** A stronger Kannan (loadout.kannanLevel) stretches the speed ramp a little: +POWER_PER_LEVEL per level above 1, capped at POWER_CAP. */
+export const POWER_PER_LEVEL = 0.015;
+export const POWER_CAP = 0.3;
 const BRAKE = 60;
 /** Default distance to the boss when a chapter does not set bossAt. */
 export const DEFAULT_BOSS_AT = 1200;
-/** Flow runs hold level-up picks until a calm stop: every PICK_EVERY metres (and the boss mark). */
-export const PICK_EVERY = 250;
-/** Seconds the stall takes to ease to a stop before queued picks show. */
-export const CALM_TIME = 1.5;
+/** Flow runs hand Kannan a street find every PICK_EVERY metres (src/core/finds.ts; capped at MAX_FINDS per run). */
+export const PICK_EVERY = 120;
 /** Threat points that may be unspent at once (a tank costs 6), so a throttled street never bursts when it clears. */
 const CREDIT_CAP = 8;
 /** Living threat above which the street stops asking for more: the director never buries a bot that is behind. */
@@ -26,6 +31,15 @@ export const bossAtOf = (chapter: ChapterDef): number => chapter.bossAt ?? DEFAU
 const fightWave = (chapter: ChapterDef) => chapter.waves[chapter.waves.length - 1];
 const rows = (chapter: ChapterDef) => chapter.waves.filter((wv) => !wv.boss);
 const smooth = (t: number): number => t * t * (3 - 2 * t);
+
+/** Stall speed (m/s) at the world's current distance: the start->late ramp, its rise scaled by Kannan's level. */
+export function cruiseAt(world: World, scaled = true): number {
+  const tune = world.content.tune;
+  const from = tune?.cruise ?? CRUISE;
+  const to = tune?.cruiseLate ?? CRUISE_LATE;
+  const power = scaled ? 1 + Math.min(POWER_CAP, POWER_PER_LEVEL * Math.max(0, (world.loadout?.kannanLevel ?? 1) - 1)) : 1;
+  return from + (to - from) * smooth(Math.min(1, world.dist / bossAtOf(world.chapter))) * power;
+}
 
 export type Pressure = { rate: number; mix: Record<string, number>; eliteChance: number };
 
@@ -71,28 +85,13 @@ export function nextPickStop(dist: number, bossAt: number): number {
   return Math.min(bossAt, (Math.floor(dist / PICK_EVERY) + 1) * PICK_EVERY);
 }
 
-/** Flow only. When queued picks are due (a checkpoint passed, or the boss mark reached before the boss steps out), start the
- *  stall's ease to a stop (world.calmT counts down from CALM_TIME; flowTick reads it). Returns true once, when the stop is
- *  complete and the offers should show. Never during the boss fight: picks queued then wait for the next run. */
-export function pickDue(world: World, dt: number): boolean {
+/** Flow only: true once each time the stall passes a street-find stop (every PICK_EVERY metres, never at the boss mark). */
+export function findDue(world: World): boolean {
   const bossAt = bossAtOf(world.chapter);
-  if (world.pendingLevelUps <= 0 || world.flowBoss) {
-    world.calmT = 0;
-    // A checkpoint passed with nothing queued is not owed later: the next pick waits for the one after it.
-    if (!world.flowBoss && world.dist >= (world.pickAt ?? nextPickStop(0, bossAt))) world.pickAt = nextPickStop(world.dist, bossAt);
-    return false;
-  }
-  let calmT = world.calmT ?? 0;
-  if (!(calmT > 0)) {
-    const pickAt = world.pickAt ?? nextPickStop(0, bossAt);
-    if (world.dist < pickAt && world.dist < bossAt) return false;
-    calmT = CALM_TIME;
-  }
-  calmT = Math.max(0, calmT - dt);
-  world.calmT = calmT;
-  if (calmT > 0) return false;
+  const at = world.pickAt ?? nextPickStop(0, bossAt);
+  if (world.flowBoss || world.dist < at) return false;
   world.pickAt = nextPickStop(world.dist, bossAt);
-  return true;
+  return world.dist < bossAt;
 }
 
 /** Advance the flow by dt. Call once per sim step while the run is live. */
@@ -107,12 +106,9 @@ export function flowTick(world: World, dt: number, rng: Rng): FlowOut {
   } else {
     const bossAt = bossAtOf(chapter);
     const left = bossAt - world.dist;
-    // Picks due: the stall eases out of cruise over CALM_TIME (smooth, reaching 0 when the offers open).
-    const calm = (world.calmT ?? 0) > 0 ? smooth((world.calmT ?? 0) / CALM_TIME) : 1;
-    world.dist = Math.min(bossAt, world.dist + (world.content.tune?.cruise ?? CRUISE) * calm * Math.min(1, Math.max(0.1, left / BRAKE)) * dt);
+    world.dist = Math.min(bossAt, world.dist + cruiseAt(world) * Math.min(1, Math.max(0.1, left / BRAKE)) * dt);
     world.waveF = waveEquivalent(chapter, world.dist);
     world.wave = Math.floor(world.waveF);
-    // Queued picks come before the boss steps out (pickDue opens them at the boss mark).
     if (world.dist >= bossAt && world.pendingLevelUps === 0) {
       world.flowBoss = true;
       world.wave = chapter.waves.length;
@@ -124,7 +120,7 @@ export function flowTick(world: World, dt: number, rng: Rng): FlowOut {
   }
   let heat = 0;
   for (const e of world.enemies) if (living(e) && !e.boss) heat += ENEMY_COST[e.def.kind];
-  if (heat < (world.content.tune?.liveCap ?? LIVE_CAP)) world.credit = Math.min(CREDIT_CAP, world.credit + pr.rate * (world.content.tune?.pressure ?? 1) * dt);
+  if (heat < (world.content.tune?.liveCap ?? LIVE_CAP)) world.credit = Math.min(CREDIT_CAP, world.credit + pr.rate * (world.content.tune?.pressure ?? 1) * (world.chapter.pressure ?? 1) * (world.flowBoss ? 1 : cruiseAt(world, false) / SPEED_REF) * dt);
   for (;;) {
     const fits = Object.keys(pr.mix).filter((id) => pr.mix[id] > 0 && ENEMY_COST[world.content.enemies[id].kind] <= world.credit).sort();
     if (fits.length === 0) break;

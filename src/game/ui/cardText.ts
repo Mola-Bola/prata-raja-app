@@ -2,6 +2,8 @@ import { dipBonusLabel, dipFamilyLabel, dipMatchesBread, isLinkableDip, tagLabel
 // Level-up card text and art keys: pure data, no React or DOM (the test runs it under Node).
 // Every line is at most 8 words and 25 characters (__tests__/cardText.test.ts). Names and sprites come from CONTENT.
 import { CONTENT } from '@/content';
+import { FINDS } from '@/content/finds';
+import { FIND_MAGNITUDE } from '@/core/finds';
 import type { BreadId, Card, DipId, PassiveId } from '@/core/types';
 
 /** A card is about 80 px of text wide on a 360 px phone, three to a row: a line wraps every 10 characters or so, so it must stay
@@ -119,4 +121,14 @@ export function cardView(card: Card): CardView {
     case 'gold':
       return { name: 'Tips', line: '+25 gold', label: 'Tips. +25 gold', sprite: 'ui/coins', frame: 'ui/card', badge: null };
   }
+}
+
+/** A street find as the toast shows it: "Auntie's spare ghee", the effect at find strength, the flavour line. */
+export function findView(card: Card): { title: string; line: string; flavour: string; sprite: string } {
+  const v = cardView(card);
+  const copy = FINDS[card.id];
+  const line = card.kind === 'passive'
+    ? CONTENT.passives[card.id as PassiveId].desc.replace(/\d+(\.\d+)?/g, (n) => String(+(parseFloat(n) * FIND_MAGNITUDE).toFixed(1))) + ' this run'
+    : `${v.name} ${card.level <= 1 ? 'joins the stall' : `to level ${card.level}`} this run`;
+  return { title: copy ? `${copy.giver}'s ${copy.item}` : `A regular's ${v.name}`, line, flavour: copy?.flavour ?? '', sprite: v.sprite };
 }
