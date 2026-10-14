@@ -4,8 +4,7 @@
 // The source repo (~/prata-raja, private Mola-Bola/prata-raja-app) is never pushed anywhere by this script.
 // Usage: node scripts/publish-web.mjs [--label 1.0.1]
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { retainWebChunks } from './retain-web-chunks.mjs';
@@ -35,8 +34,9 @@ if (webUrl !== URL.replace(/\/$/, '')) throw new Error(`.env.production EXPO_PUB
 
 // 1. Build (NODE_ENV=production → .env.production → cloud Supabase; PRATA_RAJA_WEB_BASE → app.config.js baseUrl).
 rmSync(BUILD, { recursive: true, force: true });
-// Private Metro cache + --clear: the shared cache has served another checkout's route files (see ship-cloud.mjs).
-run('npx', ['expo', 'export', '-p', 'web', '--clear', '--output-dir', BUILD], { env: { ...process.env, PRATA_RAJA_WEB_BASE: '/prata-raja', CI: '1', TMPDIR: mkdtempSync(join(tmpdir(), 'prata-raja-web-')) }, stdio: 'inherit' });
+// Private per-checkout Metro cache (the shared one has served another checkout's route files, see ship-cloud.mjs); kept between ships so exports stay warm.
+function metroTmp() { const d = join(ROOT, '.fleet', 'metro-tmp'); mkdirSync(d, { recursive: true }); return d; }
+run('npx', ['expo', 'export', '-p', 'web', '--output-dir', BUILD], { env: { ...process.env, PRATA_RAJA_WEB_BASE: '/prata-raja', CI: '1', TMPDIR: metroTmp() }, stdio: 'inherit' });
 // Production = the cloud's publishable key and not the Mac's test server (the cloud URL alone proves nothing: every
 // bundle embeds the updates URL, which is on the same host).
 const prodKey = prodEnv.match(/EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=(\S+)/)?.[1];
