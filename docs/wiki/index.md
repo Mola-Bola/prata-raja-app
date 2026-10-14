@@ -21,7 +21,9 @@ Map of what is built. Steering lives in [DIRECTION.md](../../DIRECTION.md) (wins
 - [Kannan level, perks, milestones](kannan-level.md) - live. One level, spec points; tree not built.
 - [Story beats](story-beats.md) - live. Beats unlock rotis, dips, chapters.
 - [Gear v2, uniques, materials, enhance](gear-v2.md) - live.
-- [Dips + simmer](dips-simmer.md) - live.
+- [Dips + simmer](dips-simmer.md) - live; sockets logic built.
+- [Spec tree](spec-tree.md) - built, hub mount pending.
+- [Pre-run meals](meals.md) - built, hub mount pending.
 - [Training](training.md) - live, generated from registry.
 - [Cards -> street finds](cards-street-finds.md) - experimental bridge.
 

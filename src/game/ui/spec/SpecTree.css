@@ -1,0 +1,30 @@
+/* Spec board (SpecTree.tsx). Tokens come from .gu-root (GameUi.css). Text is ink on cream. */
+.spec { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; color: var(--ink); background: var(--cream); pointer-events: auto; max-height: 100%; overflow-y: auto; }
+.spec-top { display: flex; align-items: center; gap: 10px; }
+.spec-top h2 { flex: 1; margin: 0; font: 600 var(--fs-head) Fredoka, system-ui, sans-serif; }
+.spec-points { padding: 4px 12px; border: 2px solid var(--edge); border-radius: 999px; font-weight: 800; font-size: var(--fs-cap); background: var(--gold); }
+.spec-close { min-height: 44px; padding: 6px 16px; font-size: var(--fs-body); }
+.spec-board { position: relative; width: 100%; aspect-ratio: 1 / 1; max-height: 52vh; margin: 0 auto; border: 3px solid var(--edge); border-radius: 24px; background: radial-gradient(circle at 50% 56%, var(--gold) 0, transparent 22%), var(--cream); }
+.spec-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.spec-lines line { stroke: var(--edge); stroke-width: 0.7; stroke-dasharray: 1.5 1.5; opacity: 0.6; vector-effect: non-scaling-stroke; }
+.spec-lines line[data-on] { stroke: var(--orange-deep); stroke-dasharray: none; opacity: 1; stroke-width: 1.6; }
+.spec-centre { position: absolute; left: 50%; top: 56%; transform: translate(-50%, -50%); font-size: 22px; color: var(--orange-deep); }
+.spec-node { position: absolute; transform: translate(-50%, -50%); width: 44px; height: 44px; padding: 0; border: 3px solid var(--edge); border-radius: 50%; background: var(--cream); color: var(--ink); font-size: 14px; cursor: pointer; touch-action: manipulation; }
+.spec-notable { width: 50px; height: 50px; border-radius: 14px; transform: translate(-50%, -50%) rotate(0deg); }
+.spec-keystone { width: 56px; height: 56px; border-width: 4px; font-size: 20px; }
+.spec-node[data-state='open'] { border-color: var(--orange-deep); box-shadow: 0 0 0 3px var(--gold); }
+.spec-node[data-state='learned'] { background: var(--orange); border-color: var(--orange-deep); }
+.spec-node[data-state='locked'] { opacity: 0.55; }
+.spec-node[data-picked] { outline: 3px solid var(--ink); outline-offset: 2px; }
+.spec-tag { position: absolute; font: 600 var(--fs-cap) Fredoka, system-ui, sans-serif; color: var(--edge-deep); }
+.spec-t-crisp { left: 4%; top: 2%; }
+.spec-t-soak { left: 4%; bottom: 2%; }
+.spec-t-heat { right: 4%; top: 28%; }
+.spec-detail { padding: 10px 14px; border: 3px solid var(--edge); border-radius: 18px; background: var(--cream); }
+.spec-detail h3 { margin: 0 0 4px; font: 600 var(--fs-title) Fredoka, system-ui, sans-serif; }
+.spec-detail h3 small { font: 700 var(--fs-cap) Nunito, system-ui, sans-serif; color: var(--edge-deep); }
+.spec-detail p { margin: 4px 0; font-size: var(--fs-body); }
+.spec-actions { display: flex; gap: 10px; margin-top: 8px; }
+.spec-actions .gu-btn:disabled { opacity: 0.5; cursor: default; }
+.spec-why { color: var(--red); font-weight: 700; }
+.spec-spent { font-size: var(--fs-cap); color: var(--edge-deep); }

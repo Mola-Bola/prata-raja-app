@@ -14,3 +14,4 @@ Append-only, newest on top, one line per ingest/change/lint.
 - 2026-10-14: Balance tune after street finds (BALANCE_SEEDS=300): Appam base cooldown 1.0 to 1.25 (solo signature 42% to 12%); Roti Bomb cooldown 1.4 to 1.3 (solo signature 9% to 18%); ch2 untouched (solo 23%).
 - 2026-10-14: Balance tune after street finds (BALANCE_SEEDS=300): Appam base cooldown 1.0 to 1.25 (solo signature 42% to 12%); Roti Bomb cooldown 1.4 to 1.3 (solo signature 9% to 18%); ch2 untouched (solo 23%).
 - 2026-10-15: Audio (r8-audio): light SFX cues step, stationOpen, stationClose, enhance, fuse, socket, dash, cook (WebAudio); hub BGM track via startMusic('hub') (Mohanam, 96 BPM, sparse drums).
+- 2026-10-15: Round 8 meta: dip sockets (sockets.ts), spec tree (specTree.ts + SpecTree.tsx), pre-run meals (meals.ts + KopiMeal.tsx); save fields sockets/spec/meal via migrateMeta (no version bump).

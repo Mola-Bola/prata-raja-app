@@ -9,7 +9,11 @@ import { chooseSignature } from './signature';
 import { CONTENT } from '../content';
 import { unlocksForXp } from './stall';
 import { kannanLevel } from './kannan';
+import { BASE_SOCKETS, MAX_SOCKETS } from './sockets';
+import { mealDef } from './meals';
+import { specNode } from './specTree';
 import { milestonesBelow } from './milestones';
+import type { DipId } from '../core/types';
 import { MATERIALS, RARITIES, SLOTS, TRAINING_IDS, UNLOCK_FLAGS, type GearBaseId, type GearItem, type Rarity, type SaveV2, type SaveV3 } from './types';
 
 const obj = (value: unknown): Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -123,15 +127,30 @@ export function parseSaveV2(json: unknown): SaveV2 {
   } catch { return fresh; }
 }
 
+/** Round-8 fields on a v3 save (sockets, spec tree, meal): an additive step inside v3, so no version bump (same pattern as seenMilestones). */
+/** Idempotent, never drops owned progress: reads the three round-8 fields from raw JSON, cleaning each on its own.
+ *  Junk entries are dropped from sockets/spec/meal only (unknown dip ids, unknown nodes, unknown meal). Absent fields get defaults. */
+export function migrateMeta(raw: Record<string, unknown>): Pick<SaveV3, 'sockets' | 'spec' | 'meal'> {
+  const sockets: SaveV3['sockets'] = {};
+  for (const [bread, list] of Object.entries(obj(raw.sockets))) {
+    if (!Object.hasOwn(BASE_SOCKETS, bread) || !Array.isArray(list)) continue;
+    const dips = list.slice(0, MAX_SOCKETS).map(d => (typeof d === 'string' && Object.hasOwn(DIPS, d) ? d as DipId : null));
+    const seenDip = new Set<string>(); // one socket per dip per roti; keep the first
+    sockets[bread] = dips.map(d => (d && !seenDip.has(d) && seenDip.add(d) ? d : null));
+  }
+  const nodes = Array.isArray(obj(raw.spec).nodes) ? obj(raw.spec).nodes as unknown[] : [];
+  const meal = obj(raw.meal).id;
+  return { sockets, spec: { nodes: [...new Set(nodes.filter((id): id is string => typeof id === 'string' && !!specNode(id)))] }, meal: typeof meal === 'string' && mealDef(meal) ? { id: meal } : null };
+}
 export function freshSaveV3(): SaveV3 {
-  return { ...freshSaveV2(), v: 3, beats: [], kannanXp: 0, specPoints: 0, stall: { parts: {} }, seenMilestones: [] };
+  return { ...freshSaveV2(), v: 3, beats: [], kannanXp: 0, specPoints: 0, stall: { parts: {} }, seenMilestones: [], ...migrateMeta({}) };
 }
 /** Pure v2 -> v3. Keeps every v2 field; the Kannan level starts at the old stall level (never lower), and beats mirror progress already made. */
 export function migrateV2toV3(save: SaveV2): SaveV3 {
   const beats: string[] = [];
   if (save.prologueSeen) beats.push('prologue');
   for (const c of CHAPTERS) if ((save.bossAttempts[c.id] ?? 0) >= 3) beats.push(`${c.id}-done`);
-  return { ...save, v: 3, beats, kannanXp: save.stallXp, specPoints: kannanLevel(save.stallXp) - 1, stall: { parts: {} }, seenMilestones: milestonesBelow(save.stallXp) };
+  return { ...save, v: 3, beats, kannanXp: save.stallXp, specPoints: kannanLevel(save.stallXp) - 1, stall: { parts: {} }, seenMilestones: milestonesBelow(save.stallXp), ...migrateMeta({}) };
 }
 /** Storage boundary for v3: v1/v2 saves migrate, v3 recovers its own fields independently. Idempotent. */
 export function parseSaveV3(json: unknown): SaveV3 {
@@ -148,5 +167,5 @@ export function parseSaveV3(json: unknown): SaveV3 {
   // Gates read the Kannan level (never lower than the stall level they were migrated from).
   // A save from before seenMilestones marks the milestones it already passed; a newer one keeps its own list.
   const seenMilestones = Array.isArray(raw.seenMilestones) ? [...new Set(raw.seenMilestones.filter((l): l is number => Number.isSafeInteger(l)))] : milestonesBelow(kannanXp);
-  return { ...base, beats: [...new Set([...base.beats, ...beats])], kannanXp, specPoints, unlocks: { ...base.unlocks, ...unlocksForXp(kannanXp) }, stall: { parts }, seenMilestones };
+  return { ...base, beats: [...new Set([...base.beats, ...beats])], kannanXp, specPoints, unlocks: { ...base.unlocks, ...unlocksForXp(kannanXp) }, stall: { parts }, seenMilestones, ...migrateMeta(raw) };
 }

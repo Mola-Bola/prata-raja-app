@@ -3,6 +3,9 @@ import type { Content, Loadout, PlayerStats } from '../core/types';
 import { runPools } from './recipes';
 import { itemStats } from './gear';
 import { trainingStats } from './training';
+import { mealOf } from './meals';
+import { startDips } from './sockets';
+import { specStats } from './specTree';
 import { kannanLevel, kannanXpOf, perksFor } from './kannan';
 import { SLOTS, type SaveV2 } from './types';
 
@@ -17,6 +20,11 @@ export function computeLoadout(save: SaveV2, content: Content): Loadout {
       stats[key] = (stats[key] ?? 0) + value;
     }
   }
+  // Spec tree and the cooked meal: plain registry stats, added like gear.
+  for (const src of [specStats(save), mealOf(save)?.stats ?? {}]) for (const [stat, value] of Object.entries(src)) {
+    const key = stat as keyof PlayerStats;
+    stats[key] = (stats[key] ?? 0) + value;
+  }
   const level = kannanLevel(kannanXpOf(save));
   const perks = perksFor(level);
   for (const perk of perks) for (const [stat, value] of Object.entries(perk.stats ?? {})) {
@@ -26,5 +34,8 @@ export function computeLoadout(save: SaveV2, content: Content): Loadout {
   const rerolls = (save.unlocks.secondReroll ? 2 : 1) + perks.reduce((n, perk) => n + (perk.rerolls ?? 0), 0);
   const pools = runPools(save, content);
   const signature = save.unlocks.signature && pools.breadPool.includes(save.signatureBread) ? save.signatureBread : undefined;
-  return { stats, kannanLevel: level, dipSimmer: Object.fromEntries(SIMMER_DIPS.map(id => [id, simmerProgress(save.dipXp?.[id]).level])), ...(signature ? { signatureBread: signature } : {}), ...(rerolls > 1 ? { rerolls } : {}), ...pools, ...(content.breads.kosong ? { startBread: signature ?? content.breads.kosong.id } : {}) };
+  const startBread = signature ?? content.breads.kosong?.id;
+  const dips = startBread ? startDips(save, startBread, content) : [];
+  const meal = mealOf(save);
+  return { stats, kannanLevel: level, dipSimmer: Object.fromEntries(SIMMER_DIPS.map(id => [id, simmerProgress(save.dipXp?.[id]).level])), ...(signature ? { signatureBread: signature } : {}), ...(rerolls > 1 ? { rerolls } : {}), ...pools, ...(dips.length ? { startDips: dips } : {}), ...(meal ? { mealId: meal.id } : {}), ...(content.breads.kosong ? { startBread: signature ?? content.breads.kosong.id } : {}) };
 }
