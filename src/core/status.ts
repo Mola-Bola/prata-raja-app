@@ -35,13 +35,13 @@ export function applyCc(e: Enemy, id: 'freeze' | 'stun', time: number): { event:
 }
 
 /** Apply one dip effect to the enemy a bread just hit (mutates e.statuses / e.knock). Returns a 'status' event
- *  only when a status is newly added (not on refresh). Rules:
+ *  only when a status is newly added (not on refresh), or CC immunity turns it away. Rules:
  *  - burn: one 'burn' status; refresh time = max(time, effect.time), dps = max(dps, effect.dps).
  *  - sugar: refresh 'sugarSlow' (amount = slowPct, time = max(time, slowTime)); 'sugar' stacks += 1
  *    (time = stackTime, dps = dpsPerStack, amount 0). When stacks reach crashAt: remove 'sugar',
- *    add/refresh 'stun' (time = max(time, crashStun)) and return a 'status' event for 'stun' (Sugar Crash).
+ *    attempt 'stun' for crashStun and return a 'status' event only when newly applied (Sugar Crash).
  *  - chill: 'chill' stacks += 1 (time = effect.time, amount = slowPerStack). When stacks reach freezeAt:
- *    remove 'chill', add/refresh 'freeze' (time = freezeTime), event 'freeze'.
+ *    remove 'chill', attempt 'freeze' for freezeTime, event 'freeze' only when newly applied.
  *  The stacks always build and are always spent at the threshold; what the crash or the freeze does to the enemy is applyCc's
  *  call (immunity, elites, bosses).
  *  - tender: refresh 'tender' (amount = dmgTakenPct, time); e.knock += knockback × (e.def.knockbackTaken ?? 1) × (e.boss ? 0.1 : 1).
@@ -83,7 +83,8 @@ export function applyHitEffect(effect: HitEffect, e: Enemy): GameEvent[] {
       sugar.dps = effect.dpsPerStack;
       if (sugar.stacks >= effect.crashAt) {
         drop(e, 'sugar');
-        ev(applyCc(e, 'stun', effect.crashStun).event);
+        const { event, added } = applyCc(e, 'stun', effect.crashStun);
+        if (added || event === 'ccImmune') ev(event);
       }
       break;
     }
@@ -99,7 +100,8 @@ export function applyHitEffect(effect: HitEffect, e: Enemy): GameEvent[] {
       chill.amount = effect.slowPerStack;
       if (chill.stacks >= effect.freezeAt) {
         drop(e, 'chill');
-        ev(applyCc(e, 'freeze', effect.freezeTime).event);
+        const { event, added } = applyCc(e, 'freeze', effect.freezeTime);
+        if (added || event === 'ccImmune') ev(event);
       }
       break;
     }

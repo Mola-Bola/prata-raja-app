@@ -85,6 +85,7 @@ export class RunScene extends Phaser.Scene {
   private lastKill = { x: 0, y: 0, on: false };
   private hapticGate = new FeedbackGate();
   private damageGate = new FeedbackGate();
+  private traumaGate = new FeedbackGate();
   private eliteGate = new FeedbackGate();
   private hapticBatch: { kind: HapticKind | null; gap: number } | null = null;
   private healAt = 0;
@@ -303,6 +304,7 @@ export class RunScene extends Phaser.Scene {
     this.hitStop = 0;
     this.hapticGate.reset();
     this.damageGate.reset();
+    this.traumaGate.reset();
     this.eliteGate.reset();
     this.hapticBatch = null;
     this.cameras.main.setScroll(0, 0);
@@ -756,7 +758,7 @@ export class RunScene extends Phaser.Scene {
     // A blast near Kannan is the dangerous kind: shake and a heavy buzz. His own bombs land far up the street.
     const p = w.player;
     if (Math.abs(ev.x - p.x) < ev.radius + 110 && ev.y < ev.radius + 110) {
-      if (this.damageGate.allow(performance.now())) this.addTrauma(0.5);
+      if (this.traumaGate.allow(performance.now())) this.addTrauma(0.5);
       this.buzz('heavy', 150);
     }
   }
@@ -795,7 +797,10 @@ export class RunScene extends Phaser.Scene {
     this.buzz('light', 250);
     if (!this.damageGate.allow(performance.now())) return;
     if (ev.source === 'contact') this.actors.counterHit();
-    this.addTrauma(ev.source === 'contact' ? 0.45 : ev.source === 'boss' ? 0.7 : ev.source === 'explode' ? 0.6 : 0.45);
+    // Blasts share the camera cue, but must not consume the distinct damage indication.
+    if (this.traumaGate.allow(performance.now())) {
+      this.addTrauma(ev.source === 'contact' ? 0.45 : ev.source === 'boss' ? 0.7 : ev.source === 'explode' ? 0.6 : 0.45);
+    }
     const u = this.l.u;
     this.fx.spawn('fx/impact', this.stall.chestX, this.l.counter.top + 8 * u, D.fxTop, 0.22, 60 * u, 140 * u).tint(HAZARD).squash(0.35).fade(1, 0);
     if (!this.reduceMotion) this.stall.flash();
