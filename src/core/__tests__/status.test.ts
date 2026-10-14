@@ -68,10 +68,11 @@ describe('applyHitEffect: sugar', () => {
     expect(get(short, 'sugarSlow')).toMatchObject({ time: 4, amount: 0.3 });
   });
 
-  it('crash on an already-stunned enemy emits but never extends the running stun (no stun-lock)', () => {
+  it('crash on an already-stunned enemy emits nothing and never extends the running stun (no stun-lock)', () => {
     const e = enemy({ statuses: [st('sugar', { stacks: 2, dps: 2, time: 5 }), st('sugarSlow', { time: 4 }), st('stun', { time: 1 })] });
-    expect(applyHitEffect(SUGAR, e)).toEqual([evt('stun')]);
+    expect(applyHitEffect(SUGAR, e)).toEqual([]);
     expect(get(e, 'stun')).toMatchObject({ time: 1 });
+    expect(hasStatus(e, 'sugar')).toBe(false);
   });
 });
 
@@ -86,10 +87,11 @@ describe('applyHitEffect: chill', () => {
     expect(get(e, 'freeze')).toMatchObject({ time: 1.5 });
   });
 
-  it('a freeze on an already-frozen enemy emits but never resets the running freeze (no freeze-lock)', () => {
+  it('a freeze on an already-frozen enemy emits nothing and never resets the running freeze (no freeze-lock)', () => {
     const e = enemy({ statuses: [st('freeze', { time: 0.3 }), st('chill', { stacks: 2, amount: 0.1 })] });
-    expect(applyHitEffect(CHILL, e)).toEqual([evt('freeze')]);
+    expect(applyHitEffect(CHILL, e)).toEqual([]);
     expect(get(e, 'freeze')).toMatchObject({ time: 0.3 });
+    expect(hasStatus(e, 'chill')).toBe(false);
   });
 });
 
@@ -378,4 +380,28 @@ describe('crowd control: bosses, elites and the immunity after it', () => {
     expect(frozen).toBeLessThan(1.7);
     expect(hasStatus(f, 'ccImmune') || hasStatus(f, 'freeze')).toBe(true);
   });
+});
+
+
+describe('CC presentation reflects new applications', () => {
+  for (const flags of [{}, { elite: true }, { boss: true }]) {
+    for (const effect of [CHILL, SUGAR]) it(`does not re-emit ${effect.type} CC while either CC runs (${JSON.stringify(flags)})`, () => {
+      for (const running of ['freeze', 'stun'] as const) {
+        const e = enemy({ ...flags, statuses: [st(running, { time: 0.3 })] });
+        const events = Array.from({ length: 12 }, () => applyHitEffect(effect, e)).flat();
+        expect(events.filter(ev => ev.t === 'status' && (ev.status === 'freeze' || ev.status === 'stun'))).toEqual([]);
+        expect(get(e, running)?.time).toBe(0.3);
+        expect(hasStatus(e, running === 'freeze' ? 'stun' : 'freeze')).toBe(false);
+        expect(hasStatus(e, effect.type === 'chill' ? 'chill' : 'sugar')).toBe(false);
+        tickStatuses(e, 0.3, 0);
+        const immune = Array.from({ length: 3 }, () => applyHitEffect(effect, e)).flat();
+        expect(immune).toContainEqual(evt('ccImmune'));
+        expect(get(e, 'ccImmune')?.time).toBe(CC_IMMUNITY);
+        tickStatuses(e, CC_IMMUNITY, 0);
+        const fresh = Array.from({ length: 3 }, () => applyHitEffect(effect, e)).flat();
+        expect(fresh).toContainEqual(evt(effect.type === 'chill' ? 'freeze' : 'stun'));
+        expect(get(e, effect.type === 'chill' ? 'freeze' : 'stun')?.time).toBe(flags.elite ? 0.75 : 1.5);
+      }
+    });
+  }
 });
