@@ -92,8 +92,8 @@ describe('loadout', () => {
     const before = JSON.stringify(save);
     const loadout = computeLoadout(save, CONTENT);
     expect(loadout.stats?.dmgPct).toBeCloseTo(.12 + itemStats(a).dmgPct!);
-    expect(loadout.stats?.maxHp).toBe(15);
-    expect(computeStats([], CONTENT, loadout).maxHp).toBe(115);
+    expect(loadout.stats?.maxHp).toBe(20); // 15 + the Lv 10 Kannan perk
+    expect(computeStats([], CONTENT, loadout).maxHp).toBe(120);
     expect(JSON.stringify(save)).toBe(before);
   });
   it('ignores locked, unequipped, missing and wrong-slot items', () => {

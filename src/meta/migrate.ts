@@ -7,6 +7,7 @@ import { AFFIX_POOLS, GEAR_BASES, RARITY_INFO } from './gear';
 import { chooseSignature } from './signature';
 import { CONTENT } from '../content';
 import { unlocksForXp } from './stall';
+import { kannanLevel } from './kannan';
 import { MATERIALS, RARITIES, SLOTS, TRAINING_IDS, UNLOCK_FLAGS, type GearBaseId, type GearItem, type Rarity, type SaveV2, type SaveV3 } from './types';
 
 const obj = (value: unknown): Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -100,14 +101,14 @@ export function parseSaveV2(json: unknown): SaveV2 {
 }
 
 export function freshSaveV3(): SaveV3 {
-  return { ...freshSaveV2(), v: 3, beats: [], kannanXp: 0, stall: { parts: {} } };
+  return { ...freshSaveV2(), v: 3, beats: [], kannanXp: 0, specPoints: 0, stall: { parts: {} } };
 }
 /** Pure v2 -> v3. Keeps every v2 field; the Kannan level starts at the old stall level (never lower), and beats mirror progress already made. */
 export function migrateV2toV3(save: SaveV2): SaveV3 {
   const beats: string[] = [];
   if (save.prologueSeen) beats.push('prologue');
   for (const c of CHAPTERS) if ((save.bossAttempts[c.id] ?? 0) >= 3) beats.push(`${c.id}-done`);
-  return { ...save, v: 3, beats, kannanXp: save.stallXp, stall: { parts: {} } };
+  return { ...save, v: 3, beats, kannanXp: save.stallXp, specPoints: kannanLevel(save.stallXp) - 1, stall: { parts: {} } };
 }
 /** Storage boundary for v3: v1/v2 saves migrate, v3 recovers its own fields independently. Idempotent. */
 export function parseSaveV3(json: unknown): SaveV3 {
@@ -119,5 +120,8 @@ export function parseSaveV3(json: unknown): SaveV3 {
   const parts: Record<string, number> = {};
   for (const [k, v] of Object.entries(obj(obj(raw.stall).parts))) if (Number.isSafeInteger(v) && (v as number) >= 1) parts[k] = v as number;
   const beats = Array.isArray(raw.beats) ? raw.beats.filter((b): b is string => typeof b === 'string') : [];
-  return { ...base, beats: [...new Set([...base.beats, ...beats])], kannanXp: Math.max(num(raw.kannanXp), base.stallXp), stall: { parts } };
+  const kannanXp = Math.max(num(raw.kannanXp), base.stallXp);
+  const specPoints = typeof raw.specPoints === 'number' ? integer(raw.specPoints) : kannanLevel(kannanXp) - 1;
+  // Gates read the Kannan level (never lower than the stall level they were migrated from).
+  return { ...base, beats: [...new Set([...base.beats, ...beats])], kannanXp, specPoints, unlocks: { ...base.unlocks, ...unlocksForXp(kannanXp) }, stall: { parts } };
 }

@@ -3,6 +3,7 @@ import type { Content, Loadout, PlayerStats } from '../core/types';
 import { runPools } from './recipes';
 import { itemStats } from './gear';
 import { trainingStats } from './training';
+import { kannanLevel, kannanXpOf, perksFor } from './kannan';
 import { SLOTS, type SaveV2 } from './types';
 
 /** Returns additive bonuses, not BASE_STATS (the simulation adds those). */
@@ -16,7 +17,13 @@ export function computeLoadout(save: SaveV2, content: Content): Loadout {
       stats[key] = (stats[key] ?? 0) + value;
     }
   }
+  const perks = perksFor(kannanLevel(kannanXpOf(save)));
+  for (const perk of perks) for (const [stat, value] of Object.entries(perk.stats ?? {})) {
+    const key = stat as keyof PlayerStats;
+    stats[key] = (stats[key] ?? 0) + value;
+  }
+  const rerolls = (save.unlocks.secondReroll ? 2 : 1) + perks.reduce((n, perk) => n + (perk.rerolls ?? 0), 0);
   const pools = runPools(save, content);
   const signature = save.unlocks.signature && pools.breadPool.includes(save.signatureBread) ? save.signatureBread : undefined;
-  return { stats, dipSimmer: Object.fromEntries(SIMMER_DIPS.map(id => [id, simmerProgress(save.dipXp?.[id]).level])), ...(signature ? { signatureBread: signature } : {}), ...(save.unlocks.secondReroll ? { rerolls: 2 } : {}), ...pools, ...(content.breads.kosong ? { startBread: signature ?? content.breads.kosong.id } : {}) };
+  return { stats, dipSimmer: Object.fromEntries(SIMMER_DIPS.map(id => [id, simmerProgress(save.dipXp?.[id]).level])), ...(signature ? { signatureBread: signature } : {}), ...(rerolls > 1 ? { rerolls } : {}), ...pools, ...(content.breads.kosong ? { startBread: signature ?? content.breads.kosong.id } : {}) };
 }

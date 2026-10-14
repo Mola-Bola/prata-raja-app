@@ -55,5 +55,7 @@ export type SaveV3 = Omit<SaveV2, 'v'> & {
   /** Story beats done (e.g. 'prologue', 'kopitiam-street-done'). */
   beats: string[];
   kannanXp: number;
+  /** Unspent spec points: 1 per Kannan level above 1 (the spec tree that spends them comes later). */
+  specPoints: number;
   stall: { parts: Record<string, number> };
 };

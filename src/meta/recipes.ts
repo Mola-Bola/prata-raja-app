@@ -1,7 +1,7 @@
 import type { BreadId, Content, DipId } from '../core/types';
 import { BREADS } from '../content/breads';
 import { DIPS } from '../content/dips';
-import { stallLevel } from './stall';
+import { kannanLevel, kannanXpOf } from './kannan';
 import type { Material, SaveV2 } from './types';
 
 type Recipe = { id: string; unlocks: { kind: 'bread'; id: BreadId } | { kind: 'dip'; id: DipId }; costs: Partial<Record<Material, number>> };
@@ -19,7 +19,7 @@ export const RECIPES: readonly Recipe[] = [
 ];
 function foodKnown(save: SaveV2, kind: 'bread' | 'dip', id: BreadId | DipId, unlock: string): boolean {
   const owned = kind === 'bread' ? save.unlockedBreads : save.unlockedDips;
-  return owned.some(value => value === id) || unlock === 'starter' || (unlock === 'starter-s2' && stallLevel(save.stallXp) >= 2);
+  return owned.some(value => value === id) || unlock === 'starter' || (unlock === 'starter-s2' && kannanLevel(kannanXpOf(save)) >= 2);
 }
 export function recipeKnown(save: SaveV2, recipe: Recipe): boolean {
   const target = recipe.unlocks;

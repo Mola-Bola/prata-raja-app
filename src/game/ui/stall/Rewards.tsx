@@ -4,6 +4,7 @@ import { simmerProgress } from '@/core/dipProgression';
 import type { applyRunResult } from '@/meta/runRewards';
 import type { SaveV2 } from '@/meta/types';
 
+import { kannanLevel, kannanXpOf } from '@/meta/kannan';
 import { chestArt, newUnlocks, titleCase } from './helpers';
 import { StallProgress, type Art } from './StallProgress';
 
@@ -17,7 +18,12 @@ export function Rewards({ before, payout, art }: { before: SaveV2; payout: Payou
   const materials = Object.entries(rewards.materials).filter(([, count]) => count > 0);
   return (
     <div className="sh-rewards" data-testid="results-rewards">
-      <StallProgress xp={payout.save.stallXp} from={before.stallXp} art={art} />
+      <StallProgress xp={kannanXpOf(payout.save)} from={kannanXpOf(before)} art={art} />
+      {kannanLevel(kannanXpOf(payout.save)) > kannanLevel(kannanXpOf(before)) && (
+        <p className="sh-unlocks" role="status" data-testid="results-levelup">
+          <span className="gu-newbest">Level up! Kannan Lv {kannanLevel(kannanXpOf(payout.save))}</span>
+        </p>
+      )}
       {unlocks.length > 0 && (
         <p className="sh-unlocks" role="status" data-testid="results-unlocks">
           {unlocks.map((name) => (

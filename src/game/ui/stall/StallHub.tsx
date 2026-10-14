@@ -7,6 +7,7 @@ import type { CSSProperties, ReactNode } from 'react';
 
 import { brandWords } from '@/brand';
 import { CONTENT } from '@/content';
+import { kannanLevel, kannanXpOf, nextPerk, specPointsOf } from '@/meta/kannan';
 import { chapterUnlocked } from '@/meta/chapters';
 import type { SaveV2 } from '@/meta/types';
 
@@ -27,6 +28,7 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
     const timer = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(timer);
   }, []);
+  const perk = nextPerk(kannanLevel(kannanXpOf(save)));
   const badges = readyBadges(save, now);
   const open = (id: Panel | 'settings' | 'chapters' | 'signature' | 'dips') => {
     setNow(new Date());
@@ -73,7 +75,11 @@ export function StallHub({ save, commit, onStart, onStory, onKitchen, art }: { s
         <button type="button" className="gu-btn sh-collection-entry" data-testid="stall-dips" onClick={() => open('dips')}>Dip collection</button>
       </div>
       <header className="sh-top" inert={!!panel}>
-        <StallProgress xp={save.stallXp} art={art} />
+        <StallProgress xp={kannanXpOf(save)} art={art} />
+        <span className="sh-spec" data-testid="stall-spec">
+          Spec points: {specPointsOf(save)} (tree coming soon)
+          {perk && <><br />Next perk at Lv {perk.level}: {perk.label}</>}
+        </span>
         <span className="sh-coins" data-testid="stall-coins">
           <img src={art('ui/coins')} alt="Coins" />
           {save.gold}

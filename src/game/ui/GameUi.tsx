@@ -573,8 +573,8 @@ function Results({ ended, onAgain, onStall }: { ended: Ended; onAgain: () => voi
                   <dd data-testid="results-coins">+{ended.payout.rewards.gold}</dd>
                 </div>
                 <div>
-                  <dt>XP</dt>
-                  <dd data-testid="results-xp">+{ended.payout.rewards.stallXp}</dd>
+                  <dt>Kannan XP</dt>
+                  <dd data-testid="results-xp">+{ended.payout.rewards.kannanXp || ended.payout.rewards.stallXp}</dd>
                 </div>
               </>
             )}

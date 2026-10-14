@@ -4,7 +4,7 @@ import type { Rng } from '../core/rng';
 import type { RunResult } from '../core/types';
 import { rollChest } from './chests';
 import { runXp, unlocksForXp } from './stall';
-import { runKannanXp } from './kannan';
+import { kannanLevel, kannanXpOf, runKannanXp, specPointsOf } from './kannan';
 import { MATERIALS, type GearItem, type Material, type SaveV2, type SaveV3 } from './types';
 
 /** A run pays only once it got this far: ending a run the moment it starts must not farm coins, XP and chests. */
@@ -44,8 +44,8 @@ export function applyRunResult<S extends SaveV2 | SaveV3>(save: S, result: RunRe
   const tips = Number.isFinite(result.gold) ? Math.max(0, Math.floor(result.gold)) : 0;
   const gold = 20 + 12 * waves + 60 * result.bossKills + tips;
   const stallXp = runXp(waves, result.bossKills);
-  const unlocks = { ...save.unlocks, ...unlocksForXp(save.stallXp + stallXp) };
   const kannanXp = runKannanXp(waves, result.bossKills, result.kills);
+  const unlocks = { ...save.unlocks, ...unlocksForXp(kannanXpOf(save) + ('kannanXp' in save ? kannanXp : stallXp)) };
   const chest = rollChest(rng, save.chestPity, 'common', unlocks);
   const item = { ...chest.item, uid: `run-${save.runs + 1}-chest-${chest.pity.opened}-${chest.item.uid}` };
   const materials: Partial<Record<Material, number>> = {};
@@ -60,7 +60,7 @@ export function applyRunResult<S extends SaveV2 | SaveV3>(save: S, result: RunRe
   for (const type of MATERIALS) inventoryMaterials[type] += materials[type] ?? 0;
   const dipProgress = grantDipUse(save as SaveV2, result, CONTENT);
   const next = {
-    ...save, ...records, ...('kannanXp' in save ? { kannanXp: (save.kannanXp as number) + kannanXp } : {}), dipXp: dipProgress.dipXp, gold: save.gold + gold, stallXp: save.stallXp + stallXp,
+    ...save, ...records, ...('kannanXp' in save ? { kannanXp: (save.kannanXp as number) + kannanXp, specPoints: specPointsOf(save) + kannanLevel((save.kannanXp as number) + kannanXp) - kannanLevel(save.kannanXp as number) } : {}), dipXp: dipProgress.dipXp, gold: save.gold + gold, stallXp: save.stallXp + stallXp,
     inventory: [...save.inventory, item], materials: inventoryMaterials,
     chestPity: chest.pity, unlocks,
     pendingChests: [...save.pendingChests, item.uid],

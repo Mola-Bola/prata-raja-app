@@ -7,7 +7,8 @@ import type { Rng } from '@/core/rng';
 import type { PlayerStats } from '@/core/types';
 import { merge3 } from '@/meta/gear';
 import { preview } from '@/meta/idle';
-import { LEVEL_THRESHOLDS, nextUnlock, stallLevel, UNLOCK_TABLE } from '@/meta/stall';
+import { kannanBar } from '@/meta/kannan';
+import { nextUnlock, UNLOCK_TABLE } from '@/meta/stall';
 import { beatLabel } from '@/meta/story';
 import { claim } from '@/meta/streak';
 import { TRAINING_COSTS } from '@/meta/training';
@@ -46,15 +47,13 @@ export const titleCase = (name: string) => name.replace(/-/g, ' ').replace(/^./,
 /** What opens a locked flag, in story terms ("Beat the Cockroach King"). */
 export const unlockBeat = (flag: UnlockFlag) => beatLabel(flag);
 
-/** Where the stall level bar stands: level, how full the bar is (0..1) and the "Next: <unlock> in N XP" line. */
+/** Where Kannan's level bar stands: level, bar fraction (0..1), the "Lv N · a/b XP" line and the next story unlock. */
 export function progress(xp: number) {
-  const level = stallLevel(xp);
-  const floor = LEVEL_THRESHOLDS[level - 1];
-  const ceiling = LEVEL_THRESHOLDS[level];
+  const bar = kannanBar(xp);
   const next = nextUnlock(xp);
   return {
-    level, fraction: ceiling === undefined ? 1 : Math.max(0, Math.min(1, (xp - floor) / (ceiling - floor))),
-    label: next ? `Next: ${UNLOCK_NAMES[next.flags[0]]} in ${next.xpRemaining} XP` : 'Stall growing strong',
+    ...bar, xpLabel: `Kannan Lv ${bar.level} · ${bar.into}/${bar.span} XP`,
+    label: next ? `Next: ${UNLOCK_NAMES[next.flags[0]]} · ${unlockBeat(next.flags[0])}` : 'Stall growing strong',
   };
 }
 

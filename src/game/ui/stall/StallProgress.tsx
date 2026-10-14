@@ -4,7 +4,7 @@ import { progress } from './helpers';
 
 export type Art = (key: string) => string;
 
-/** The stall level badge and bar with its "Next: <unlock> in N XP" line. Give `from` (the XP before a payout) and the bar
+/** Kannan's level badge and bar with its "Next: <unlock> in N XP" line. Give `from` (the XP before a payout) and the bar
  *  fills from there to `xp`; when the payout crossed a level it fills to the top, then starts the new level from empty. */
 export function StallProgress({ xp, from, art }: { xp: number; from?: number; art: Art }) {
   const end = progress(xp);
@@ -28,8 +28,9 @@ export function StallProgress({ xp, from, art }: { xp: number; from?: number; ar
         <b data-testid="stall-level">{shown.level}</b>
       </div>
       <div>
+        <span data-testid="kannan-xp">{end.xpLabel}</span>
         <span data-testid="stall-next">{end.label}</span>
-        <div className="gu-bar" role="progressbar" aria-label="Stall level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(end.fraction * 100)}>
+        <div className="gu-bar" role="progressbar" aria-label="Kannan level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(end.fraction * 100)}>
           <i data-snap={shown.snap || undefined} style={{ width: `${shown.fraction * 100}%` }} />
         </div>
       </div>
