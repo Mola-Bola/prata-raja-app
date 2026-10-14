@@ -426,6 +426,8 @@ export type Player = {
   /** Seconds of throw-animation left (renderer pose). */
   throwAnim: number;
   hurtAnim: number;
+  /** Free mode: seconds of hit i-frames left (set when a pest, shot or blast lands). Absent = 0. */
+  iT?: number;
 };
 
 export type Card = {

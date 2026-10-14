@@ -3,7 +3,8 @@ import { isDisabled, speedMul, tickStatuses } from '../status';
 import { remainingKnockback } from '../knockback';
 import { FIELD, type Enemy } from '../types';
 import { bossPhase, updateBoss } from './boss';
-import { alive, cdGet, clamp, dist, ELITE_CONTACT, emit, enemyShot, enemySpeed, hurtPlayer, hyp, MAX_ENEMY_Y, type Ctx } from './ctx';
+import { alive, cdGet, clamp, dist, ELITE_CONTACT, emit, enemyShot, enemySpeed, hurtPlayer, hyp, iFramesFor, MAX_ENEMY_Y, type Ctx } from './ctx';
+import { aimAt, CROWD, separate } from './crowd';
 import { DOT_BURN, DOT_SUGAR, dotDamage, flushDot, killEnemy } from './hit';
 import { FREE, isFree } from './free';
 import { spawnEnemy } from './spawn';
@@ -11,6 +12,8 @@ import { spawnEnemy } from './spawn';
 /** Slack for "at the counter" (the walk clamps enemies to reachY; a shove moves them well off it). */
 const AT_COUNTER = 0.5;
 const CONTACT_EVERY = 0.5;
+/** Free mode: how far (u) a pest that just hit Kannan bounces back. */
+const CONTACT_BUMP = 14;
 const PI2 = Math.PI * 2;
 
 /** Sideways drift while walking: a small wobble, a quick jitter for swarms, the zigzag for flyers (centred on bx). */
@@ -30,44 +33,73 @@ function lateralX(e: Enemy): number {
 /** Distance between centres at which a pest touches Kannan. */
 const touchR = (e: Enemy): number => e.def.radius * FREE.contactScale + FIELD.kannanRadius;
 
-/** Move toward (or, with a negative step, away from) Kannan by `step`, never past `stopAt` from him, plus the wobble as a sideways shuffle. */
+const AIM = { x: 0, y: 0 };
+
+/** Move toward Kannan by `step`, never past `stopAt` from him, plus the wobble as a sideways shuffle. Far away a pest heads for its
+ *  own spot on the ring round him (crowd.ts aimAt), and a crowded one slips sideways (`_side`), so a pack spreads out. */
 function chase(c: Ctx, e: Enemy, step: number, stopAt: number, mtOld: number): void {
   const { p } = c;
-  const dx = p.x - e.x;
-  const dy = p.y - e.y;
+  aimAt(p.x, p.y, e, stopAt + CROWD.slotPad, AIM);
+  const dx = AIM.x - e.x;
+  const dy = AIM.y - e.y;
   const d = hyp(dx, dy) || 1;
-  const go = Math.min(step, Math.max(0, d - stopAt));
+  const dk = hyp(p.x - e.x, p.y - e.y);
+  const go = Math.min(step, Math.max(0, dk - stopAt));
   const wob = e.def.speed > 0 ? wobble(e, cdGet(e, '_mt')) - wobble(e, mtOld) : 0;
-  e.x = clamp(e.x + (dx / d) * go - (dy / d) * wob, -FIELD.halfWidth, FIELD.halfWidth);
-  e.y = clamp(e.y + (dy / d) * go + (dx / d) * wob, -40, MAX_ENEMY_Y);
+  let side = 0;
+  const sd = e.cooldowns._side;
+  if (sd !== undefined && sd > -CROWD.sideRest) {
+    e.cooldowns._side = sd - c.dt;
+    if (sd > 0) side = (cdGet(e, '_th') < 0 ? -1 : 1) * go * 0.8;
+  }
+  const fw = side !== 0 ? go * 0.6 : go;
+  e.x = clamp(e.x + (dx / d) * fw - (dy / d) * (wob + side), -FIELD.halfWidth, FIELD.halfWidth);
+  e.y = clamp(e.y + (dy / d) * fw + (dx / d) * (wob + side), -40, MAX_ENEMY_Y);
 }
 
 function walkFree(c: Ctx, e: Enemy): void {
   const { p } = c;
   const reach = touchR(e);
-  if (e.state === 'attack') {
-    if (hyp(p.x - e.x, p.y - e.y) <= reach + 4) {
-      contact(c, e);
-      return;
-    }
-    e.state = 'walk';
+  if (hyp(p.x - e.x, p.y - e.y) <= reach + 6) {
+    e.state = 'attack';
+    contact(c, e);
+    return;
   }
+  e.state = 'walk';
   const slow = speedMul(e);
   const mt = cdGet(e, '_mt');
   e.cooldowns._mt = mt + c.dt * slow;
   if (e.def.dash) e.t += c.dt;
-  const sp = enemySpeed(e, slow) * FREE.pestSpeed * (e.def.kind === 'swarm' ? 1 + 0.1 * Math.sin(mt * 3 + cdGet(e, 'ph')) : 1);
+  const sj = e.cooldowns._sj ?? 1;
+  const sp = enemySpeed(e, slow) * FREE.pestSpeed * sj * (e.def.kind === 'swarm' ? 1 + 0.1 * Math.sin(mt * 3 + cdGet(e, 'ph')) : 1);
   chase(c, e, sp * c.dt, reach, mt);
   if (hyp(p.x - e.x, p.y - e.y) <= reach + 1) e.state = 'attack';
 }
 
-/** Contact damage while at the counter. Aggregated into one 'playerHit' per CONTACT_EVERY (flushContact). */
+/** Counter mode: contact damage while at the counter, aggregated into one 'playerHit' per CONTACT_EVERY (flushContact).
+ *  Free mode: one discrete hit per pest per CONTACT_EVERY (damage = its dps x that), blocked by Kannan's dash and hit i-frames; a hit sets
+ *  the i-frames (ctx.iFramesFor) and bumps the pest back a little, so a swarm lands one hit per i-frame window, not all at once. */
 function contact(c: Ctx, e: Enemy): void {
+  if (isFree(c)) return contactFree(c, e);
   const dmg = e.def.contactDps * (e.elite ? ELITE_CONTACT : 1) * (1 + c.p.stats.dmgTakenPct) * c.dt;
   if (dmg <= 0 || c.p.dashT > 0) return;
   if (!c.w.god) c.p.hp -= dmg;
   c.p.hurtAnim = 0.2;
   c.w.contactAcc = (c.w.contactAcc ?? 0) + dmg;
+}
+
+function contactFree(c: Ctx, e: Enemy): void {
+  const { p } = c;
+  const left = cdGet(e, '_ch') - c.dt;
+  e.cooldowns._ch = Math.max(0, left);
+  if (left > 0 || e.def.contactDps <= 0 || p.dashT > 0 || (p.iT ?? 0) > 0) return;
+  const dmg = e.def.contactDps * (e.elite ? ELITE_CONTACT : 1) * (1 + p.stats.dmgTakenPct) * CONTACT_EVERY;
+  e.cooldowns._ch = CONTACT_EVERY;
+  if (!c.w.god) p.hp -= dmg;
+  p.hurtAnim = 0.2;
+  p.iT = iFramesFor(dmg, p.stats.maxHp);
+  if (e.def.kind !== 'tank') e.knock += CONTACT_BUMP;
+  emit(c, { t: 'playerHit', dmg, source: 'contact' });
 }
 
 export function flushContact(c: Ctx, force = false): void {
@@ -297,6 +329,7 @@ export function updateEnemies(c: Ctx): void {
         walk(c, e);
     }
   }
+  if (isFree(c)) separate(c);
   flushContact(c);
 }
 

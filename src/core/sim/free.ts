@@ -40,6 +40,7 @@ export function moveFree(c: Ctx, input: { jx?: number; jy?: number; dodge?: bool
   if (m > 1) { jx /= m; jy /= m; m = 1; }
   const press = !!input.dodge;
   p.dashCd = Math.max(0, p.dashCd - dt);
+  if (p.iT) p.iT = Math.max(0, p.iT - dt);
   if (press && !p.dodgeHeld && p.dashT <= 0 && p.dashCd <= 0) {
     const live = m > 0.1;
     p.dashDx = live ? jx / m : p.faceX;
