@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   NO_SFX_HISTORY,
   SFX_PARAMS,
+  SLAP_PROFILES,
   admitSfx,
   playSfx,
   setSfxEnabled,
+  slapPlan,
   unlockAudio,
   type SfxName,
 } from '../sfx';
@@ -15,14 +17,55 @@ const ALL: SfxName[] = [
 ];
 
 describe('SFX_PARAMS', () => {
-  it('has a finite ZzFX parameter array for every SfxName', () => {
-    expect(Object.keys(SFX_PARAMS).sort()).toEqual([...ALL].sort());
-    for (const name of ALL) {
-      const p = SFX_PARAMS[name];
+  it('has a finite ZzFX parameter array for every non-slap SfxName', () => {
+    const zzfx = ALL.filter((n) => n !== 'throw' && n !== 'hit');
+    expect(Object.keys(SFX_PARAMS).sort()).toEqual([...zzfx].sort());
+    for (const name of zzfx) {
+      const p = SFX_PARAMS[name as keyof typeof SFX_PARAMS];
       expect(p.length, name).toBeGreaterThan(0);
       expect(p.length, name).toBeLessThanOrEqual(21);
       expect(p.every(Number.isFinite), name).toBe(true);
     }
+  });
+});
+
+describe('dough slap voices', () => {
+  const mid = () => 0.5; // pitch factor exactly 1
+
+  it('gives every named bread a profile inside the brief ranges', () => {
+    for (const p of Object.values(SLAP_PROFILES)) {
+      expect(p!.crackHz).toBeGreaterThanOrEqual(800);
+      expect(p!.crackHz).toBeLessThanOrEqual(2500);
+      expect(p!.crackMs).toBeGreaterThanOrEqual(40);
+      expect(p!.crackMs).toBeLessThanOrEqual(90);
+      expect(p!.thumpHz).toBeGreaterThanOrEqual(90);
+      expect(p!.thumpHz).toBeLessThanOrEqual(170);
+      expect(p!.sizzle).toBeLessThanOrEqual(0.2); // very quiet tail
+    }
+  });
+
+  it('differentiates the named breads the way the brief asks', () => {
+    const tissue = slapPlan('tissue', mid);
+    const murtabak = slapPlan('murtabak', mid);
+    expect(tissue.crackHz).toBeGreaterThan(murtabak.crackHz); // crisp snap is higher
+    expect(tissue.crackMs).toBeLessThan(murtabak.crackMs); // and shorter
+    expect(murtabak.thumpHz).toBeLessThan(tissue.thumpHz); // wet thud is lower
+    expect(murtabak.thumpMs).toBeGreaterThan(tissue.thumpMs);
+    expect(murtabak.thumpGain).toBeGreaterThan(tissue.thumpGain);
+    expect(slapPlan('thosai', mid).sizzle).toBeGreaterThan(0); // crackle has a tawa tail
+  });
+
+  it('falls back to the kosong voice for unlisted breads and no bread', () => {
+    expect(slapPlan(undefined, mid)).toEqual(slapPlan('kosong', mid));
+    expect(slapPlan('naan', mid)).toEqual(slapPlan('kosong', mid));
+  });
+
+  it('varies the pitch by at most 6 percent', () => {
+    for (const r of [0, 0.25, 0.5, 0.75, 0.999]) {
+      const { pitch } = slapPlan('kosong', () => r);
+      expect(Math.abs(pitch - 1)).toBeLessThanOrEqual(0.06 + 1e-9);
+    }
+    expect(slapPlan('kosong', () => 0).pitch).toBeCloseTo(0.94);
   });
 });
 
@@ -31,6 +74,7 @@ describe('playSfx without audio (node)', () => {
     expect(() => {
       unlockAudio();
       for (const name of ALL) playSfx(name);
+      for (const bread of ['tissue', 'murtabak', 'naan'] as const) playSfx('hit', bread);
       setSfxEnabled(false);
       playSfx('hit');
       setSfxEnabled(true);
@@ -66,5 +110,12 @@ describe('admitSfx throttle', () => {
     expect(admitSfx(h, 'hit', 600)).toBeNull();
     expect(admitSfx(h, 'throw', 999)).toBeNull();
     expect(admitSfx(h, 'hit', 1000)).not.toBeNull(); // the t = 0 play has aged out
+  });
+
+  it('gaps slaps 25 ms per bread, so different breads can land together', () => {
+    const h = admitSfx(NO_SFX_HISTORY, 'hit', 1000, 'tissue')!;
+    expect(admitSfx(h, 'hit', 1024, 'tissue')).toBeNull();
+    expect(admitSfx(h, 'hit', 1025, 'tissue')).not.toBeNull();
+    expect(admitSfx(h, 'hit', 1010, 'murtabak')).not.toBeNull();
   });
 });

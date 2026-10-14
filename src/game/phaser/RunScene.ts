@@ -8,7 +8,7 @@ import { CONTENT } from '@/content';
 import { autoInput, autoPick } from '@/core/autoplay';
 import { SAVE_KEY } from '@/core/save';
 import { chooseCard, createRun, drainEvents, reroll, step } from '@/core/sim';
-import { FIELD, type GameEvent, type Loadout, type RunInput, type RunResult, type World } from '@/core/types';
+import { FIELD, type BreadId, type GameEvent, type Loadout, type RunInput, type RunResult, type World } from '@/core/types';
 import { computeLoadout } from '@/meta/loadout';
 import { parseSaveV2 } from '@/meta/migrate';
 
@@ -484,8 +484,8 @@ export class RunScene extends Phaser.Scene {
 
   // ── Events to effects ──────────────────────────────────────────────────────────────────────────────────────
 
-  private sfx(name: SfxName): void {
-    playSfx(name);
+  private sfx(name: SfxName, bread?: BreadId): void {
+    playSfx(name, bread);
   }
 
   private buzz(kind: HapticKind, gap = 0): void {
@@ -522,7 +522,7 @@ export class RunScene extends Phaser.Scene {
       switch (ev.t) {
         case 'throw': {
           this.stall.release();
-          this.sfx('throw');
+          this.sfx('throw', ev.breadId);
           // A puff of flour where the bread leaves his hand.
           const u = this.l.u;
           this.fx.spawn('fx/flour-puff', this.stall.handX, this.stall.handY, D.fxTop - 1, 0.3, 14 * u, 40 * u).fade(0.6, 0, 0.2);
@@ -683,7 +683,7 @@ export class RunScene extends Phaser.Scene {
     this.fx.number(ev.uid, sx, v ? v.topY : P.sy - 36 * u * P.s, ev.dmg, ev.crit ? 1 : ev.color ? 2 : 0, P.s);
     if (ev.crit) this.critUid = ev.uid;
     if (v && (v.elite || v.boss) && this.eliteGate.allow(performance.now())) this.addTrauma(v.boss ? 0.1 : 0.2);
-    this.sfx(ev.crit ? 'crit' : 'hit');
+    this.sfx(ev.crit ? 'crit' : 'hit', ev.breadId);
   }
 
   private onDot(ev: Extract<GameEvent, { t: 'dot' }>): void {
