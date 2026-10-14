@@ -1,3 +1,12 @@
+# Prata Raja knowledge base
+
+- Start at `docs/wiki/index.md` (what exists, status, files). It is a map, not a rulebook: `DIRECTION.md` wins on conflict.
+- Before designing a system, check `docs/research/INDEX.md` and cite what you used (and what you skipped on purpose).
+- When you change a component, update its wiki page (status, files, last change) and add a line to `docs/wiki/log.md`.
+- New research doc: add a row to `docs/research/INDEX.md`. Superseded steering goes to `docs/archive/` with a reason in its README (never delete).
+- Stale-code candidates: `docs/wiki/stale-code.md` (knip; verify before deleting).
+- Keys for external services: `~/.cell/KEYS.md` (never print values).
+
 This is an Expo/React Native mobile application (Expo SDK 57, Expo Router, Supabase). Prioritize mobile-first patterns, performance, and cross-platform compatibility. It was started from the Cell starter kit (`akit new-app`), so it shares its foundation with Oleh and Hatch.
 
 ## How we work now (Direction 2.0, 14 Oct)
@@ -58,7 +67,7 @@ Oleh's round-5 "Sunday market" look is the baseline for every app: Fredoka headi
 
 ## Working with Cell
 
-Cell (`~/cell`) is the engine: `akit` (shared feedback CLI and ship gate), the runner (works this app's feedback inbox headlessly, 30 min after the last note), skills and playbooks. Studio is the single front door for notes. Skills (`~/.claude/skills`): `app-round` (a build round), `app-inbox` (work the notes now), `app-ship`, `codex-review`, `cell-note` (file a loose owner note), `round-handoff`.
+Cell (`~/cell`) is the engine: `akit` (shared feedback CLI and ship gate), the runner (works this app's feedback inbox headlessly, 30 min after the last note), skills and playbooks. Studio is the single front door for notes. Skills (`~/.claude/skills`): `app-round` (a build round), `app-inbox` (work the notes now), `app-ship`, `cell-note` (file a loose owner note), `round-handoff`.
 
 - Read `DIRECTION.md` first in every round or inbox run: it is the owner's standing steering and overrides defaults here.
 - Notes come in through the in-app "Tell Kannan" tab (table `feedback`). `node scripts/feedback.mjs digest` shows what is open; `plan`, `reply`, `status` move a note on (it wraps `akit feedback`).

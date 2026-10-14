@@ -10,7 +10,7 @@ npx expo start                 # run it
 ```
 
 - `src/brand.ts` the words file: the app name, tagline and every feature word people see · `src/app/` screens (Expo Router) · `src/ui/` the design system (`src/ui/brand.ts` is the look) · `src/data/` Supabase hooks · `src/features/` feedback (its button says `words.tell`), links, settings · `supabase/` migrations, seed, tests, the `updates` function.
-- Where each kind of change lives: `docs/CONTRACTS.md`. How the feedback loop works: `docs/FEEDBACK.md`. Hosting extensions: `docs/EXTENSIONS.md`. Shipping: `docs/UPDATES.md`. Steering: `DIRECTION.md`. Agent rules: `AGENTS.md`.
+- Where each kind of change lives: `docs/CONTRACTS.md`. How the feedback loop works: `docs/archive/FEEDBACK.md` (archived). Hosting extensions: `docs/EXTENSIONS.md`. Shipping: `docs/UPDATES.md`. Steering: `DIRECTION.md`. Agent rules: `AGENTS.md`.
 
 ## Renaming the app
 
