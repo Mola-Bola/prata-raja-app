@@ -1,15 +1,14 @@
+import type { UniqueHook } from '../core/types';
 import type { GearBaseId, GearItem, SaveV2 } from './types';
 
-/** Rule hooks a unique can grant. Data only; the sim queries them through activeHooks(). */
-export type UniqueHook =
-  | { kind: 'critSplash'; /** share of the crit's damage splashed to nearby foes */ pct: number; radius: number }
-  | { kind: 'firstHitFreeze'; /** first hit on each foe per stop freezes it */ seconds: number };
+export type { UniqueHook };
+
 export type UniqueDef = { id: string; name: string; baseId: GearBaseId; blurb: string; hooks: readonly UniqueHook[] };
 
 export const UNIQUES: Record<string, UniqueDef> = {
   'ah-seng-golden-tawa-towel': { id: 'ah-seng-golden-tawa-towel', name: "Ah Seng's Golden Tawa Towel", baseId: 'lucky-red-towel', blurb: 'Crits splash.', hooks: [{ kind: 'critSplash', pct: .5, radius: 90 }] },
   'auntie-steel-thali': { id: 'auntie-steel-thali', name: "Auntie's Steel Thali", baseId: 'chefs-gloves', blurb: 'First hit each stop freezes.', hooks: [{ kind: 'firstHitFreeze', seconds: 1.5 }] },
-  'uncle-kopi-clogs': { id: 'uncle-kopi-clogs', name: "Uncle's Kopi Clogs", baseId: 'kitchen-clogs', blurb: 'Crits splash wider, softer.', hooks: [{ kind: 'critSplash', pct: .3, radius: 140 }] },
+  'uncle-kopi-clogs': { id: 'uncle-kopi-clogs', name: "Uncle's Kopi Clogs", baseId: 'kitchen-clogs', blurb: 'Crits splash wider, softer (the clogs).', hooks: [{ kind: 'critSplash', pct: .3, radius: 140 }] },
 };
 
 /** Hooks active for a set of worn items. */
@@ -27,4 +26,3 @@ export function critSplashDamage(hooks: readonly UniqueHook[], critDamage: numbe
 export function firstHitFreeze(hooks: readonly UniqueHook[], alreadyHitThisStop: boolean): number {
   return alreadyHitThisStop ? 0 : Math.max(0, ...hooks.flatMap(h => h.kind === 'firstHitFreeze' ? [h.seconds] : []));
 }
-// TODO(lead): wire into src/core/sim.ts: pass activeHooks(save) via the loadout, call critSplashDamage on crit hits and firstHitFreeze on first contact per stop.

@@ -5,6 +5,7 @@ import { creditDipUse, matchingDipLink, simmerEffect } from '../dipProgression';
 // Damage rules: a bread hit on an enemy, dip chain/sambal side effects, DoT bookkeeping, kills, XP and gold.
 import { rotiCrisp, SOAK_RADIUS, soakFor } from '../soak';
 import { rollHit, xpToNext } from '../stats';
+import { critSplashDamage, firstHitFreeze } from '../../meta/uniques';
 import { applyCc, applyHitEffect, dmgTakenMul, hasStatus, onBreadHit } from '../status';
 import type { BreadId, BreadStats, Enemy, HitEffect } from '../types';
 import { cdGet, clamp, dirtyMods, dist, emit, HIT_FLASH, hurtable, mods, type Ctx } from './ctx';
@@ -25,8 +26,9 @@ function stun(c: Ctx, e: Enemy, time: number): void {
 /** A bread hit lands on e. `shieldable` = a straight/boomerang shot without pierce left: a front shield eats the hit
  *  (no dips, no crit) and the caller must stop the projectile. The bread's armourPierce share of that hit skips the
  *  shield and goes to hp. Returns true when the shield blocked.
+ *  `pierced` = enemies this shot already passed (pierce falloff; shots.ts should pass st.pierce - s.pierceLeft).
  *  Otherwise: damage (crit roll), stun/knockback from the bread, every owned dip, Kannan's hit-buffs, kill check. */
-export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, shieldable: boolean, guaranteedCrit = false, breadId?: BreadId): boolean {
+export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, shieldable: boolean, guaranteedCrit = false, breadId?: BreadId, pierced = 0): boolean {
   const { w, p } = c;
   if (shieldable && e.shield > 0) {
     const ap = clamp(st ? st.armourPierce : 0, 0, 1);
@@ -45,7 +47,7 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
   }
   // Crisp-tagged rotis bring base crit chance; same single rng draw as before.
   const crisp = rotiCrisp(w.content, breadId);
-  const r = rollHit(dmg, guaranteedCrit ? { ...p.stats, critChance: 1 } : crisp ? { ...p.stats, critChance: p.stats.critChance + crisp } : p.stats, mods(c), dmgTakenMul(e), c.rng);
+  const r = rollHit(dmg, guaranteedCrit ? { ...p.stats, critChance: 1 } : crisp ? { ...p.stats, critChance: p.stats.critChance + crisp } : p.stats, mods(c), dmgTakenMul(e), c.rng, true, pierced);
   if (e.hp > 0 && e.state !== 'dead' && r.dmg > 0) creditDipUse(w, breadId);
   e.hp -= r.dmg;
   e.flash = HIT_FLASH;
@@ -63,6 +65,17 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
     }
     if (st.stun > 0) stun(c, e, st.stun);
     if (st.knockback > 0) e.knock += st.knockback * (e.def.knockbackTaken ?? 1) * (e.boss ? 0.1 : 1);
+  }
+  // Unique hooks (loadout.hooks): the first hit on each foe freezes it; a crit splashes a share of its damage.
+  const hooks = w.loadout?.hooks;
+  if (hooks) {
+    const secs = firstHitFreeze(hooks, e.cooldowns._fh !== undefined);
+    e.cooldowns._fh = 1;
+    if (secs > 0 && e.state !== 'dead') {
+      const { event, added } = applyCc(e, 'freeze', secs);
+      if (added || event === 'ccImmune') emit(c, { t: 'status', uid: e.uid, status: event });
+    }
+    if (r.crit) critHookSplash(c, e, critSplashDamage(hooks, r.dmg));
   }
   const applied: HitEffect[] = [];
   for (const d of p.dips) {
@@ -95,6 +108,20 @@ export function hitEnemy(c: Ctx, e: Enemy, dmg: number, st: BreadStats | null, s
 }
 
 const SOAK_COLOR = '#D9A441';
+
+/** Unique crit splash: flat share of the crit's damage to every other foe in the hook's radius. No rng, no crit, no re-splash. */
+function critHookSplash(c: Ctx, src: Enemy, s: { damage: number; radius: number }): void {
+  if (s.damage <= 0) return;
+  emit(c, { t: 'splash', x: src.x, y: src.y, radius: s.radius });
+  for (const o of c.w.enemies) {
+    if (o === src || !hurtable(o) || dist(src.x, src.y, o.x, o.y) > s.radius + o.def.radius) continue;
+    const d = s.damage * dmgTakenMul(o);
+    o.hp -= d;
+    o.flash = HIT_FLASH;
+    emit(c, { t: 'hit', uid: o.uid, x: o.x, y: o.y, dmg: d, crit: false, color: SOAK_COLOR });
+    if (o.hp <= 0) killEnemy(c, o);
+  }
+}
 
 /** Soak: `pct` of the hit's base damage and the dip statuses it applied splash to every other foe within the radius
  *  (grows with sizePct). Rng: no draws, except one per splashed foe when stats.splashCrit > 0 (Twice-fried), in

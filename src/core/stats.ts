@@ -1,12 +1,13 @@
 // Player numbers: base stats, passive/loadout sums, buff modifiers, hit damage, XP curve, wave HP scaling.
 // OWNER: swarm builder "stats". Pure functions; spec in the JSDoc is the contract.
+import { damageOf } from './damage';
 import type { Rng } from './rng';
 import type { Buff, ChapterDef, Content, DipId, Loadout, OwnedDip, OwnedPassive, PlayerStats } from './types';
 
 export const BASE_STATS: PlayerStats = {
   maxHp: 100, regen: 0, moveSpeed: 700, dmgPct: 0, throwSpeedPct: 0, critChance: 0.05, critMult: 1.5,
   extraProjectiles: 0, sizePct: 0, dotPct: 0, rangePct: 0, xpPct: 0, throwWhileMoving: 0, revives: 0,
-  dmgTakenPct: 0, dodge: 0, healOnLevelUpPct: 0, goldPct: 0,
+  dmgTakenPct: 0, dodge: 0, healOnLevelUpPct: 0, goldPct: 0, convertPct: 0, moreDmg: 0, pierceFalloff: 0.15,
   soak: 0, critSplash: 0, splashCrit: 0,
 };
 
@@ -54,14 +55,12 @@ export function buffMods(buffs: Buff[], dips: OwnedDip[], content: Content): Buf
   return mods;
 }
 
-/** One hit: dmg = base × (1 + stats.dmgPct + mods.dmgPct) × (crit ? stats.critMult + mods.critMultAdd : 1) × takenMul.
+/** One hit via the damage pipeline (damage.ts): base -> conversion -> increased -> more -> crit -> pierce falloff -> takenMul.
  *  crit when canCrit and rng.next() < min(1, stats.critChance + mods.critChance). Draws exactly one rng number
- *  when canCrit, none otherwise. dmg is never below 0. */
-export function rollHit(base: number, stats: PlayerStats, mods: BuffMods, takenMul: number, rng: Rng, canCrit = true): { dmg: number; crit: boolean } {
+ *  when canCrit, none otherwise. dmg is never below 0. `pierced` = enemies the shot already passed (0 = no falloff). */
+export function rollHit(base: number, stats: PlayerStats, mods: BuffMods, takenMul: number, rng: Rng, canCrit = true, pierced = 0): { dmg: number; crit: boolean } {
   const crit = canCrit && rng.next() < Math.min(1, stats.critChance + mods.critChance);
-  const critMul = stats.critMult + mods.critMultAdd;
-  const dmg = base * (1 + stats.dmgPct + mods.dmgPct) * (crit ? critMul : 1) * takenMul;
-  return { dmg: Math.max(0, dmg), crit };
+  return { dmg: damageOf(base, stats, mods, takenMul, crit, pierced), crit };
 }
 
 /** XP to go from `level` to level + 1: Math.round(5 + 3 × level + 0.5 × level²). level 1 -> 9, level 5 -> 33. */

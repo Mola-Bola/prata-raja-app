@@ -9,6 +9,8 @@ import { clamp, newUid, SPAWN_Y, type Ctx } from './ctx';
 /** Side spawns enter this far in from the field edge, at a height partway down the street (y 420..540). */
 const SIDE_EDGE = FIELD.halfWidth - 20;
 const SIDE_Y = 420;
+/** Hard cap on live non-boss enemies (phone insurance; the director's LIVE_CAP throttles far below this). Overflow is dropped silently. */
+export const ENEMY_HARD_CAP = 40;
 
 export function spawnEnemy(c: Ctx, def: EnemyDef | BossDef, x: number, opts: { y?: number; elite?: boolean; boss?: boolean; lane?: SpawnLane } = {}): Enemy {
   const { w, rng } = c;
@@ -39,6 +41,11 @@ export function spawnEnemy(c: Ctx, def: EnemyDef | BossDef, x: number, opts: { y
     b.attacks.forEach((a, i) => {
       cd[a.id] = a.cooldown * (0.5 + 0.3 * i);
     });
+  }
+  // Over the cap: the enemy is built (same uid and rng draws, so replays stay aligned) but never enters the world.
+  if (!boss && w.enemies.reduce((n, o) => n + (o.state === 'dead' || o.boss ? 0 : 1), 0) >= ENEMY_HARD_CAP) {
+    e.state = 'dead';
+    return e;
   }
   w.enemies.push(e);
   return e;
