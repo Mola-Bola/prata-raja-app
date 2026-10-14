@@ -47,8 +47,8 @@ describe('texture atlases', () => {
     }
   });
 
-  it('packs into at most 3 atlases', () => {
+  it('packs into at most 4 atlases (page 4 is UI-only hub art)', () => {
     expect(atlases.length).toBeGreaterThan(0);
-    expect(atlases.length).toBeLessThanOrEqual(3);
+    expect(atlases.length).toBeLessThanOrEqual(4);
   });
 });

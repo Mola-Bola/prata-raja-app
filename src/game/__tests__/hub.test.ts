@@ -65,7 +65,7 @@ function scene(search = '') {
   Object.assign(renderer, { hub, bridge: { track, save, load },
     stall: { reset: vi.fn(), setBackground: vi.fn(), snapshot: vi.fn() },
     street: { setVisible: vi.fn(), setProps: vi.fn(), setFloor: vi.fn(), draw: vi.fn() }, actors: { clear: vi.fn() }, fx: { clear: vi.fn() }, tele: { clear: vi.fn() }, danger: { clear: vi.fn() }, pour: { reset: vi.fn() }, hurt: { clear: vi.fn() },
-    drag: { release: vi.fn() }, cameras: { main: { setScroll: vi.fn() } }, game: { loop: { running: true } },
+    drag: { release: vi.fn() }, joy: { release: vi.fn() }, freeKannan: { hide: vi.fn(), update: vi.fn(), show: vi.fn() }, cameras: { main: { setScroll: vi.fn() } }, game: { loop: { running: true } },
     onHit: vi.fn(), onDot: vi.fn(), sfx: vi.fn(), buzz: vi.fn(), addTrauma: vi.fn(),
   });
   return { driver: renderer as unknown as Driver, hub, track, save, load };
