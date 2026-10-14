@@ -35,6 +35,7 @@ import { CURRY, D, HAZARD, HUD_PERIOD, MAX_STEPS, SHAKE_SHARE, STEEL, STEP, TRAU
 import { DiscPool, ImagePool } from './pools';
 import { Stall } from './stall';
 import { Street } from './street';
+import { TopStreet } from './topStreet';
 import { Telegraphs } from './telegraph';
 
 declare global {
@@ -89,6 +90,7 @@ export class RunScene extends Phaser.Scene {
   private discs!: DiscPool;
   private stall!: Stall;
   private street!: Street;
+  private topStreet!: TopStreet;
   private actors!: Actors;
   private fx!: Fx;
   private tele!: Telegraphs;
@@ -148,6 +150,7 @@ export class RunScene extends Phaser.Scene {
     this.discs = new DiscPool(this);
     this.stall = new Stall(this, this.imgs);
     this.street = new Street(this);
+    this.topStreet = new TopStreet(this);
     this.fx = new Fx(this, this.imgs);
     this.actors = new Actors(this.proj, this.imgs, this.discs, this.fx, this.reduceMotion);
     this.tele = new Telegraphs(this.imgs, this.proj, (uid, out) => this.actors.locate(uid, out));
@@ -213,6 +216,7 @@ export class RunScene extends Phaser.Scene {
     this.l = makeLayout(this.scale.width, this.scale.height);
     this.proj.setLayout(this.l);
     this.stall.setLayout(this.l);
+    this.topStreet.setLayout(this.l);
     this.actors.setLayout(this.l);
     this.fx.u = this.l.u;
     this.danger.setUnit(this.l.u);
@@ -279,11 +283,17 @@ export class RunScene extends Phaser.Scene {
     this.applySettings();
     this.clearWorld();
     this.stall.setBackground(w.chapter.background);
-    this.street.setVisible(isFlow(w.chapter));
+    this.free = isFreeMode(w.content);
+    // Free movement on a street chapter: one top-down scrolling street (topStreet.ts); else the painted perspective street.
+    const top = this.free && isFlow(w.chapter);
+    this.proj.setTop(top);
+    this.stall.setTop(top);
+    this.topStreet.setKit(w.chapter.id, w.seed);
+    this.topStreet.setVisible(top);
+    this.street.setVisible(isFlow(w.chapter) && !top);
     this.street.setProps(w.chapter.props);
     this.street.setFloor(w.chapter.floor);
     this.world = w;
-    this.free = isFreeMode(w.content);
     if (!this.free) this.freeKannan.hide();
     window.__world = w;
     this.paused = false;
@@ -376,6 +386,9 @@ export class RunScene extends Phaser.Scene {
     this.hurt.clear();
     this.stall.reset();
     this.street.setVisible(false);
+    this.topStreet.setVisible(false);
+    this.proj.setTop(false);
+    this.stall.setTop(false);
     this.drag.release();
     this.joy.release();
     this.trauma = 0;
@@ -473,7 +486,10 @@ export class RunScene extends Phaser.Scene {
         else if (!this.levelUpOpen) this.openLevelUp(w);
       }
     }
-    if (w) this.street.draw(w.dist, this.proj);
+    if (w) {
+      this.street.draw(w.dist, this.proj);
+      this.topStreet.draw(w.dist);
+    }
     this.stall.update(w ? w.player : null, w ? (this.wokeEarly ? 'lost' : w.phase) : null, alpha, this.uiTime, dt, this.reduceMotion);
     const fk = this.free && w ? this.freeKannan : null;
     this.stall.kannan.setVisible(!fk);
