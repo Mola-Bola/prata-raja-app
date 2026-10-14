@@ -7,6 +7,7 @@ import type { Commit } from '../../stall/sheets';
 import type { SaveV2 } from '@/meta/types';
 
 export const MIN_HIT = 72;
+const reducedMotion = (): boolean => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const HOLD_MS = 180;
 const MOVE_PX = 6;
 type Pt = { x: number; y: number };
@@ -92,7 +93,7 @@ export function useDnD<P>(onDrop: (payload: P, target: string) => boolean | void
         // The click that follows a drag must not also select the tile.
         el.addEventListener('click', swallowClick, { capture: true, once: true });
         window.setTimeout(() => el.removeEventListener('click', swallowClick, true), 0);
-        if (accepted) setGhost(null);
+        if (accepted || reducedMotion()) setGhost(null); // a miss glides home, unless the phone asks for reduced motion
         else {
           setGhost({ src: ghostSrc, at: last });
           requestAnimationFrame(() => setGhost({ src: ghostSrc, at: last, back: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } }));

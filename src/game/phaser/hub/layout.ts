@@ -15,7 +15,6 @@ export const START = { x: 195, y: 560 }; // the open middle of the floor
 export type Prop = { frame: string; x: number; y: number; w: number; hw?: number; d?: number; station?: StationId };
 
 export const PROPS: Prop[] = [
-  { frame: 'room/stall-back-wall', x: 190, y: 250, w: 460 }, // one wall across the top; its slanted left end runs past the edge, its base sits behind the stalls
   { frame: 'room/kopi-stall-front', x: 75, y: 300, w: 150, hw: 62, d: 38, station: 'kopi' },
   { frame: 'room/tawa-counter', x: 218, y: 292, w: 150, hw: 62, d: 34, station: 'tawa' },
   { frame: 'room/doorway-glow', x: 334, y: 305, w: 104, hw: 36, d: 16, station: 'exit' },
@@ -35,6 +34,9 @@ export const PROPS: Prop[] = [
 /** Decoration with no footprint. `depth` fixed: floors under everything, lights and fan shadow over it. */
 export const DECALS: { frame: string; x: number; y: number; w: number; depth: number; alpha?: number }[] = [
   { frame: 'room/drain-grate', x: 200, y: 700, w: 90, depth: -900, alpha: 0.7 },
+  // The one back wall across the top: full width at its natural aspect (337 x 384), about a fifth of it runs off the top edge,
+  // its base sits behind the top row of stalls. Depth -800 keeps it behind every prop and Kannan.
+  { frame: 'room/stall-back-wall', x: 195, y: 355, w: 390, depth: -800 },
 ];
 
 export type Station = { id: StationId; label: string; /** Where Kannan stands to use it. */ x: number; y: number; icon?: string };
