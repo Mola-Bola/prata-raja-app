@@ -12,6 +12,8 @@ import type { CSSProperties } from 'react';
 
 import { brandWords } from '@/brand';
 import { CONTENT } from '@/content';
+import { Tune } from './Tune';
+import { isTuned, tuneEnabled } from '../tuneStore';
 import { makeRng } from '@/core/rng';
 import type { Card, RunResult } from '@/core/types';
 import { chapterUnlocked } from '@/meta/chapters';
@@ -67,6 +69,8 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
   const [offer, setOffer] = useState<Offer | null>(null);
   const batch = useRef({ first: 0, left: 0 });
   const [paused, setPaused] = useState(false);
+  const [tuneOn] = useState(tuneEnabled);
+  const [tuneOpen, setTuneOpen] = useState(false);
   const [ended, setEnded] = useState<Ended | null>(null);
   const [load, setLoad] = useState<{ attempt: number; failed: boolean }>({ attempt: 0, failed: false });
   const [sceneReady, setSceneReady] = useState(() => !!hub.controls);
@@ -236,7 +240,7 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
           onRetry={() => setLoad((l) => ({ attempt: l.attempt + 1, failed: false }))}
         />
       )}
-      {screen === 'stall' && save && <StallHub save={save} commit={store.commit} onStart={start} onKitchen={enterKitchen} onStory={() => { storyReturn.current = 'stall'; setScreen('story'); }} art={art} afterRun={returned} />}
+      {screen === 'stall' && save && <StallHub onTune={tuneOn ? () => setTuneOpen(true) : undefined} save={save} commit={store.commit} onStart={start} onKitchen={enterKitchen} onStory={() => { storyReturn.current = 'stall'; setScreen('story'); }} art={art} afterRun={returned} />}
       {screen === 'kitchen' && <Kitchen hub={hub} ready={sceneReady} onStart={() => { ticket.current = null; }} onExit={() => setScreen(save ? 'stall' : 'title')} />}
       {screen === 'story' && <Prologue onDone={() => {
         store.commit(finishPrologue);
@@ -259,8 +263,10 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
           onRestart={restart}
           onQuit={quit}
           onToggle={toggle}
+          onTune={tuneOn ? () => setTuneOpen(true) : undefined}
         />
       )}
+      {tuneOpen && <Tune onClose={() => setTuneOpen(false)} />}
       {screen === 'results' && ended && <Results ended={ended} onAgain={() => start()} onStall={toStall} />}
       <FeedbackLayer hub={hub} screen={screen} /> {/* [feedback hook] */}
     </div>
@@ -364,6 +370,7 @@ function Hud({ hub, firstRun, modal, onPause }: { hub: Hub; firstRun: boolean; m
               <img src={art('ui/coins')} alt="" />
               <span>{hud.gold}</span>
             </div>
+            {isTuned() && <span className="gu-version" data-testid="tuned-badge" style={{ position: 'absolute', top: 2, left: 2, background: '#E8702A', color: '#fff', borderRadius: 6, padding: '0 6px' }}>Tuned</span>}
             <button type="button" className="gu-pause" aria-label="Pause" data-testid="ui-pause" onClick={onPause}>
               <img src={art('ui/pause')} alt="" />
             </button>
@@ -493,6 +500,7 @@ function Pause({
   onRestart,
   onQuit,
   onToggle,
+  onTune,
 }: {
   hud: HudState | null;
   version: string | null;
@@ -502,6 +510,7 @@ function Pause({
   onRestart: () => void;
   onQuit: () => void;
   onToggle: (key: SettingKey) => void;
+  onTune?: () => void;
 }) {
   const [build, setBuild] = useState(false);
   const sheet = useRef<HTMLElement>(null);
@@ -534,6 +543,7 @@ function Pause({
           End run
         </button>
         <TellButton />
+        {onTune && <button type="button" className="gu-btn gu-btn--wide" data-testid="ui-tune" onClick={onTune}>Tune</button>}
         <div className="gu-switches">
           <Switch label="Sound" on={sound} onClick={() => onToggle('sfx')} />
           <Switch label="Haptics" on={haptics} onClick={() => onToggle('haptics')} />
