@@ -23,6 +23,8 @@ import { RunDamageRate } from './runDamageRate';
 import { FeedbackGate, strongerHaptic } from './combatFeedback';
 import { DangerCue } from './danger';
 import { Fx } from './fx';
+import { HurtZone } from './hurtZone';
+import { TehPour } from './tehPour';
 import { DragInput } from './input';
 import { makeLayout, Projector, type Layout } from './layout';
 import { CURRY, D, HAZARD, HUD_PERIOD, MAX_STEPS, SHAKE_SHARE, STEEL, STEP, TRAUMA_DECAY } from './look';
@@ -80,6 +82,8 @@ export class RunScene extends Phaser.Scene {
   private fx!: Fx;
   private tele!: Telegraphs;
   private danger!: DangerCue;
+  private pour!: TehPour;
+  private hurt!: HurtZone;
   private drag!: DragInput;
   private url = readUrl();
   private reduceMotion = false;
@@ -133,6 +137,8 @@ export class RunScene extends Phaser.Scene {
     this.actors = new Actors(this.proj, this.imgs, this.discs, this.fx, this.reduceMotion);
     this.tele = new Telegraphs(this.imgs, this.proj, (uid, out) => this.actors.locate(uid, out));
     this.danger = new DangerCue(this, this.actors);
+    this.pour = new TehPour(this, this.fx);
+    this.hurt = new HurtZone(this);
     this.drag = new DragInput(this, () => this.l);
     // Browsers only start sound from a tap: the first touch on the canvas unlocks it (the Start button's click does too).
     this.input.on('pointerdown', unlockAudio);
@@ -341,6 +347,8 @@ export class RunScene extends Phaser.Scene {
     this.fx.clear();
     this.tele.clear();
     this.danger.clear();
+    this.pour.reset();
+    this.hurt.clear();
     this.stall.reset();
     this.street.setVisible(false);
     this.drag.release();
@@ -449,6 +457,11 @@ export class RunScene extends Phaser.Scene {
     this.actors.setHand(this.stall.handX - home.sx, this.stall.handY - home.sy);
     this.fx.tx = this.stall.chestX;
     this.fx.ty = this.stall.chestY;
+    // Teh tarik haste: a caramel ribbon from the cup to his hand, and caramel trails on the breads in flight.
+    const live = w && !this.ended ? w : null;
+    this.actors.setHaste(this.stall.pouring);
+    this.pour.update(this.stall.cupMouth(), { x: this.stall.handX, y: this.stall.handY }, this.stall.pouring, l.u, dt, this.reduceMotion);
+    this.hurt.update(live ? live.player : null, this.stall.fieldX, this.stall.feetY, l);
     if (w) {
       this.actors.draw(w, alpha, this.uiTime, dt);
       this.publishHud(w, dt);

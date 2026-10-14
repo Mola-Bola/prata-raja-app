@@ -10,7 +10,7 @@ import { pres } from '../tuneStore';
 import type { Fx } from './fx';
 import type { Layout, Projector } from './layout';
 import {
-  ANIM, BURN_TINT, CHILL_TINT, D, DISC_SQUASH, ELITE_SCALE, ELITE_TINT, ENEMY_SHOT_U, ENEMY_SCALE_FLOOR, enemyShare, FREEZE_TINT, FROST_TINT,
+  ANIM, BURN_TINT, CARAMEL_SHOT, CARAMEL_TRAIL, CHILL_TINT, D, DISC_SQUASH, ELITE_SCALE, ELITE_TINT, ENEMY_SHOT_U, ENEMY_SCALE_FLOOR, enemyShare, FREEZE_TINT, FROST_TINT,
   LAUNCH_U, LOB_U, SHOT_FIT, SHOT_MIN_U, SLOW_TINT, STEP, SWARM_SCALE, TENDER_TINT, WHITE, ZONE_TINT,
 } from './look';
 import { DiscPool, ImagePool, type Disc, type Img } from './pools';
@@ -144,6 +144,7 @@ export class Actors {
   private now = 0;
   private handX = 0;
   private handY = 0;
+  private haste = false;
 
   private enemies: EnemyView[] = [];
   private enemyMap = new Map<number, EnemyView>();
@@ -165,6 +166,11 @@ export class Actors {
 
   setLayout(l: Layout): void {
     this.l = l;
+  }
+
+  /** Teh tarik haste is on: thrown breads get a caramel trail (or, reduced motion, a caramel tint). */
+  setHaste(on: boolean): void {
+    this.haste = on;
   }
 
   /** Offset (screen px) from Kannan's field position to his throwing hand: shots leave from there. */
@@ -832,6 +838,7 @@ export class Actors {
       if (s.ttl < 0) continue;
       const v = this.shotMap.get(s.uid) ?? this.addShot(s);
       v.stamp = this.frame;
+      if (s.owner === 'player' && this.reduceMotion) (v.img ?? v.disc?.img)?.setTint(this.haste ? CARAMEL_SHOT : WHITE);
       const x = v.px + (s.x - v.px) * alpha;
       const y = v.py + (s.y - v.py) * alpha;
       P.at(x, y);
@@ -917,6 +924,7 @@ export class Actors {
     if (v.trail.length === 0) return;
     for (const t of v.trail) {
       t.t += dt;
+      t.img.setTint(this.haste ? CARAMEL_TRAIL : WHITE);
       t.img.setVisible(t.t < 0.16).setPosition(t.x, t.y).setScale(t.k, t.k * DISC_SQUASH)
         .setRotation(t.spin).setAlpha(Math.max(0, 0.32 * (1 - t.t / 0.16))).setDepth(D.shot + t.y - 1);
     }
