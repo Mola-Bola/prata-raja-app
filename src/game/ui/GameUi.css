@@ -1073,3 +1073,8 @@
 .gu-build-chip small { display: block; margin-top: 2px; overflow-wrap: anywhere; }
 .gb-more summary { cursor: pointer; font: 700 var(--fs-body)/2 Nunito, system-ui, sans-serif; min-height: 32px; }
 .gu-build-body [hidden] { display: none; }
+
+/* Tiffin choice (free mode): the level-up cards, a heading that wraps, and a short beat on the picked card. */
+.gu-find-title { text-align: center; text-wrap: balance; max-width: 18em; }
+.gu-card[data-picked="true"] { transform: scale(1.06); }
+.gu-card[data-picked="false"] { opacity: 0.35; }

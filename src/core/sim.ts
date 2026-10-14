@@ -11,7 +11,7 @@
 //  - Kannan.moving is true while he still slides toward targetX (|x - targetX| > 1) as well as while input.moving is set; he throws in neither.
 //  - after chooseCard / revive / step the phase is one of intro | wave | levelup | won | lost; events never repeat once drained.
 import { applyCard, drawOffer } from './cards';
-import { grantFind } from './finds';
+import { chooseFind, grantFind, spawnPickup, updatePickup } from './finds';
 import { makeRng, type Rng } from './rng';
 import { computeStats, xpToNext } from './stats';
 import { tickBuffs } from './status';
@@ -88,6 +88,7 @@ export function chooseCard(world: World, index: number): void {
   if (world.phase !== 'levelup') return;
   const card = world.offer[index];
   if (!card) return;
+  if (world.pickup?.open) return chooseFind(world, index);
   const rng = makeRng(world.rngState);
   const p = world.player;
   const revives = p.stats.revives;
@@ -109,7 +110,7 @@ function showPicks(world: World, rng: Rng): void {
 }
 
 export function reroll(world: World): boolean {
-  if (world.phase !== 'levelup' || world.rerolls <= 0) return false;
+  if (world.phase !== 'levelup' || world.rerolls <= 0 || world.pickup) return false;
   const rng = makeRng(world.rngState);
   world.offer = nextOffer(world, rng);
   world.rerolls--;
@@ -143,6 +144,7 @@ function stepOnce(w: World, dt: number, input: RunInput): void {
   }
   if (w.phase === 'wave') runDirector(c);
   sweepDead(w);
+  if (w.pickup && w.phase === 'wave') updatePickup(c);
   // Waves offer level-ups at once; flow runs hand out street finds instead (finds.ts).
   if (w.pendingLevelUps > 0 && !isFlow(w.chapter) && (w.phase === 'wave' || w.phase === 'intro')) showPicks(w, rng);
   w.rngState = rng.state;
@@ -197,7 +199,7 @@ function runDirector(c: Ctx): void {
   const { w } = c;
   if (isFlow(w.chapter)) {
     if (w.find && (w.find.t -= c.dt) <= 0) w.find = undefined;
-    if (findDue(w)) grantFind(w, c.rng);
+    if (findDue(w)) (isFree(c) ? spawnPickup(w, c.rng) : grantFind(w, c.rng));
     const f = flowTick(w, c.dt, c.rng);
     for (const r of f.spawns) spawnRequest(c, r);
     if (f.won) endRun(c, true);

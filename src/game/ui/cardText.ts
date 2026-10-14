@@ -3,7 +3,7 @@ import { dipBonusLabel, dipFamilyLabel, dipMatchesBread, isLinkableDip, tagLabel
 // Every line is at most 8 words and 25 characters (__tests__/cardText.test.ts). Names and sprites come from CONTENT.
 import { CONTENT } from '@/content';
 import { FINDS } from '@/content/finds';
-import { FIND_MAGNITUDE } from '@/core/finds';
+import { FIND_MAGNITUDE, NEW_ROTI_LEVEL } from '@/core/finds';
 import type { BreadId, Card, DipId, PassiveId } from '@/core/types';
 
 /** A card is about 80 px of text wide on a 360 px phone, three to a row: a line wraps every 10 characters or so, so it must stay
@@ -131,4 +131,17 @@ export function findView(card: Card): { title: string; line: string; flavour: st
     ? CONTENT.passives[card.id as PassiveId].desc.replace(/\d+(\.\d+)?/g, (n) => String(+(parseFloat(n) * FIND_MAGNITUDE).toFixed(1))) + ' this run'
     : `${v.name} ${card.level <= 1 ? 'joins the stall' : `to level ${card.level}`} this run`;
   return { title: copy ? `${copy.giver}'s ${copy.item}` : `A regular's ${v.name}`, line, flavour: copy?.flavour ?? '', sprite: v.sprite };
+}
+
+/** One card of the tiffin choice: what it is, one plain line of what it does, and the level it lands on ("Lv2 → Lv3", "NEW · Lv3"). */
+export function findChoice(card: Card): { name: string; line: string; tag: string; sprite: string; frame: CardFrame; label: string } {
+  const v = cardView(card);
+  let tag: string;
+  let line = v.line;
+  if (card.kind === 'passive') {
+    tag = 'This run only';
+    line = findView(card).line.replace(/ this run$/, '');
+  } else if (card.kind === 'bread') tag = card.level <= 1 ? `NEW roti · Lv${NEW_ROTI_LEVEL}` : `Lv${card.level - 1} → Lv${card.level}`;
+  else tag = card.level <= 1 ? 'NEW dip · Lv1' : `Lv${card.level - 1} → Lv${card.level}`;
+  return { name: v.name, line, tag, sprite: v.sprite, frame: v.frame, label: `${v.name}. ${tag}. ${line}` };
 }

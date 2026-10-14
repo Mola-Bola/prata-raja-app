@@ -26,7 +26,7 @@ import { ASSET_URLS } from '../assets';
 import type { AppInfo } from '../appInfo';
 import type { Bridge, HapticKind } from '../bridgeTypes';
 import type { Hub, HudState } from '../hub';
-import { cardView, findView } from './cardText';
+import { cardView, findChoice, findView } from './cardText';
 import { AnalyticsSwitch, FeedbackLayer, TellButton } from './FeedbackSheet'; // [feedback hook]
 import { trackCardPick } from '../telemetry'; // [analytics hook]
 import { fmt, useCountUp } from './format';
@@ -43,7 +43,7 @@ import { StallHub } from './stall/StallHub';
 
 type UiBridge = Pick<Bridge, 'haptic' | 'save' | 'load'>;
 type Screen = 'title' | 'hub' | 'stall' | 'run' | 'results' | 'story' | 'kitchen';
-type Offer = { n: number; cards: Card[]; rerolls: number; level: number; left: number; first: number };
+type Offer = { n: number; cards: Card[]; rerolls: number; level: number; left: number; first: number; find?: boolean };
 type Ended = { result: RunResult; line: string; tip: string; newBest: boolean; before: SaveV2; payout: Payout };
 type Banner = { n: number; text: string; boss: boolean };
 /** One live run. `paid` flips the moment its result is applied, so a repeated runEnd for the same run pays nothing. */
@@ -133,13 +133,13 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
       }),
       // The renderer held the run on its own (the app went to the background): show the pause sheet.
       hub.on('paused', () => { setPausedHud(runHud.current); setPaused(true); }),
-      hub.on('levelUp', ({ offer: cards, rerolls, level, left = 1 }) =>
+      hub.on('levelUp', ({ offer: cards, rerolls, level, left = 1, find }) =>
         // `first` remembers how many were waiting when this batch opened, so the header can say "Pick 2 of 3".
         setOffer((prev) => {
           // A pick that leaves fewer waiting continues the batch; anything else starts one.
           const b = batch.current;
           batch.current = b.left > left ? { first: b.first, left } : { first: left, left };
-          return { n: (prev?.n ?? 0) + 1, cards, rerolls, level, left, first: batch.current.first };
+          return { n: (prev?.n ?? 0) + 1, cards, rerolls, level, left, first: batch.current.first, find };
         }),
       ),
       hub.on('runEnd', (result) => {
@@ -265,7 +265,8 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
       {screen === 'run' && (
         <Hud key={runId} hub={hub} firstRun={save?.runs === 0} modal={!!offer || paused} onPause={pause} />
       )}
-      {screen === 'run' && offer && (
+      {screen === 'run' && offer?.find && <FindChoice offer={offer} onPick={pickCard} />}
+      {screen === 'run' && offer && !offer.find && (
         <LevelUp offer={offer} onPick={pickCard} onReroll={() => hub.controls?.reroll()} />
       )}
       {screen === 'run' && paused && !tuneOpen && (
@@ -504,6 +505,50 @@ function LevelUp({ offer, onPick, onReroll }: { offer: Offer; onPick: (i: number
             Reroll ×{offer.rerolls}
           </button>
         )}
+      </section>
+    </div>
+  );
+}
+
+/** Free mode: Kannan walked into a tiffin. Three cards, no timer; a tap picks one and the run resumes after a short beat. */
+const FIND_BEAT_MS = 300;
+function FindChoice({ offer, onPick }: { offer: Offer; onPick: (i: number) => void }) {
+  const [picked, setPicked] = useState<number | null>(null);
+  useEffect(() => {
+    if (picked === null) return;
+    const timer = window.setTimeout(() => onPick(picked), FIND_BEAT_MS);
+    return () => window.clearTimeout(timer);
+  }, [picked]); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <div className="gu-modal" data-testid="find-choice">
+      <section className="gu-levelup" role="dialog" aria-label="A regular left you a tiffin. Pick one.">
+        <h2 className="gu-heading gu-find-title">A regular left you a tiffin — pick one</h2>
+        <div className="gu-cards" key={offer.n}>
+          {offer.cards.map((card, i) => {
+            const v = findChoice(card);
+            return (
+              <button
+                key={i}
+                type="button"
+                className="gu-card"
+                data-kind={card.kind}
+                data-picked={picked === null ? undefined : picked === i}
+                disabled={picked !== null}
+                data-testid={`find-card-${i}`}
+                aria-label={v.label}
+                style={{ '--i': i, borderImageSource: `url("${art(v.frame)}")` } as CSSProperties}
+                onClick={() => setPicked(i)}
+              >
+                <img className="gu-card-art" src={art(v.sprite)} alt="" />
+                <span className="gu-card-text">
+                  <span className="gu-card-name">{v.name}</span>
+                  <span className={v.tag.startsWith('NEW') ? 'gu-badge' : 'gu-pips'}>{v.tag}</span>
+                  <span className="gu-card-line">{v.line}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </section>
     </div>
   );
