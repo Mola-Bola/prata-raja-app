@@ -104,8 +104,12 @@ type ShotView = {
 type Corpse = { v: EnemyView; t: number; k: number };
 
 const CORPSE_LIFE = 0.24;
-/** Seconds a new enemy takes to fade in. */
-const FADE_IN = 0.35;
+/** Seconds a new enemy takes to enter (fade + slide in from its edge for side spawns). */
+const FADE_IN = 0.25;
+/** How far (fraction of screen width) a side spawn slides in from outside its edge. Reduced motion: no slide, tint only. */
+const ENTER_SLIDE = 0.12;
+/** Pale tint a new arrival starts with under reduced motion, fading to its normal colour. */
+const ENTER_TINT = 0x9fd8ff;
 /** The white outline shown when an enemy shrugs off crowd control: how long it takes to fade, and how much bigger than the body its
  *  white copy is. */
 const OUTLINE_TIME = 0.7;
@@ -324,6 +328,8 @@ export class Actors {
       const k = (v.share * this.l.w * Math.max(ENEMY_SCALE_FLOOR, s) * (v.boss ? 1 + 0.55 * (1 - s) : 1)) / v.texMax;
       const bw = v.tw * k;
       const bh = v.th * k;
+      // New arrivals fade in (they spawn at the vanishing point or out of a summoner) instead of popping.
+      const born = e.age < FADE_IN ? e.age / FADE_IN : 1;
 
       // Statuses first: they decide whether the sprite moves at all.
       let frozen = false;
@@ -489,6 +495,7 @@ export class Actors {
         else if (tender) tint = TENDER_TINT;
         else if (v.elite) tint = ELITE_TINT;
       }
+      if (this.reduceMotion && born < 1 && tint === WHITE) tint = mixHex(ENTER_TINT, WHITE, born);
       if (tint !== v.tint || mode !== v.mode) {
         v.body.setTint(tint).setTintMode(mode);
         v.tint = tint;
@@ -496,19 +503,19 @@ export class Actors {
       }
 
       const by = sy0 - hop - lift + attackY;
-      // New arrivals fade in (they spawn at the vanishing point or out of a summoner) instead of popping.
-      const born = e.age < FADE_IN ? e.age / FADE_IN : 1;
+      // Side spawns slide in from their edge; reduced motion keeps them still and shows the entrance as a tint only.
+      const slide = e.lane && e.lane !== 'ahead' && !this.reduceMotion ? (e.lane === 'left' ? -1 : 1) * (1 - born) * ENTER_SLIDE * this.l.w : 0;
       v.body
-        .setPosition(sx0 + shake, by)
+        .setPosition(sx0 + shake + slide, by)
         .setScale(k * smx, k * smy)
         .setRotation(rot)
-        .setAlpha(born)
+        .setAlpha(this.reduceMotion ? 1 : born)
         .setDepth(D.enemy + sy0);
       // The shadow stays on the ground; a high flyer's is smaller and fainter.
       const hi = clamp(lift / Math.max(1, bh), 0, 1);
       const shw = (bw * 0.9 * (1 - 0.3 * hi)) / 64;
       v.shadow
-        .setPosition(sx0, sy0 - 1 * u * s)
+        .setPosition(sx0 + slide, sy0 - 1 * u * s)
         .setScale(shw, shw * 0.62)
         .setAlpha(0.34 * (1 - 0.35 * hi) * born)
         .setDepth(D.shadow);

@@ -162,7 +162,7 @@ function spawnRequest(c: Ctx, r: SpawnRequest): void {
   const content = c.w.content;
   const def = r.boss ? content.bosses[r.enemyId] : content.enemies[r.enemyId];
   if (!def) return;
-  spawnEnemy(c, def, r.x, { elite: r.elite, boss: r.boss });
+  spawnEnemy(c, def, r.x, { elite: r.elite, boss: r.boss, lane: r.lane });
   if (r.boss) c.w.bossAttempted = true;
   if (r.boss) emit(c, { t: 'bossSpawn', bossId: def.id, name: def.name });
 }

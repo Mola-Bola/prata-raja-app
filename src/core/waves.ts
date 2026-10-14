@@ -1,13 +1,13 @@
 // Wave director: spends each wave's threat budget over its duration and says when a wave is done.
 // OWNER: swarm builder "waves". Creates no enemies itself: it returns SpawnRequests that sim.ts turns into enemies.
 import type { Rng } from './rng';
-import type { Enemy, EnemyKind, GameEvent, World } from './types';
+import type { Enemy, EnemyKind, GameEvent, SpawnLane, World } from './types';
 
 export const ENEMY_COST: Record<EnemyKind, number> = {
   walker: 1, runner: 1, flyer: 1.5, swarm: 3, splitter: 2.5, shooter: 3, shielded: 3, tank: 6, healer: 3, summoner: 5, exploder: 2,
 };
 
-export type SpawnRequest = { enemyId: string; elite: boolean; x: number; boss: boolean };
+export type SpawnRequest = { enemyId: string; elite: boolean; x: number; boss: boolean; lane?: SpawnLane };
 
 const SPAWN_X = 230;
 const SPACING = 40;
