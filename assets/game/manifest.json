@@ -619,6 +619,26 @@
     "w": 556,
     "h": 936
   },
+  "street/floor/kopitiam": {
+    "h": 512,
+    "w": 768
+  },
+  "street/floor/hawker-centre": {
+    "h": 512,
+    "w": 768
+  },
+  "street/floor/food-street": {
+    "h": 512,
+    "w": 768
+  },
+  "street/floor/pasar-malam": {
+    "h": 512,
+    "w": 768
+  },
+  "street/floor/wet-market": {
+    "h": 512,
+    "w": 768
+  },
   "street/food-street-banquet-table": {
     "h": 251,
     "w": 256

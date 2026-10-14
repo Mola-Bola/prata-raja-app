@@ -7,7 +7,7 @@ import { brand } from '@/ui/brand';
 import { FIELD } from '@/core/types';
 
 import type { Projector } from './layout';
-import { D } from './look';
+import { D, LANE } from './look';
 
 const hex = (c: string): number => parseInt(c.slice(1), 16);
 const C = {
@@ -33,11 +33,19 @@ const hash = (a: number, b: number): number => {
   return ((h ^ (h >>> 12)) >>> 0) / 4294967296;
 };
 
+/** Ground bands: the plane is N horizontal TileSprite slices, each scaled for its depth ("mode 7"), tiling vertically by world.dist. */
+const BANDS = 72;
+/** Floor texture px are 2*halfWidth/ROAD_PX field units wide (the road tile is 256 px after the 2x downscale). */
+const ROAD_PX = 256;
+const FOG = 0.22; // share of the bands (from the horizon) that fade in
+
 export class Street {
   private g: Phaser.GameObjects.Graphics;
   private last = Number.NaN;
   private pool: Phaser.GameObjects.Image[] = [];
   private keys: string[] = [];
+  private floor: Phaser.GameObjects.TileSprite[] = [];
+  private floorKey = '';
 
   constructor(private scene: Phaser.Scene) {
     this.g = scene.add.graphics().setDepth(D.ground).setVisible(false);
@@ -50,9 +58,55 @@ export class Street {
     this.last = Number.NaN;
   }
 
+  /** Chapter's scrolling ground texture; undefined = leave the painted floor. */
+  setFloor(key?: string): void {
+    this.floorKey = key && this.scene.textures.exists(key) ? key : '';
+    for (const b of this.floor) b.setVisible(false);
+    if (!this.floorKey) return;
+    if (!this.floor.length) for (let i = 0; i < BANDS; i++) this.floor.push(this.scene.add.tileSprite(0, 0, 8, 8, this.floorKey).setOrigin(0.5, 0).setDepth(D.ground - 1).setVisible(false));
+    for (const b of this.floor) b.setTexture(this.floorKey);
+    this.last = Number.NaN;
+  }
+
+  /** Field y at screen y (inverse of Projector.at's sy). */
+  private yAt(sy: number, proj: Projector): number {
+    const v = proj.view;
+    const s = 1 - ((v.counterY - sy) / (v.counterY - v.horizonY)) * (1 - v.far);
+    return FIELD.reachY + proj.f / s - proj.f;
+  }
+
+  private ground(scroll: number, proj: Projector): void {
+    const v = proj.view;
+    const top = v.horizonY;
+    const bot = v.counterY + 6;
+    const unit = (2 * FIELD.halfWidth) / ROAD_PX; // field units per texture px
+    const tex = this.floor[0].frame;
+    let yNear = this.yAt(bot, proj);
+    let prev = bot;
+    for (let i = 0; i < BANDS; i++) {
+      // Bands are equal in screen space, from the counter line up to the horizon.
+      const sy = bot - ((bot - top) * (i + 1)) / BANDS;
+      const yFar = i === BANDS - 1 ? FIELD.depth : this.yAt(sy, proj);
+      const b = this.floor[i];
+      proj.at(0, (yNear + yFar) / 2);
+      const k = proj.s * proj.ppu * proj.laneScale; // screen px per field unit
+      const w = tex.width * unit * k;
+      const rows = (yFar - yNear) / unit; // texture rows this band spans
+      const h = prev - sy + 1;
+      b.setVisible(true).setPosition(proj.sx, sy).setSize(w, h).setTileScale(unit * k, h / rows);
+      // Content moves toward the counter: the row at field y is -(y + scroll)/unit.
+      b.tilePositionX = 0;
+      b.tilePositionY = -(yFar + scroll) / unit;
+      b.setAlpha(Math.min(1, (BANDS - i) / (BANDS * FOG)));
+      prev = sy;
+      yNear = yFar;
+    }
+  }
+
   setVisible(on: boolean): void {
     this.g.setVisible(on);
     if (!on) {
+      for (const b of this.floor) b.setVisible(false);
       this.g.clear();
       for (const im of this.pool) im.setVisible(false);
     }
@@ -63,6 +117,7 @@ export class Street {
   draw(dist: number, proj: Projector): void {
     if (!this.g.visible || dist === this.last) return;
     this.last = dist;
+    if (this.floorKey) this.ground(dist * U_PER_M, proj);
     const g = this.g;
     g.clear();
     const scroll = dist * U_PER_M;
@@ -110,5 +165,6 @@ export class Street {
   destroy(): void {
     this.g.destroy();
     for (const im of this.pool) im.destroy();
+    for (const b of this.floor) b.destroy();
   }
 }
