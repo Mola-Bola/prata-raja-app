@@ -293,6 +293,7 @@ export function SettingsSheet({ save, commit }: Pick<Ctx, 'save' | 'commit'>) {
   return (
     <div className="gu-switches" data-testid="settings-switches">
       <Switch label="Sound" on={save.settings.sfx} onClick={() => commit(toggleSetting('sfx'))} />
+      <Switch label="Music" on={save.settings.music} onClick={() => commit(toggleSetting('music'))} />
       <Switch label="Haptics" on={save.settings.haptics} onClick={() => commit(toggleSetting('haptics'))} />
     </div>
   );

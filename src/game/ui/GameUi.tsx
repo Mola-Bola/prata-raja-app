@@ -262,6 +262,7 @@ export function GameUi({ hub, bridge, info }: { hub: Hub; bridge: UiBridge; info
           hud={pausedHud}
           version={version}
           sound={save?.settings.sfx ?? true}
+          music={save?.settings.music ?? true}
           haptics={save?.settings.haptics ?? true}
           onResume={resume}
           onRestart={restart}
@@ -499,6 +500,7 @@ function Pause({
   hud,
   version,
   sound,
+  music,
   haptics,
   onResume,
   onRestart,
@@ -509,6 +511,7 @@ function Pause({
   hud: HudState | null;
   version: string | null;
   sound: boolean;
+  music: boolean;
   haptics: boolean;
   onResume: () => void;
   onRestart: () => void;
@@ -550,6 +553,7 @@ function Pause({
         {onTune && <button type="button" className="gu-btn gu-btn--wide" data-testid="ui-tune" onClick={onTune}>Tune</button>}
         <div className="gu-switches">
           <Switch label="Sound" on={sound} onClick={() => onToggle('sfx')} />
+          <Switch label="Music" on={music} onClick={() => onToggle('music')} />
           <Switch label="Haptics" on={haptics} onClick={() => onToggle('haptics')} />
           <AnalyticsSwitch />
         </div>

@@ -15,6 +15,7 @@ import { computeLoadout } from '@/meta/loadout';
 import { parseSaveV3 } from '@/meta/migrate';
 
 import { playSfx, setSfxEnabled, unlockAudio, type SfxName } from '../audio/sfx';
+import { duckMusic, pauseMusic, resumeMusic, setMusicBoss, setMusicEnabled, setMusicIntensity, startMusic, stopMusic } from '../audio/music';
 import type { Bridge, HapticKind } from '../bridgeTypes';
 import type { Hub, HudState, KitchenStats } from '../hub';
 import { Actors } from './actors';
@@ -161,6 +162,7 @@ export class RunScene extends Phaser.Scene {
       pause: () => this.hold(),
       resume: () => {
         this.paused = false;
+        resumeMusic();
         this.applySettings();
       },
       quit: () => this.quit(),
@@ -201,6 +203,7 @@ export class RunScene extends Phaser.Scene {
     if (this.url.god) w.god = true;
     if (this.url.at > 0 && isFlow(w.chapter)) fastForward(w, this.url.at);
     this.showWorld(w);
+    startMusic();
     this.hub.emit('runStart', { seed: s });
     void this.bridge?.track('run_start', {}).catch(() => {});
     this.wake();
@@ -269,6 +272,7 @@ export class RunScene extends Phaser.Scene {
   /** Stop the run where it is (the sim does not step, the frame is left as drawn). */
   private hold(): void {
     this.paused = true;
+    pauseMusic();
     if (this.world) this.publishHud(this.world, HUD_PERIOD);
     this.trauma = 0;
     this.hitStop = 0;
@@ -322,6 +326,7 @@ export class RunScene extends Phaser.Scene {
   }
 
   private clearWorld(): void {
+    stopMusic();
     this.bootRequest++;
     this.kitchenTuning = null;
     this.damageShown = 0;
@@ -388,6 +393,7 @@ export class RunScene extends Phaser.Scene {
         const s = parseSaveV3(json).settings;
         this.hapticsOn = s.haptics;
         setSfxEnabled(s.sfx);
+        setMusicEnabled(s.music);
       })
       .catch(() => {});
   }
@@ -499,6 +505,11 @@ export class RunScene extends Phaser.Scene {
       }
     }
     this.publishKitchenStats();
+    if (!this.kitchenTuning) { // music: hotter toward the boss and when low on HP
+      const r = isFlow(w.chapter) ? w.dist / Math.max(1, bossAtOf(w.chapter)) : 0.5;
+      setMusicIntensity(0.15 + 0.6 * Math.min(1, r) + (p.hp < p.stats.maxHp * 0.35 ? 0.2 : 0));
+      setMusicBoss(!!boss);
+    }
     this.hub.emit('hud', {
       wave: w.wave,
       waves: w.chapter.waves.length,
@@ -540,6 +551,7 @@ export class RunScene extends Phaser.Scene {
 
   private sfx(name: SfxName, bread?: BreadId): void {
     playSfx(name, bread);
+    if (name === 'blast' || name === 'bossAppear' || name === 'playerHurt') duckMusic();
   }
 
   private buzz(kind: HapticKind, gap = 0): void {
@@ -897,6 +909,7 @@ export class RunScene extends Phaser.Scene {
 
   /** The sim ended the run (Kannan won or lost). */
   private onRunEnd(w: World, won: boolean): void {
+    stopMusic();
     this.sfx(won ? 'win' : 'lose');
     if (this.kitchenStats() || this.url.bot) {
       this.endRun(w);
