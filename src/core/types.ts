@@ -250,6 +250,11 @@ export type ChapterDef = {
   background: SpriteKey;
   /** HP multiplier per wave: hp * (1 + hpPerWave * (wave - 1)). */
   hpPerWave: number;
+  /** 'flow' (the default for normal play): no waves, the director spends the rows of `waves` as a pressure curve over distance.
+   *  Anything else (or absent) runs the classic waves. Test Kitchen asks for waves. */
+  mode?: 'flow' | 'waves';
+  /** Flow: metres to the boss (default 1200). */
+  bossAt?: number;
   waves: WaveDef[];
 };
 
@@ -424,6 +429,8 @@ export type RunResult = {
   breads: OwnedBread[];
   dips: OwnedDip[];
   dipUseXp?: Partial<Record<DipId, number>>;
+  /** Flow runs: metres travelled (wave then holds the wave-equivalent for old callers). */
+  dist?: number;
 };
 
 /** Permanent bonuses from the stall (gear, training) applied at run start. S1 passes {}. */
@@ -447,6 +454,11 @@ export type World = {
   /** Threat points left to spawn this wave and seconds since its last spawn. */
   budgetLeft: number;
   spawnClock: number;
+  /** Flow director: metres travelled, unspent threat points, whether the boss has stepped out, and the fractional wave-equivalent for hp scaling. */
+  dist: number;
+  credit: number;
+  flowBoss?: boolean;
+  waveF?: number;
   player: Player;
   enemies: Enemy[];
   projectiles: Projectile[];

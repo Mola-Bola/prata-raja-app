@@ -1,0 +1,87 @@
+// Flow director (chapter.mode 'flow'): no waves. The stall travels at a cruise speed; world.dist (metres) is the clock.
+// Pressure is a curve over distance, built from the chapter's own wave rows: each non-boss wave is a keyframe (threat/second =
+// budget / duration, its mix, its elite chance) and the director blends smoothly between neighbours, so the street never resets.
+// At chapter.bossAt the stall slows to a stop and the boss steps out; once it dies the run is won. Creates no enemies itself: it
+// returns SpawnRequests that sim.ts turns into enemies (same rng stream, same spawn functions as waves).
+import type { Rng } from './rng';
+import { ENEMY_COST, spawnPick, type SpawnRequest } from './waves';
+import type { ChapterDef, Enemy, World } from './types';
+
+/** Cruise speed in metres per second (the stall slows to a halt over the last BRAKE metres before the boss). */
+export const CRUISE = 5;
+const BRAKE = 60;
+/** Default distance to the boss when a chapter does not set bossAt. */
+export const DEFAULT_BOSS_AT = 1200;
+/** Threat points that may be unspent at once (a tank costs 6), so a throttled street never bursts when it clears. */
+const CREDIT_CAP = 8;
+/** Living threat above which the street stops asking for more: the director never buries a bot that is behind. */
+const LIVE_CAP = 12;
+
+export const isFlow = (chapter: ChapterDef): boolean => chapter.mode === 'flow';
+export const bossAtOf = (chapter: ChapterDef): number => chapter.bossAt ?? DEFAULT_BOSS_AT;
+const fightWave = (chapter: ChapterDef) => chapter.waves[chapter.waves.length - 1];
+const rows = (chapter: ChapterDef) => chapter.waves.filter((wv) => !wv.boss);
+const smooth = (t: number): number => t * t * (3 - 2 * t);
+
+export type Pressure = { rate: number; mix: Record<string, number>; eliteChance: number };
+
+/** The pressure at `dist` metres: threat per second, enemy weights and elite chance, blended between wave rows. */
+export function pressureAt(chapter: ChapterDef, dist: number): Pressure {
+  const ks = rows(chapter);
+  const p = Math.min(ks.length - 1, Math.max(0, (dist / bossAtOf(chapter)) * ks.length - 0.5));
+  const i = Math.min(ks.length - 1, Math.floor(p));
+  const a = ks[i];
+  const b = ks[Math.min(ks.length - 1, i + 1)];
+  const t = smooth(p - i);
+  const lerp = (x: number, y: number) => x + (y - x) * t;
+  const mix: Record<string, number> = {};
+  for (const id of [...new Set([...Object.keys(a.mix), ...Object.keys(b.mix)])].sort()) mix[id] = lerp(a.mix[id] ?? 0, b.mix[id] ?? 0);
+  return { rate: lerp(a.budget / a.duration, b.budget / b.duration), mix, eliteChance: lerp(a.eliteChance, b.eliteChance) };
+}
+
+/** 1-based wave-equivalent for hp scaling and reports: 1 at the start, rising to the last pre-boss row, boss row at the boss. */
+export function waveEquivalent(chapter: ChapterDef, dist: number): number {
+  const k = rows(chapter).length;
+  return 1 + Math.min(1, dist / bossAtOf(chapter)) * (k - 1);
+}
+
+export type FlowOut = { spawns: SpawnRequest[]; won: boolean };
+
+const living = (e: Enemy) => e.state !== 'dead';
+
+/** Advance the flow by dt. Call once per sim step while the run is live. */
+export function flowTick(world: World, dt: number, rng: Rng): FlowOut {
+  const chapter = world.chapter;
+  const out: SpawnRequest[] = [];
+  let pr: Pressure;
+  if (world.flowBoss) {
+    if (!world.enemies.some((e) => e.boss && living(e))) return { spawns: out, won: true };
+    const bw = fightWave(chapter);
+    pr = { rate: bw.budget / bw.duration, mix: bw.mix, eliteChance: bw.eliteChance };
+  } else {
+    const bossAt = bossAtOf(chapter);
+    const left = bossAt - world.dist;
+    world.dist = Math.min(bossAt, world.dist + CRUISE * Math.min(1, Math.max(0.1, left / BRAKE)) * dt);
+    world.waveF = waveEquivalent(chapter, world.dist);
+    world.wave = Math.floor(world.waveF);
+    if (world.dist >= bossAt) {
+      world.flowBoss = true;
+      world.wave = chapter.waves.length;
+      world.waveF = world.wave;
+      world.lastSpawnX = 0;
+      return { spawns: [{ enemyId: fightWave(chapter).boss!, elite: false, x: 0, boss: true }], won: false };
+    }
+    pr = pressureAt(chapter, world.dist);
+  }
+  let heat = 0;
+  for (const e of world.enemies) if (living(e) && !e.boss) heat += ENEMY_COST[e.def.kind];
+  if (heat < LIVE_CAP) world.credit = Math.min(CREDIT_CAP, world.credit + pr.rate * dt);
+  for (;;) {
+    const fits = Object.keys(pr.mix).filter((id) => pr.mix[id] > 0 && ENEMY_COST[world.content.enemies[id].kind] <= world.credit).sort();
+    if (fits.length === 0) break;
+    const id = rng.weighted(fits, (k) => pr.mix[k]);
+    world.credit -= ENEMY_COST[world.content.enemies[id].kind];
+    spawnPick(world, rng, id, pr.eliteChance, out);
+  }
+  return { spawns: out, won: false };
+}

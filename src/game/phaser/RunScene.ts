@@ -5,6 +5,7 @@ import * as Phaser from 'phaser';
 
 import { applyKitchenTuning, createKitchenRun, DEFAULT_KITCHEN_TUNING, type KitchenConfig, type KitchenTuning } from '@/core/kitchen';
 import { CONTENT } from '@/content';
+import { bossAtOf, isFlow } from '@/core/director';
 import { autoInput, autoPick } from '@/core/autoplay';
 import { SAVE_KEY } from '@/core/save';
 import { chooseCard, createRun, drainEvents, reroll, step } from '@/core/sim';
@@ -25,6 +26,7 @@ import { makeLayout, Projector, type Layout } from './layout';
 import { CURRY, D, HAZARD, HUD_PERIOD, MAX_STEPS, SHAKE_SHARE, STEEL, STEP, TRAUMA_DECAY } from './look';
 import { DiscPool, ImagePool } from './pools';
 import { Stall } from './stall';
+import { Street } from './street';
 import { Telegraphs } from './telegraph';
 
 declare global {
@@ -59,6 +61,7 @@ export class RunScene extends Phaser.Scene {
   private imgs!: ImagePool;
   private discs!: DiscPool;
   private stall!: Stall;
+  private street!: Street;
   private actors!: Actors;
   private fx!: Fx;
   private tele!: Telegraphs;
@@ -108,6 +111,7 @@ export class RunScene extends Phaser.Scene {
     this.imgs = new ImagePool(this);
     this.discs = new DiscPool(this);
     this.stall = new Stall(this, this.imgs);
+    this.street = new Street(this);
     this.fx = new Fx(this, this.imgs);
     this.actors = new Actors(this.proj, this.imgs, this.discs, this.fx, this.reduceMotion);
     this.tele = new Telegraphs(this.imgs, this.proj, (uid, out) => this.actors.locate(uid, out));
@@ -221,6 +225,7 @@ export class RunScene extends Phaser.Scene {
     this.applySettings();
     this.clearWorld();
     this.stall.setBackground(w.chapter.background);
+    this.street.setVisible(isFlow(w.chapter));
     this.world = w;
     window.__world = w;
     this.paused = false;
@@ -277,6 +282,7 @@ export class RunScene extends Phaser.Scene {
       bossAttempted: w.bossAttempted ?? false,
       won: false,
       wave: w.wave,
+      ...(isFlow(w.chapter) ? { dist: Math.round(w.dist) } : {}),
       kills: w.kills,
       bossKills: w.bossKills,
       time: w.time,
@@ -303,6 +309,7 @@ export class RunScene extends Phaser.Scene {
     this.tele.clear();
     this.danger.clear();
     this.stall.reset();
+    this.street.setVisible(false);
     this.drag.release();
     this.trauma = 0;
     this.hitStop = 0;
@@ -396,6 +403,7 @@ export class RunScene extends Phaser.Scene {
         else if (!this.levelUpOpen) this.openLevelUp(w);
       }
     }
+    if (w) this.street.draw(w.dist, this.proj);
     this.stall.update(w ? w.player : null, w ? (this.wokeEarly ? 'lost' : w.phase) : null, alpha, this.uiTime, dt, this.reduceMotion);
     // A shot leaves his raised hand and settles onto the field projection of its own lane.
     const home = this.proj.at(this.stall.fieldX, 0);
@@ -461,6 +469,7 @@ export class RunScene extends Phaser.Scene {
     this.hub.emit('hud', {
       wave: w.wave,
       waves: w.chapter.waves.length,
+      route: isFlow(w.chapter) ? { name: w.chapter.name, dist: w.dist, bossAt: bossAtOf(w.chapter) } : null,
       hp: Math.max(0, p.hp),
       maxHp: p.stats.maxHp,
       xp: p.xp,
@@ -853,7 +862,7 @@ export class RunScene extends Phaser.Scene {
       this.hub.emit('kitchenEnd', { reason: w.result.won ? 'won' : 'lost', stats });
       return;
     }
-    void this.bridge?.track('run_end', { wave: w.result.wave, won: w.result.won, kills: w.result.kills, secs: Math.round(w.result.time) }).catch(() => {});
+    void this.bridge?.track('run_end', { wave: w.result.wave, won: w.result.won, kills: w.result.kills, secs: Math.round(w.result.time), ...(w.result.dist !== undefined ? { dist: w.result.dist, pct: Math.round((100 * w.result.dist) / bossAtOf(w.chapter)) } : {}) }).catch(() => {});
     this.hub.emit('runEnd', w.result);
   }
 }

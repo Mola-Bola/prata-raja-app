@@ -64,7 +64,7 @@ function scene(search = '') {
   const renderer = new RunScene();
   Object.assign(renderer, { hub, bridge: { track, save, load },
     stall: { reset: vi.fn(), setBackground: vi.fn(), snapshot: vi.fn() },
-    actors: { clear: vi.fn() }, fx: { clear: vi.fn() }, tele: { clear: vi.fn() }, danger: { clear: vi.fn() },
+    street: { setVisible: vi.fn(), draw: vi.fn() }, actors: { clear: vi.fn() }, fx: { clear: vi.fn() }, tele: { clear: vi.fn() }, danger: { clear: vi.fn() },
     drag: { release: vi.fn() }, cameras: { main: { setScroll: vi.fn() } }, game: { loop: { running: true } },
     onHit: vi.fn(), onDot: vi.fn(), sfx: vi.fn(), buzz: vi.fn(), addTrauma: vi.fn(),
   });

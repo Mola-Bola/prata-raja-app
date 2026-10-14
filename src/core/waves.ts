@@ -36,6 +36,25 @@ export function startWave(world: World, wave: number): { events: GameEvent[]; sp
   return { events: [{ t: 'waveStart', wave, total: world.chapter.waves.length }], spawns };
 }
 
+/** Turn one picked enemy id into spawn requests (a swarm pick is a whole cloud), keeping spacing from the last spawn. Shared with the flow director. */
+export function spawnPick(world: World, rng: Rng, id: string, eliteChance: number, out: SpawnRequest[]): void {
+  if (kindOf(world, id) === 'swarm') {
+    // One pick = one cloud. Centres sit ±CLOUD_SPREAD inside the field, so members never need clamping.
+    const spread = world.content.enemies[id].drain ? 25 : CLOUD_SPREAD;
+    const width = world.content.enemies[id].drain?.halfWidth ?? (SPAWN_X - CLOUD_SPREAD);
+    const cx = rng.range(-width, width);
+    const n = world.content.enemies[id].cloud ?? 6;
+    for (let i = 0; i < n; i++) out.push({ enemyId: id, elite: false, x: cx + rng.range(-spread, spread), boss: false });
+    world.lastSpawnX = cx;
+  } else {
+    let x = rng.range(-SPAWN_X, SPAWN_X);
+    const prev = world.lastSpawnX;
+    while (prev !== undefined && Math.abs(x - prev) < SPACING) x = rng.range(-SPAWN_X, SPAWN_X);
+    world.lastSpawnX = x;
+    out.push({ enemyId: id, elite: rng.chance(eliteChance), x, boss: false });
+  }
+}
+
 /** Advance world.waveTime/spawnClock by dt and return enemies to spawn now. Pacing: the spent share of the
  *  budget should track (waveTime / duration)^0.85, so pressure builds through the wave; spawn while behind.
  *  Pick enemy ids by def.mix weights; cost = ENEMY_COST[kind]; subtract from budgetLeft (stop when budget < cheapest).
@@ -58,23 +77,8 @@ export function spawnTick(world: World, dt: number, rng: Rng): SpawnRequest[] {
     const fits = Object.keys(def.mix).filter((id) => def.mix[id] > 0 && costOf(world, id) <= world.budgetLeft).sort();
     if (fits.length === 0) break;
     const id = rng.weighted(fits, (k) => def.mix[k]);
-    const kind = kindOf(world, id);
-    world.budgetLeft -= ENEMY_COST[kind];
-    if (kind === 'swarm') {
-      // One pick = one cloud. Centres sit ±CLOUD_SPREAD inside the field, so members never need clamping.
-      const spread = world.content.enemies[id].drain ? 25 : CLOUD_SPREAD;
-      const width = world.content.enemies[id].drain?.halfWidth ?? (SPAWN_X - CLOUD_SPREAD);
-      const cx = rng.range(-width, width);
-      const n = world.content.enemies[id].cloud ?? 6;
-      for (let i = 0; i < n; i++) out.push({ enemyId: id, elite: false, x: cx + rng.range(-spread, spread), boss: false });
-      world.lastSpawnX = cx;
-    } else {
-      let x = rng.range(-SPAWN_X, SPAWN_X);
-      const prev = world.lastSpawnX;
-      while (prev !== undefined && Math.abs(x - prev) < SPACING) x = rng.range(-SPAWN_X, SPAWN_X);
-      world.lastSpawnX = x;
-      out.push({ enemyId: id, elite: rng.chance(def.eliteChance), x, boss: false });
-    }
+    world.budgetLeft -= costOf(world, id);
+    spawnPick(world, rng, id, def.eliteChance, out);
   }
   if (out.length > 0) world.spawnClock = 0;
   return out;

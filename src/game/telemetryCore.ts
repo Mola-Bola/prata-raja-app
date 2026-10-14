@@ -49,9 +49,9 @@ export const runStartEvent = (p: { seed: number; chapter?: string | number }, de
   { chapter: p.chapter ?? defaultChapter, seed: p.seed },
 ];
 
-export const runEndEvent = (r: Pick<RunResult, 'wave' | 'won' | 'kills' | 'time' | 'level'>): Evt => [
+export const runEndEvent = (r: Pick<RunResult, 'wave' | 'won' | 'kills' | 'time' | 'level' | 'dist'>): Evt => [
   'run_end',
-  { wave: r.wave, won: r.won, kills: r.kills, secs: Math.round(r.time), level: r.level },
+  { wave: r.wave, won: r.won, kills: r.kills, secs: Math.round(r.time), level: r.level, ...(r.dist !== undefined ? { dist: r.dist } : {}) },
 ];
 
 export const levelUpEvent = (level: number): Evt => ['level_up', { level }];

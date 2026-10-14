@@ -17,7 +17,8 @@ describe('Test Kitchen', () => {
       expect(bossIndex).toBeGreaterThanOrEqual(0);
       const wave = bossIndex + 1;
       const world = createKitchenRun(config({ chapterId: chapter.id, wave }), CONTENT);
-      expect(world.chapter).toBe(chapter);
+      expect(world.chapter).toMatchObject({ id: chapter.id, mode: 'waves' });
+      expect(world.chapter.waves).toBe(chapter.waves);
       expect(world.wave).toBe(wave);
       expect(world.chapter.waves).toHaveLength(chapter.waves.length);
       expect(world.budgetLeft).toBe(chapter.waves[bossIndex].budget);
