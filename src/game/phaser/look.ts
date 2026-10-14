@@ -35,7 +35,13 @@ export const HAZARD = 0xd55e00;
 /** The red of the counter warning: an enemy biting Kannan (danger.ts). */
 export const DANGER = 0xe5372b;
 export const CHILL_TINT = 0x9fd4ff;
-export const FREEZE_TINT = 0xb8e6ff;
+/** Frozen by mint chutney: a pale mint body and a frosted rim. */
+export const FREEZE_TINT = 0xbdf7e4;
+export const FROST_TINT = 0xa6f2dc;
+/** Spice heat (curry, sambal, masala burn): the body pulses from white toward this red-orange. */
+export const BURN_TINT = 0xff6a3d;
+/** Milk slow (condensed milk): a sticky pale cream. */
+export const SLOW_TINT = 0xfff0c2;
 export const ELITE_TINT = 0xffe08a;
 export const TENDER_TINT = 0xffb9a3;
 export const STEEL = 0xcfe6ff;
@@ -107,7 +113,7 @@ export const ANIM: Record<EnemyKind, Anim> = {
 export const MAX_NUMBERS = 24;
 export const ENEMY_SCALE_FLOOR = 0.48;
 export const NUMBER_SCALE_FLOOR = 0.85;
-export const NUMBER_COLOR = { big: '#ff713d', chip: '#ffdf57' };
+export const NUMBER_COLOR = { big: '#ff713d', chip: '#ffdf57', dot: '#ff9a3d' };
 export const MAX_PARTICLES = 160;
 export const TRAUMA_DECAY = 1.0;
 /** Shake offset at trauma 1 as a share of the screen width. */

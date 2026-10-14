@@ -37,6 +37,38 @@ export function makeShadow(scene: Phaser.Scene): void {
   t.refresh();
 }
 
+/** Little status sprites (frost shards, mint leaves, milk drips, chilli wisps, stars), drawn once with Graphics and baked
+ *  to loose textures. Their names are not in the atlas, so tex() resolves them as loose textures. Call once, after loading. */
+export function makeStatusTextures(scene: Phaser.Scene): void {
+  const g = scene.make.graphics({}, false);
+  const bake = (key: string, w: number, h: number, draw: () => void): void => {
+    if (scene.textures.exists(key)) return;
+    g.clear();
+    draw();
+    g.generateTexture(key, w, h);
+  };
+  bake('status-shard', 16, 16, () => {
+    g.fillStyle(0xe6fffa, 1).fillTriangle(8, 0, 15, 8, 8, 16);
+    g.fillStyle(0x8fe3ff, 1).fillTriangle(8, 0, 1, 8, 8, 16);
+  });
+  bake('status-leaf', 16, 12, () => {
+    g.fillStyle(0x5fd9a8, 1).fillEllipse(8, 6, 15, 9);
+    g.fillStyle(0xbff5dc, 1).fillEllipse(7, 5, 7, 3);
+  });
+  bake('status-drip', 8, 12, () => {
+    g.fillStyle(0xfff0c2, 1).fillTriangle(4, 0, 0, 8, 8, 8).fillCircle(4, 8, 4);
+  });
+  bake('status-wisp', 14, 16, () => {
+    g.fillStyle(0xff7a2e, 1).fillTriangle(7, 0, 13, 11, 1, 11).fillCircle(7, 10, 6);
+    g.fillStyle(0xffd24a, 1).fillCircle(7, 11, 3);
+  });
+  bake('status-star', 16, 16, () => {
+    g.fillStyle(0xffe066, 1).fillTriangle(8, 0, 9.2, 8, 6.8, 8).fillTriangle(8, 16, 9.2, 8, 6.8, 8);
+    g.fillTriangle(0, 8, 8, 6.8, 8, 9.2).fillTriangle(16, 8, 8, 6.8, 8, 9.2).fillCircle(8, 8, 3);
+  });
+  g.destroy();
+}
+
 /** Where a sprite lives: its atlas page and frame, or (scene art, generated textures) a loose texture of that name. Pure: it
  *  does not check that anything was loaded (see addImage / setImage for that). */
 export function tex(name: string): Tex {

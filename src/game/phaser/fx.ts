@@ -288,7 +288,7 @@ export class Fx {
 
   private setText(n: Num, kind: 0 | 1 | 2): void {
     const big = kind === 1 || (kind === 0 && n.value >= 35);
-    const c = big ? NUMBER_COLOR.big : NUMBER_COLOR.chip;
+    const c = big ? NUMBER_COLOR.big : kind === 2 ? NUMBER_COLOR.dot : NUMBER_COLOR.chip;
     n.pop = big ? 1.5 : 1.2;
     n.base = (big ? 1.25 : kind === 2 ? 0.85 : 1) * n.perspective;
     // Every Text setter redraws its canvas, so set the colour only when it changes and the style never (see `u`).

@@ -6,10 +6,11 @@ import * as Phaser from 'phaser';
 
 import type { Enemy, EnemyKind, Projectile, World } from '@/core/types';
 
+import type { Fx } from './fx';
 import type { Layout, Projector } from './layout';
 import {
-  ANIM, CHILL_TINT, D, DISC_SQUASH, ELITE_SCALE, ELITE_TINT, ENEMY_SHOT_U, ENEMY_SCALE_FLOOR, enemyShare, FREEZE_TINT, LAUNCH_U, LOB_U, SHOT_FIT, SHOT_MIN_U,
-  STEP, SWARM_SCALE, TENDER_TINT, WHITE, ZONE_TINT,
+  ANIM, BURN_TINT, CHILL_TINT, D, DISC_SQUASH, ELITE_SCALE, ELITE_TINT, ENEMY_SHOT_U, ENEMY_SCALE_FLOOR, enemyShare, FREEZE_TINT, FROST_TINT,
+  LAUNCH_U, LOB_U, SHOT_FIT, SHOT_MIN_U, SLOW_TINT, STEP, SWARM_SCALE, TENDER_TINT, WHITE, ZONE_TINT,
 } from './look';
 import { DiscPool, ImagePool, type Disc, type Img } from './pools';
 import { prepareThosaiTexture, THOSAI_TEXTURE, thosaiRollFrame } from './thosaiTexture';
@@ -18,6 +19,11 @@ const TAU = Math.PI * 2;
 const MULTIPLY = Phaser.TintModes.MULTIPLY;
 const FILL = Phaser.TintModes.FILL;
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
+/** Blend two 0xRRGGBB colours (t 0 = a, 1 = b). */
+function mixHex(a: number, b: number, t: number): number {
+  const ch = (shift: number): number => Math.round(((a >> shift) & 255) * (1 - t) + ((b >> shift) & 255) * t);
+  return (ch(16) << 16) | (ch(8) << 8) | ch(0);
+}
 
 export type EnemyView = {
   uid: number;
@@ -27,14 +33,17 @@ export type EnemyView = {
   elite: boolean;
   body: Img;
   shadow: Img;
-  flame: Img | null;
-  sugar: Img | null;
-  ice: Img | null;
+  /** Circling stars above the head while stunned. */
   stunA: Img | null;
   stunB: Img | null;
-  /** The white outline of crowd-control immunity (a white copy of the body, a little larger, behind it) and the seconds it has left. */
+  /** A silhouette behind the body: the frost rim while frozen, and the white outline of crowd-control immunity with the seconds it has left. */
   outline: Img | null;
   outlineT: number;
+  /** 1 on each damage-over-time tick, decaying: the heat flare. */
+  tickT: number;
+  /** Seconds until this enemy's next status particle, and whether it was frozen last frame (its shatter fires when that ends). */
+  fxT: number;
+  wasFrozen: boolean;
   /** Sprite size as a share of the screen width at depth scale 1, and the texture's own size. */
   share: number;
   tw: number;
@@ -101,6 +110,12 @@ const FADE_IN = 0.35;
  *  white copy is. */
 const OUTLINE_TIME = 0.7;
 const OUTLINE_GROW = 1.12;
+/** The thin frost rim of a frozen enemy, and how often each status puts a particle off it (seconds). */
+const FROST_GROW = 1.05;
+const FROST_ALPHA = 0.55;
+const FROST_EVERY = 0.3;
+const HEAT_EVERY = 0.42;
+const MILK_EVERY = 0.5;
 
 export class Actors {
   private l!: Layout;
@@ -126,6 +141,8 @@ export class Actors {
     private proj: Projector,
     private imgs: ImagePool,
     private discs: DiscPool,
+    private fx: Fx,
+    private reduceMotion: boolean,
   ) {}
 
   setLayout(l: Layout): void {
@@ -146,6 +163,12 @@ export class Actors {
   immune(uid: number): void {
     const v = this.enemyMap.get(uid);
     if (v) v.outlineT = OUTLINE_TIME;
+  }
+
+  /** A damage-over-time tick landed on it: the heat flare (tint only, so reduced motion gets it too). */
+  tick(uid: number): void {
+    const v = this.enemyMap.get(uid);
+    if (v) v.tickT = 1;
   }
 
   /** Field position of a drawn enemy (for aim lines and tells). */
@@ -267,7 +290,7 @@ export class Actors {
     const share = enemyShare(e.def.radius) * (elite ? ELITE_SCALE : 1) * (e.def.kind === 'swarm' ? SWARM_SCALE : 1);
     const v: EnemyView = {
       uid: e.uid, stamp: 0, kind: e.def.kind, boss: e.boss, elite, body, shadow,
-      flame: null, sugar: null, ice: null, stunA: null, stunB: null, outline: null, outlineT: 0,
+      stunA: null, stunB: null, outline: null, outlineT: 0, tickT: 0, fxT: 0, wasFrozen: false,
       share, tw: body.width, th: body.height, texMax: Math.max(body.width, body.height),
       phase: (e.uid * 2.399963) % TAU,
       px: e.x, py: e.y, fx: e.x, fy: e.y, sx: 0, sy: 0, bw: 1, bh: 1, topY: 0,
@@ -309,6 +332,7 @@ export class Actors {
       let chill = false;
       let tender = false;
       let burn = false;
+      let slowed = false;
       let sugar = 0;
       const sts = e.statuses;
       for (let j = 0; j < sts.length; j++) {
@@ -318,11 +342,15 @@ export class Actors {
           case 'chill': chill = true; break;
           case 'tender': tender = true; break;
           case 'burn': burn = true; break;
+          case 'sugarSlow': slowed = true; break;
           case 'sugar': sugar = sts[j].stacks; break;
           default: break;
         }
       }
       v.sugarStacks = sugar;
+      // Spice heat: the body pulses toward red-orange, and flares on each damage tick.
+      v.tickT = Math.max(0, v.tickT - dt * 4);
+      const heat = clamp(0.3 + 0.2 * Math.sin(this.time * TAU * 1.3 + v.phase) + 0.5 * v.tickT, 0, 1);
       // A boss is never stopped by cold or stars (the sim only slows it): it keeps moving and breathing, under its ice or its sparks.
       const disabled = !v.boss && (frozen || stunned);
 
@@ -456,7 +484,9 @@ export class Actors {
         mode = FILL;
       } else if (frozen) tint = FREEZE_TINT;
       else if (tint === WHITE) {
-        if (chill) tint = CHILL_TINT;
+        if (burn) tint = mixHex(WHITE, BURN_TINT, heat);
+        else if (slowed) tint = SLOW_TINT;
+        else if (chill) tint = CHILL_TINT;
         else if (tender) tint = TENDER_TINT;
         else if (v.elite) tint = ELITE_TINT;
       }
@@ -483,14 +513,18 @@ export class Actors {
         .setScale(shw, shw * 0.62)
         .setAlpha(0.34 * (1 - 0.35 * hi) * born)
         .setDepth(D.shadow);
-      // Shrugged off a freeze or stun: a white copy of the body, a little larger and behind it, that fades.
-      if (v.outlineT > 0) {
-        v.outlineT = Math.max(0, v.outlineT - dt);
-        const o = (v.outline ??= this.imgs.get(e.def.sprite).setTint(WHITE).setTintMode(FILL));
-        o.setPosition(sx0 + shake, by - (bh * smy) / 2)
-          .setScale(k * smx * OUTLINE_GROW, k * smy * OUTLINE_GROW)
+      // A silhouette behind the body: a white copy that fades when an enemy shrugs off crowd control, and a thin pale frost rim
+      // while it is frozen.
+      const immune = v.outlineT > 0;
+      if (immune) v.outlineT = Math.max(0, v.outlineT - dt);
+      if (immune || frozen) {
+        const o = (v.outline ??= this.imgs.get(e.def.sprite).setTintMode(FILL));
+        const grow = immune ? OUTLINE_GROW : FROST_GROW;
+        o.setTint(immune ? WHITE : FROST_TINT)
+          .setPosition(sx0 + shake, by - (bh * smy) / 2)
+          .setScale(k * smx * grow, k * smy * grow)
           .setRotation(rot)
-          .setAlpha(born * 0.9 * (v.outlineT / OUTLINE_TIME))
+          .setAlpha(born * (immune ? 0.9 * (v.outlineT / OUTLINE_TIME) : FROST_ALPHA))
           .setDepth(D.enemy + sy0 - 0.25);
       } else if (v.outline) {
         this.imgs.put(v.outline);
@@ -502,44 +536,78 @@ export class Actors {
       v.bh = bh;
       v.topY = by - bh * smy;
 
-      if (sts.length > 0 || v.flame || v.sugar || v.ice || v.stunA) this.syncOverlays(v, burn, sugar, frozen, stunned, sx0, sy0, by, bw, bh, s);
+      // Status particles: frost breaks off a frozen enemy, heat wisps rise from a burning one, milk drips off a slowed one.
+      if (v.wasFrozen && !frozen && !this.reduceMotion) this.shatter(v, sx0, by - bh * 0.5, bw, sy0);
+      v.wasFrozen = frozen;
+      this.emitStatus(v, dt, frozen ? 'frost' : burn ? 'heat' : slowed ? 'milk' : null, sx0, sy0, by, bw, bh);
+      if (stunned || v.stunA) this.syncStars(v, stunned, sx0, by, bw, bh, s, sy0);
     }
   }
 
-  /** Burn flame, sugar sparkle, ice crystal and circling stun sparks: small sprites that follow their enemy. */
-  private syncOverlays(v: EnemyView, burn: boolean, sugar: number, frozen: boolean, stunned: boolean, sx: number, sy: number, by: number, bw: number, bh: number, s: number): void {
+  /** One status particle off an enemy on a timer (one emitter per enemy, so the count stays small). Reduced motion: none. */
+  private emitStatus(v: EnemyView, dt: number, kind: 'frost' | 'heat' | 'milk' | null, sx: number, sy: number, by: number, bw: number, bh: number): void {
+    v.fxT -= dt;
+    if (!kind || v.fxT > 0 || this.reduceMotion) return;
+    const r = Math.random;
     const u = this.l.u;
-    const t = this.time;
-    const dz = D.enemy + sy + 0.5;
-    if (burn) {
-      const f = (v.flame ??= this.imgs.get('fx/flame').setOrigin(0.5, 1));
-      const w = Math.max(Math.min(bw * 0.42, 22 * u + bw * 0.12), 11 * u * s);
-      const fl = 1 + 0.16 * Math.sin(t * 31 + v.phase);
-      f.setPosition(sx + bw * 0.26, by - bh * 0.68).setScale((w / f.width) * (2 - fl), (w / f.width) * fl).setDepth(dz).setAlpha(0.95);
-    } else if (v.flame) {
-      this.imgs.put(v.flame);
-      v.flame = null;
+    const dz = D.enemy + sy + 0.6;
+    if (kind === 'frost') {
+      v.fxT = FROST_EVERY;
+      const x = sx + (r() - 0.5) * bw * 0.8;
+      const y = by - bh * (0.2 + 0.6 * r());
+      const dir = r() < 0.5 ? -1 : 1;
+      const w = Math.max(4 * u, bw * 0.07);
+      this.fx.spawn(r() < 0.65 ? 'status-shard' : 'status-leaf', x, y, dz, 0.6, w, w * 0.7)
+        .fade(0.9, 0, 0.3)
+        .to(x + dir * bw * 0.3, y - bh * 0.3)
+        .spin(r() * TAU, dir * 3);
+    } else if (kind === 'heat') {
+      v.fxT = HEAT_EVERY;
+      this.wisp(sx, by - bh * 0.8, bw, bh, dz);
+    } else {
+      v.fxT = MILK_EVERY;
+      const x = sx + (r() - 0.5) * bw * 0.6;
+      const y = by - bh * (0.45 + 0.2 * r());
+      const w = Math.max(3 * u, bw * 0.05);
+      this.fx.spawn('status-drip', x, y, dz, 0.55, w, w).fade(1, 0.6, 0.1).to(x, sy, 2);
     }
-    if (sugar > 0) {
-      const f = (v.sugar ??= this.imgs.get('fx/sugar-sparkle'));
-      const w = Math.max(Math.min(bw * (0.3 + 0.07 * sugar), 24 * u + bw * 0.12), 11 * u * s);
-      const pulse = sugar >= 4 ? 1 + 0.18 * Math.sin(t * 24) : 1;
-      f.setPosition(sx - bw * 0.22, by - bh * 0.92).setScale((w / f.width) * pulse).setRotation(t * 1.5).setDepth(dz);
-    } else if (v.sugar) {
-      this.imgs.put(v.sugar);
-      v.sugar = null;
+  }
+
+  /** A chilli-steam wisp that curls up off the enemy. */
+  private wisp(sx: number, y: number, bw: number, bh: number, dz: number): void {
+    const r = Math.random;
+    const w = Math.max(6 * this.l.u, bw * 0.12);
+    const x = sx + (r() - 0.5) * bw * 0.5;
+    this.fx
+      .spawn('status-wisp', x, y, dz, 0.6, w, w * 1.4)
+      .fade(0.9, 0, 0.25)
+      .to(x + (r() - 0.5) * bw * 0.25, y - bh * 0.45)
+      .spin(r() - 0.5, (r() - 0.5) * 2);
+  }
+
+  /** A frozen enemy breaks: pale shards fly out from its middle. */
+  private shatter(v: EnemyView, sx: number, cy: number, bw: number, sy: number): void {
+    const w = Math.max(4 * this.l.u, bw * 0.08);
+    const dz = D.enemy + sy + 0.6;
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * TAU + v.phase;
+      const rr = bw * 0.5;
+      this.fx
+        .spawn('status-shard', sx, cy, dz, 0.45, w, w * 0.6)
+        .fade(1, 0, 0.2)
+        .to(sx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.6)
+        .spin(a, 6);
     }
-    if (frozen) {
-      const f = (v.ice ??= this.imgs.get('fx/ice').setOrigin(0.5, 1));
-      const w = Math.max(bw * 1.1, 14 * u * s);
-      f.setPosition(sx, sy + 2 * u * s).setScale(w / f.width).setAlpha(0.8).setDepth(dz + 0.1);
-    } else if (v.ice) {
-      this.imgs.put(v.ice);
-      v.ice = null;
-    }
+  }
+
+  /** Two stars circling above the head while stunned (a boss is stunned too: it shows the stars). */
+  private syncStars(v: EnemyView, stunned: boolean, sx: number, by: number, bw: number, bh: number, s: number, sy: number): void {
     if (stunned) {
-      const a = (v.stunA ??= this.imgs.get('fx/spark'));
-      const b = (v.stunB ??= this.imgs.get('fx/spark'));
+      const u = this.l.u;
+      const t = this.time;
+      const dz = D.enemy + sy + 0.5;
+      const a = (v.stunA ??= this.imgs.get('status-star'));
+      const b = (v.stunB ??= this.imgs.get('status-star'));
       const w = Math.max(Math.min(bw * 0.26, 16 * u + bw * 0.08), 9 * u * s);
       const r = bw * 0.34;
       const y0 = by - bh * 1.0;
@@ -555,7 +623,7 @@ export class Actors {
   }
 
   private dropOverlays(v: EnemyView): void {
-    for (const k of ['flame', 'sugar', 'ice', 'stunA', 'stunB', 'outline'] as const) {
+    for (const k of ['stunA', 'stunB', 'outline'] as const) {
       const img = v[k];
       if (img) {
         this.imgs.put(img);
