@@ -1,0 +1,153 @@
+<title>Prata Raja v3 Ascension</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@500;700;800&family=Alegreya+SC:wght@700;800&display=swap">
+<style>
+/* Layout: a dark, weathered scrapbook for the v3 direction. Night ground, rough card panels, sodium-amber accents.
+   Sections: poster, scenes, who Kannan is, ascension by path, relics, material explorations. */
+:root{
+  --night:#1C1712; --card:#2A231C; --edge:#4A3D30; --text:#EFE3CF; --muted:#BBA88E; --amber:#F2A93B; --ember:#E0602A;
+  --display:"Alegreya SC", Georgia, serif; --body:"Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme:dark;
+}
+body{background:var(--night);color:var(--text);font-family:var(--body);font-weight:500;font-size:17px;line-height:1.5;padding-inline:16px;padding-block:28px 64px}
+.wrap{max-width:1240px;margin:0 auto;display:grid;gap:48px}
+h1{font-family:var(--display);font-weight:800;font-size:54px;line-height:.95;margin:0;letter-spacing:.01em;text-wrap:balance}
+h2{font-family:var(--display);font-weight:800;font-size:32px;margin:0;color:var(--amber);text-wrap:balance}
+h3{font-family:var(--display);font-weight:700;font-size:21px;margin:0}
+p{margin:0;max-width:68ch}
+.muted{color:var(--muted)}
+.lede{font-size:19px;color:var(--muted);max-width:62ch}
+section{display:grid;gap:16px}
+.poster{width:100%;max-width:100%;border-radius:6px;box-shadow:0 0 0 2px var(--edge),0 14px 30px rgba(0,0,0,.5)}
+.panel{background:var(--card);border-radius:6px;box-shadow:0 0 0 1.5px var(--edge),4px 6px 0 rgba(0,0,0,.35)}
+.scenes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.scenes figure{margin:0;display:grid;gap:8px}
+.scenes img{width:100%;max-width:100%;border-radius:8px;box-shadow:0 0 0 2px var(--edge)}
+figcaption{font-size:15px;color:var(--muted)}
+figcaption b{color:var(--text)}
+.people{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.person{padding:10px;display:grid;gap:4px;text-align:center}
+.person img{width:100%;max-width:100%}
+.person b{font-family:var(--display);font-size:17px}
+.person span{font-size:14px;color:var(--muted)}
+.path{padding:14px 16px;display:grid;gap:10px}
+.path .head{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+.path .head p{color:var(--muted);font-size:15px}
+.tiers{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;align-items:end;overflow-x:auto}
+.tiers div{display:grid;gap:2px;text-align:center;min-width:110px}
+.tiers img{width:100%;max-width:100%}
+.tiers b{font-size:15px}
+.tiers span{font-size:13px;color:var(--amber);font-weight:700;letter-spacing:.04em}
+.relics{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.relic{padding:12px;display:grid;grid-template-columns:84px 1fr;gap:10px;align-items:center;min-width:0}
+.relic img{width:84px;height:84px;object-fit:contain}
+.relic b{font-family:var(--display);font-size:17px;display:block;line-height:1.1}
+.relic p{font-size:14px;color:var(--muted)}
+.styles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.styles figure{margin:0;padding:10px;display:grid;gap:6px;text-align:center}
+.styles img{width:100%;max-width:100%}
+.foot{font-size:15px;color:var(--muted)}
+.foot a{color:var(--amber)}
+@media (max-width:520px){h1{font-size:40px}}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:14px">
+    <h1>Prata Raja: Ascension</h1>
+    <p class="lede">v3 direction. Rough cut card and bark, Singapore nights from the 60s to the 80s, and a climb from a tired hawker at dawn to a legend of the night street. v2 stays as the reference for systems.</p>
+    <img class="poster" src="a/ascension-ascension-poster.jpg" alt="Ascension chart: Kannan at level 1 branching into Crisp, Soak, Heat and Dough, rising to level 100 forms">
+  </header>
+
+  <section>
+    <h2>The world</h2>
+    <p>Shophouse five-foot-ways under sodium lamps, a void-deck home, an old hawker centre in the monsoon, a pasar malam. Each run ends at dawn back at the real stall.</p>
+    <div class="scenes" id="scenes"></div>
+  </section>
+
+  <section>
+    <h2>Who is Kannan?</h2>
+    <p>Eight takes on the hero, same man. Pick the one the game starts with; the others can be skins, flashbacks or story beats.</p>
+    <div class="people" id="people"></div>
+  </section>
+
+  <section>
+    <h2>Ascension</h2>
+    <p>Five tiers per path. Each one is visibly more powerful: posture, prop scale, armour forged from hawker materials, aura. Level 100 is a run-long transformation earned by filling a meter with combos.</p>
+    <div style="display:grid;gap:16px" id="paths"></div>
+  </section>
+
+  <section>
+    <h2>Relics</h2>
+    <p>The mythic items as storied, weathered objects. One at a time; each bends a rule.</p>
+    <div class="relics" id="relics"></div>
+  </section>
+
+  <section>
+    <h2>Material explorations</h2>
+    <p>The same Kannan in six rough cut-out treatments, plus the base material and a night street swatch. Pick one material for the whole game.</p>
+    <div class="styles" id="styles"></div>
+  </section>
+
+  <section>
+    <h2>Props and pests</h2>
+    <p>Nostalgia props for the streets and the void deck, and a meaner cast of pests and bosses.</p>
+    <div class="styles" id="props"></div>
+  </section>
+
+  <p class="foot">Design: docs/plans/v3-concept.md (tone, setting, ascension) on top of v2-concept.md (statuses, combos, sets, builds). Art: Codex batch 5, ~/prata-raja-assets/v3. The v2 concept page is kept as the earlier reference.</p>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+$('scenes').innerHTML = [
+  ['scene-1-shophouse-night-run','Shophouse run','Five-foot-way at night, a swarm, flying pratas.'],
+  ['scene-2-void-deck-hub','Void-deck home','His stall under the HDB block: stools, letterboxes, phone booth, kopi uncle.'],
+  ['scene-3-rain-hawker-boss','Monsoon boss','King Cockroach in an old hawker centre; Banjir Raja raises a curry wave.'],
+  ['scene-4-pasar-malam','Pasar malam','Canopies, bulbs, ice-ball and kacang puteh carts, pests among the stalls.'],
+  ['scene-5-ascension-moment','Level 100','Thousand-Layer Raja on a rooftop above the blocks.'],
+  ['scene-6-dawn-return','Dawn','Back at the real stall. Steam, regulars, the daydream fading.'],
+].map(([f, t, d]) => `<figure><img src="a/world-${f}.jpg" alt="${t}"><figcaption><b>${t}.</b> ${d}</figcaption></figure>`).join('');
+
+$('people').innerHTML = [
+  ['1-dawn-hawker','Dawn hawker','5:30 a.m., flour on his arms'],
+  ['2-night-stallholder','Night stallholder','Under the sodium lamp'],
+  ['3-rain-soaked','Rain-soaked','Tawa as a shield'],
+  ['4-wiry-younger','Younger, 1970s','Lean and cheeky'],
+  ['5-older-uncle','Older uncle','Oil-burn scars, wise'],
+  ['6-battle-worn','Battle-worn','After a long night'],
+  ['7-heavyset-brawler','Brawler','Tawa slung on his back'],
+  ['8-shadow-daydream','Daydream self','The first hint of power'],
+].map(([f, t, d]) => `<div class="panel person"><img src="a/kannan-kannan-${f}.webp" alt="${t}"><b>${t}</b><span>${d}</span></div>`).join('');
+
+const paths = [
+  ['Crisp','Blades of crisp prata, gold flakes, precision',['crisp-1-flipper','Flipper'],['crisp-2-crispmaster','Crispmaster'],['crisp-3-golden-edge','Golden Edge'],['crisp-4-thousand-layer-raja','Thousand-Layer Raja']],
+  ['Soak','Curry floods, monsoon, deep teal and curry-dark',['soak-1-gravy-hand','Gravy Hand'],['soak-2-monsoon-cook','Monsoon Cook'],['soak-3-banjir-raja','Banjir Raja'],['soak-4-monsoon-leviathan','Monsoon Leviathan']],
+  ['Heat','Sambal fire, smoke, charred iron',['heat-1-chilli-boy','Chilli Boy'],['heat-2-wok-blazer','Wok Blazer'],['heat-3-sambal-raja','Sambal Raja'],['heat-4-ember-wrath','Ember Wrath']],
+  ['Dough','Stretch, bind, giant strength, flour storms',['dough-1-dough-slinger','Dough Slinger'],['dough-2-stretch-artist','Stretch Artist'],['dough-3-murtabak-titan','Murtabak Titan'],['dough-4-dough-colossus','Dough Colossus']],
+];
+const lv = ['Lv 1','Lv 10','Lv 30','Lv 60','Lv 100'];
+$('paths').innerHTML = paths.map(([n, d, ...t]) => `<div class="panel path"><div class="head"><h3>${n}</h3><p>${d}</p></div>
+  <div class="tiers"><div><img src="a/ascension-tier-0-hawker.webp" alt="Hawker"><b>Hawker</b><span>${lv[0]}</span></div>
+  ${t.map(([f, name], i) => `<div><img src="a/ascension-${f}.webp" alt="${name}"><b>${name}</b><span>${lv[i + 1]}</span></div>`).join('')}</div></div>`).join('');
+
+$('relics').innerHTML = [
+  ['first-tawa','The First Tawa','Every 7th throw is a Golden Prata.'],
+  ['towel-of-thousand-flips','Towel of a Thousand Flips','A dodge leaves an afterimage that keeps throwing.'],
+  ['ah-ma-ladle',"Ah Ma's Ladle",'Your curry pools heal you.'],
+  ['teh-tarik-chain-mug','Teh Tarik Chain Mug','Every throw chains to the next pest.'],
+  ['seven-chilli-sambal-jar','Seven-Chilli Sambal Jar','Burn caps at 7 stacks, each triple strength.'],
+  ['durian-crown','Durian Crown','Pests close to you flee every 5 s.'],
+  ['midnight-supper-slippers','Midnight Supper Slippers','Your trail marks pests Crisp.'],
+  ['lucky-red-apron','Lucky Red Apron','Gifts can roll a mythic choice.'],
+  ['marble-kopitiam-slab','Marble Kopitiam Slab','Blocks a hit every 8 s, shatters on block.'],
+  ['golden-spatula','Golden Spatula','Crits shorten your skill cooldowns.'],
+  ['thousand-layer-cape','Thousand-Layer Cape','Flaky layers stack to 20.'],
+  ['monsoon-umbrella','Monsoon Umbrella','Curry Monsoon follows you.'],
+].map(([f, n, d]) => `<div class="panel relic"><img src="a/relics-${f}.webp" alt=""><div><b>${n}</b><p>${d}</p></div></div>`).join('');
+
+$('styles').innerHTML = [['a-torn-card','Torn card'],['b-bark-relief','Bark relief'],['c-linocut','Linocut'],['d-charred','Charred'],['e-collage','Nostalgia collage'],['f-weathered-poster','Weathered poster']]
+  .map(([f, n]) => `<figure class="panel"><img src="a/style-style-${f}.webp" alt="${n}"><figcaption><b>${n}</b></figcaption></figure>`).join('')
+  + [['bark-card','Base material'],['night-street','Night street']].map(([f, n]) => `<figure class="panel"><img src="a/style-swatch-${f}.jpg" alt="${n}"><figcaption><b>${n}</b></figcaption></figure>`).join('');
+$('props').innerHTML = [['prop-phone-booth','Phone booth'],['prop-ice-ball-cart','Ice-ball cart'],['prop-kacang-puteh-cart','Kacang puteh cart'],['prop-trishaw','Trishaw'],['prop-stacked-stools','Stacked stools'],['prop-old-letterboxes','Letterboxes'],['prop-kopitiam-table','Kopitiam table'],['prop-sodium-lamp','Sodium lamp'],['prop-shophouse-facade-mint','Shophouse, mint'],['prop-shophouse-facade-salmon','Shophouse, salmon'],['prop-hdb-block','HDB block'],['prop-five-stones','Five stones'],['pest-roach','Cockroach'],['pest-drain-rat','Drain rat'],['pest-moth-swarm','Moth swarm'],['pest-king-cockroach','Boss: King Cockroach'],['pest-rat-king','Boss: Rat King']]
+  .map(([f, n]) => `<figure class="panel"><img src="a/world-${f}.webp" alt="${n}"><figcaption><b>${n}</b></figcaption></figure>`).join('');
+</script>
