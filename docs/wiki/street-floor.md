@@ -16,7 +16,7 @@ Purpose: the scrolling street the stall travels through (perspective ground, par
 - The painted backdrop, counter strip and counter slots are hidden in free mode (`Stall.setTop`): the counter art is seen from behind and breaks a top-down view. Counter mode (`?move=counter`) keeps the perspective street below.
 
 ## Status
-Top-down street live for free runs (kopitiam, hawker-centre kits; pasar-malam, wet-market, food-street mapped for later chapters). Perspective floor kept for counter mode; its props stay retired. Last change 2026-10-15 (r8-street).
+Top-down street live for free runs (kopitiam, hawker-centre kits; pasar-malam, wet-market, food-street mapped for later chapters). The perspective floor (`street.ts`) was deleted with counter mode; its props stay retired. Last change 2026-10-15 (r8-street).
 
 ## Research
 - Used: [decomp-scrolling-flow](../research/decomp-scrolling-flow.md) (perspective road, scanline table).

@@ -1,16 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { CONTENT as BASE_CONTENT } from '../../content';
-/** These tests assume the counter control mode (free is the shipped default). */
-const CONTENT: typeof BASE_CONTENT = { ...BASE_CONTENT, tune: { controlMode: 'counter' } };
+import { CONTENT } from '../../content';
 import { applyKitchenTuning, createKitchenRun, DEFAULT_KITCHEN_TUNING, kitchenBreadLevelCap, type KitchenConfig } from '../kitchen';
 import { createRun, startRunWave, step } from '../sim';
+import { FREE } from '../sim/free';
 import { BASE_STATS, waveHpScale } from '../stats';
 
 const config = (patch: Partial<KitchenConfig> = {}): KitchenConfig => ({
   seed: 123, chapterId: CONTENT.chapters[0].id, wave: 1,
   breads: [{ id: 'kosong', level: 5 }], dips: [], ...patch,
 });
-const input = { targetX: null, moving: false };
+const input = {};
 
 describe('Test Kitchen', () => {
   it('starts the real chapter boss wave with its original HP scaling and spawn RNG', () => {
@@ -26,7 +25,7 @@ describe('Test Kitchen', () => {
       expect(world.budgetLeft).toBe(chapter.waves[bossIndex].budget);
       const boss = world.enemies.find((enemy) => enemy.boss)!;
       expect(boss.def.id).toBe(chapter.waves[bossIndex].boss);
-      expect(boss.hp).toBe(boss.def.hp * waveHpScale(chapter, wave));
+      expect(boss.hp).toBe(boss.def.hp * waveHpScale(chapter, wave) * FREE.bossHp);
       expect(world.events).toContainEqual({ t: 'waveStart', wave, total: chapter.waves.length });
       expect(world.rngState).not.toBe(world.seed);
       expect(world).toEqual(createKitchenRun(config({ chapterId: chapter.id, wave }), CONTENT));
@@ -47,7 +46,7 @@ describe('Test Kitchen', () => {
     const original = JSON.stringify({ setup, content: CONTENT });
     const a = createKitchenRun(setup, CONTENT), b = createKitchenRun(setup, CONTENT);
     for (let i = 0; i < 300; i++) {
-      const move = { targetX: i % 60 < 30 ? -100 : 100, moving: false };
+      const move = { jx: i % 60 < 30 ? -1 : 1 };
       step(a, 0.1, move); step(b, 0.1, move);
       expect(a.phase).not.toBe('levelup');
     }

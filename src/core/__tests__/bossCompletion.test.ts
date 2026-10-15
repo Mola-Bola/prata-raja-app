@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { CONTENT as BASE_CONTENT } from '../../content';
-/** These tests assume the counter control mode (free is the shipped default). */
-const CONTENT: typeof BASE_CONTENT = { ...BASE_CONTENT, tune: { controlMode: 'counter' } };
+import { CONTENT } from '../../content';
 import { createRun, drainEvents, startRunWave, step } from '../sim';
 import type { Enemy, World } from '../types';
 
-const still = { targetX: null, moving: false };
+const still = {};
 const dt = 1 / 60;
 function run(chapterId: string, wave?: number, content = CONTENT): World {
   const w = createRun({ seed: 5, chapterId, content, mode: 'waves' });
@@ -85,7 +83,7 @@ describe('boss defeat ends its wave', () => {
 
   it('ordinary player death takes precedence when an existing add kills on the boss-defeat step', () => {
     const w = run('kopitiam-street'); const [attacker] = adds(w, 1);
-    attacker.y = 30; attacker.state = 'attack'; attacker.def = { ...attacker.def, contactDps: 100 };
+    attacker.x = w.player.x; attacker.y = w.player.y; attacker.state = 'attack'; attacker.def = { ...attacker.def, contactDps: 100 };
     w.player.hp = .01; defeatThisStep(w);
     step(w, dt, still);
     expect(w.phase).toBe('lost'); expect(w.result).toMatchObject({ won: false, bossKills: 1 });

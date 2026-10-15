@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { CONTENT as BASE_CONTENT } from '../../content';
-/** These tests assume the counter control mode (free is the shipped default). */
-const CONTENT: typeof BASE_CONTENT = { ...BASE_CONTENT, tune: { controlMode: 'counter' } };
+import { CONTENT } from '../../content';
 import { makeRng } from '../rng';
 import { autoInput, autoPick, simulateRun } from '../autoplay';
 import { chooseCard, createRun, drainEvents, reroll, step } from '../sim';
+import { FIELD } from '../types';
 import type {
   BossAttack, BossDef, BreadDef, BreadId, BreadMotion, BreadStats, BreadTarget, Content, DipDef, DipId, Enemy, EnemyDef, EnemyKind,
   GameEvent, OwnedDip, PassiveDef, PassiveId, PlayerStats, Projectile, RunInput, RunPhase, WaveDef, World,
@@ -71,18 +70,18 @@ function makeContent(o: { enemies?: EnemyDef[]; bosses?: BossDef[]; breads?: Par
     bosses: Object.fromEntries((o.bosses ?? []).map((b) => [b.id, b])),
     chapters: [{ id: 'test', name: 'Test', background: 'scene/background', hpPerWave: 0.1, waves: o.waves ?? WAVES }],
     lines: { wake: [], win: [], tips: [] },
-    tune: { controlMode: 'counter' },
   };
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
-const STILL: RunInput = { targetX: null, moving: false };
+const STILL: RunInput = {};
 const DT = 1 / 60;
 
 /** A world parked in the intro (no wave director), no crits, with the owned items set directly. */
 function mkWorld(content: Content, o: { stats?: Partial<PlayerStats>; breads?: BreadId[]; dips?: [DipId, number][] } = {}): World {
   const w = createRun({ seed: 1, content, loadout: { stats: { critChance: -0.05, ...o.stats } } });
+  w.player.y = FIELD.freeMinY; // the foot of the street (the lowest he can stand)
   w.time = -1000;
   w.player.breads = (o.breads ?? ['kosong']).map((id) => ({ id, level: 1, cd: 0.4, volleyLeft: 0, volleyT: 0 }));
   w.player.dips = (o.dips ?? []).map(([id, level]): OwnedDip => ({ id, level }));
@@ -146,33 +145,15 @@ describe('throwing', () => {
     expect(w.projectiles).toHaveLength(0);
   });
 
-  it('throws only while standing still (Archero rule), and again as soon as he stops', () => {
-    const w = mkWorld(makeContent());
-    addEnemy(w, BIG, 0, 500);
-    const moving: RunInput = { targetX: 100, moving: true };
-    expect(of(play(w, 3, moving), 'throw')).toHaveLength(0);
-    expect(w.projectiles).toHaveLength(0);
-    expect(of(play(w, 1, STILL), 'throw').length).toBeGreaterThan(0);
-  });
-
   it('throwWhileMoving (Multitasker) keeps a share of the rate while moving', () => {
     const w = mkWorld(makeContent(), { stats: { throwWhileMoving: 0.5 } });
     addEnemy(w, BIG, 0, 500);
-    const moving = of(play(w, 6, { targetX: 100, moving: true }), 'throw').length;
+    const moving = of(play(w, 6, { jx: 1 }), 'throw').length;
     const w2 = mkWorld(makeContent());
     addEnemy(w2, BIG, 0, 500);
     const still = of(play(w2, 6, STILL), 'throw').length;
     expect(moving).toBeGreaterThan(0);
     expect(moving).toBeLessThan(still * 0.7);
-  });
-
-  it('slides toward targetX at moveSpeed and clamps to the counter', () => {
-    const w = mkWorld(makeContent());
-    play(w, 0.1, { targetX: 150, moving: true });
-    expect(w.player.x).toBeCloseTo(70, 0);
-    play(w, 2, { targetX: 9999, moving: true });
-    expect(w.player.x).toBe(230);
-    expect(w.player.targetX).toBe(230);
   });
 
   it('does not fire at an enemy beyond range, and sharp eye (rangePct) extends it', () => {
@@ -207,7 +188,7 @@ describe('throwing', () => {
     play(w, 0.45, STILL); // first shot at 0.4 s
     const afterFirst = w.nextUid - uid0;
     expect(afterFirst).toBeGreaterThanOrEqual(1);
-    play(w, 0.5, { targetX: 200, moving: true });
+    play(w, 0.5, { jx: 1 });
     expect(w.nextUid - uid0).toBe(4);
   });
 
@@ -499,7 +480,7 @@ describe('enemies', () => {
 
   it('a shooter parks, announces its aim at where Kannan stands, then fires; staying put takes the hit', () => {
     const w = noBread(mkWorld(makeContent({ enemies: [imp] })));
-    addEnemy(w, imp, 0, 400, { state: 'hold', holdY: 400, cooldowns: { bx: 0, ph: 0, _mt: 0, _cd: 0.2 } });
+    addEnemy(w, imp, 0, 240, { state: 'hold', holdY: 400, cooldowns: { bx: 0, ph: 0, _mt: 0, _cd: 0.2 } }); // parks 0.6 x holdY from Kannan
     const ev = play(w, 2.5);
     const aim = of(ev, 'aim');
     expect(aim.length).toBeGreaterThanOrEqual(1);
@@ -510,16 +491,15 @@ describe('enemies', () => {
     expect(w.player.hp).toBeLessThan(100);
   });
 
-  it('sliding away during the flight dodges the shot (splat), and dodge chance can also dodge', () => {
+  it('walking out of the line of fire dodges the shot, and dodge chance can also dodge', () => {
     const w = noBread(mkWorld(makeContent({ enemies: [imp] })));
-    addEnemy(w, imp, 0, 400, { state: 'hold', holdY: 400, cooldowns: { bx: 0, ph: 0, _mt: 0, _cd: 0.2 } });
-    const ev = [...play(w, 0.8), ...play(w, 0.5, { targetX: 150, moving: true }), ...play(w, 0.4, STILL)];
+    addEnemy(w, imp, 0, 240, { state: 'hold', holdY: 400, cooldowns: { bx: 0, ph: 0, _mt: 0, _cd: 0.2 } });
+    const ev = [...play(w, 0.8), ...play(w, 0.5, { jx: 1 }), ...play(w, 0.4, STILL)];
     expect(of(ev, 'playerHit')).toHaveLength(0);
-    expect(of(ev, 'splat').length).toBeGreaterThanOrEqual(1);
     expect(w.player.hp).toBe(100);
 
     const w2 = noBread(mkWorld(makeContent({ enemies: [imp] }), { stats: { dodge: 1 } }));
-    addEnemy(w2, imp, 0, 400, { state: 'hold', holdY: 400, cooldowns: { bx: 0, ph: 0, _mt: 0, _cd: 0.2 } });
+    addEnemy(w2, imp, 0, 240, { state: 'hold', holdY: 400, cooldowns: { bx: 0, ph: 0, _mt: 0, _cd: 0.2 } });
     const ev2 = play(w2, 2.5);
     expect(of(ev2, 'dodge').length).toBeGreaterThanOrEqual(1);
     expect(w2.player.hp).toBe(100);
@@ -528,12 +508,12 @@ describe('enemies', () => {
   it('a shooter walks down to its holdY before it starts', () => {
     const walkIn = mkEnemy('imp2', 'shooter', { hp: 1e6, speed: 100, ranged: { minY: 500, maxY: 500, cooldown: 5, aimTime: 0.5, dmg: 6, projSpeed: 500, projSprite: 'fx/flame' } });
     const w = noBread(mkWorld(makeContent({ enemies: [walkIn] })));
-    const e = addEnemy(w, walkIn, 0, 700, { holdY: 500, cooldowns: { bx: 0, ph: 0, _mt: 0, _cd: 0.1 } });
+    const e = addEnemy(w, walkIn, 0, 900, { holdY: 500, cooldowns: { bx: 0, ph: 0, _mt: 0, _cd: 0.1 } });
     play(w, 1);
     expect(e.state).toBe('walk');
-    play(w, 1.5);
+    play(w, 4);
     expect(e.state).toBe('hold');
-    expect(e.y).toBe(500);
+    expect(Math.hypot(e.x, e.y - FIELD.freeMinY)).toBeLessThan(0.6 * 500 + 1); // parks 0.6 x holdY from Kannan
   });
 
   it('a splitter splits into count children where it died', () => {
@@ -552,9 +532,10 @@ describe('enemies', () => {
   it('a healer heals others within its radius (capped), never itself', () => {
     const healer = mkEnemy('healer', 'healer', { hp: 16, heal: { hps: 10, radius: 120, minY: 300, maxY: 300 } });
     const w = noBread(mkWorld(makeContent({ enemies: [healer] })));
-    const h = addEnemy(w, healer, 0, 300, { state: 'hold', holdY: 300, hp: 5 });
-    const near = addEnemy(w, ANT, 50, 300, { hp: 5 });
-    const far = addEnemy(w, ANT, 250, 300, { hp: 5 });
+    const STILL_ANT = { ...ANT, speed: 0 };
+    const h = addEnemy(w, healer, 0, 180, { state: 'hold', holdY: 300, hp: 5 }); // parks 0.6 x holdY from Kannan
+    const near = addEnemy(w, STILL_ANT, 50, 180, { hp: 5 });
+    const far = addEnemy(w, STILL_ANT, 250, 180, { hp: 5 });
     play(w, 1);
     expect(near.hp).toBeCloseTo(15, 0);
     expect(far.hp).toBe(5);
@@ -564,9 +545,9 @@ describe('enemies', () => {
   });
 
   it('an exploder fuses at the counter, then blasts Kannan and vanishes without xp', () => {
-    const bomb = mkEnemy('bomb', 'exploder', { hp: 22, speed: 100, explode: { fuse: 1, dmg: 30, radius: 90 } });
+    const bomb = mkEnemy('bomb', 'exploder', { hp: 22, speed: 100, contactDps: 0, explode: { fuse: 1, dmg: 30, radius: 90 } });
     const w = noBread(mkWorld(makeContent({ enemies: [bomb] })));
-    const e = addEnemy(w, bomb, 0, 100);
+    const e = addEnemy(w, bomb, 0, 10);
     play(w, 1);
     expect(e.state).toBe('fuse');
     const ev = play(w, 1.5);
@@ -577,54 +558,6 @@ describe('enemies', () => {
     expect(w.kills).toBe(0);
     expect(w.player.xp).toBe(0);
     expect(w.player.hp).toBe(70);
-  });
-
-  it('contact damage: dps x time, aggregated into one playerHit per 0.5 s, hurt animation on', () => {
-    const w = noBread(mkWorld(makeContent()));
-    addEnemy(w, ANT, 0, 30, { state: 'attack' });
-    addEnemy(w, ANT, 80, 30, { state: 'attack', elite: true });
-    const ev = play(w, 2.2);
-    expect(w.player.hp).toBeCloseTo(100 - 2.2 * (5 + 7.5), 1);
-    const hits = of(ev, 'playerHit');
-    expect(hits.every((h) => h.source === 'contact')).toBe(true);
-    expect(hits.length).toBe(4);
-    expect(hits.reduce((s, h) => s + h.dmg, 0)).toBeCloseTo(25, 0);
-    expect(w.player.hurtAnim).toBeGreaterThan(0);
-  });
-
-  it('walkers reach the counter and switch to attack; thick skin (dmgTakenPct) raises contact damage', () => {
-    const walker = mkEnemy('walker', 'walker', { hp: 100, speed: 100 });
-    const w = noBread(mkWorld(makeContent({ enemies: [walker] }), { stats: { dmgTakenPct: 0.5 } }));
-    const e = addEnemy(w, walker, 0, 130);
-    play(w, 1.5);
-    expect(e.state).toBe('attack');
-    expect(e.y).toBe(30);
-    expect(w.player.hp).toBeLessThan(100 - 5 * 0.5 * 1.5 + 0.01);
-  });
-
-  it('runners dash and rest; flyers zigzag around their spawn x; swarms stay near their lane', () => {
-    const runner = mkEnemy('roach', 'runner', { hp: 1e6, speed: 100, dash: { go: 0.5, rest: 0.5, boost: 2 } });
-    const flyer = mkEnemy('fly', 'flyer', { hp: 1e6, speed: 50, zigzag: { amp: 50, period: 2 } });
-    const w = noBread(mkWorld(makeContent({ enemies: [runner, flyer] })));
-    const r = addEnemy(w, runner, -100, 900);
-    const f = addEnemy(w, flyer, 100, 900);
-    let minX = 1e9;
-    let maxX = -1e9;
-    play(w, 0.25);
-    expect(900 - r.y).toBeCloseTo(50, 0); // dashing at 200 u/s
-    play(w, 0.5);
-    const y1 = r.y;
-    play(w, 0.2); // resting until 1.0 s
-    expect(r.y).toBeCloseTo(y1, 0);
-    for (let i = 0; i < 4 * 60; i++) {
-      step(w, DT, STILL);
-      minX = Math.min(minX, f.x);
-      maxX = Math.max(maxX, f.x);
-    }
-    expect(minX).toBeLessThan(55);
-    expect(maxX).toBeGreaterThan(145);
-    expect(minX).toBeGreaterThan(49);
-    expect(maxX).toBeLessThan(151);
   });
 
   it('a summoner spawns its minion beside itself every few seconds, up to max alive nearby', () => {
@@ -672,7 +605,6 @@ describe('bosses', () => {
     expect(tell).toHaveLength(1);
     expect(tell[0]).toMatchObject({ attackId: 'v', kind: 'volley', xs: [-100, 0, 100], time: 0.5 });
     expect(of(ev, 'playerHit')).toEqual([{ t: 'playerHit', dmg: 10, source: 'boss' }]);
-    expect(of(ev, 'splat')).toHaveLength(2);
     expect(e.cooldowns.v).toBeGreaterThan(0);
   });
 
@@ -687,7 +619,7 @@ describe('bosses', () => {
     expect(e.state).toBe('hold');
 
     const t2 = setup(atk);
-    const out = [...play(t2.w, 0.3), ...play(t2.w, 0.4, { targetX: 200, moving: true }), ...play(t2.w, 1)];
+    const out = [...play(t2.w, 0.3), ...play(t2.w, 0.4, { jx: 1 }), ...play(t2.w, 1)];
     expect(of(out, 'bossTell')).toHaveLength(1);
     expect(of(out, 'playerHit')).toHaveLength(0);
     expect(t2.w.player.hp).toBe(100);
@@ -700,7 +632,7 @@ describe('bosses', () => {
     expect(of(ev, 'bossTell')[0]).toMatchObject({ kind: 'rain', xs: [0], width: 60 });
     expect(of(ev, 'playerHit')[0]).toMatchObject({ dmg: 18, source: 'boss' });
     const t2 = setup(atk);
-    const out = [...play(t2.w, 0.2), ...play(t2.w, 0.3, { targetX: 150, moving: true }), ...play(t2.w, 0.5)];
+    const out = [...play(t2.w, 0.2), ...play(t2.w, 0.3, { jx: 1 }), ...play(t2.w, 0.5)];
     expect(of(out, 'splat')).toHaveLength(1);
     expect(of(out, 'playerHit')).toHaveLength(0);
   });
@@ -709,14 +641,12 @@ describe('bosses', () => {
     const atk: BossAttack = { kind: 'sweep', id: 's', name: 'S', tell: 0.6, cooldown: 100, dmg: 20 };
     const left = setup(atk);
     left.w.player.x = -100;
-    left.w.player.targetX = -100;
     const ev = play(left.w, 1);
     expect(of(ev, 'bossTell')[0]).toMatchObject({ kind: 'sweep', xs: [-135], width: 270 });
     expect(of(ev, 'playerHit')).toHaveLength(1);
     const dodge = setup(atk);
-    dodge.w.player.x = -100;
-    dodge.w.player.targetX = -100;
-    const out = [...play(dodge.w, 0.1), ...play(dodge.w, 0.4, { targetX: 100, moving: true }), ...play(dodge.w, 1)];
+    dodge.w.player.x = -20;
+    const out = [...play(dodge.w, 0.1), ...play(dodge.w, 0.4, { jx: 1 }), ...play(dodge.w, 1)];
     expect(of(out, 'playerHit')).toHaveLength(0);
   });
 
@@ -890,19 +820,16 @@ describe('run lifecycle', () => {
     const w = mkWorld(makeContent(), { stats: { revives: 1 } });
     w.player.breads = [];
     const ants = [addEnemy(w, ANT, -50, 30, { state: 'attack' }), addEnemy(w, ANT, 50, 100)];
-    const far = addEnemy(w, ANT, 100, 600);
-    w.player.hp = 0.01;
+    w.player.hp = 0;
     const ev = play(w, 0.05);
     expect(of(ev, 'revive')).toHaveLength(1);
     expect(w.player.revivesLeft).toBe(0);
     expect(w.player.hp).toBeGreaterThan(45);
     expect(w.phase).toBe('intro');
     play(w, 0.7);
-    expect(ants.every((a) => a.y > 250)).toBe(true);
-    expect(far.y).toBe(600);
+    expect(ants.every((a) => Math.hypot(a.x, a.y) > 150)).toBe(true);
 
-    w.player.hp = 0.001;
-    addEnemy(w, ANT, 0, 30, { state: 'attack' });
+    w.player.hp = 0;
     const end = play(w, 0.2);
     expect(w.phase).toBe('lost');
     expect(of(end, 'runEnd')).toEqual([{ t: 'runEnd', won: false }]);
@@ -913,7 +840,7 @@ describe('run lifecycle', () => {
     const imp = mkEnemy('imp', 'shooter', { hp: 1e6, ranged: { minY: 400, maxY: 400, cooldown: 0.1, aimTime: 0.1, dmg: 1, projSpeed: 100, projSprite: 'fx/flame' } });
     const w = mkWorld(makeContent({ enemies: [imp] }), { stats: { revives: 1 } });
     w.player.breads = [];
-    addEnemy(w, imp, 0, 400, { state: 'hold', holdY: 400, cooldowns: { bx: 0, ph: 0, _mt: 0, _cd: 0 } });
+    addEnemy(w, imp, 0, 240, { state: 'hold', holdY: 400, cooldowns: { bx: 0, ph: 0, _mt: 0, _cd: 0 } });
     play(w, 1);
     expect(w.projectiles.some((p) => p.owner === 'enemy')).toBe(true);
     w.player.hp = 0;
@@ -927,7 +854,7 @@ describe('run lifecycle', () => {
     w.enemies[0].y = 30;
     step(w, 1, STILL);
     expect(w.time).toBeCloseTo(-999, 5);
-    expect(w.player.hp).toBeCloseTo(95, 1);
+    expect(w.player.hp).toBeLessThan(100);
   });
 });
 
@@ -1004,7 +931,7 @@ describe('more rules', () => {
     expect(orbs).toHaveLength(3);
     expect(new Set(orbs.map((o) => o.targetUid)).size).toBe(3);
     // evenly spaced on the ring
-    const ang = orbs.map((o) => Math.atan2(o.y - 90, o.x - w.player.x)).sort((a, b) => a - b);
+    const ang = orbs.map((o) => Math.atan2(o.y - (w.player.y + 90), o.x - w.player.x)).sort((a, b) => a - b);
     expect(ang[1] - ang[0]).toBeCloseTo((2 * Math.PI) / 3, 1);
   });
 
@@ -1110,7 +1037,7 @@ describe('fuzz', () => {
       if (![e.x, e.y, e.hp, e.maxHp, e.shield, e.knock, e.t, e.holdY, ...Object.values(e.cooldowns)].every(Number.isFinite)) bad(`enemy ${e.def.id} not finite`);
       if (e.state === 'dead') bad('dead enemy left in the list');
       if (e.hp > e.maxHp + 1e-6) bad(`enemy ${e.def.id} above max hp`);
-      if (e.y < 0 || e.y > 1100 || Math.abs(e.x) > 300) bad(`enemy ${e.def.id} off the field (${e.x}, ${e.y})`);
+      if (e.y < -40 || e.y > 1100 || Math.abs(e.x) > 300) bad(`enemy ${e.def.id} off the field (${e.x}, ${e.y})`);
       if (uids.has(e.uid)) bad('duplicate uid');
       uids.add(e.uid);
     }
@@ -1157,7 +1084,7 @@ describe('fuzz', () => {
           tx = r.chance(0.3) ? null : r.range(-260, 260);
           moving = r.chance(0.4);
         }
-        step(w, r.chance(0.05) ? r.range(0.04, 0.2) : 1 / 30, { targetX: tx, moving });
+        step(w, r.chance(0.05) ? r.range(0.04, 0.2) : 1 / 30, moving && tx !== null ? { jx: Math.sign(tx - w.player.x), jy: r.range(-1, 1) } : {});
         drainEvents(w);
         invariants(w, `seed ${seed} step ${i}`);
       }
@@ -1200,7 +1127,7 @@ describe('fuzz', () => {
           chooseCard(w, r.int(0, 2));
           continue;
         }
-        step(w, 1 / 30, { targetX: i % 90 < 30 ? r.range(-230, 230) : null, moving: i % 90 < 30 });
+        step(w, 1 / 30, i % 90 < 30 ? { jx: r.range(-1, 1), jy: r.range(-1, 1) } : {});
         drainEvents(w);
         invariants(w, `crowd seed ${seed} step ${i}`);
         most = Math.max(most, w.enemies.length);
@@ -1215,28 +1142,6 @@ describe('fuzz', () => {
 
 describe('review fixes', () => {
   const stand = (bread: BreadDef, extra: Partial<Record<BreadId, BreadDef>> = {}): Content => makeContent({ breads: { [bread.id]: bread, ...extra } });
-
-  it('#1 no throws while still sliding to targetX, even after the finger lifts', () => {
-    const w = mkWorld(makeContent());
-    addEnemy(w, BIG, 0, 500);
-    w.player.breads[0].cd = 0; // ready to throw the moment he may
-    const ev: GameEvent[] = [];
-    step(w, DT, { targetX: 200, moving: true });
-    ev.push(...drainEvents(w));
-    let slid = 0;
-    while (w.player.x < 199 && slid < 200) {
-      step(w, DT, STILL); // finger up: no targetX, moving false
-      ev.push(...drainEvents(w));
-      expect(w.player.moving).toBe(true);
-      slid++;
-    }
-    expect(slid).toBeGreaterThan(10);
-    expect(of(ev, 'throw')).toHaveLength(0);
-    expect(w.projectiles).toHaveLength(0);
-    ev.push(...play(w, 0.3));
-    expect(w.player.moving).toBe(false);
-    expect(of(ev, 'throw').length).toBeGreaterThan(0);
-  });
 
   it('#2 armourPierce: that share of a shielded hit bypasses the shield to hp', () => {
     const beetle = mkEnemy('beetle', 'shielded', { hp: 30, shield: 25 });
@@ -1264,12 +1169,12 @@ describe('review fixes', () => {
     expect(of(kill.ev, 'kill')).toHaveLength(1);
   });
 
-  it('#3 an exploder only hurts Kannan inside its radius, and only while it is still at the counter', () => {
-    const bomb = mkEnemy('bomb', 'exploder', { hp: 22, speed: 100, explode: { fuse: 1, dmg: 30, radius: 90 } });
-    const blow = (playerX: number, bombY = 30): { hp: number; blasts: number } => {
+  it('#3 an exploder only hurts Kannan inside its radius (distance on the street)', () => {
+    const bomb = mkEnemy('bomb', 'exploder', { hp: 22, speed: 100, contactDps: 0, explode: { fuse: 1, dmg: 30, radius: 90 } });
+    const blow = (playerX: number, bombY: number = FIELD.freeMinY): { hp: number; blasts: number } => {
       const w = mkWorld(makeContent({ enemies: [bomb] }));
       w.player.breads = [];
-      w.player.x = w.player.targetX = playerX;
+      w.player.x = playerX;
       addEnemy(w, bomb, 0, bombY, { state: 'fuse', t: 0.05 });
       const ev = play(w, 0.2);
       return { hp: w.player.hp, blasts: of(ev, 'blast').length };
@@ -1278,7 +1183,7 @@ describe('review fixes', () => {
     expect(blow(90)).toEqual({ hp: 70, blasts: 1 }); // right on the edge
     expect(blow(91)).toEqual({ hp: 100, blasts: 1 });
     expect(blow(-230)).toEqual({ hp: 100, blasts: 1 });
-    expect(blow(0, 300)).toEqual({ hp: 100, blasts: 1 }); // shoved up the street before it went off
+    expect(blow(0, 300)).toEqual({ hp: 100, blasts: 1 }); // too far up the street
   });
 
   it('#4 an orb bites an enemy at most once per orbitHitGap, whatever the clock does; each orb keeps its own', () => {
@@ -1393,7 +1298,7 @@ describe('review fixes', () => {
     const bar = mkBread('thosai', 'wave', 'none', { dmg: 11, cooldown: 99, speed: 700, radius: 20, range: 400, width: 200 });
     const w2 = mkWorld(stand(bar), { breads: ['thosai'] });
     const near = addEnemy(w2, BIG, 0, 100);
-    const far = addEnemy(w2, BIG, 0, 455); // its reach window (417..493) starts above the bar's last y = 400
+    const far = addEnemy(w2, BIG, 0, 475); // its reach window (437..513) starts above the bar's last y = 420
     play(w2, 1.3);
     expect(near.hp).toBe(1e6 - 11);
     expect(far.hp).toBe(1e6);
@@ -1524,46 +1429,12 @@ describe('targeting', () => {
   }
   const attacker = (w: World, x: number): Enemy => addEnemy(w, WALL, x, 30, { state: 'attack' });
 
-  it('an attacker at the far left beats a closer enemy mid-street', () => {
-    const w = mkWorld(makeContent());
-    w.player.x = GUARD.x;
-    addEnemy(w, WALL, 0, 200); // 200 away, straight ahead: the old "nearest" pick
-    const hurting = attacker(w, -260); // 262 away, but chewing on him
-    expect(firstShot(w).targetUid).toBe(hurting.uid);
-  });
-
-  it('attackers come first even when Kannan stands under the other side of the counter', () => {
-    const w = mkWorld(makeContent());
-    w.player.x = 200;
-    addEnemy(w, WALL, 200, 120);
-    const hurting = attacker(w, -250);
-    expect(firstShot(w).targetUid).toBe(hurting.uid);
-  });
-
   it('with several attackers, the one nearest his lane goes first', () => {
     const w = mkWorld(makeContent());
     attacker(w, -250);
     const near = attacker(w, 90);
     attacker(w, 230);
     expect(firstShot(w).targetUid).toBe(near.uid);
-  });
-
-  it('with nobody at the counter, the enemy closest to it (lowest y) goes first, even if another is nearer by distance', () => {
-    const w = mkWorld(makeContent());
-    addEnemy(w, WALL, 0, 420); // 420 away
-    const lower = addEnemy(w, WALL, 250, 380); // 455 away, but 40 closer to the counter
-    expect(firstShot(w).targetUid).toBe(lower.uid);
-  });
-
-  it('equal y goes to the enemy nearest his lane, and a full tie keeps the first one found', () => {
-    const w = mkWorld(makeContent());
-    addEnemy(w, WALL, -200, 400);
-    const lane = addEnemy(w, WALL, 100, 400);
-    expect(firstShot(w).targetUid).toBe(lane.uid);
-    const tie = mkWorld(makeContent());
-    const first = addEnemy(tie, WALL, -100, 400);
-    addEnemy(tie, WALL, 100, 400);
-    expect(firstShot(tie).targetUid).toBe(first.uid);
   });
 
   it('the dead are never aimed at, and an attacker that was knocked away is an ordinary enemy again', () => {
@@ -1576,15 +1447,6 @@ describe('targeting', () => {
     const ahead = addEnemy(w2, WALL, 0, 200);
     expect(firstShot(w2).targetUid).toBe(ahead.uid);
     expect(pushed.state).toBe('walk');
-  });
-
-  it('a bomb goes for the cluster that has an attacker in it, over a bigger one up the street', () => {
-    const w = mkWorld(makeContent(), { breads: ['roti-bomb'] });
-    for (const [x, y] of [[0, 400], [30, 400], [0, 430], [30, 430]]) addEnemy(w, WALL, x, y); // four together, blast is 80
-    const hurting = attacker(w, -250);
-    const near = addEnemy(w, WALL, -230, 60); // a neighbour of the attacker: a pair beats a four with no attacker
-    const shot = firstShot(w);
-    expect([hurting.uid, near.uid]).toContain(shot.targetUid);
   });
 
   it('a bomb with no attackers about still takes the biggest cluster, then the one closest to the counter', () => {
@@ -1601,7 +1463,7 @@ describe('targeting', () => {
 
 describe('determinism', () => {
   /** A scripted (not bot) input stream, so this checks the sim and not the bot. */
-  const script = (i: number): RunInput => (i % 240 < 40 ? { targetX: ((i / 240) % 2 < 1 ? 1 : -1) * 120, moving: true } : STILL);
+  const script = (i: number): RunInput => (i % 240 < 40 ? { jx: (i / 240) % 2 < 1 ? 1 : -1 } : STILL);
 
   function run(seed: number, seconds: number): World {
     const w = createRun({ seed, content: CONTENT });
@@ -1642,6 +1504,7 @@ describe('determinism', () => {
       }
     };
     const a = createRun({ seed: 21, content: CONTENT });
+    a.god = true; // the scripted input never dodges: keep him alive so the waves go on
     play30(a, 0, 30 * 40);
     expect(a.wave).toBeGreaterThanOrEqual(2);
     const b = JSON.parse(JSON.stringify(a)) as World;
@@ -1711,12 +1574,13 @@ describe('real content + autoplay bot', () => {
   it('the bot dodges: it leaves a boss lane and an incoming shot, and stands still otherwise', () => {
     const imp = mkEnemy('imp', 'shooter', { hp: 1e6, ranged: { minY: 400, maxY: 400, cooldown: 1, aimTime: 0.5, dmg: 6, projSpeed: 500, projSprite: 'fx/flame' } });
     const w = mkWorld(makeContent({ enemies: [imp] }));
-    expect(autoInput(w)).toEqual({ targetX: null, moving: false });
-    addEnemy(w, imp, 0, 400, { state: 'hold', holdY: 400, cooldowns: { bx: 0, ph: 0, _mt: 0, _cd: 0.05 } });
+    w.player.y = 140;
+    expect(autoInput(w)).toMatchObject({ jx: 0, jy: 0 });
+    addEnemy(w, imp, 0, 380, { state: 'hold', holdY: 400, cooldowns: { bx: 0, ph: 0, _mt: 0, _cd: 0.05 } });
     let moved = false;
     for (let i = 0; i < 180; i++) {
       const inp = autoInput(w);
-      if (inp.moving) moved = true;
+      if (inp.jx || inp.jy) moved = true;
       step(w, DT, inp);
     }
     expect(moved).toBe(true);

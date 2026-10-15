@@ -1,4 +1,4 @@
-// Free-movement mode (core/sim/free.ts): Kannan drawn on the street at his field (x, y) with the Codex 4-direction walk cycle
+// Free movement (core/sim/free.ts): Kannan drawn on the street at his field (x, y) with the Codex 4-direction walk cycle
 // (kannan/walk-{up,down,left,right}-walk-1..4 and -idle), a dash smear, and the virtual joystick ring where the finger is.
 // Real art frames only; the only code-drawn thing is the optional debug hitbox ring (god=1).
 import * as Phaser from 'phaser';
@@ -13,7 +13,7 @@ import type { FreeInput } from './input';
 
 /** Walk-cycle frames per second while moving. */
 const FPS = 9;
-/** Height of the walking sprite as a share of the counter-mode Kannan's height, at depth scale 1. */
+/** Height of the walking sprite as a share of the reference Kannan height (layout.kannan.h). */
 const HEIGHT_SHARE = 0.6;
 /** Native height of the walk frames (they are 160..223 tall; one scale for all so the cycle does not pulse). */
 const NATIVE_H = 200;
@@ -64,15 +64,6 @@ export class FreeKannan {
     this.prevY = p.y;
   }
 
-  hide(): void {
-    this.body.setVisible(false);
-    this.shadow.setVisible(false);
-    this.base.setVisible(false);
-    this.knob.setVisible(false);
-    this.ring.clear().setVisible(false);
-    for (const g of this.ghosts) g.setVisible(false);
-  }
-
   update(p: Player, alpha: number, dt: number, l: Layout, proj: Projector, input: FreeInput, debug: boolean): void {
     this.fieldX = this.prevX + (p.x - this.prevX) * alpha;
     this.fieldY = this.prevY + (p.y - this.prevY) * alpha;
@@ -105,7 +96,7 @@ export class FreeKannan {
       .setPosition(sx, sy - bob)
       .setScale(k * (horiz ? stretch : 1 / Math.sqrt(stretch)), k * (horiz ? 1 / Math.sqrt(stretch) : stretch))
       .setAlpha(dashing ? 0.75 : blink ? 0.4 : 1)
-      .setDepth(proj.top || sy < l.counter.top ? D.enemy + sy + 0.5 : D.kannan);
+      .setDepth(D.enemy + sy + 0.5);
     if (p.hurtAnim > 0.12) this.body.setTint(0xff3a2a);
     else this.body.clearTint();
     this.shadow.setVisible(true).setPosition(sx, sy).setScale(1.1 * s * (l.kannan.w / 64) * 0.4, 0.35 * s * (l.kannan.w / 64) * 0.4).setAlpha(0.5);

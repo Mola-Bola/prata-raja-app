@@ -55,15 +55,11 @@ export function enemySpeed(e: Enemy, slow = speedMul(e)): number {
   if (d && d.go + d.rest > 0) s *= e.t % (d.go + d.rest) < d.go ? d.boost : 0;
   return s;
 }
-/** How fast an enemy is closing in along y (for aim leading). */
-export const approachSpeed = (e: Enemy): number => e.state === 'escape' ? -enemySpeed(e) * 1.5 : e.state === 'walk' ? enemySpeed(e) * (e.boss ? 4 : 1) : 0;
-
 /** Hurt Kannan with a shot, blast or boss attack. Shots can be dodged (stats.dodge). Returns true if it landed. */
 export function hurtPlayer(c: Ctx, base: number, source: 'shot' | 'boss' | 'explode'): boolean {
   const { p } = c;
-  if (p.dashT > 0) return false; // free mode: dash i-frames
-  const free = c.w.content.tune?.controlMode !== 'counter';
-  if (free && (p.iT ?? 0) > 0) return false; // free mode: hit i-frames
+  if (p.dashT > 0) return false; // dash i-frames
+  if ((p.iT ?? 0) > 0) return false; // hit i-frames
   if (p.stats.dodge > 0 && c.rng.chance(p.stats.dodge)) {
     emit(c, { t: 'dodge' });
     return false;
@@ -71,13 +67,13 @@ export function hurtPlayer(c: Ctx, base: number, source: 'shot' | 'boss' | 'expl
   const dmg = base * (1 + p.stats.dmgTakenPct);
   if (!c.w.god) p.hp -= dmg;
   p.hurtAnim = 0.2;
-  if (free) p.iT = iFramesFor(dmg, p.stats.maxHp);
+  p.iT = iFramesFor(dmg, p.stats.maxHp);
   emit(c, { t: 'playerHit', dmg, source });
   return true;
 }
 
-/** An enemy projectile flying from (x, y) to (tx, ty); counter mode lands on the counter (ty 0). tx = landing x; hopsLeft = 1 marks a boss shot.
- *  Free mode: the shot flies straight on past (tx, ty) and hits whatever of Kannan it touches (enemies.ts updateEnemyShots). */
+/** An enemy projectile flying from (x, y) toward (tx, ty); hopsLeft = 1 marks a boss shot. It flies straight on past (tx, ty) and hits
+ *  whatever of Kannan it touches (enemies.ts updateEnemyShots). */
 export function enemyShot(c: Ctx, x: number, y: number, tx: number, dmg: number, speed: number, sprite: string, boss: boolean, ty = 0): Projectile {
   const d = hyp(tx - x, ty - y) || 1;
   return {

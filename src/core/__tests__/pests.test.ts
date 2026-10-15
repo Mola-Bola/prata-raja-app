@@ -1,15 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { CONTENT as BASE_CONTENT } from '../../content';
-/** These tests assume the counter control mode (free is the shipped default). */
-const CONTENT: typeof BASE_CONTENT = { ...BASE_CONTENT, tune: { controlMode: 'counter' } };
+import { CONTENT } from '../../content';
 import { makeRng } from '../rng';
 import { createRun, drainEvents, step } from '../sim';
-import { approachSpeed, type Ctx } from '../sim/ctx';
+import type { Ctx } from '../sim/ctx';
 import { updateEnemies } from '../sim/enemies';
 import { killEnemy } from '../sim/hit';
 import { spawnEnemy } from '../sim/spawn';
-import { FIELD } from '../types';
 import { spawnTick, startWave } from '../waves';
 
 function context(): Ctx {
@@ -22,13 +19,12 @@ describe('Mynah thief', () => {
   it('steals once at the counter, never bites, and escapes without kill rewards', () => {
     const c = context();
     c.w.gold = 10;
-    const e = spawnEnemy(c, CONTENT.enemies['mynah-thief'], 0, { y: FIELD.reachY + 1 });
+    const e = spawnEnemy(c, CONTENT.enemies['mynah-thief'], 0, { y: c.p.y });
     const hp = c.p.hp;
     updateEnemies(c);
     expect(e.state).toBe('escape');
     expect(c.w.gold).toBe(7);
     expect(drainEvents(c.w).filter(ev => ev.t === 'theft')).toHaveLength(1);
-    expect(approachSpeed(e)).toBeLessThan(0);
     for (let i = 0; i < 600; i++) updateEnemies(c);
     expect(e.state).toBe('dead');
     expect(c.p.hp).toBe(hp);
@@ -40,7 +36,7 @@ describe('Mynah thief', () => {
   it('refunds stolen coins exactly once if killed before it escapes', () => {
     const c = context();
     c.w.gold = 1;
-    const e = spawnEnemy(c, CONTENT.enemies['mynah-thief'], 0, { y: FIELD.reachY });
+    const e = spawnEnemy(c, CONTENT.enemies['mynah-thief'], 0, { y: c.p.y });
     updateEnemies(c);
     expect(c.w.gold).toBe(0); // cannot take more than the jar holds
     killEnemy(c, e);
@@ -59,7 +55,7 @@ describe('Mynah thief', () => {
     updateEnemies(c);
     expect(drainEvents(c.w).some(ev => ev.t === 'theft')).toBe(false);
     c.w.gold = 0;
-    spawnEnemy(c, CONTENT.enemies['mynah-thief'], 0, { y: FIELD.reachY });
+    spawnEnemy(c, CONTENT.enemies['mynah-thief'], 0, { y: c.p.y });
     updateEnemies(c);
     expect(c.w.gold).toBe(0);
   });
@@ -68,7 +64,7 @@ describe('Mynah thief', () => {
     const c = context();
     c.w.phase = 'wave';
     c.w.budgetLeft = 0;
-    const e = spawnEnemy(c, CONTENT.enemies['mynah-thief'], 0, { y: FIELD.reachY });
+    const e = spawnEnemy(c, CONTENT.enemies['mynah-thief'], 0, { y: c.p.y });
     e.statuses.push({ id: 'freeze', time: 1, stacks: 1, dps: 0, amount: 0 });
     c.w.gold = 10;
     updateEnemies(c);
@@ -77,7 +73,7 @@ describe('Mynah thief', () => {
     e.statuses = [];
     updateEnemies(c);
     e.hp = 1;
-    for (let i = 0; i < 90 && c.w.kills === 0; i++) step(c.w, 1 / 60, { targetX: null, moving: false });
+    for (let i = 0; i < 90 && c.w.kills === 0; i++) step(c.w, 1 / 60, {});
     expect(c.w.kills).toBe(1);
     expect(c.w.gold).toBeGreaterThanOrEqual(10);
   });

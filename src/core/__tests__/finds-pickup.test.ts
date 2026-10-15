@@ -1,4 +1,4 @@
-// Free mode street finds: a tiffin pickup scrolls down the street, touching it opens a three-card choice, picking grants that card.
+// Street finds: a tiffin pickup scrolls down the street, touching it opens a three-card choice, picking grants that card.
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../../content';
 import { autoInput, autoPick } from '../autoplay';
@@ -9,11 +9,10 @@ import { chooseCard, createRun, drainEvents, reroll, step } from '../sim';
 import { FIELD, type RunInput, type World } from '../types';
 
 const DT = 1 / 30;
-const still: RunInput = { targetX: null, moving: false };
-const COUNTER = { ...CONTENT, tune: { ...CONTENT.tune, controlMode: 'counter' as const } };
+const still: RunInput = {};
 
-const fresh = (seed = 11, content = CONTENT): World => {
-  const w = createRun({ seed, content });
+const fresh = (seed = 11): World => {
+  const w = createRun({ seed, content: CONTENT });
   w.phase = 'wave';
   w.wave = 1;
   return w;
@@ -34,13 +33,12 @@ function touching(): World {
   return w;
 }
 
-describe('free mode tiffin pickup', () => {
+describe('tiffin pickup', () => {
   it('spawns at the find stop (no grant yet) at the top of the street, with three distinct cards', () => {
     const w = fresh();
     runUntil(w, (x) => !!x.pickup);
     expect(w.dist).toBeGreaterThanOrEqual(PICK_EVERY);
     expect(w.finds ?? []).toHaveLength(0);
-    expect(w.find).toBeUndefined();
     expect(w.pickup!.offer).toHaveLength(3);
     expect(w.pickup!.y).toBeLessThanOrEqual(FIELD.freeMaxY);
     expect(Math.abs(w.pickup!.x)).toBeLessThanOrEqual(FIELD.kannanMaxX);
@@ -111,14 +109,6 @@ describe('free mode tiffin pickup', () => {
     const w = fresh(5);
     w.finds = Array.from({ length: MAX_FINDS }, () => ({ kind: 'passive', id: 'strong-wrists', level: 1 }) as never);
     spawnPickup(w, makeRng(3));
-    expect(w.pickup).toBeUndefined();
-  });
-
-  it('counter mode is unchanged: the find is granted at once with a swap window, no pickup', () => {
-    const w = fresh(11, COUNTER);
-    runUntil(w, (x) => (x.finds?.length ?? 0) > 0);
-    expect(w.finds).toHaveLength(1);
-    expect(w.find).toBeDefined();
     expect(w.pickup).toBeUndefined();
   });
 

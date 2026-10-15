@@ -156,8 +156,6 @@ export class Actors {
   private zoneStamp = new Map<number, number>();
   private corpses: Corpse[] = [];
   private trailCount = 0;
-  /** Free runs: thrown breads are drawn bigger, spin faster and leave a longer trail (combat-feel.md). */
-  freeShots = false;
   private spent: { v: ShotView | null; t: number }[] = Array.from({ length: 24 }, () => ({ v: null, t: 0 }));
 
   constructor(
@@ -236,10 +234,6 @@ export class Actors {
     if (!v) return;
     v.squash = 1;
     if (dip) v.dip = dip;
-  }
-
-  counterHit(): void {
-    for (const v of this.enemies) if (v.attacking) v.attackT = 0.16;
   }
 
   aim(uid: number, from: number, until: number): void {
@@ -820,14 +814,14 @@ export class Actors {
       }
     }
     if (s.loaded || s.charged) v.dia *= 1.65;
-    if (this.freeShots && !enemy && (s.motion === 'straight' || s.motion === 'boomerang')) v.dia *= SHOT_BOOST;
+    if (!enemy && (s.motion === 'straight' || s.motion === 'boomerang')) v.dia *= SHOT_BOOST;
     if (s.charged) {
       const image = v.img ?? v.disc?.img;
       if (image) image.scene.tweens.add({ targets: image, alpha: 0.6, duration: 140, yoyo: true, repeat: 2 });
     }
     // Three fading copies per moving bread, capped at 48 atlas images for the whole arena.
     if (!enemy && !this.reduceMotion && !s.flake && (s.motion === 'straight' || s.motion === 'boomerang' || s.motion === 'lob') && this.trailCount < 60) {
-      const n = this.freeShots ? 5 : 3;
+      const n = 5;
       for (let i = 0; i < n; i++) v.trail.push({ img: this.imgs.get(s.sprite).setVisible(false), x: 0, y: 0, k: 1, spin: 0, t: 1 });
       this.trailCount += n;
     }

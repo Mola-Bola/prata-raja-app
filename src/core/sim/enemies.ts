@@ -6,13 +6,11 @@ import { bossPhase, updateBoss } from './boss';
 import { alive, cdGet, clamp, dist, ELITE_CONTACT, emit, enemyShot, enemySpeed, hurtPlayer, hyp, iFramesFor, MAX_ENEMY_Y, type Ctx } from './ctx';
 import { aimAt, CROWD, separate } from './crowd';
 import { DOT_BURN, DOT_SUGAR, dotDamage, flushDot, killEnemy } from './hit';
-import { FREE, isFree } from './free';
+import { FREE } from './free';
 import { spawnEnemy } from './spawn';
 
-/** Slack for "at the counter" (the walk clamps enemies to reachY; a shove moves them well off it). */
-const AT_COUNTER = 0.5;
 const CONTACT_EVERY = 0.5;
-/** Free mode: how far (u) a pest that just hit Kannan bounces back. */
+/** How far (u) a pest that just hit Kannan bounces back. */
 const CONTACT_BUMP = 14;
 const PI2 = Math.PI * 2;
 
@@ -28,7 +26,7 @@ function lateralX(e: Enemy): number {
   return clamp(cdGet(e, 'bx') + wobble(e, cdGet(e, '_mt')), -FIELD.halfWidth, FIELD.halfWidth);
 }
 
-// ── Free mode: pests chase Kannan's (x, y) ───────────────────────────────────
+// ── Pests chase Kannan's (x, y) ───────────────────────────────────
 
 /** Distance between centres at which a pest touches Kannan. */
 const touchR = (e: Enemy): number => e.def.radius * FREE.contactScale + FIELD.kannanRadius;
@@ -57,7 +55,8 @@ function chase(c: Ctx, e: Enemy, step: number, stopAt: number, mtOld: number): v
   e.y = clamp(e.y + (dy / d) * fw + (dx / d) * (wob + side), -40, MAX_ENEMY_Y);
 }
 
-function walkFree(c: Ctx, e: Enemy): void {
+/** Chase Kannan and bite on touch (walker, tank, splitter, shielded, runner, flyer, swarm and the walking half of the rest). */
+function walk(c: Ctx, e: Enemy): void {
   const { p } = c;
   const reach = touchR(e);
   if (hyp(p.x - e.x, p.y - e.y) <= reach + 6) {
@@ -76,19 +75,9 @@ function walkFree(c: Ctx, e: Enemy): void {
   if (hyp(p.x - e.x, p.y - e.y) <= reach + 1) e.state = 'attack';
 }
 
-/** Counter mode: contact damage while at the counter, aggregated into one 'playerHit' per CONTACT_EVERY (flushContact).
- *  Free mode: one discrete hit per pest per CONTACT_EVERY (damage = its dps x that), blocked by Kannan's dash and hit i-frames; a hit sets
+/** One discrete hit per pest per CONTACT_EVERY (damage = its dps x that), blocked by Kannan's dash and hit i-frames; a hit sets
  *  the i-frames (ctx.iFramesFor) and bumps the pest back a little, so a swarm lands one hit per i-frame window, not all at once. */
 function contact(c: Ctx, e: Enemy): void {
-  if (isFree(c)) return contactFree(c, e);
-  const dmg = e.def.contactDps * (e.elite ? ELITE_CONTACT : 1) * (1 + c.p.stats.dmgTakenPct) * c.dt;
-  if (dmg <= 0 || c.p.dashT > 0) return;
-  if (!c.w.god) c.p.hp -= dmg;
-  c.p.hurtAnim = 0.2;
-  c.w.contactAcc = (c.w.contactAcc ?? 0) + dmg;
-}
-
-function contactFree(c: Ctx, e: Enemy): void {
   const { p } = c;
   const left = cdGet(e, '_ch') - c.dt;
   e.cooldowns._ch = Math.max(0, left);
@@ -100,37 +89,6 @@ function contactFree(c: Ctx, e: Enemy): void {
   p.iT = iFramesFor(dmg, p.stats.maxHp);
   if (e.def.kind !== 'tank') e.knock += CONTACT_BUMP;
   emit(c, { t: 'playerHit', dmg, source: 'contact' });
-}
-
-export function flushContact(c: Ctx, force = false): void {
-  const { w } = c;
-  w.contactT = (w.contactT ?? 0) + c.dt;
-  if (!force && w.contactT < CONTACT_EVERY) return;
-  w.contactT = force ? 0 : w.contactT - CONTACT_EVERY;
-  const acc = w.contactAcc ?? 0;
-  if (acc > 0) emit(c, { t: 'playerHit', dmg: acc, source: 'contact' });
-  w.contactAcc = 0;
-}
-
-/** Plain walk toward the counter (walker, tank, splitter, shielded, runner, flyer, swarm and the walking half of the rest). */
-function walk(c: Ctx, e: Enemy): void {
-  if (isFree(c)) return walkFree(c, e);
-  if (e.state === 'attack') {
-    if (e.y <= FIELD.reachY + AT_COUNTER) {
-      contact(c, e);
-      return;
-    }
-    e.state = 'walk';
-  }
-  const slow = speedMul(e);
-  e.cooldowns._mt = cdGet(e, '_mt') + c.dt * slow;
-  if (e.def.dash) e.t += c.dt;
-  e.y -= enemySpeed(e, slow) * c.dt * (e.def.kind === 'swarm' ? 1 + 0.1 * Math.sin(cdGet(e, '_mt') * 3 + cdGet(e, 'ph')) : 1);
-  if (e.def.speed > 0) e.x = lateralX(e);
-  if (e.y <= FIELD.reachY) {
-    e.y = FIELD.reachY;
-    e.state = 'attack';
-  }
 }
 
 /** A mynah raids the tip jar once, then flies back up the street; it can still be killed in flight. */
@@ -155,31 +113,19 @@ function updateThief(c: Ctx, e: Enemy): void {
 
 /** Shooters and healers walk to their holdY, then park. True once parked. */
 function holdAt(c: Ctx, e: Enemy): boolean {
-  if (isFree(c)) {
-    const hold = e.holdY * FREE.holdScale;
-    const d = hyp(c.p.x - e.x, c.p.y - e.y);
-    if (d > hold) {
-      const slow = speedMul(e);
-      const mt = cdGet(e, '_mt');
-      e.cooldowns._mt = mt + c.dt * slow;
-      chase(c, e, enemySpeed(e, slow) * FREE.pestSpeed * c.dt, hold, mt);
-    }
-    e.state = hyp(c.p.x - e.x, c.p.y - e.y) <= hold + 0.5 ? 'hold' : 'walk';
-    return e.state === 'hold';
-  }
-  if (e.y > e.holdY) {
+  const hold = e.holdY * FREE.holdScale;
+  const d = hyp(c.p.x - e.x, c.p.y - e.y);
+  if (d > hold) {
     const slow = speedMul(e);
-    e.cooldowns._mt = cdGet(e, '_mt') + c.dt * slow;
-    e.y = Math.max(e.holdY, e.y - enemySpeed(e, slow) * c.dt);
-    if (e.def.speed > 0) e.x = lateralX(e);
-    e.state = e.y <= e.holdY ? 'hold' : 'walk';
-  } else {
-    e.state = 'hold';
+    const mt = cdGet(e, '_mt');
+    e.cooldowns._mt = mt + c.dt * slow;
+    chase(c, e, enemySpeed(e, slow) * FREE.pestSpeed * c.dt, hold, mt);
   }
+  e.state = hyp(c.p.x - e.x, c.p.y - e.y) <= hold + 0.5 ? 'hold' : 'walk';
   return e.state === 'hold';
 }
 
-function fireEnemyShot(c: Ctx, e: Enemy, tx: number, ty = 0): void {
+function fireEnemyShot(c: Ctx, e: Enemy, tx: number, ty: number): void {
   const r = e.def.ranged;
   if (!r) return;
   c.w.projectiles.push(enemyShot(c, e.x, e.y, tx, r.dmg, r.projSpeed, r.projSprite, false, ty));
@@ -203,9 +149,9 @@ function updateShooter(c: Ctx, e: Enemy): void {
     if (cd._cd <= 0) {
       cd._aim = 1;
       cd._tx = c.p.x;
-      cd._ty = isFree(c) ? c.p.y : 0;
+      cd._ty = c.p.y;
       e.t = r.aimTime;
-      emit(c, { t: 'aim', uid: e.uid, x: e.x, y: e.y, tx: c.p.x, time: r.aimTime, ...(isFree(c) ? { ty: c.p.y } : {}) });
+      emit(c, { t: 'aim', uid: e.uid, x: e.x, y: e.y, tx: c.p.x, time: r.aimTime, ty: c.p.y });
     }
   }
 }
@@ -245,8 +191,8 @@ function updateExploder(c: Ctx, e: Enemy): void {
     e.t -= c.dt;
     if (e.t <= 0) {
       emit(c, { t: 'blast', x: e.x, y: e.y, radius: x.radius, color: null });
-      // it only hurts Kannan if it is still at the counter and he stands inside the blast
-      if (isFree(c) ? hyp(c.p.x - e.x, c.p.y - e.y) <= x.radius : e.y <= FIELD.reachY + AT_COUNTER && Math.abs(c.p.x - e.x) <= x.radius) hurtPlayer(c, x.dmg, 'explode');
+      // it only hurts Kannan if he stands inside the blast
+      if (hyp(c.p.x - e.x, c.p.y - e.y) <= x.radius) hurtPlayer(c, x.dmg, 'explode');
       e.state = 'dead'; // blows up without a kill: no xp, no gold
     }
     return;
@@ -279,13 +225,11 @@ export function updateEnemies(c: Ctx): void {
     if (e.knock > 0) {
       const remaining = remainingKnockback(e.knock, dt);
       const move = e.knock - remaining;
-      if (isFree(c)) {
-        const dx = e.x - c.p.x;
-        const dy = e.y - c.p.y;
-        const d = hyp(dx, dy) || 1;
-        e.x = clamp(e.x + (dx / d) * move, -FIELD.halfWidth, FIELD.halfWidth);
-        e.y = Math.min(e.y + (dy / d) * move, MAX_ENEMY_Y);
-      } else e.y = Math.min(e.y + move, MAX_ENEMY_Y);
+      const dx = e.x - c.p.x;
+      const dy = e.y - c.p.y;
+      const d = hyp(dx, dy) || 1;
+      e.x = clamp(e.x + (dx / d) * move, -FIELD.halfWidth, FIELD.halfWidth);
+      e.y = Math.min(e.y + (dy / d) * move, MAX_ENEMY_Y);
       e.knock = remaining;
     }
     if (e.statuses.length > 0 || cdGet(e, '_da') > 0) {
@@ -329,11 +273,11 @@ export function updateEnemies(c: Ctx): void {
         walk(c, e);
     }
   }
-  if (isFree(c)) separate(c);
-  flushContact(c);
+  separate(c);
+  w.contactT = ((w.contactT ?? 0) + dt) % CONTACT_EVERY; // phase for the pests' bite wind-up (actors.ts)
 }
 
-/** Enemy projectiles fly to (tx, 0). On arrival they hit Kannan if he stands within kannanHitHalfWidth of it. */
+/** Enemy projectiles fly straight on and hit Kannan if they touch him; a dash lets them through (hurtPlayer). */
 export function updateEnemyShots(c: Ctx): void {
   const list = c.w.projectiles;
   for (let i = 0; i < list.length; i++) {
@@ -343,18 +287,9 @@ export function updateEnemyShots(c: Ctx): void {
     s.spin += 10 * c.dt;
     s.x += s.vx * c.dt;
     s.y += s.vy * c.dt;
-    if (isFree(c)) {
-      // flies straight on and hits Kannan if it touches him; a dash lets it through (hurtPlayer)
-      if (c.p.dashT <= 0 && dist(s.x, s.y, c.p.x, c.p.y) <= s.radius + FREE.shotHit) {
-        s.ttl = -1;
-        hurtPlayer(c, s.dmg, s.hopsLeft === 1 ? 'boss' : 'shot');
-      } else if (s.t >= s.ttl - 0.5 || s.y < -80 || s.y > MAX_ENEMY_Y + 40 || Math.abs(s.x) > FIELD.halfWidth + 80) s.ttl = -1;
-    } else if (s.y <= 0) {
+    if (c.p.dashT <= 0 && dist(s.x, s.y, c.p.x, c.p.y) <= s.radius + FREE.shotHit) {
       s.ttl = -1;
-      if (Math.abs(s.tx - c.p.x) <= FIELD.kannanHitHalfWidth) hurtPlayer(c, s.dmg, s.hopsLeft === 1 ? 'boss' : 'shot');
-      else emit(c, { t: 'splat', x: s.tx });
-    } else if (s.t >= s.ttl) {
-      s.ttl = -1;
-    }
+      hurtPlayer(c, s.dmg, s.hopsLeft === 1 ? 'boss' : 'shot');
+    } else if (s.t >= s.ttl - 0.5 || s.y < -80 || s.y > MAX_ENEMY_Y + 40 || Math.abs(s.x) > FIELD.halfWidth + 80) s.ttl = -1;
   }
 }

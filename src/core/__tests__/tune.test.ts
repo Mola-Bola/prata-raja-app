@@ -4,7 +4,7 @@ import { applyTune, cleanOverrides, tuneKnobs } from '../tune';
 import { createRun, step } from '../sim';
 
 const knobs = tuneKnobs(CONTENT);
-const input = { targetX: null, moving: false };
+const input = {};
 
 describe('tune overlay', () => {
   it('generates knobs from the tables', () => {

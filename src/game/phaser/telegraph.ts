@@ -7,15 +7,13 @@ import { ImagePool, type Img } from './pools';
 import { setImage } from './tex';
 
 type Aim = { uid: number; fx: number; fy: number; tx: number; ty: number; t0: number; until: number };
-/** `ys` (free mode): the street y of each marked x; absent = marks sit on the counter. */
-type Tell = { kind: BossAttack['kind']; uid: number; xs: number[]; ys?: number[]; width: number; t0: number; until: number };
+/** `ys`: the street y of each marked x. */
+type Tell = { kind: BossAttack['kind']; uid: number; xs: number[]; ys: number[]; width: number; t0: number; until: number };
 
 /** Fills `out` with the live field position of an enemy; false when it is gone. */
 export type Locator = (uid: number, out: { x: number; y: number }) => boolean;
 
 const TAU = Math.PI * 2;
-/** Landing marks sit just above the counter line (field y = 0 itself is behind the counter). */
-const LANDING_Y = FIELD.reachY + 14;
 const DASH = 12;
 const GAP = 9;
 
@@ -41,12 +39,12 @@ export class Telegraphs {
     this.used++;
   }
 
-  aim(uid: number, fx: number, fy: number, tx: number, now: number, time: number, ty = LANDING_Y): void {
+  aim(uid: number, fx: number, fy: number, tx: number, now: number, time: number, ty: number): void {
     this.aims.push({ uid, fx, fy, tx, ty, t0: now, until: now + time });
   }
 
-  tell(kind: BossAttack['kind'], uid: number, xs: number[], width: number, now: number, time: number, ys?: number[]): void {
-    this.tells.push({ kind, uid, xs: xs.slice(), ys: ys?.slice(), width, t0: now, until: now + time });
+  tell(kind: BossAttack['kind'], uid: number, xs: number[], width: number, now: number, time: number, ys: number[]): void {
+    this.tells.push({ kind, uid, xs: xs.slice(), ys: ys.slice(), width, t0: now, until: now + time });
   }
 
   clear(): void {
@@ -90,7 +88,7 @@ export class Telegraphs {
     this.reticle(to.sx, to.sy, (FIELD.kannanHitHalfWidth * 2 + 14) * P.ppu, p);
   }
 
-  /** A hazard ellipse on the counter with a ring that closes in on it as the shot nears. */
+  /** A hazard ellipse on the ground with a ring that closes in on it as the shot nears. */
   private reticle(x: number, y: number, w: number, p: number): void {
     const pulse = 1 + 0.1 * Math.sin(p * TAU * 3);
     this.mark('fx/levelup-ring', x, y, w * pulse, w * 0.48 * pulse, HAZARD, 0.95);
@@ -145,14 +143,12 @@ export class Telegraphs {
         break;
       case 'rain':
         t.xs.forEach((x, i) => {
-          const y = t.ys ? t.ys[i] : 45;
-          if (!t.ys) this.band(x - half, x + half, 0, 90, fill + 0.08, edge, u);
-          const c = P.at(x, y);
+          const c = P.at(x, t.ys[i]);
           this.reticle(c.sx, c.sy, half * 2 * P.ppu * c.s, p);
         });
         break;
       case 'sweep':
-        for (const x of t.xs) this.band(x - half, x + half, 0, t.ys ? FIELD.depth : 150, fill, edge, u);
+        for (const x of t.xs) this.band(x - half, x + half, 0, FIELD.depth, fill, edge, u);
         break;
       case 'volley': {
         const live = this.locate(t.uid, this.at);
@@ -160,7 +156,7 @@ export class Telegraphs {
         const ax = from.sx;
         const ay = from.sy;
         t.xs.forEach((x, i) => {
-          const to = P.at(x, t.ys ? t.ys[i] : LANDING_Y);
+          const to = P.at(x, t.ys[i]);
           this.dashed(ax, ay, to.sx, to.sy, u, 0.8);
           this.reticle(to.sx, to.sy, t.width * P.ppu, p);
         });
