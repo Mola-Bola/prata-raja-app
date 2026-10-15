@@ -1,0 +1,287 @@
+<title>Prata Raja v2 Looks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
+<style>
+/* Layout: a review sheet. Short intro, then two rows (Look A, Look B), each a strip of four phone screens built from the game's real art. */
+:root{
+  --page:#F3EFE8; --ink:#241A12; --muted:#6B5D50; --line:#D9CFC2; --card:#FFFFFF; --accent:#C8641C;
+  --display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page:#16130F;--ink:#F3EADF;--muted:#B3A595;--line:#3A332B;--card:#211C17;--accent:#F0A060;color-scheme:dark}}
+:root[data-theme="dark"]{--page:#16130F;--ink:#F3EADF;--muted:#B3A595;--line:#3A332B;--card:#211C17;--accent:#F0A060;color-scheme:dark}
+body{background:var(--page);color:var(--ink);font-family:var(--body);padding-inline:16px;padding-block:24px 48px;line-height:1.5}
+.wrap{max-width:1320px;margin:0 auto;display:grid;gap:28px}
+h1{font-family:var(--display);font-weight:700;font-size:30px;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:22px;margin:0}
+.intro{max-width:68ch;color:var(--muted);margin:6px 0 0;font-size:15px}
+.intro b{color:var(--ink)}
+.look{display:grid;gap:12px}
+.look header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px}
+.look header p{margin:0;color:var(--muted);font-size:15px;min-width:0}
+.tag{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.strip{display:flex;gap:18px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x mandatory}
+figure{margin:0;flex:0 0 auto;scroll-snap-align:start;display:grid;gap:8px}
+figcaption{font-size:13px;color:var(--muted);max-width:300px}
+figcaption b{color:var(--ink);font-family:var(--display);font-weight:600;font-size:15px}
+.notes{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:6px;font-size:15px;max-width:72ch}
+.notes p{margin:0}
+
+/* ── Phone screens. Each look sets its own surface tokens; the art is the game's real sprites. ── */
+.phone{width:300px;height:620px;border-radius:28px;overflow:hidden;position:relative;box-shadow:0 10px 30px rgba(0,0,0,.25);font-family:var(--body);color:var(--t);background:#1b1410}
+.A{--sheet:#FFF6E6;--sheet2:#FBE9CC;--t:#2B1D14;--t2:#6A5240;--edge:#7A4A22;--go:#F08A24;--goT:#2B1D14;--goLip:#B85F10;--up:#2E8B57;--down:#C0392B;--chip:#FFFFFF;--glass:rgba(255,246,230,.96);--hudbg:rgba(255,246,230,.92);--hudT:#2B1D14;--hl:#F08A24;--blur:none}
+.B{--sheet:rgba(20,26,48,.88);--sheet2:rgba(255,255,255,.07);--t:#FFF4DC;--t2:#C9BFA8;--edge:rgba(255,190,90,.55);--go:#62C24B;--goT:#10200C;--goLip:#3A8A2A;--up:#7CE07C;--down:#FF8A7A;--chip:rgba(255,255,255,.08);--glass:rgba(20,26,48,.86);--hudbg:rgba(14,18,34,.72);--hudT:#FFF4DC;--hl:#FFB347;--blur:blur(8px)}
+.phone *{box-sizing:border-box}
+.fill{position:absolute;inset:0;background-size:cover;background-position:center}
+.disp{font-family:var(--display)}
+.hud{position:absolute;left:10px;right:10px;top:10px;display:flex;align-items:center;gap:6px;z-index:3}
+.pill{background:var(--hudbg);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);color:var(--hudT);border-radius:999px;padding:4px 10px 4px 4px;display:flex;align-items:center;gap:6px;font-weight:800;font-size:13px;border:2px solid var(--edge)}
+.ring{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:15px;color:var(--hudT);background:conic-gradient(var(--hl) 0 62%, rgba(128,128,128,.35) 0);position:relative}
+.ring::after{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--hudbg)}
+.ring span{position:relative;z-index:1}
+.pill img{width:22px;height:22px;object-fit:contain}
+.sp{flex:1}
+.round{width:36px;height:36px;border-radius:50%;background:var(--hudbg);border:2px solid var(--edge);display:grid;place-items:center;color:var(--hudT);font-weight:800}
+.go{background:var(--go);color:var(--goT);font-family:var(--display);font-weight:700;font-size:18px;border-radius:16px;box-shadow:0 4px 0 var(--goLip);padding:12px 16px;text-align:center}
+.plain{background:var(--chip);color:var(--t);border:2px solid var(--edge);font-family:var(--display);font-weight:600;font-size:16px;border-radius:16px;padding:10px 14px;text-align:center}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-top:3px solid var(--edge);border-radius:22px 22px 0 0;padding:14px 14px 16px;z-index:4}
+.cap{font-size:13px;color:var(--t2);font-weight:700}
+.num{font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .dn{color:var(--down)}
+
+/* hub */
+.station{position:absolute;z-index:3;display:flex;align-items:center;gap:6px;background:var(--hudbg);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:2px solid var(--edge);border-radius:14px;padding:4px 9px 4px 5px;color:var(--hudT)}
+.station img{width:26px;height:26px;object-fit:contain}
+.station b{font-family:var(--display);font-weight:600;font-size:15px;display:block;line-height:1.1}
+.station small{display:block;font-size:13px;color:var(--t2);font-weight:700;line-height:1.15}
+.station.next{border-color:var(--hl);box-shadow:0 0 0 3px color-mix(in srgb,var(--hl) 45%,transparent)}
+.nextpill{position:absolute;left:12px;right:12px;bottom:84px;z-index:3;background:var(--hudbg);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:2px solid var(--hl);border-radius:14px;padding:8px 10px;display:flex;gap:8px;align-items:center;color:var(--hudT);font-size:14px;font-weight:800}
+.nextpill img{width:30px;height:30px}
+.gobar{position:absolute;left:12px;right:12px;bottom:16px;z-index:3;display:flex;gap:8px}
+.gobar .go{flex:1}
+
+/* kitchen */
+.kitchen{position:absolute;inset:0;background:var(--sheet);display:flex;flex-direction:column}
+.B .kitchen{background:#141A30}
+.khead{display:flex;align-items:center;gap:8px;padding:14px 14px 8px}
+.khead h3{margin:0;font-family:var(--display);font-weight:700;font-size:22px;flex:1}
+.x{width:34px;height:34px;border-radius:50%;border:2px solid var(--edge);display:grid;place-items:center;font-weight:800}
+.stat{margin:0 12px;border:2px solid var(--edge);border-radius:16px;background:var(--sheet2);padding:8px 10px;display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.stat div{display:grid;justify-items:center}
+.stat .v{font-family:var(--display);font-weight:700;font-size:18px}
+.stat .d{font-size:13px;font-weight:800}
+.stat .full{grid-column:1/-1;justify-items:start;font-size:13px;font-weight:700;color:var(--t2);border-top:1px dashed var(--edge);margin-top:4px;padding-top:4px}
+.kbody{flex:1;overflow:hidden;padding:10px 12px;display:grid;gap:10px;align-content:start}
+.sec{display:grid;gap:6px}
+.sec h4{margin:0;font-family:var(--display);font-weight:600;font-size:15px;display:flex;justify-content:space-between}
+.roti{display:flex;gap:10px;align-items:center;border:2px solid var(--hl);border-radius:14px;padding:6px 8px;background:var(--chip)}
+.roti img{width:46px;height:46px;object-fit:contain}
+.roti b{font-family:var(--display);font-weight:600;font-size:16px}
+.roti small{display:block;font-size:13px;color:var(--t2);font-weight:700}
+.katori{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.kat{border:2px solid var(--edge);border-radius:14px;padding:6px;display:flex;gap:6px;align-items:center;background:var(--chip);min-width:0}
+.kat img{width:30px;height:30px;object-fit:contain}
+.kat b{font-size:13px;font-weight:800;display:block;line-height:1.1}
+.kat small{font-size:13px;color:var(--t2);font-weight:700;line-height:1.15;display:block}
+.kat.empty{border-style:dashed;justify-content:center;color:var(--t2);font-weight:800;font-size:13px}
+.kat.sel{border-color:var(--hl);box-shadow:0 0 0 2px color-mix(in srgb,var(--hl) 40%,transparent)}
+.shelf{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.shelf div{border:2px solid var(--edge);border-radius:12px;display:grid;justify-items:center;padding:3px 0;background:var(--chip);font-size:13px;font-weight:800}
+.shelf img{width:30px;height:30px;object-fit:contain}
+.shelf .on{border-color:var(--hl)}
+.gear{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.gear div{border:2px solid var(--edge);border-radius:12px;aspect-ratio:1;display:grid;place-items:center;position:relative;background:var(--chip);max-width:100%}
+.gear img{width:34px;height:34px;object-fit:contain}
+.gear i{position:absolute;right:2px;bottom:0;font-style:normal;font-size:13px;font-weight:800}
+.gear .upg{border-color:var(--up)}
+.gear .upg::after{content:"▲";position:absolute;top:0;right:3px;font-size:13px;color:var(--up)}
+.kfoot{padding:10px 12px 14px;display:flex;gap:8px}
+.kfoot .go{flex:1}
+
+/* run */
+.road{position:absolute;inset:0;background:url(img/kopitiam-road.webp) center/170px repeat-y,#4a4a4a}
+.kerbL,.kerbR{position:absolute;top:0;bottom:0;width:66px;background-size:66px auto;background-repeat:repeat-y}
+.kerbL{left:0;background-image:url(img/kopitiam-left-1.webp)} .kerbR{right:0;background-image:url(img/kopitiam-right-1.webp)}
+.spr{position:absolute;object-fit:contain}
+.dist{position:absolute;top:52px;left:60px;right:60px;z-index:3;display:grid;gap:3px;justify-items:center}
+.dist .bar{width:100%;height:8px;border-radius:99px;background:var(--hudbg);border:2px solid var(--edge);overflow:hidden}
+.dist .bar i{display:block;height:100%;width:53%;background:var(--hl)}
+.dist span{font-size:13px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+.dodge{position:absolute;right:14px;bottom:16px;width:62px;height:62px;border-radius:50%;background:var(--go);color:var(--goT);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:14px;box-shadow:0 4px 0 var(--goLip);z-index:3}
+.dim{position:absolute;inset:0;background:rgba(10,8,6,.55);z-index:4}
+.gift{position:absolute;left:10px;right:10px;top:96px;z-index:5;display:grid;gap:7px}
+.gift h3{margin:0;text-align:center;font-family:var(--display);font-weight:700;font-size:19px;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.6)}
+.gift .sub{text-align:center;color:#F1E6D2;font-size:13px;font-weight:700;margin-top:-4px}
+.card{background:var(--sheet);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:2px solid var(--edge);border-radius:16px;padding:8px 10px;display:grid;grid-template-columns:44px 1fr;gap:2px 10px;align-items:center}
+.B .card{background:rgba(20,26,48,.94)}
+.card img{width:44px;height:44px;object-fit:contain;grid-row:span 3}
+.card b{font-family:var(--display);font-weight:600;font-size:16px;display:flex;gap:6px;align-items:center}
+.card em{font-style:normal;font-size:13px;font-weight:800;border-radius:99px;padding:0 7px;background:var(--hl);color:#2B1D14}
+.card .eff{font-size:13px;font-weight:700;color:var(--t2)}
+.card .delta{font-size:13px;font-weight:800}
+.card.pick{border-color:var(--hl);box-shadow:0 0 0 3px color-mix(in srgb,var(--hl) 45%,transparent)}
+
+/* results */
+.res{position:absolute;left:0;right:0;bottom:0;top:180px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-top:3px solid var(--edge);border-radius:24px 24px 0 0;padding:14px;display:flex;flex-direction:column;gap:9px}
+.res h3{margin:0;text-align:center;font-family:var(--display);font-weight:700;font-size:22px}
+.big{text-align:center;font-family:var(--display);font-weight:700;font-size:36px;line-height:1}
+.big small{display:block;font-family:var(--body);font-size:13px;font-weight:700;color:var(--t2)}
+.loot{display:grid;gap:5px}
+.lrow{display:flex;align-items:center;gap:8px;border:2px solid var(--edge);border-radius:14px;padding:5px 9px;background:var(--chip);font-weight:800;font-size:14px}
+.lrow img{width:30px;height:30px;object-fit:contain}
+.lrow .sp{flex:1}
+.xp{height:8px;border-radius:99px;background:rgba(128,128,128,.3);overflow:hidden;margin-top:3px}
+.xp i{display:block;height:100%;width:78%;background:var(--hl)}
+.nextc{border:2px solid var(--hl);border-radius:14px;padding:7px 9px;display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px}
+.nextc img{width:32px;height:32px}
+.nextc .arrow{margin-left:auto;font-family:var(--display);color:var(--hl);font-size:18px}
+.rbtn{display:flex;gap:8px;margin-top:auto}
+.rbtn .go{flex:1.4} .rbtn .plain{flex:1}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <div>
+    <h1>Prata Raja v2 Looks</h1>
+    <p class="intro">Two directions for the rebuilt screens, made from the game's real art. Same layout and copy in both; only the look differs. <b>Kitchen</b> is the new single build screen (roti, katori dips, gear, live stat card with before → after). Pick a look, or tell me what to steal from each.</p>
+  </div>
+
+  <section class="look" id="lookA">
+    <header><span class="tag">Look A</span><h2>Market morning</h2><p>Warm cream sheets, chunky orange buttons, the current baseline made tidy. Reads like a friendly menu.</p></header>
+    <div class="strip" data-look="A"></div>
+  </section>
+
+  <section class="look" id="lookB">
+    <header><span class="tag">Look B</span><h2>Night hawker</h2><p>Dark glass panels over the art, amber highlights, leaf-green GO. Reads like an action game at night; the art does more of the talking.</p></header>
+    <div class="strip" data-look="B"></div>
+  </section>
+
+  <div class="notes">
+    <p><b>Same in both:</b> four hub places only (Kitchen, Spec board, Kopi uncle, Street); one pulsing next step; every effect has a number and every change shows before → after.</p>
+    <p><b>Gift choice:</b> the run pauses, each card says what it is, what it does in numbers, and what changes for you.</p>
+    <p><b>Results:</b> loot appears one row at a time, and the one next-step button opens the screen it names.</p>
+  </div>
+</div>
+
+<template id="screens">
+  <figure>
+    <div class="phone">
+      <div class="fill" style="background-image:url(img/hub.jpg)"></div>
+      <div class="hud">
+        <div class="pill"><div class="ring"><span>8</span></div>Kannan</div>
+        <div class="sp"></div>
+        <div class="pill"><img src="img/coins.webp" alt="">1,240</div>
+        <div class="round">⚙</div>
+      </div>
+      <div class="station" style="left:96px;top:226px"><img src="img/icon-tawa.webp" alt=""><div><b>Kitchen</b><small>Roti, dips, gear</small></div></div>
+      <div class="station next" style="left:150px;top:300px"><img src="img/mint-chutney.webp" alt=""><div><b>New dip!</b><small>Socket it</small></div></div>
+      <div class="station" style="left:12px;top:150px"><img src="img/icon-kopi-cup.webp" alt=""><div><b>Kopi</b><small>Meal buff</small></div></div>
+      <div class="station" style="right:12px;top:118px"><img src="img/icon-chalkboard-v2.webp" alt=""><div><b>Street</b><small>Pick a place</small></div></div>
+      <div class="station" style="left:12px;top:420px"><img src="img/kannan-cheer.webp" alt="" style="object-position:top"><div><b>Spec board</b><small>2 points to spend</small></div></div>
+      <div class="nextpill"><img src="img/mint-chutney.webp" alt="">Next: put Mint Chutney in a katori</div>
+      <div class="gobar"><div class="go">GO · Kopitiam Street</div></div>
+    </div>
+    <figcaption><b>Hub</b><br>Four places, signed. The next step glows and says what to do.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="phone">
+      <div class="kitchen">
+        <div class="khead"><img src="img/icon-tawa.webp" alt="" style="width:30px"><h3>Kitchen</h3><div class="x">✕</div></div>
+        <div class="stat">
+          <div><span class="cap">Dmg/s</span><span class="v num">15.4</span><span class="d up num">+3.4</span></div>
+          <div><span class="cap">Crit</span><span class="v num">8%</span><span class="d up num">+3%</span></div>
+          <div><span class="cap">Speed</span><span class="v num">210</span><span class="d num cap">·</span></div>
+          <div><span class="cap">HP</span><span class="v num">112</span><span class="d num cap">·</span></div>
+          <div class="full">Every 3rd hit freezes for 1.5 s · Burns 3 dmg/s for 3 s</div>
+        </div>
+        <div class="kbody">
+          <div class="sec"><h4>Roti <span class="cap">tap to swap</span></h4>
+            <div class="roti"><img src="img/kosong.webp" alt=""><div><b>Kosong · Lv 3</b><small>12 dmg · 1.4 throws/s · hops to 1 more pest</small></div></div>
+          </div>
+          <div class="sec"><h4>Katori <span class="cap">2 of 2 filled</span></h4>
+            <div class="katori">
+              <div class="kat"><img src="img/mint-chutney.webp" alt=""><div><b>Mint Chutney</b><small>Chill 10%, 3rd hit freezes 1.5 s</small></div></div>
+              <div class="kat sel"><img src="img/fish-curry.webp" alt=""><div><b>Fish Curry</b><small>Burn 3/s for 3 s · <span class="up">+3.0 dmg/s</span></small></div></div>
+            </div>
+          </div>
+          <div class="sec"><h4>Dip shelf <span class="cap">tap to preview</span></h4>
+            <div class="shelf">
+              <div><img src="img/sambal.webp" alt="">Sambal</div>
+              <div><img src="img/masala.webp" alt="">Masala</div>
+              <div><img src="img/dhal.webp" alt="">Dhal</div>
+              <div class="on"><img src="img/fish-curry.webp" alt="">In use</div>
+              <div class="on"><img src="img/mint-chutney.webp" alt="">In use</div>
+            </div>
+          </div>
+          <div class="sec"><h4>Gear <span class="cap">1 upgrade ready</span></h4>
+            <div class="gear">
+              <div class="upg"><img src="img/lucky-red-towel.webp" alt=""><i>+2</i></div>
+              <div><img src="img/plain-headband.webp" alt=""><i>+1</i></div>
+              <div><img src="img/cotton-apron.webp" alt=""><i>+0</i></div>
+              <div><img src="img/chefs-gloves.webp" alt=""><i>+1</i></div>
+              <div><img src="img/kitchen-clogs.webp" alt=""><i>+0</i></div>
+            </div>
+          </div>
+        </div>
+        <div class="kfoot"><div class="plain">Spec board</div><div class="go">Done</div></div>
+      </div>
+    </div>
+    <figcaption><b>Kitchen (build)</b><br>One screen for the whole build. The stat card shows what the selected dip adds before you commit.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="phone">
+      <div class="road"></div><div class="kerbL"></div><div class="kerbR"></div>
+      <img class="spr" src="img/roach.webp" alt="" style="width:62px;left:92px;top:150px">
+      <img class="spr" src="img/roach.webp" alt="" style="width:58px;left:160px;top:120px">
+      <img class="spr" src="img/roach.webp" alt="" style="width:60px;left:190px;top:200px">
+      <img class="spr" src="img/walk-up-idle.webp" alt="" style="width:70px;left:115px;top:420px">
+      <img class="spr" src="img/tiffin-carrier.webp" alt="" style="display:none">
+      <div class="hud">
+        <div class="pill"><div class="ring"><span>6</span></div><img src="img/heart.webp" alt="">88</div>
+        <div class="sp"></div>
+        <div class="pill"><img src="img/coins.webp" alt="">64</div>
+        <div class="round">❚❚</div>
+      </div>
+      <div class="dist"><div class="bar"><i></i></div><span>640 m · boss at 1,200 m</span></div>
+      <div class="dodge">Dodge</div>
+      <div class="dim"></div>
+      <div class="gift">
+        <h3>A regular left you a tiffin</h3>
+        <div class="sub">Pick one. The street waits.</div>
+        <div class="card pick"><img src="img/garlic-naan.webp" alt=""><b>Garlic Naan <em>New roti</em></b><span class="eff">Lobs a garlic blast, burns the spot</span><span class="delta up">+7 dmg/s, hits groups</span></div>
+        <div class="card"><img src="img/mint-chutney.webp" alt=""><b>Mint Chutney <em>Lv 1 → 2</em></b><span class="eff">Freeze lasts longer</span><span class="delta up">Freeze 1.0 s → 1.25 s</span></div>
+        <div class="card"><img src="img/kitchen-clogs.webp" alt=""><b>Quick Feet</b><span class="eff">Walk faster this run</span><span class="delta up">Speed 210 → 235</span></div>
+      </div>
+    </div>
+    <figcaption><b>Run · gift choice</b><br>Walk into a tiffin, the run pauses, three plain cards. No timer.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="phone">
+      <div class="fill" style="background-image:url(img/results.jpg);background-position:center top;background-size:100% auto"></div>
+      <div class="res">
+        <h3>Kopitiam Street cleared!</h3>
+        <div class="big num">1,200 m<small>King Cockroach beaten in 34 s</small></div>
+        <div class="loot">
+          <div class="lrow"><img src="img/coins.webp" alt="">Tips<span class="sp"></span><span class="num up">+164</span></div>
+          <div class="lrow" style="display:block"><div style="display:flex;gap:8px;align-items:center"><div class="ring" style="width:26px;height:26px;font-size:13px"><span>8</span></div>Kannan Lv 8 → 9<span class="sp"></span><span class="cap">+1 spec point</span></div><div class="xp"><i></i></div></div>
+          <div class="lrow"><img src="img/chest-rare.webp" alt="">Rare chest<span class="sp"></span><img src="img/lucky-red-towel.webp" alt=""><span class="num up">+8% crit</span></div>
+        </div>
+        <div class="nextc"><img src="img/lucky-red-towel.webp" alt="">Wear the Lucky Red Towel<span class="arrow">→</span></div>
+        <div class="rbtn"><div class="go">Go again</div><div class="plain">Stall</div></div>
+      </div>
+    </div>
+    <figcaption><b>Results</b><br>One headline, the loot, one next step that opens the right screen.</figcaption>
+  </figure>
+</template>
+
+<script>
+  const tpl = document.getElementById('screens');
+  document.querySelectorAll('.strip').forEach((strip) => {
+    const frag = tpl.content.cloneNode(true);
+    frag.querySelectorAll('.phone').forEach((p) => p.classList.add(strip.dataset.look));
+    strip.appendChild(frag);
+  });
+</script>
