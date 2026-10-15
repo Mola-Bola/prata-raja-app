@@ -37,6 +37,11 @@ async function startRunAndPause(page: Page) {
   await tid(page, 'ui-pause').click();
   await expect(tid(page, 'ui-resume')).toBeVisible();
 }
+/** Tell Kannan from the pause sheet: it lives in the pause sheet's Settings view (GameUi.tsx PauseSheet). */
+async function tellFromPause(page: Page) {
+  await tid(page, 'ui-settings').click();
+  await tid(page, 'ui-tell').click();
+}
 
 test('a note from the pause sheet: chips, clear, a failed send keeps the text, Retry files it once', async ({ page }) => {
   test.setTimeout(150_000);
@@ -79,9 +84,9 @@ test('a note from the pause sheet: chips, clear, a failed send keeps the text, R
   expect(sent[1].context).toMatchObject({ screen: 'run', platform: 'web' });
   expect(sent[1].device_id).toMatch(/^[0-9a-f-]{36}$/);
 
-  // The sheet steps aside by itself and the pause sheet is back underneath.
+  // The sheet steps aside by itself and the pause sheet is back underneath, in its Settings view.
   await expect(tid(page, 'feedback-sheet')).toBeHidden({ timeout: 8_000 });
-  await expect(tid(page, 'ui-resume')).toBeVisible();
+  await expect(tid(page, 'settings-back')).toBeVisible();
 
   // The name was remembered on this device.
   const saved = JSON.parse((await page.evaluate((k) => localStorage.getItem(k), DEVICE_KEY)) ?? '{}');
@@ -114,11 +119,11 @@ test('the sheet can be closed without sending, and the pause sheet stays', async
   test.setTimeout(150_000);
   const sent = await mockFeedback(page);
   await startRunAndPause(page);
-  await tid(page, 'ui-tell').click();
+  await tellFromPause(page);
   await tid(page, 'feedback-text').fill('never mind');
   await tid(page, 'feedback-close').click();
   await expect(tid(page, 'feedback-sheet')).toBeHidden();
-  await expect(tid(page, 'ui-resume')).toBeVisible();
+  await expect(tid(page, 'settings-back')).toBeVisible();
   expect(sent).toHaveLength(0);
   // Opened again it starts empty.
   await tid(page, 'ui-tell').click();
@@ -128,6 +133,7 @@ test('the sheet can be closed without sending, and the pause sheet stays', async
 test('the Analytics switch is on by default, turns off, and is remembered', async ({ page }) => {
   test.setTimeout(150_000);
   await startRunAndPause(page);
+  await tid(page, 'ui-settings').click();
   const sw = tid(page, 'ui-analytics');
   await expect(sw).toHaveAttribute('aria-checked', 'true');
   await sw.click();
@@ -140,6 +146,7 @@ test('the Analytics switch is on by default, turns off, and is remembered', asyn
   await tid(page, 'ui-start').click();
   await page.waitForFunction(() => !!window.__world, null, { timeout: 60_000 });
   await tid(page, 'ui-pause').click();
+  await tid(page, 'ui-settings').click();
   await expect(tid(page, 'ui-analytics')).toHaveAttribute('aria-checked', 'false');
 });
 
@@ -172,7 +179,7 @@ test('private notes show shipped status and threads; reply retries and owner pai
     return route.fulfill({ headers, status: 400, json: { error: 'unexpected action' } });
   });
   await startRunAndPause(page);
-  await tid(page, 'ui-tell').click();
+  await tellFromPause(page);
   await tid(page, 'feedback-text').fill('A draft worth keeping');
   expect(calls).toHaveLength(0); // Opening the compose form never lists eagerly.
   await tid(page, 'feedback-notes-tab').click();
@@ -208,7 +215,7 @@ test('a malformed private-note response reports unavailability without confirmin
   test.setTimeout(150_000);
   await mockFeedback(page); // This malformed list response has no notes or owner fields; this is not a legacy-server compatibility test.
   await startRunAndPause(page);
-  await tid(page, 'ui-tell').click();
+  await tellFromPause(page);
   await tid(page, 'feedback-notes-tab').click();
   await expect(tid(page, 'feedback-notes-error')).toContainText('isn’t available on this server yet');
   await expect(tid(page, 'feedback-owner-confirmed')).toHaveCount(0);

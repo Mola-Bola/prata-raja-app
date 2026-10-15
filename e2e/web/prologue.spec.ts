@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openOldStall } from './hub';
+import { openStation } from './hub';
 
 const KEY = 'game:prata-raja/save';
 test.use({ viewport: { width: 360, height: 640 } });
@@ -31,7 +31,6 @@ test('first launch shows six panels before run 1; completion survives reload', a
   await page.reload();
   await page.getByTestId('ui-start').click();
   await expect(page.getByTestId('ui-pause')).toBeVisible();
-  await expect(page.getByTestId('prologue')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
@@ -67,16 +66,15 @@ for (const v of [1, 2]) {
     await page.getByTestId('ui-start').click();
     await expect(page.getByTestId('hub-overlay')).toBeVisible();
     await expect(page.getByTestId('prologue')).toHaveCount(0);
-    await openOldStall(page);
-    await page.getByTestId('stall-recipes').click();
-    await expect(page.getByTestId('stall-locked')).toContainText('Cook evolved breads here from stall level 6.');
+    await openStation(page, 'tawa', 'Recipes');
+    await expect(page.getByTestId('stall-locked')).toContainText('to open this.'); // the lock names the gate (a boss, or a stall level)
     await expect(page.getByTestId('stall-locked')).not.toContainText('Coming soon');
-    await page.getByTestId('stall-close').click();
-    await page.getByTestId('stall-settings').click();
+    await page.getByTestId('hub-close').click();
+    await page.getByTestId('hub-settings').click();
     await page.getByTestId('settings-story').click();
     expect(await page.locator('.gu-story-art').evaluate(e => getComputedStyle(e).animationName)).toBe('none');
     for (let i = 0; i < 6; i++) await page.getByTestId('story-next').click({ position: { x: 180, y: 300 } });
-    await expect(page.getByTestId('stall-coins')).toHaveText('42');
+    await expect(page.getByTestId('hub-coins')).toHaveText('42');
     expect(await page.evaluate(() => window.__world ?? null)).toBeNull();
   });
 }

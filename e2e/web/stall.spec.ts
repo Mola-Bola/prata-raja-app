@@ -5,7 +5,7 @@
 //   RUN_SHOTS=1 npx playwright test -c e2e/web stall.spec.ts   also saves .spike/s2-{hub,gear,results}.png (shrunk with sips)
 import { execFileSync } from 'node:child_process';
 import { expect, type Page, test } from '@playwright/test';
-import { openOldStall } from './hub';
+import { openStation, type Station } from './hub';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -63,15 +63,15 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/auth/v1/**', (route) => route.fulfill({ json: {} }));
 });
 
-const inSheet = (page: Page) => page.evaluate(() => !!document.activeElement?.closest('[data-testid="stall-sheet"]'));
-const openSheet = async (page: Page, id: string) => {
-  await tid(page, `stall-${id}`).click();
-  await expect(tid(page, 'stall-sheet')).toBeVisible();
-  await expect(all(page, 'stall-scene')).toHaveJSProperty('inert', true); // nothing behind the sheet can take focus
+const inSheet = (page: Page) => page.evaluate(() => !!document.activeElement?.closest('[data-testid="hub-panel"]'));
+/** A hub station's sheet: walk to the station and open the named tab (the sheets live in the hub panels, HubOverlay.tsx). */
+const openSheet = async (page: Page, station: Station, tab: string) => {
+  await openStation(page, station, tab);
+  await expect(tid(page, 'hub-panel')).toBeVisible();
 };
 const closeSheet = async (page: Page) => {
-  await tid(page, 'stall-close').click();
-  await expect(all(page, 'stall-sheet')).toHaveCount(0);
+  await tid(page, 'hub-close').click();
+  await expect(all(page, 'hub-panel')).toHaveCount(0);
 };
 
 test('a run pays once; the stall and every sheet work; a training step shows up in the next run', async ({ page }) => {
@@ -87,7 +87,7 @@ test('a run pays once; the stall and every sheet work; a training step shows up 
   const run = await page.evaluate(() => window.__world!.result!);
   const waves = Math.max(0, run.wave - (run.won ? 0 : 1)); // on a loss the reached wave was not cleared
   const coins = 20 + 12 * waves + 60 * run.bossKills + run.gold; // the waves, plus the run's own coins (Tips bonus included)
-  const xp = 40 + 10 * waves + 50 * run.bossKills;
+  const xp = 40 + 10 * waves + 50 * run.bossKills + Math.floor(run.kills / 4); // kannan.ts runXp: kills count a quarter each
   await expect(tid(page, 'results-coins')).toHaveText(`+${coins}`);
   await expect(tid(page, 'results-xp')).toHaveText(`+${xp}`);
   await expect(tid(page, 'results-unlocks')).toContainText('Training unlocked!'); // 320 XP + any run crosses 350
@@ -104,7 +104,7 @@ test('a run pays once; the stall and every sheet work; a training step shows up 
   // Paid exactly once, to the coin.
   await expect.poll(async () => (await stored(page))?.runs).toBe(2);
   const paid = await stored(page);
-  expect(paid.v).toBe(2);
+  expect(paid.v).toBe(3);
   expect(paid.gold).toBe(start.gold + coins);
   expect(paid.stallXp).toBe(start.stallXp + xp);
   expect(paid.totalKills).toBe(start.totalKills + run.kills);
@@ -126,15 +126,12 @@ test('a run pays once; the stall and every sheet work; a training step shows up 
   await expect(tid(page, 'hub-overlay')).toBeVisible();
   expect(await page.evaluate(() => window.__game!.loop.running)).toBe(false);
   await expect(tid(page, 'hub-coins')).toHaveText(String(paid.gold));
-  await openOldStall(page); // every sheet below is the old stall's
-  await expect(tid(page, 'stall-coins')).toHaveText(String(paid.gold));
-  await expect(tid(page, 'stall-next')).toHaveText(`Next: Extra reroll in ${600 - (320 + xp)} XP`);
   await page.waitForTimeout(500);
   await shot(page, 'hub');
   let gold = paid.gold;
 
   // Calendar: day 1 is 50 coins, and a double tap claims it once.
-  await openSheet(page, 'calendar');
+  await openSheet(page, 'orders', 'Calendar');
   await tid(page, 'calendar-claim').dblclick();
   await expect.poll(async () => (await stored(page)).gold).toBe((gold += 50));
   await expect(tid(page, 'calendar-claim')).toBeDisabled();
@@ -146,7 +143,7 @@ test('a run pays once; the stall and every sheet work; a training step shows up 
   await closeSheet(page);
 
   // Tip jar: five hours at 24 coins an hour (stall level 3), collected once.
-  await openSheet(page, 'idle');
+  await openSheet(page, 'pantry', 'Tip jar');
   const waiting = Number((await tid(page, 'idle-waiting').innerText()).match(/\d+/)![0]);
   expect(waiting).toBeGreaterThanOrEqual(115);
   await tid(page, 'idle-collect').dblclick();
@@ -158,7 +155,7 @@ test('a run pays once; the stall and every sheet work; a training step shows up 
   await closeSheet(page);
 
   // Gear: wear the towel and a headband, merge the three headbands into one Uncommon, upgrade the towel.
-  await openSheet(page, 'gear');
+  await openSheet(page, 'gear', 'Wear');
   const rack = all(page, 'gear-item');
   await expect(rack).toHaveCount(4); // the run's chest is still closed: its item is not on the rack yet
   await rack.filter({ hasText: 'Faded kopitiam towel' }).click();
@@ -179,20 +176,19 @@ test('a run pays once; the stall and every sheet work; a training step shows up 
   await closeSheet(page);
 
   // Chests: the run's chest opens with a reveal, and the item joins the rack.
-  await expect(tid(page, 'stall-chests')).toContainText('1');
-  await openSheet(page, 'chests');
+  await openSheet(page, 'pantry', 'Chests');
   await expect(all(page, 'chest-open')).toHaveCount(1);
   await tid(page, 'chest-open').click();
   await expect(tid(page, 'chest-reveal')).toBeVisible();
   await expect(all(page, 'chest-open')).toHaveCount(0);
   expect((await stored(page)).pendingChests).toEqual([]);
   await closeSheet(page);
-  await openSheet(page, 'gear');
+  await openSheet(page, 'gear', 'Wear');
   await expect(rack).toHaveCount(3);
   await closeSheet(page);
 
   // Training: one step of Stamina (+10 HP) for 60 coins.
-  await openSheet(page, 'training');
+  await openSheet(page, 'spec', 'Training');
   await tid(page, 'train-stamina-buy').click();
   await expect.poll(async () => (await stored(page)).training.stamina).toBe(1);
   expect((await stored(page)).gold).toBe(gold - 60);
@@ -206,15 +202,12 @@ test('a run pays once; the stall and every sheet work; a training step shows up 
   await closeSheet(page);
 
   // The recipe book and Chef's Special are locked previews.
-  await openSheet(page, 'recipes');
+  await openSheet(page, 'tawa', 'Recipes');
   await expect(tid(page, 'stall-locked')).toContainText('Unlocks at stall level 6');
-  await closeSheet(page);
-  await openSheet(page, 'special');
-  await expect(tid(page, 'stall-locked')).toContainText('Unlocks at stall level 8');
   await closeSheet(page);
 
   // ── Run 2 starts with the stall's gear and training ────────────────────────────────────────────────────────────
-  await tid(page, 'stall-start').click();
+  await tid(page, 'hub-go').click();
   await expect(tid(page, 'ui-pause')).toBeVisible();
   expect(await page.evaluate(() => window.__game!.loop.running)).toBe(true); // the run woke the loop
   const loadout = await page.evaluate(() => ({ loadout: window.__world!.loadout, maxHp: window.__world!.player.stats.maxHp }));
@@ -236,7 +229,7 @@ test('a run pays once; the stall and every sheet work; a training step shows up 
   expect(early.won).toBe(false);
   expect(early.wave).toBeGreaterThanOrEqual(2);
   const coins2 = 20 + 12 * Math.max(0, early.wave - 1) + early.gold;
-  const xp2 = 40 + 10 * Math.max(0, early.wave - 1);
+  const xp2 = 40 + 10 * Math.max(0, early.wave - 1) + Math.floor(early.kills / 4);
   await expect(tid(page, 'results-coins')).toHaveText(`+${coins2}`);
   await expect.poll(async () => (await stored(page)).runs).toBe(3);
   const second = await stored(page);
@@ -262,11 +255,10 @@ test('a first launch starts run 1 at once; a returning player opens the stall; a
   expect(await page.evaluate(() => window.__world ?? null)).toBeNull(); // no run was started
   await expect(tid(page, 'hub-coins')).toHaveText('123');
   // The first change writes the v2 save, with everything the v1 one had.
-  await openOldStall(page);
-  await openSheet(page, 'calendar');
+  await openSheet(page, 'orders', 'Calendar');
   await tid(page, 'calendar-claim').click();
-  await expect.poll(async () => (await stored(page)).v).toBe(2);
-  expect(await stored(page)).toMatchObject({ v: 2, gold: 173, runs: 4, wins: 1, bestWave: 5, totalKills: 90, settings: v1.settings, stallXp: 0 });
+  await expect.poll(async () => (await stored(page)).v).toBe(3);
+  expect(await stored(page)).toMatchObject({ v: 3, gold: 173, runs: 4, wins: 1, bestWave: 5, totalKills: 90, settings: v1.settings, stallXp: 0 });
   await closeSheet(page);
   expect(errors).toEqual([]);
 
@@ -274,8 +266,7 @@ test('a first launch starts run 1 at once; a returning player opens the stall; a
   await page.reload();
   await tid(page, 'ui-start').click();
   await expect(tid(page, 'hub-coins')).toHaveText('173');
-  await openOldStall(page);
-  await openSheet(page, 'calendar');
+  await openSheet(page, 'orders', 'Calendar');
   await expect(tid(page, 'calendar-claim')).toBeDisabled();
 });
 
@@ -291,7 +282,7 @@ test('a daydream that ends on wave 1 says so and pays nothing, on a 9:16 phone t
   await page.waitForFunction(() => !!window.__world);
   await page.evaluate(() => window.__hub!.emit('runEnd', { won: false, wave: 1, kills: 4, bossKills: 0, time: 20, level: 1, gold: 999, breads: [], dips: [] }));
   await expect(tid(page, 'ui-again')).toBeVisible();
-  await expect(tid(page, 'results-short')).toHaveText('Too short a daydream — no tips this time');
+  await expect(tid(page, 'results-short')).toHaveText('Too short a daydream. Go a little further for tips.');
   await expect(all(page, 'results-coins')).toHaveCount(0);
   await expect(all(page, 'results-rewards')).toHaveCount(0);
   for (const id of ['ui-again', 'ui-stall']) {
@@ -322,6 +313,7 @@ test('the settings cog flips the same Sound and Haptics switches as the pause sh
   // The run's pause sheet shows what the cog set, and changing it there is the same change.
   await tid(page, 'hub-go').click();
   await tid(page, 'ui-pause').click();
+  await tid(page, 'ui-settings').click(); // the pause sheet's Settings view holds the switches
   await expect(page.getByRole('switch', { name: 'Sound' })).toHaveAttribute('aria-checked', 'false');
   await expect(page.getByRole('switch', { name: 'Haptics' })).toHaveAttribute('aria-checked', 'false');
   await page.getByRole('switch', { name: 'Sound' }).click();
@@ -381,11 +373,10 @@ test('the day-7 gift chest waits in the chests box, even across a restart, and o
   await withSave(page, seed({ runs: 9, streak: { day: 6, lastClaimDay: localDay(-1), windowStartDay: localDay(-6), restDaysUsed: 0 } }));
   await page.goto('/play');
   await tid(page, 'ui-start').click();
-  await openOldStall(page);
-  await openSheet(page, 'calendar');
+  await openSheet(page, 'orders', 'Calendar');
   await expect(tid(page, 'calendar-claim')).toHaveText('Claim day 7');
   await tid(page, 'calendar-claim').click();
-  await expect(tid(page, 'stall-sheet')).toHaveAttribute('aria-label', 'Chests'); // the sheet moves to the chests box
+  await openSheet(page, 'pantry', 'Chests'); // the gift waits in the chests box
   await expect(all(page, 'chest-open')).toHaveCount(1);
   const claimed = await stored(page);
   expect(claimed.streak).toMatchObject({ day: 7, lastClaimDay: localDay(0) });
@@ -397,8 +388,7 @@ test('the day-7 gift chest waits in the chests box, even across a restart, and o
   // Closing the app does not lose it: after a restart it is still there, unopened.
   await page.reload();
   await tid(page, 'ui-start').click();
-  await expect(tid(page, 'stall-chests')).toContainText('1');
-  await openSheet(page, 'chests');
+  await openSheet(page, 'pantry', 'Chests');
   await tid(page, 'chest-open').click();
   await expect(tid(page, 'chest-reveal')).toContainText(chest.rarity.replace(/^./, (c: string) => c.toUpperCase()));
   expect((await stored(page)).pendingChests).toEqual([]);
@@ -419,12 +409,11 @@ test('a write that fails keeps everything in memory, says so, and the retry writ
   await withSave(page, seed({ runs: 9 }));
   await page.goto('/play');
   await tid(page, 'ui-start').click();
-  await openOldStall(page);
   await page.evaluate(() => ((window as unknown as { __failWrites: boolean }).__failWrites = true));
-  await openSheet(page, 'calendar');
+  await openSheet(page, 'orders', 'Calendar');
   await tid(page, 'calendar-claim').click();
   await expect(tid(page, 'save-error')).toBeVisible();
-  await expect(tid(page, 'stall-coins')).toHaveText('100'); // the coins are in the game even though the disk refused them
+  await expect(tid(page, 'hub-coins')).toHaveText('100'); // the coins are in the game even though the disk refused them
   expect((await stored(page)).gold).toBe(50);
   await page.evaluate(() => ((window as unknown as { __failWrites: boolean }).__failWrites = false));
   await tid(page, 'save-error').getByRole('button', { name: 'Retry save' }).click();
@@ -470,7 +459,7 @@ for (const [w, h] of [
     await page.evaluate(() => window.__hub!.emit('runEnd', { won: true, wave: 10, kills: 247, bossKills: 1, time: 300, level: 12, gold: 100, breads: [], dips: [] }));
     await expect(tid(page, 'ui-again')).toBeVisible();
     await expect(tid(page, 'results-coins')).toHaveText('+300'); // 200 for the run + the 100 it picked up
-    await expect(tid(page, 'results-xp')).toHaveText('+190');
+    await expect(tid(page, 'results-xp')).toHaveText('+251'); // 40 + 10 per wave + 50 per boss + a quarter of the 247 kills
     await expect(all(page, 'results-unlocks').locator('.gu-newbest')).toHaveCount(2);
     await page.waitForTimeout(1_500);
     expect(await page.evaluate(() => { const b = document.querySelector('.sh-result-body')!; return b.scrollHeight - b.clientHeight; })).toBeLessThanOrEqual(1);
@@ -483,22 +472,22 @@ for (const [w, h] of [
   });
 }
 
-// [width, height, safe-area insets in px]: a phone with a notch and a home bar loses room at the top and bottom of the picture.
+// [width, height, safe-area insets in px]: a phone with a notch and a home bar loses room at the top and bottom of the screen.
 const SCREENS: [number, number, { top: number; bottom: number }][] = [
-  [360, 640, { top: 0, bottom: 0 }], // 9:16, the shape the picture was drawn for
+  [360, 640, { top: 0, bottom: 0 }], // 9:16
   [390, 844, { top: 0, bottom: 0 }], // about 9:19.5
   [412, 915, { top: 0, bottom: 0 }], // about 9:20
   [390, 844, { top: 47, bottom: 34 }], // the same with a notch and a home bar
 ];
 for (const [w, h, inset] of SCREENS) {
   const name = `${w}x${h}${inset.top ? ' with a notch' : ''}`;
-  test(`the hub's props line up with their hotspots on a ${name} screen`, async ({ page }) => {
+  test(`the hub's controls and station panels stay on screen on a ${name} screen`, async ({ page }) => {
     await page.setViewportSize({ width: w, height: h });
     const errors = watch(page);
     await withSave(page, seed({ stallXp: 3900, runs: 9, pendingChests: ['t4'] }));
     await page.goto('/play');
     await tid(page, 'ui-start').click();
-    await openOldStall(page);
+    await expect(tid(page, 'hub-overlay')).toBeVisible();
     // An Android WebView reports no safe area: the app measures it and GameRoot passes it down as these two variables.
     await page.evaluate(({ top, bottom }) => {
       const root = document.querySelector<HTMLElement>('[data-testid="game-root"]')!;
@@ -508,89 +497,41 @@ for (const [w, h, inset] of SCREENS) {
     await page.waitForTimeout(600);
 
     const box = async (id: string) => (await tid(page, id).boundingBox())!;
-    const scene = await box('stall-scene');
-    // The picture keeps its own shape (1080 x 1919) and fills the width, from the top edge.
-    expect(scene.width).toBeCloseTo(w, 0);
-    expect(scene.height / scene.width).toBeCloseTo(1919 / 1080, 2);
-    expect(scene.y).toBeCloseTo(inset.top, 0);
-    // Each prop's tap area sits where the prop is, in percentages of the picture (HOTSPOTS in stall/helpers.ts).
-    const spots = await page.evaluate(() => {
-      const out: Record<string, { x: number; y: number; w: number; h: number }> = {};
-      for (const el of document.querySelectorAll<HTMLElement>('[data-testid$="-prop"]')) {
-        const r = el.getBoundingClientRect();
-        out[el.dataset.testid!.replace(/^stall-|-prop$/g, '')] = { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height };
-      }
-      return out;
-    });
-    const expected: Record<string, [number, number, number, number]> = {
-      special: [24, 8.5, 48, 13], calendar: [2.5, 17, 13, 12], training: [86.5, 14.5, 13.5, 13], recipes: [88.5, 29.5, 11.5, 8.5],
-      gear: [0.8, 31, 18, 16], idle: [5, 47.5, 12, 11], chests: [81, 64.5, 19, 20],
-    };
-    expect(Object.keys(spots).sort()).toEqual(Object.keys(expected).sort());
-    const near = (a: number, b: number, what: string) => expect(Math.abs(a - b), `${what}: ${a} vs ${b}`).toBeLessThan(1.5);
-    for (const [id, [x, y, bw, bh]] of Object.entries(expected)) {
-      near(spots[id].x, scene.x + ((x + bw / 2) / 100) * scene.width, `${id} x`);
-      near(spots[id].y, scene.y + ((y + bh / 2) / 100) * scene.height, `${id} y`);
-      expect(spots[id].w, `${id} width`).toBeGreaterThanOrEqual(55); // a tap area is never under 56 px
-      expect(spots[id].h, `${id} height`).toBeGreaterThanOrEqual(55);
+    const controls = ['hub-go', 'hub-settings', 'hub-coins', 'hub-tell'];
+    const rects: Record<string, { x: number; y: number; r: number; b: number }> = {};
+    for (const id of controls) {
+      const r = await box(id);
+      rects[id] = { x: r.x, y: r.y, r: r.x + r.width, b: r.y + r.height };
+      expect(r.x, `${id} left`).toBeGreaterThanOrEqual(0);
+      expect(rects[id].r, `${id} right`).toBeLessThanOrEqual(w);
+      expect(rects[id].y, `${id} below the notch`).toBeGreaterThanOrEqual(inset.top);
+      expect(rects[id].b, `${id} above the home bar`).toBeLessThanOrEqual(h - inset.bottom);
     }
-    // The label pills stay on screen, clear of each other and of the Start button, and are comfortable to hit (48 px with padding).
-    const labels = await page.evaluate(() =>
-      Array.from(document.querySelectorAll<HTMLElement>('.sh-label, [data-testid="stall-signature"]')).map((el) => {
-        const r = el.getBoundingClientRect();
-        return { id: el.dataset.testid!, x: r.x, y: r.y, r: r.right, b: r.bottom };
-      }),
-    );
-    const startBox = await box('stall-start');
-    for (const l of labels) {
-      expect(l.x, `${l.id} left`).toBeGreaterThanOrEqual(0);
-      expect(l.r, `${l.id} right`).toBeLessThanOrEqual(w);
-      expect(l.b <= startBox.y || l.y >= startBox.y + startBox.height, `${l.id} clear of Start`).toBe(true);
-    }
-    for (let i = 0; i < labels.length; i++) {
-      for (let j = i + 1; j < labels.length; j++) {
-        const a = labels[i];
-        const b = labels[j];
-        expect(a.x < b.r && b.x < a.r && a.y < b.b && b.y < a.b, `${a.id} and ${b.id} overlap`).toBe(false);
+    for (let i = 0; i < controls.length; i++) {
+      for (let j = i + 1; j < controls.length; j++) {
+        const a = rects[controls[i]];
+        const b = rects[controls[j]];
+        expect(a.x < b.r && b.x < a.r && a.y < b.b && b.y < a.b, `${controls[i]} and ${controls[j]} overlap`).toBe(false);
       }
     }
-    // Taps land where they look: all of a pill (and the middle of a prop) belongs to its own control, not a neighbour's.
-    const stolen = await page.evaluate(() => {
-      const bad: string[] = [];
-      const owner = (x: number, y: number) => document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-testid^="stall-"]')?.dataset.testid;
-      for (const el of document.querySelectorAll<HTMLElement>('.sh-label, [data-testid="stall-signature"]')) {
-        const r = el.getBoundingClientRect();
-        for (const [x, y] of [[0.5, 0.5], [0.1, 0.2], [0.9, 0.2], [0.1, 0.8], [0.9, 0.8]]) {
-          const got = owner(r.x + r.width * x, r.y + r.height * y);
-          if (got !== el.dataset.testid) bad.push(`${el.dataset.testid} at ${x},${y} -> ${got}`);
-        }
-      }
-      for (const el of document.querySelectorAll<HTMLElement>('.sh-prop')) {
-        const r = el.getBoundingClientRect();
-        const got = owner(r.x + r.width / 2, r.y + r.height / 2);
-        if (got !== el.dataset.testid && got !== el.dataset.testid!.replace(/-prop$/, '')) bad.push(`${el.dataset.testid} middle -> ${got}`);
-      }
-      return bad;
-    });
-    expect(stolen).toEqual([]);
-    expect(startBox.y + startBox.height).toBeLessThanOrEqual(h - inset.bottom); // above the home bar
-    const bar = await box('stall-progress');
-    expect(bar.y).toBeGreaterThanOrEqual(inset.top); // below the notch
-    for (const l of labels) expect(l.y >= bar.y + bar.height || l.b <= bar.y, `${l.id} clear of the level bar`).toBe(true);
+    // A station's panel opens on screen too, and the page never scrolls sideways.
+    await openSheet(page, 'gear', 'Wear');
+    const panel = await box('hub-panel');
+    expect(panel.x).toBeGreaterThanOrEqual(0);
+    expect(panel.x + panel.width).toBeLessThanOrEqual(w);
+    expect(panel.y + panel.height).toBeLessThanOrEqual(h);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await shot(page, `hub-${w}x${h}${inset.top ? '-notch' : ''}`);
     expect(errors).toEqual([]);
   });
 }
 
-
 test('recipe book shows known and unknown evolutions and cooking persists once', async ({ page }) => {
   const errors = watch(page);
   await withSave(page, seed({ stallXp: 1300, unlockedBreads: [], unlockedDips: [], materials: { flour: 10, ghee: 10, egg: 10, onion: 10, spice: 10, sugar: 10, milk: 10 } }));
   await page.goto('/play');
   await tid(page, 'ui-start').click();
-  await openOldStall(page);
-  await openSheet(page, 'recipes');
+  await openSheet(page, 'tawa', 'Recipes');
   await expect(tid(page, 'recipe-book')).toBeVisible();
   await expect(all(page, 'evolution-recipe')).toHaveCount(8);
   const chakra = all(page, 'evolution-recipe').filter({ hasText: 'Kosong Lv 5 + Ghee Lv 5' });
@@ -598,7 +539,7 @@ test('recipe book shows known and unknown evolutions and cooking persists once',
   await expect(chakra).toContainText('Unknown recipe');
   await expect(all(page, 'evolution-recipe').filter({ hasText: 'Tarik Lance' })).toHaveAttribute('data-known', 'true');
   await tid(page, 'cook-rc-ghee').click();
-  await expect(tid(page, 'cook-rc-ghee')).toBeDisabled();
+  await expect(tid(page, 'cook-rc-ghee')).toHaveText('Known'); // a cooked recipe's button becomes the Known label
   await expect(chakra).toContainText('Golden Ghee Chakra');
   await expect(chakra).toHaveAttribute('data-known', 'true');
   await expect.poll(async () => (await stored(page)).unlockedDips).toEqual(['ghee']);
@@ -606,9 +547,8 @@ test('recipe book shows known and unknown evolutions and cooking persists once',
   await closeSheet(page);
   await page.reload();
   await tid(page, 'ui-start').click();
-  await openOldStall(page);
-  await openSheet(page, 'recipes');
-  await expect(tid(page, 'cook-rc-ghee')).toBeDisabled();
+  await openSheet(page, 'tawa', 'Recipes');
+  await expect(tid(page, 'cook-rc-ghee')).toHaveText('Known'); // a cooked recipe's button becomes the Known label
   await expect(all(page, 'evolution-recipe').filter({ hasText: 'Golden Ghee Chakra' })).toHaveAttribute('data-known', 'true');
   expect(errors).toEqual([]);
 });

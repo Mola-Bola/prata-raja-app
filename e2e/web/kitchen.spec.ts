@@ -75,6 +75,7 @@ test('stall kitchen keeps an existing save unchanged through loss, win, restart 
   await expect(tid(page, 'hub-overlay')).toBeVisible();
   const before = await stored(page);
   await openKitchen(page);
+  await tid(page, 'kitchen-setup').click(); // the Kitchen opens with its setup sheet closed
   await tid(page, 'kitchen-wave').selectOption('10');
   await tid(page, 'kitchen-start').click();
   await page.waitForFunction(() => window.__world?.wave === 10);
@@ -102,6 +103,7 @@ test('stall kitchen keeps an existing save unchanged through loss, win, restart 
 
 test('Flaky Kosong is explicit, restartable and isolated from saves and the next Kitchen visit', async ({ page }) => {
   await page.goto('/play?kitchen=1');
+  await tid(page, 'kitchen-setup').click();
   await expect(tid(page, 'kitchen-flaky')).not.toBeChecked();
   const before = await stored(page);
   await tid(page, 'kitchen-bread-level-0').selectOption('5');
@@ -119,6 +121,7 @@ test('Flaky Kosong is explicit, restartable and isolated from saves and the next
   expect(await stored(page)).toBe(before);
   await tid(page, 'kitchen-exit').click();
   await openKitchen(page);
+  await tid(page, 'kitchen-setup').click();
   await expect(tid(page, 'kitchen-flaky')).not.toBeChecked();
   expect(await stored(page)).toBe(before);
 });
@@ -127,6 +130,7 @@ test('Flaky Kosong is explicit, restartable and isolated from saves and the next
 for (const width of [390, 320]) test(`Flaky Kosong moving pieces and pool reset at ${width}px`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: 844 });
   await page.goto('/play?kitchen=1');
+  await tid(page, 'kitchen-setup').click();
   await tid(page, 'kitchen-bread-level-0').selectOption('5');
   await tid(page, 'kitchen-flaky').check();
   await tid(page, 'kitchen-start').click();

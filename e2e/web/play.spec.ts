@@ -185,7 +185,6 @@ for (const [w, h] of [
     await expect(tid(page, 'ui-start')).toBeEnabled();
     const box = async (sel: string) => (await page.locator(sel).filter({ visible: true }).first().boundingBox())!;
     const start = await box('[data-testid="ui-start"]');
-    const chip = await box('.gu-splash-foot .gu-start');
     const foot = await box('.gu-splash-foot');
     const logo = await box('.gu-logo');
     // A wide chunky pill, not the old 240 px round badge: at least 280 px across (never wider than the screen less a gutter), about 70 px
@@ -197,9 +196,8 @@ for (const [w, h] of [
     expect(start.y + start.height).toBeLessThanOrEqual(h - 16);
     expect(start.y + start.height).toBeGreaterThanOrEqual(h - 60);
     expect(start.x + start.width / 2).toBeCloseTo(w / 2, 0);
-    // The tagline sits just above it, and everything but that foot (a quarter of a short screen at most) is hero.
-    expect(chip.y + chip.height).toBeLessThanOrEqual(start.y);
-    expect(start.y - (chip.y + chip.height)).toBeLessThanOrEqual(24);
+    // The logo sits above the Start pill (the pill is the only thing in the foot), and everything but that foot is hero.
+    expect(logo.y + logo.height).toBeLessThanOrEqual(start.y);
     expect(foot.y).toBeGreaterThanOrEqual(0.72 * h);
     expect(logo.y + logo.height).toBeLessThan(0.45 * h);
     if (w === 390) await shot(page, 's2-title');

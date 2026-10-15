@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { openOldStall } from './hub';
+import { openKitchen, openStation } from './hub';
 
 const SAVE_KEY = 'game:prata-raja/save';
 const tid = (page: Page, id: string) => page.getByTestId(id).filter({ visible: true }).first();
@@ -26,10 +26,10 @@ for (const [width, height] of [[320, 480], [360, 640]]) {
   test(`legacy collection and all stall controls are reachable at ${width}x${height}`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await seed(page);
-    await openOldStall(page); // the dip collection and the stall controls are the old stall's
-    for (const id of ['stall-dips', 'stall-signature', 'stall-kitchen', 'stall-tell', 'stall-start', 'stall-chests', 'stall-calendar', 'stall-training', 'stall-special', 'stall-recipes', 'stall-gear', 'stall-idle']) await unobscured(page, id);
+    for (const id of ['hub-go', 'hub-settings', 'hub-tell']) await unobscured(page, id);
+    await openStation(page, 'dips', 'All dips'); // the dip collection is the dip shelf's third tab
+    await unobscured(page, 'hub-close');
     await page.screenshot({ path: `.spike/dip-simmer/hub-${width}x${height}.png` });
-    await tid(page, 'stall-dips').click();
     await expect(tid(page, 'dip-collection')).toContainText('Links begin with Signature at stall level 9');
     await expect(tid(page, 'collection-mint-chutney')).toContainText('Simmer 1 / 20 · +0% chill duration');
     await expect(tid(page, 'collection-chicken-curry')).toContainText('Available at stall level 2');
@@ -39,9 +39,9 @@ for (const [width, height] of [[320, 480], [360, 640]]) {
     await page.screenshot({ path: `.spike/dip-simmer/collection-bar-${width}x${height}.png` });
     await tid(page, 'collection-dhal').scrollIntoViewIfNeeded();
     await expect(tid(page, 'collection-dhal')).toBeInViewport();
-    expect(await page.evaluate(() => { const sheet = document.querySelector('[data-testid="stall-sheet"]')!; return sheet.scrollWidth > sheet.clientWidth; })).toBe(false);
+    expect(await page.evaluate(() => { const sheet = document.querySelector('[data-testid="hub-panel"]')!; return sheet.scrollWidth > sheet.clientWidth; })).toBe(false);
     await page.screenshot({ path: `.spike/dip-simmer/collection-bottom-${width}x${height}.png` });
-    await tid(page, 'stall-close').click();
+    await tid(page, 'hub-close').click();
   });
 }
 
@@ -68,15 +68,14 @@ test('two earned receipts, duplicate result guard, collection reload and Kitchen
   await page.evaluate(() => { window.__hub!.emit('runEnd', window.__world!.result!); window.__hub!.emit('runEnd', window.__world!.result!); });
   await page.waitForTimeout(200); expect(await stored(page)).toBe(paid);
   await page.reload(); await tid(page, 'ui-start').click();
-  await openOldStall(page);
-  await tid(page, 'stall-dips').click();
+  await openStation(page, 'dips', 'All dips');
   await expect(tid(page, 'collection-mint-chutney')).toContainText('Simmer 2 / 20 · +0.5% chill duration');
   await expect(tid(page, 'collection-mint-chutney')).toContainText('14 / 50 to Simmer 3');
   await tid(page, 'collection-mint-chutney').scrollIntoViewIfNeeded();
   await page.screenshot({ path: '.spike/dip-simmer/collection-earned-360x640.png' });
-  await tid(page, 'stall-close').click();
+  await tid(page, 'hub-close').click();
   const beforeKitchen = await stored(page);
-  await tid(page, 'stall-kitchen').click();
+  await openKitchen(page);
   await tid(page, 'kitchen-dip-0').selectOption('mint-chutney');
   await tid(page, 'kitchen-dip-level-0').selectOption('5');
   await tid(page, 'kitchen-link-0').selectOption('kosong');
