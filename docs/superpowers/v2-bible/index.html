@@ -1,0 +1,246 @@
+<title>Prata Raja Concept Bible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@500;600;700;800&display=swap">
+<style>
+/* Layout: a paper scrapbook. Kraft page, cream paper cards with white cut edges and hard shadows,
+   one typeface. Sections run top to bottom: poster, pillars, screens, jobs, combos, gear, mythics, builds, feel. */
+:root{
+  --kraft:#C9A877; --kraftDk:#B48D5D; --paper:#FFF8EA; --ink:#2B1F16; --muted:#5E4C38;
+  --tomato:#DE4A3A; --turmeric:#F2B134; --teal:#2F7F7C; --leaf:#1E6B35; --curry:#9A5A17; --dough:#EADBB8;
+  --face:"Baloo Thambi 2", "Trebuchet MS", system-ui, sans-serif;
+  --cut:drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff) drop-shadow(4px 5px 0 rgba(43,31,22,.28));
+  color-scheme:light;
+}
+body{background:var(--kraft);color:var(--ink);font-family:var(--face);font-weight:500;padding-inline:16px;padding-block:28px 64px;line-height:1.45;font-size:17px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:44px}
+h1{font-size:56px;font-weight:800;line-height:.95;margin:0;text-wrap:balance}
+h2{font-size:34px;font-weight:800;line-height:1;margin:0 0 4px;text-wrap:balance}
+h3{font-size:22px;font-weight:800;line-height:1.05;margin:0}
+p{margin:0;max-width:66ch}
+.lede{font-size:19px;color:var(--muted);max-width:60ch}
+.small{font-size:15px;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums lining-nums}
+.card{background:var(--paper);border-radius:8px;filter:var(--cut)}
+.cut{filter:var(--cut)}
+section{display:grid;gap:16px}
+.hero{display:grid;gap:14px}
+.poster{width:100%;max-width:100%;border-radius:8px;filter:var(--cut)}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.g6{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.pad{padding:14px 16px}
+.pill-row{display:flex;flex-wrap:wrap;gap:10px}
+.pillar{padding:12px 14px;display:grid;gap:2px;min-width:0}
+.pillar b{font-size:20px;font-weight:800}
+.screens{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px}
+.screens figure{margin:0;display:grid;gap:8px}
+.screens img{width:100%;max-width:100%;border-radius:10px;filter:var(--cut)}
+.screens figcaption{font-size:15px;color:var(--muted)}
+.screens figcaption b{color:var(--ink);font-weight:800}
+/* jobs */
+.path{padding:14px;display:grid;gap:10px;min-width:0}
+.path .head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.path .tag{font-size:14px;font-weight:700;padding:1px 9px;border-radius:5px;color:#fff}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center}
+.tiers img{width:100%;max-width:100%}
+.tiers b{display:block;font-size:15px;font-weight:800;line-height:1.05}
+.tiers span{font-size:13px;color:var(--muted)}
+.skills{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.skills img{width:44px;height:44px}
+.skills span{font-size:15px;color:var(--muted);flex:1;min-width:140px}
+/* combos */
+.statuses{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.status{padding:10px;display:flex;gap:10px;align-items:center}
+.status img{width:52px;height:52px}
+.status b{display:block;font-size:19px;font-weight:800;line-height:1}
+.combo{overflow:hidden;display:grid}
+.combo img{width:100%;max-width:100%;display:block}
+.combo .pad{display:grid;gap:2px}
+.combo .pad b{font-size:19px;font-weight:800}
+.fxrow{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.fxrow img{width:92px;height:92px;object-fit:contain}
+/* gear */
+.set{padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.set .icons{display:flex;gap:6px;flex-wrap:wrap}
+.set .icons img{width:56px;height:56px}
+.bon{display:grid;gap:3px;font-size:16px}
+.bon div{display:flex;gap:8px}
+.bon .n{font-weight:800;min-width:66px}
+.myth{padding:12px;display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center;min-width:0}
+.myth img{width:72px;height:72px}
+.myth b{font-size:18px;font-weight:800;line-height:1.05;display:block}
+.myth .slot{font-size:13px;color:var(--curry);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.myth p{font-size:15px;color:var(--muted)}
+.frames{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.frames figure{margin:0;text-align:center;font-size:14px;font-weight:700}
+.frames img{width:64px;height:64px}
+/* builds */
+.build{padding:14px 16px;display:grid;gap:10px;min-width:0}
+.build .who{display:flex;gap:10px;align-items:center}
+.build .who img{width:84px}
+.build .kit{display:flex;gap:6px;flex-wrap:wrap}
+.build .kit img{width:44px;height:44px}
+.build p{font-size:16px}
+/* feel */
+.feel{padding:16px 18px;display:grid;gap:8px;min-width:0}
+.feel ul{margin:0;padding-left:20px;display:grid;gap:4px;font-size:16px}
+.feel li b{font-weight:800}
+.foot{font-size:15px;color:var(--muted)}
+@media (max-width:520px){h1{font-size:42px}h2{font-size:28px}}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <h1>Prata Raja</h1>
+    <p class="lede">A tired prata man daydreams himself into a legend. Every night he flips his way from Tawa Boy to a Raja of the street, and his build is a recipe he keeps perfecting. Paper cut-out, hawker at night, crunchy to the bone.</p>
+    <img class="poster" src="a/jobs-lineup.jpg" alt="Kannan's job advancement tree: Tawa Boy in the centre, four paths of three tiers each">
+  </header>
+
+  <section>
+    <h2>Five pillars</h2>
+    <div class="grid g3" id="pillars"></div>
+  </section>
+
+  <section>
+    <h2>How it looks in play</h2>
+    <p class="small">Codex key art in the target style: one paper material for characters, props, effects and menus.</p>
+    <div class="screens">
+      <figure><img src="a/keyart-hub.jpg" alt="Hub screen"><figcaption><b>Stall.</b> Four stations on paper flags, Kannan in the middle, one big GO.</figcaption></figure>
+      <figure><img src="a/keyart-run-combo.jpg" alt="Run with combos"><figcaption><b>Run.</b> A swarm around Golden Edge Kannan: CRUNCH, a curry splat, a TOASTED combo.</figcaption></figure>
+      <figure><img src="a/keyart-kitchen-build.jpg" alt="Kitchen build screen"><figcaption><b>Kitchen.</b> The whole build on one menu: roti, three katori dips, five gear, a set ribbon.</figcaption></figure>
+      <figure><img src="a/keyart-job-advance.jpg" alt="Job advance screen"><figcaption><b>Job advance.</b> A paper ceremony: new outfit, three new skills, Accept.</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Job advancement</h2>
+    <p>Kannan starts as Tawa Boy. At level 10 he picks a path; he advances again at 30 and 60. Every tier changes his outfit, adds a signature skill and a passive. Re-training at the Job Board is free.</p>
+    <div class="grid g2" id="paths"></div>
+  </section>
+
+  <section>
+    <h2>Combos you can see</h2>
+    <p>Every hit can leave one of four statuses. Two different statuses on the same pest trigger a named reaction. Each status has one colour and one shape, so it reads at a glance, even without colour.</p>
+    <div class="statuses" id="statuses"></div>
+    <div class="grid g3" id="combos"></div>
+    <div class="card pad"><h3>Hit, crit, kill, splat, wrap</h3><p class="small">The effect pieces, all flat paper.</p><div class="fxrow" id="fx" style="margin-top:8px"></div></div>
+  </section>
+
+  <section>
+    <h2>Gear that stacks</h2>
+    <p>Five slots: towel, headband, apron, gloves, slippers. Rarity runs common, rare, epic, raja, mythic. Pieces enhance on the hot tawa (+1 to +10) and reroll their numbers. Sets share a colour family so Kannan visibly changes as a set fills.</p>
+    <div class="card pad"><div class="frames" id="frames"></div></div>
+    <div class="grid g2" id="sets"></div>
+  </section>
+
+  <section>
+    <h2>Mythic items</h2>
+    <p>One at a time. Each bends a rule of the game. Earned from shards dropped by the Grade Inspector spirit; never sold.</p>
+    <div class="grid g3" id="myths"></div>
+  </section>
+
+  <section>
+    <h2>Builds to chase</h2>
+    <div class="grid g2" id="builds"></div>
+  </section>
+
+  <section>
+    <h2>Throwing, crunch and sound</h2>
+    <div class="grid g3">
+      <div class="card feel"><h3>Crazy throwing</h3><ul>
+        <li><b>Every roti throws its own way.</b> Kosong spins flat, tissue whistles through a line, naan lobs and slaps down, murtabak bowls pests over, egg prata bounces off walls.</li>
+        <li><b>Flip throw</b> every 3rd throw: a twirl, bigger, guaranteed status.</li>
+        <li><b>Catch-back:</b> walk into a returning prata and the next one is double size.</li>
+        <li><b>Dodge spray:</b> dashing through pests fires pratas behind you.</li>
+        <li><b>Sizzler:</b> stand still 1.5 s and the tawa charges a burning throw.</li>
+      </ul></div>
+      <div class="card feel"><h3>Paper crunch</h3><ul>
+        <li><b>Hit:</b> the pest squashes and snaps back, paper flecks fly.</li>
+        <li><b>Crit:</b> a torn CRUNCH burst, golden flakes tumble and land.</li>
+        <li><b>Kill:</b> the cut-out tips over flat and tears into confetti; coins hop out on paper springs.</li>
+        <li><b>Wet:</b> curry splats drip, spread and dry into stains on the road.</li>
+        <li><b>Dough:</b> pests sink into dough that stretches when they struggle and snaps when it breaks.</li>
+      </ul></div>
+      <div class="card feel"><h3>Sound and memory</h3><ul>
+        <li><b>Hits</b> slap like dough on a tawa; <b>crits</b> crunch like the crisp edge of a prata; <b>kills</b> tear like paper.</li>
+        <li><b>Statuses:</b> squelch, splash, tawa sizzle, crackle. <b>Combos:</b> crackling pop, candy-glass crack, kettle hiss, bubbling pot, a bright chime.</li>
+        <li><b>The night:</b> kopitiam radio, a hawker calling orders, cups clinking, void-deck football in the distance.</li>
+        <li><b>Music:</b> cheerful thavil and nadaswaram flavoured chiptune, calmer at the stall.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <p class="foot">Design: docs/plans/v2-concept.md and v2-spec.md in the repo. Art: Codex batch 4, ~/prata-raja-assets/v2 (86 images). Numbers are starting points for tuning.</p>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const html = (el, s) => { el.innerHTML = s; };
+html($('pillars'), [
+  ['Crazy throwing', 'Throwing is the toy. Great with zero upgrades, absurd at Raja tier.'],
+  ['Crunch', 'Every hit lands with weight. Crits are the crunchiest thing in the game.'],
+  ['Combos you can see', 'Statuses read on the pest; reactions are loud paper events with names.'],
+  ['Paper hawker nostalgia', 'A cut-paper memory of a 90s Singapore night: kopitiam radio, pasar malam lights, tingkat tiffins.'],
+  ['One paper world', 'One material, one angle, one typeface. Nothing breaks the craft.'],
+].map(([t, d]) => `<div class="card pillar"><b>${t}</b><span class="small">${d}</span></div>`).join(''));
+
+const paths = [
+  ['Crisp', '#B7791F', 'Crits, pierce, flaky layers', [['flipper','Flipper',10],['crispmaster','Crispmaster',30],['golden-edge','Golden Edge',60]], ['flip-storm','golden-slice','tawa-spin'], 'Flip Storm, then Golden Slice, then Thousand Layers: every crit adds a flaky layer; ten fire a Golden Prata.'],
+  ['Soak', '#2F7F7C', 'Wet splash, area, spreading', [['gravy-hand','Gravy Hand',10],['monsoon-cook','Monsoon Cook',30],['banjir-raja','Banjir Raja',60]], ['ladle-slam','gravy-wave','curry-monsoon'], 'Ladle Slam, then Gravy Wave, then Curry Monsoon: eight seconds of curry rain that soaks the whole street.'],
+  ['Heat', '#C0392B', 'Burn that stacks', [['chilli-boy','Chilli Boy',10],['wok-blazer','Wok Blazer',30],['sambal-raja','Sambal Raja',60]], ['sambal-mine','wok-flame','chilli-barrage'], 'Sambal Mine, then Wok Flame, then Chilli Barrage: burn stacks never fall off while you keep hitting.'],
+  ['Dough', '#8A6E4C', 'Crowd control, pull, tank', [['dough-slinger','Dough Slinger',10],['stretch-artist','Stretch Artist',30],['murtabak-titan','Murtabak Titan',60]], ['dough-lasso','flour-bomb','murtabak-slam'], 'Dough Lasso, then Flour Bomb, then Murtabak Slam: wrap everything nearby in dough, then slam.'],
+];
+html($('paths'), paths.map(([n, c, d, tiers, sk, line]) => `
+  <div class="card path"><div class="head"><h3>${n} path</h3><span class="tag" style="background:${c}">${d}</span></div>
+  <div class="tiers">${tiers.map(([f, t, lv]) => `<div><img src="a/jobs-${f}.webp" alt="${t}"><b>${t}</b><span>Level ${lv}${lv === 60 ? ' · Raja' : ''}</span></div>`).join('')}</div>
+  <div class="skills">${sk.map((s) => `<img src="a/skills-${s}.webp" alt="">`).join('')}<span>${line}</span></div></div>`).join(''));
+
+html($('statuses'), [['dough','Dough','Sticky hold'],['wet','Wet','Curry soak'],['burn','Burn','Sambal sizzle'],['crisp','Crisp','Flake mark']]
+  .map(([f, n, d]) => `<div class="card status"><img src="a/skills-status-${f}.webp" alt=""><div><b>${n}</b><span class="small">${d}</span></div></div>`).join(''));
+html($('combos'), [
+  ['toasted','Toasted','Dough + Burn','The dough bakes and bursts into golden crumbs that hit everything nearby.'],
+  ['shatter','Shatter','Dough + Crisp','The crust cracks; the next hit on that pest does triple damage.'],
+  ['steam','Steam Burst','Wet + Burn','A kettle-hiss puff that knocks pests back and blinds them.'],
+  ['soggy','Soggy Splash','Wet + Crisp','A crit splashes to every wet pest nearby.'],
+  ['simmer','Simmer','Wet + Wet','Pools merge and bubble; damage grows every second they stand in it.'],
+  ['golden','Golden Prata','10 Crisp layers','A huge glowing prata that cuts through the whole screen.'],
+].map(([f, n, mix, d]) => `<div class="card combo"><img src="a/skills-combo-${f}.jpg" alt="${n} combo card"><div class="pad"><b>${n}</b><span class="small">${mix}</span><p style="font-size:15px">${d}</p></div></div>`).join(''));
+html($('fx'), ['fx-crunch','fx-splat','fx-dough-wrap','fx-toasted','fx-shatter','fx-steam-burst','fx-soggy-splash','fx-simmer','fx-golden-prata']
+  .map((f) => `<img src="a/skills-${f}.webp" alt="">`).join(''));
+
+html($('frames'), [['common','Common'],['rare','Rare'],['epic','Epic'],['raja','Raja'],['mythic','Mythic']]
+  .map(([f, n]) => `<figure><img src="a/gear-frame-${f}.webp" alt=""><figcaption>${n}</figcaption></figure>`).join(''));
+const slots = ['towel','headband','apron','gloves','slippers'];
+html($('sets'), [
+  ['night-shift','Night Shift',['+6% crit','Crits while walking add a flaky layer','Every 5th crit is a Golden Slice']],
+  ['monsoon','Monsoon Season',['+15% area size','Wet lasts 2 s longer','Wet pests spread Wet when they die']],
+  ['uncle',"Uncle's Old Kit",['Kopi meal buff +50%','+1 choice in every tiffin gift','First gift each run is rare']],
+  ['golden','Golden Tawa',['+10% tips','+1% damage per 100 tips held, up to 30%','Coins explode on pickup']],
+].map(([f, n, b]) => `<div class="card set"><h3>${n}</h3><div class="icons">${slots.map((s) => `<img src="a/gear-${f}-${s}.webp" alt="">`).join('')}</div>
+  <div class="bon">${['2 pieces','3 pieces','5 pieces'].map((k, i) => `<div><span class="n">${k}</span><span>${b[i]}</span></div>`).join('')}</div></div>`).join(''));
+
+html($('myths'), [
+  ['first-tawa','The First Tawa','Charm','Every 7th throw is a Golden Prata.'],
+  ['towel-of-thousand-flips','Towel of a Thousand Flips','Towel','A dodge leaves an afterimage that keeps throwing for 2 s.'],
+  ['ah-ma-ladle',"Ah Ma's Ladle",'Gloves','Your curry pools heal you while you stand in them.'],
+  ['teh-tarik-chain-mug','Teh Tarik Chain Mug','Charm','Every throw chains once to the next pest, like pulled tea.'],
+  ['seven-chilli-sambal-jar','Seven-Chilli Sambal Jar','Apron','Burn caps at 7 stacks, but each stack is triple strength.'],
+  ['durian-crown','Durian Crown','Headband','Every 5 s, pests close to you flee for a second.'],
+  ['midnight-supper-slippers','Midnight Supper Slippers','Slippers','Walking leaves a starry trail that marks pests Crisp.'],
+  ['lucky-red-apron','Lucky Red Apron','Apron','Tiffin gifts can roll a mythic-tier choice.'],
+  ['marble-kopitiam-slab-shield','Marble Kopitiam Slab','Charm','Blocks the first hit every 8 s and shatters on block.'],
+  ['golden-spatula','Golden Spatula','Charm','Crits take 0.2 s off your skill cooldowns.'],
+  ['thousand-layer-cape','Thousand-Layer Cape','Towel','Flaky layers stack to 20 instead of 10.'],
+  ['monsoon-umbrella','Monsoon Umbrella','Headband','Curry Monsoon follows you, and you are never Wet.'],
+].map(([f, n, s, d]) => `<div class="card myth"><img src="a/gear-${f}.webp" alt=""><div><span class="slot">${s}</span><b>${n}</b><p>${d}</p></div></div>`).join(''));
+
+html($('builds'), [
+  ['golden-edge','Golden Edge crit','Crisp path · tissue prata · ghee + teh tarik · Night Shift 5 · The First Tawa',['first-tawa','night-shift-towel','night-shift-gloves','golden-spatula'],'Pierce lines stack flaky layers; Golden Pratas every few seconds; Shatter anything a friend doughs.'],
+  ['banjir-raja','Banjir flood','Soak path · garlic naan · fish curry + dhal · Monsoon Season 5 · Ah Ma\'s Ladle',['ah-ma-ladle','monsoon-umbrella','monsoon-apron','monsoon-slippers'],'The whole street is wet and simmering. Stand in your own pools to heal.'],
+  ['murtabak-titan','Toaster','Dough path · murtabak · mint + sambal · Uncle\'s Old Kit 3 · Durian Crown',['durian-crown','uncle-towel','uncle-apron','seven-chilli-sambal-jar'],'Lasso a crowd, dough them, burn them, and watch TOASTED chain through the pack.'],
+  ['sambal-raja','Steam engine','Heat path · egg prata · sambal + fish curry · Golden Tawa 2 · Seven-Chilli Jar',['seven-chilli-sambal-jar','golden-headband','golden-gloves','teh-tarik-chain-mug'],'Bouncing throws mix Wet and Burn on everything for constant Steam Bursts.'],
+].map(([j, n, k, items, d]) => `<div class="card build"><div class="who"><img src="a/jobs-${j}.webp" alt=""><div><h3>${n}</h3><span class="small">${k}</span></div></div>
+  <div class="kit">${items.map((i) => `<img src="a/gear-${i}.webp" alt="">`).join('')}</div><p>${d}</p></div>`).join(''));
+</script>
