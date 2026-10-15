@@ -16,7 +16,7 @@ import { SLOTS, TRAINING_IDS, type GearItem, type SaveV2 } from '@/meta/types';
 
 import { fmt } from '../format';
 import { Switch, toggleSetting } from '../settings';
-import { chestArt, evolutionRecipes, giftLabel, mergeCandidates, mergeGear, pityLines, rackItems, statLines, titleCase, unlockBeat } from './helpers';
+import { chestArt, evolutionRecipes, giftLabel, mergeCandidates, mergeGear, pityLines, rackItems, statLines, titleCase, lockLine, unlockBeat } from './helpers';
 import type { Art } from './StallProgress';
 import '../system';
 
@@ -291,9 +291,9 @@ export function RecipeSheet({ save, commit, art }: Ctx) {
             <img className="sh-item-art" src={art(def.sprite)} alt="" />
             <b>{def.name}</b>
             <span>{Object.entries(recipe.costs).map(([m, n]) => `${n} ${m} (${save.materials[m as keyof typeof save.materials]})`).join(' · ')}</span>
-            <button type="button" className="u-plain" data-testid={`cook-${recipe.id}`} disabled={!canCook(save, recipe.id)} onClick={() => commit(s => cook(s, recipe.id))}>
-              {owned ? 'Known recipe' : 'Cook recipe'}
-            </button>
+            {owned ? <span className="sh-known" data-testid={`cook-${recipe.id}`}>Known</span> : <button type="button" className="u-plain" data-testid={`cook-${recipe.id}`} disabled={!canCook(save, recipe.id)} onClick={() => commit(s => cook(s, recipe.id))}>
+              Cook recipe
+            </button>}
           </section>
         );
       })}
@@ -311,16 +311,6 @@ export function RecipeSheet({ save, commit, art }: Ctx) {
   );
 }
 
-export function PreviewSheet({ art }: { kind: 'special'; art: Art }) {
-  return (
-    <>
-      <img className="sh-feature-art sh-preview" src={art('hub/chef-special')} alt="" />
-      <p>Coming soon</p>
-      <p>A fresh daydream, shared by everyone.</p>
-    </>
-  );
-}
-
 /** The same two switches as the pause sheet, on the same save fields. */
 export function SettingsSheet({ save, commit }: Pick<Ctx, 'save' | 'commit'>) {
   return (
@@ -333,7 +323,7 @@ export function SettingsSheet({ save, commit }: Pick<Ctx, 'save' | 'commit'>) {
 }
 
 export function SignatureSheet({ save, commit, art }: Ctx) {
-  if (!save.unlocks.signature) return <p>Unlocks: {unlockBeat('signature')}.</p>;
+  if (!save.unlocks.signature) return <p>{lockLine('signature')}</p>;
   return <>
     <p>Start each daydream with your favourite bread. The first two Fish Curry, Condensed Milk or Mint Chutney picks link to it.</p>
     <div className="sh-inventory">

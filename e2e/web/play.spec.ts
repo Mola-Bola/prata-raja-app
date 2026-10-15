@@ -79,7 +79,7 @@ test('title, start, drag, pick a card, pause, quit', async ({ page }) => {
 
   // End run wakes Kannan early. This one is still on wave 1, so it is too short to pay: the results say so, nothing is paid
   // (no coins, XP, chest or ingredients), and the run still counts in the records. Back to stall opens the hub.
-  await tid(page, 'ui-quit').click();
+  await tid(page, 'ui-quit').click(); await tid(page, 'ui-quit-confirm').click();
   await expect(tid(page, 'ui-again')).toBeVisible();
   expect(await page.evaluate(() => window.__world!.result!.wave)).toBe(1);
   await expect(tid(page, 'results-short')).toHaveText('Too short a daydream — no tips this time');
@@ -185,7 +185,7 @@ for (const [w, h] of [
     await expect(tid(page, 'ui-start')).toBeEnabled();
     const box = async (sel: string) => (await page.locator(sel).filter({ visible: true }).first().boundingBox())!;
     const start = await box('[data-testid="ui-start"]');
-    const chip = await box('.gu-splash-foot .gu-chip');
+    const chip = await box('.gu-splash-foot .gu-start');
     const foot = await box('.gu-splash-foot');
     const logo = await box('.gu-logo');
     // A wide chunky pill, not the old 240 px round badge: at least 280 px across (never wider than the screen less a gutter), about 70 px

@@ -25,15 +25,15 @@ export function Tune({ onClose }: { onClose: () => void }) {
         <h2 className="gu-heading">Tune</h2>
         <p className="gu-version">Applies from the next run. {Object.keys(o).length} changed.</p>
         <div className="gu-switches">
-          <button type="button" className="gu-btn" onClick={copy}>Copy as JSON</button>
-          <button type="button" className="gu-btn" onClick={() => { commit({}); setMsg('All reset.'); }}>Reset all</button>
+          <button type="button" className="u-plain" onClick={copy}>Copy as JSON</button>
+          <button type="button" className="u-plain" onClick={() => { commit({}); setMsg('All reset.'); }}>Reset all</button>
         </div>
         {msg && <p className="gu-version">{msg}</p>}
         {groups.map((g) => (
-          <details key={g}><summary className="gu-btn gu-btn--wide">{g}</summary>
+          <details key={g}><summary className="u-plain u-wide">{g}</summary>
             {sections.filter((s) => group(s) === g).map((s) => (
               <details key={s} style={{ marginLeft: 8 }}><summary>{s.includes(':') ? s.split(': ')[1] : s}</summary>
-                <button type="button" className="gu-btn" onClick={() => { const n = { ...o }; for (const k of KNOBS) if (k.section === s) delete n[k.id]; commit(n); }}>Reset section</button>
+                <button type="button" className="u-plain" onClick={() => { const n = { ...o }; for (const k of KNOBS) if (k.section === s) delete n[k.id]; commit(n); }}>Reset section</button>
                 {KNOBS.filter((k) => k.section === s).map((k) => {
                   const v = o[k.id] ?? k.def;
                   return (
@@ -48,7 +48,7 @@ export function Tune({ onClose }: { onClose: () => void }) {
             ))}
           </details>
         ))}
-        <button type="button" className="gu-btn gu-btn--primary gu-btn--wide" onClick={onClose}>Close</button>
+        <button type="button" className="u-go u-wide" onClick={onClose}>Close</button>
       </section>
     </div>
   );

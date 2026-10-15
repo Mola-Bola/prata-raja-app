@@ -8,6 +8,7 @@ test.beforeEach(async ({ page }) => {
 
 test('Kitchen displays tags, family, fit and bonus for selected links', async ({ page }) => {
   await page.goto('/play?kitchen=1');
+  await page.getByTestId('kitchen-setup').click();
   await expect(page.getByTestId('kitchen-sheet')).toBeVisible();
   await expect(page.getByTestId('kitchen-tags-0')).toHaveText('Thrown · Crisp');
   await page.getByTestId('kitchen-dip-0').selectOption('fish-curry');

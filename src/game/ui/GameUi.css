@@ -1,26 +1,8 @@
-/* Prata Raja overlay (GameUi.tsx). Paper and brown tokens are on .gu-root. Text is ink (#3B2414) on cream or orange
-   (about 13:1 and 5.9:1); text on the red ribbon art is cream on a darkened copy of the art, because the red itself
-   is only 3.7:1 with cream. Red and orange are for fills and borders only. */
+/* Prata Raja overlay (GameUi.tsx). Tokens (colours, 5 type sizes, radii, spacing, motion) come from tokens.css, the button tiers
+   and glyphs from system.css: see docs/wiki/ui-system.md. Text is ink on cream or orange; red and orange are fills and borders. */
 /* Fredoka and Nunito are bundled (src/game/fonts.ts adds their @font-face rules): no network is needed. */
 
 .gu-root {
-  --cream: #FFF4E0;
-  --ink: #3B2414;
-  --orange: #F28C28;
-  --orange-deep: #B5651D;
-  --red: #D9452B;
-  --edge: #A9764A;
-  --edge-deep: #7E4E2A;
-  --gold: #FFD36B;
-  /* a dark glass pill: the one way text sits on art without a cream card (cream text on it is about 12:1) */
-  --glass: rgba(34, 20, 10, 0.78);
-  --glass-edge: rgba(255, 244, 224, 0.5);
-  /* one type scale: caption 13, body 15, lead 17, title 20, heading 28, display 40 (phone px) */
-  --fs-cap: 13px;
-  --fs-body: 15px;
-  --fs-lead: 17px;
-  --fs-title: 20px;
-  --fs-head: 28px;
   /* A parent can set --gu-safe-* (px) where env() reports nothing, e.g. the Android WebView. */
   --safe-top: var(--gu-safe-top, env(safe-area-inset-top, 0px));
   --safe-right: var(--gu-safe-right, env(safe-area-inset-right, 0px));
@@ -31,14 +13,13 @@
   overflow: hidden;
   pointer-events: none;
   container: gu / inline-size;
-  font-family: Nunito, system-ui, sans-serif;
+  font: var(--f-body);
   color: var(--ink);
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-.gu-root button:focus-visible,
 .gu-root [role='switch']:focus-visible {
   outline: 3px solid var(--gold);
   outline-offset: 3px;
@@ -46,20 +27,21 @@
 
 /* ── Shared pieces ─────────────────────────────────────────────────────────── */
 
-.gu-chip {
+/* A cream caption pill (title best line, story captions). */
+.gu-pill {
   margin: 0;
-  padding: 8px 16px;
-  border: 2.5px solid var(--edge);
-  border-radius: 999px;
+  padding: var(--sp-2) var(--sp-4);
+  border: 3px solid var(--edge);
+  border-radius: var(--r-full);
   background: var(--cream);
   color: var(--ink);
-  font: 700 var(--fs-lead)/1.2 Nunito, system-ui, sans-serif;
+  font: var(--f-body);
   box-shadow: 0 3px 0 var(--edge-deep);
 }
 
 .gu-heading {
   margin: 0;
-  font: 700 40px/1 Fredoka, system-ui, sans-serif;
+  font: var(--f-hero);
   color: var(--cream);
   text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
   text-align: center;
@@ -68,55 +50,17 @@
 .gu-sheet .gu-heading {
   color: var(--ink);
   text-shadow: none;
-  font-size: 32px;
-}
-
-.gu-btn {
-  pointer-events: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 52px;
-  min-width: 52px;
-  padding: 10px 22px;
-  border: 3px solid var(--edge);
-  border-radius: 18px;
-  background: var(--cream);
-  color: var(--ink);
-  font: 600 19px/1 Fredoka, system-ui, sans-serif;
-  box-shadow: 0 5px 0 var(--edge-deep);
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: transform 0.09s ease-out, box-shadow 0.09s ease-out;
-}
-
-.gu-btn:active {
-  transform: translateY(3px) scale(1.03, 0.93);
-  box-shadow: 0 2px 0 var(--edge-deep);
-}
-
-.gu-btn--primary {
-  background: var(--orange);
-  border-color: var(--orange-deep);
-  box-shadow: 0 5px 0 var(--orange-deep);
-}
-
-.gu-btn--primary:active {
-  box-shadow: 0 2px 0 var(--orange-deep);
-}
-
-.gu-btn--wide {
-  width: 100%;
+  font: var(--f-title);
 }
 
 .gu-panel,
 .gu-sheet {
   box-sizing: border-box;
   display: grid;
-  gap: 12px;
-  padding: 20px 20px 18px;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-4) var(--sp-4);
   border: 3px solid var(--edge);
-  border-radius: 24px;
+  border-radius: var(--r-m);
   background: var(--cream);
   box-shadow: 0 6px 0 var(--edge-deep), 0 18px 36px rgba(0, 0, 0, 0.35);
 }
@@ -127,7 +71,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: #1b1410;
+  background: var(--ink);
 }
 
 .gu-cover {
@@ -145,8 +89,7 @@
   right: 0;
   display: grid;
   justify-items: center;
-  gap: 10px;
-  padding: calc(var(--safe-top) + 26px) calc(var(--safe-right) + 16px) 0 calc(var(--safe-left) + 16px);
+  padding: calc(var(--safe-top) + var(--sp-5)) calc(var(--safe-right) + var(--sp-4)) 0 calc(var(--safe-left) + var(--sp-4));
 }
 
 .gu-logo {
@@ -162,233 +105,73 @@
   bottom: 0;
   display: grid;
   justify-items: center;
-  gap: 14px;
-  padding: 0 calc(var(--safe-right) + 18px) calc(var(--safe-bottom) + 24px) calc(var(--safe-left) + 18px);
+  gap: var(--sp-3);
+  padding: 0 calc(var(--safe-right) + var(--sp-4)) calc(var(--safe-bottom) + var(--sp-4)) calc(var(--safe-left) + var(--sp-4));
 }
 
-/* The one big button: a wide chunky pill pinned to the bottom, so the hero above it stays in view. */
+/* The one big button: a wide go pinned to the bottom, so the hero above it stays in view. */
 .gu-start {
-  pointer-events: auto;
-  display: grid;
-  place-items: center;
   width: min(100%, 360px);
-  min-height: 72px;
-  padding: 10px 24px;
-  border: 4px solid var(--orange-deep);
-  border-radius: 999px;
-  background: var(--orange);
-  color: var(--ink);
-  font: 700 30px/1.05 Fredoka, system-ui, sans-serif;
-  letter-spacing: 0.01em;
-  box-shadow: 0 8px 0 var(--orange-deep), 0 16px 24px rgba(90, 40, 10, 0.35);
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: transform 0.09s ease-out, box-shadow 0.09s ease-out;
-}
-
-.gu-start:active {
-  transform: translateY(5px) scale(1.02, 0.95);
-  box-shadow: 0 3px 0 var(--orange-deep), 0 8px 12px rgba(90, 40, 10, 0.35);
+  min-height: 64px;
+  border-radius: var(--r-full);
+  font: var(--f-hero);
 }
 
 .gu-start:disabled {
   opacity: 0.75;
-  cursor: default;
 }
 
-/* Title tools (Intro, build) sit under the logo, out of the Start pill's measured spot. */
-.gu-title-tools {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.gu-link {
-  pointer-events: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 18px;
-  border: 2px solid var(--glass-edge);
-  border-radius: 999px;
-  background: var(--glass);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  color: var(--cream);
-  font: 700 var(--fs-body)/1 Nunito, system-ui, sans-serif;
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: transform 0.09s ease-out, box-shadow 0.09s ease-out;
-}
-
-.gu-link::before {
-  content: '';
-  border: solid transparent;
-  border-width: 6px 0 6px 10px;
-  border-left-color: var(--gold);
-}
-
-.gu-link:active {
-  transform: translateY(2px) scale(1.03, 0.94);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
-}
-
-/* The build label: small and quiet, never a button. On the title it sits on its own glass pill. */
+/* The build label: small and quiet, never a button. On the title it sits on the art, so it gets a glass pill. */
 .gu-version {
   margin: 0;
-  font: 600 var(--fs-cap)/1.2 Nunito, system-ui, sans-serif;
+  font: var(--f-cap);
   color: var(--cream);
-  opacity: 0.9;
 }
 
-.gu-title-tools .gu-version {
-  padding: 6px 12px;
-  border-radius: 999px;
+.gu-splash-foot .gu-version {
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--r-full);
   background: var(--glass);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
 }
 
 .gu-sheet .gu-version {
-  color: var(--ink);
-  opacity: 0.7;
+  color: var(--muted);
   text-align: center;
 }
 
 /* ── HUD (during a run) ─────────────────────────────────────────────────────── */
 
-.gu-find {
-  position: absolute;
-  left: calc(var(--safe-left) + 12px);
-  right: calc(var(--safe-right) + 12px);
-  bottom: calc(var(--safe-bottom) + 96px);
-  max-width: 420px;
-  margin: 0 auto;
-  padding: 10px 12px 12px;
-  background: var(--cream);
-  color: var(--ink);
-  border: 3px solid var(--edge);
-  border-radius: 14px;
-  box-shadow: 0 4px 0 var(--edge-deep);
-  font-size: var(--fs-body);
-  pointer-events: auto;
-  overflow: hidden;
-  animation: gu-find-in 0.35s cubic-bezier(0.2, 1.2, 0.4, 1) both;
-}
-.gu-find-row { display: flex; align-items: center; gap: 10px; }
-.gu-find-row img { width: 40px; height: 40px; object-fit: contain; flex: none; }
-.gu-find-row > div { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px; line-height: 1.25; }
-.gu-find-row b { font-size: 14px; }
-.gu-find-row em { opacity: 0.65; font-size: 12px; }
-.gu-find .gu-btn { padding: 6px 12px; font-size: 14px; }
-.gu-find-alts { display: flex; gap: 8px; margin-top: 8px; }
-.gu-find-alts .gu-btn { flex: 1; display: flex; flex-direction: column; font-size: 12px; text-align: left; }
-.gu-find-timer { position: absolute; left: 0; bottom: 0; height: 4px; width: 100%; background: var(--orange); transform-origin: left; animation: gu-find-timer 3s linear forwards; }
-@keyframes gu-find-in { from { transform: translateY(140%); opacity: 0; } to { transform: none; opacity: 1; } }
-@keyframes gu-find-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
-@media (prefers-reduced-motion: reduce) { .gu-find { animation: none; } }
-
 .gu-hud {
   position: absolute;
   inset: 0;
-  padding: calc(var(--safe-top) + 10px) calc(var(--safe-right) + 12px) 0 calc(var(--safe-left) + 12px);
+  padding: calc(var(--safe-top) + var(--sp-3)) calc(var(--safe-right) + var(--sp-3)) 0 calc(var(--safe-left) + var(--sp-3));
   pointer-events: none;
 }
 
-.gu-topbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.gu-ribbon {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 138px;
-  aspect-ratio: 512 / 229;
-}
-
-.gu-ribbon img {
+/* Dev badges: ?god=1 and tuned knobs. Never in a shipped run. */
+.gu-god,
+.gu-tuned {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  filter: brightness(0.8);
+  top: var(--sp-1);
+  left: var(--sp-1);
+  z-index: 50;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-s);
+  font: var(--f-cap);
+  pointer-events: none;
 }
+.gu-god { background: var(--glass); color: var(--cream); }
+.gu-tuned { background: var(--ink); color: var(--gold); }
 
-.gu-ribbon span {
-  position: relative;
-  color: var(--cream);
-  font: 600 16px/1 Fredoka, system-ui, sans-serif;
-  text-shadow: 0 1px 0 rgba(60, 20, 0, 0.45);
-  white-space: nowrap;
-}
-
-.gu-gold {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  height: 40px;
-  padding: 0 12px 0 4px;
-  border: 2.5px solid var(--edge);
-  border-radius: 999px;
-  background: var(--cream);
-  box-shadow: 0 3px 0 var(--edge-deep);
-  font: 800 var(--fs-lead)/1 Nunito, system-ui, sans-serif;
-  font-variant-numeric: tabular-nums;
-}
-
-.gu-gold img {
-  width: 32px;
-  height: 32px;
-}
-
-.gu-pause {
-  pointer-events: auto;
-  width: 48px;
-  height: 48px;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.gu-pause img {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.gu-xp {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.gu-level {
-  padding: 5px 9px;
-  border: 2px solid var(--edge);
-  border-radius: 999px;
-  background: var(--cream);
-  font: 800 var(--fs-cap)/1 Nunito, system-ui, sans-serif;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
+/* Stats bar: the filled strip of the Kannan level bar on the results screen. */
 .gu-bar {
   position: relative;
   display: block;
   flex: 1;
-  height: 10px;
+  height: 12px;
   overflow: hidden;
   border: 2px solid var(--edge);
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--cream);
 }
 
@@ -397,13 +180,13 @@
   top: 0;
   bottom: 0;
   left: 0;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--orange);
   overflow: hidden;
   transition: width 0.2s ease-out;
 }
 
-/* a soft light sweeps along every filled bar now and then */
+/* a soft light sweeps along the filled bar now and then */
 .gu-bar i::after {
   content: '';
   position: absolute;
@@ -411,43 +194,6 @@
   background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
   background-size: 220% 100%;
   animation: gu-sweep 3.2s ease-in-out infinite;
-}
-
-.gu-bar--hp i,
-.gu-bar--boss i {
-  background: var(--red);
-}
-
-.gu-boss {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-sizing: border-box;
-  width: 100%;
-  margin-top: 8px;
-  padding: 4px 10px;
-  border: 2.5px solid var(--edge);
-  border-radius: 16px;
-  background: var(--cream);
-  box-shadow: 0 3px 0 var(--edge-deep);
-}
-
-.gu-boss img {
-  flex: none;
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-}
-
-.gu-dps {
-  flex: none;
-  white-space: nowrap;
-  padding: 4px 8px;
-  border: 2px solid var(--edge);
-  border-radius: 12px;
-  background: var(--cream);
-  font: 700 var(--fs-cap)/1.2 Nunito, system-ui, sans-serif;
-  font-variant-numeric: tabular-nums;
 }
 
 .gu-pause-sheet {
@@ -461,81 +207,27 @@
   height: 100%;
   grid-template-rows: auto minmax(0, 1fr) auto;
   overflow: hidden;
-  padding: 12px;
-  gap: 8px;
+  padding: var(--sp-3);
+  gap: var(--sp-2);
 }
 
-.gu-build-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.gu-build-heading .gu-heading { font-size: 24px; }
-.gu-build-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 4px 8px; }
-.gu-build-body section { border-top: 1px solid var(--edge); padding-top: 10px; margin-top: 10px; }
-.gu-build-body h3 { margin: 0 0 6px; font: 600 var(--fs-title)/1.2 Fredoka, system-ui, sans-serif; }
-.gu-build-body h4 { margin: 0; font: 600 var(--fs-lead)/1.2 Fredoka, system-ui, sans-serif; }
+/* End run asks once: two buttons side by side, the safe one is the go. */
+.gu-confirm { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+.gu-confirm p { grid-column: 1 / -1; margin: 0; font: var(--f-body); text-align: center; }
+
+.gu-build-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.gu-build-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px var(--sp-1) var(--sp-2); }
+.gu-build-body section { border-top: 1px solid var(--edge); padding-top: var(--sp-3); margin-top: var(--sp-3); }
+.gu-build-body h3 { margin: 0 0 var(--sp-2); font: var(--f-title); }
+.gu-build-body h4 { margin: 0; font: var(--f-btn); }
 .gu-build-body h4 span { white-space: nowrap; }
-.gu-build-body p { margin: 5px 0; font: 600 var(--fs-body)/1.4 Nunito, system-ui, sans-serif; overflow-wrap: anywhere; }
-.gu-build-body small, .gu-build-body .gu-build-note { font: 600 var(--fs-cap)/1.4 Nunito, system-ui, sans-serif; }
-.gu-build-item { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 8px; padding: 8px 0; }
+.gu-build-body p { margin: var(--sp-1) 0; font: var(--f-body); overflow-wrap: anywhere; }
+.gu-build-body small, .gu-build-body .gu-build-note { font: var(--f-cap); }
+.gu-build-item { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: var(--sp-2); padding: var(--sp-2) 0; }
 .gu-build-item img { width: 38px; height: 38px; object-fit: contain; }
-.gu-build-stats { margin: 8px 0; font: 700 var(--fs-body)/1.4 Nunito, system-ui, sans-serif; }
-.gu-build-stats > div { display: flex; gap: 10px; justify-content: space-between; padding: 3px 0; }
+.gu-build-stats { margin: var(--sp-2) 0; font: var(--f-body); }
+.gu-build-stats > div { display: flex; gap: var(--sp-3); justify-content: space-between; padding: 3px 0; }
 .gu-build-stats dd { margin: 0; text-align: right; }
-
-.gu-boss-body {
-  flex: 1;
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.gu-boss-name {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font: 600 var(--fs-body)/1.1 Fredoka, system-ui, sans-serif;
-}
-
-.gu-boss .gu-bar {
-  flex: none;
-  height: 8px;
-  width: auto;
-}
-
-/* On the counter's front edge, bottom-left, over the steel (the renderer draws the counter as a strip along the bottom edge:
-   src/game/phaser/layout.ts). The dip bowls sit above it, on the far half of the strip. */
-.gu-hp {
-  position: absolute;
-  left: calc(var(--safe-left) + 10px);
-  bottom: calc(var(--safe-bottom) + 6px);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px 4px 4px;
-  border: 2.5px solid var(--edge);
-  border-radius: 999px;
-  background: var(--cream);
-  box-shadow: 0 3px 0 var(--edge-deep);
-  font: 800 var(--fs-body)/1 Nunito, system-ui, sans-serif;
-  font-variant-numeric: tabular-nums;
-}
-
-.gu-hp img {
-  width: 30px;
-  height: 30px;
-}
-
-/* A hit on Kannan: the pill flashes red and shakes a little. Two identical animations, used in turn, so the next hit restarts it. */
-.gu-hp[data-hit='a'] {
-  animation: gu-hurt-a 0.34s ease-out;
-}
-
-.gu-hp[data-hit='b'] {
-  animation: gu-hurt-b 0.34s ease-out;
-}
-
-.gu-hp .gu-bar {
-  flex: none;
-  width: 96px;
-}
 
 .gu-banner {
   position: absolute;
@@ -550,13 +242,13 @@
 }
 
 .gu-banner span {
-  font: 600 30px/1 Fredoka, system-ui, sans-serif;
+  font: var(--f-hero);
 }
 
 .gu-banner:not(.gu-banner--boss) span {
-  padding: 10px 24px;
+  padding: var(--sp-2) var(--sp-5);
   border: 3px solid var(--edge);
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--cream);
   box-shadow: 0 4px 0 var(--edge-deep);
 }
@@ -580,7 +272,7 @@
 .gu-banner--boss span {
   position: relative; /* the filtered ribbon paints above static text unless this is positioned */
   color: var(--cream);
-  font-size: 24px;
+  font: var(--f-title);
   text-shadow: 0 1px 0 rgba(60, 20, 0, 0.45);
 }
 
@@ -589,12 +281,12 @@
   left: 50%;
   bottom: calc(var(--safe-bottom) + 34%);
   margin: 0;
-  padding: 8px 14px;
-  border: 2.5px solid var(--edge);
-  border-radius: 999px;
+  padding: var(--sp-2) var(--sp-4);
+  border: 3px solid var(--edge);
+  border-radius: var(--r-full);
   background: var(--cream);
   box-shadow: 0 3px 0 var(--edge-deep);
-  font: 700 var(--fs-body)/1.2 Nunito, system-ui, sans-serif;
+  font: var(--f-body);
   white-space: nowrap;
   transform: translateX(-50%);
   animation: gu-fade 0.5s ease-out 0.3s both;
@@ -604,11 +296,11 @@
 
 .gu-modal {
   position: absolute;
-  z-index: 5; /* above the stall's top bar and sheets */
+  z-index: 5; /* above the hub's panels */
   inset: 0;
   display: grid;
   place-items: center;
-  padding: calc(var(--safe-top) + 16px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 16px) calc(var(--safe-left) + 12px);
+  padding: calc(var(--safe-top) + var(--sp-4)) calc(var(--safe-right) + var(--sp-3)) calc(var(--safe-bottom) + var(--sp-4)) calc(var(--safe-left) + var(--sp-3));
   background: rgba(22, 13, 8, 0.66);
   pointer-events: auto;
   animation: gu-fade 0.2s ease-out both;
@@ -617,7 +309,7 @@
 .gu-levelup {
   display: grid;
   justify-items: center;
-  gap: 16px;
+  gap: var(--sp-4);
   width: min(100%, 420px);
   min-height: 0;
   max-height: 100%;
@@ -625,14 +317,10 @@
   overscroll-behavior: contain;
 }
 
-.gu-levelup > .gu-btn {
-  margin-top: 4px;
-}
-
 .gu-cards {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  gap: var(--sp-2);
   width: 100%;
 }
 
@@ -691,34 +379,34 @@
 }
 
 .gu-card-name {
-  font: 600 var(--fs-body)/1.1 Fredoka, system-ui, sans-serif;
+  font: var(--f-body);
   overflow-wrap: anywhere;
 }
 
 .gu-badge {
   padding: 3px 7px;
   border: 1.5px solid var(--edge-deep);
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--orange);
   color: var(--ink);
-  font: 800 var(--fs-cap)/1 Nunito, system-ui, sans-serif;
+  font: var(--f-cap);
   letter-spacing: 0.03em;
 }
 
 .gu-pips {
   color: var(--ink);
-  font: 700 var(--fs-cap)/1 Nunito, system-ui, sans-serif;
+  font: var(--f-cap);
   letter-spacing: 1px;
 }
 
 .gu-card-line {
-  font: 600 var(--fs-cap)/1.25 Nunito, system-ui, sans-serif;
+  font: var(--f-cap);
   overflow-wrap: break-word;
 }
 
 .gu-card-scope,
 .gu-card-meta {
-  font: 800 var(--fs-cap)/1.25 Nunito, system-ui, sans-serif;
+  font: var(--f-cap);
   overflow-wrap: break-word;
 }
 
@@ -752,41 +440,12 @@
 .gu-switches {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: var(--sp-2);
 }
 
-.gu-switch {
-  pointer-events: auto;
-  display: grid;
-  justify-items: start;
-  gap: 6px;
-  min-height: 56px;
-  padding: 8px 12px;
-  border: 3px solid var(--edge);
-  border-radius: 16px;
-  background: var(--cream);
-  color: var(--ink);
-  font: 700 var(--fs-body)/1.1 Nunito, system-ui, sans-serif;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: transform 0.09s ease-out;
-}
-
-.gu-switch:active {
-  transform: scale(1.02, 0.95);
-}
-
-.gu-switch b {
-  padding: 3px 9px;
-  border: 2px solid var(--edge);
-  border-radius: 999px;
-  background: var(--cream);
-  font: 800 var(--fs-cap)/1 Nunito, system-ui, sans-serif;
-}
-
-.gu-switch[aria-checked='true'] b {
-  background: var(--orange);
-}
+/* A switch is a chip: label left, On/Off right; On = orange (u-chip, aria-checked). */
+.gu-switches .u-chip { justify-content: space-between; }
+.gu-switches .fb-switch { grid-column: auto; }
 
 /* ── Results ────────────────────────────────────────────────────────────────── */
 
@@ -794,7 +453,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: #2a1a10;
+  background: var(--ink);
 }
 
 .gu-results-art {
@@ -802,63 +461,70 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 66%;
+  height: 60%;
   object-fit: cover;
   object-position: 50% 30%;
 }
 
-.gu-results-panel {
+/* The panel: scrolling body, actions pinned under it, so nothing is clipped at 360 x 640. */
+.rs-panel {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  max-height: 64%;
-  overflow-y: auto;
-  padding: 22px calc(var(--safe-right) + 18px) calc(var(--safe-bottom) + 18px) calc(var(--safe-left) + 18px);
+  max-height: 74%;
+  grid-template-rows: minmax(0, 1fr) auto;
+  padding: var(--sp-4) calc(var(--safe-right) + var(--sp-4)) calc(var(--safe-bottom) + var(--sp-4)) calc(var(--safe-left) + var(--sp-4));
   border-width: 3px 0 0;
-  border-radius: 26px 26px 0 0;
-  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.3);
+  border-radius: var(--r-m) var(--r-m) 0 0;
   text-align: center;
 }
 
-.gu-wake {
-  margin: 0;
-  font: 600 21px/1.25 Fredoka, system-ui, sans-serif;
+.rs-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; gap: var(--sp-3); align-content: start; touch-action: pan-y; }
+.rs-line { margin: 0; font: var(--f-title); }
+.rs-hero { margin: 0; display: grid; justify-items: center; gap: var(--sp-1); }
+.rs-hero b { font: var(--f-hero); font-variant-numeric: tabular-nums; }
+.rs-hero span { font: var(--f-cap); color: var(--muted); }
+.rs-rewards { display: grid; gap: var(--sp-2); }
+.rs-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); margin: 0; padding: 0; list-style: none; }
+.rs-chip { display: inline-flex; align-items: center; gap: var(--sp-1); padding: var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-1); border: 3px solid var(--edge); border-radius: var(--r-full); background: var(--cream); font: var(--f-body); }
+.rs-chip img { width: 28px; height: 28px; object-fit: contain; }
+.rs-chip b { font: var(--f-btn); font-variant-numeric: tabular-nums; }
+.rs-next { margin: 0; font: var(--f-body); color: var(--muted); }
+.rs-more { text-align: left; }
+.rs-more summary { display: inline-flex; align-items: center; list-style: none; }
+.rs-more summary::-webkit-details-marker { display: none; }
+.rs-more[open] > summary { margin-bottom: var(--sp-2); }
+.rs-more > * + * { margin-top: var(--sp-2); }
+.rs-stats { display: flex; gap: var(--sp-5); margin: 0; }
+.rs-stats dt { font: var(--f-cap); color: var(--muted); }
+.rs-stats dd { margin: 0; font: var(--f-btn); }
+.rs-actions { display: grid; grid-template-columns: 1.25fr 1fr; gap: var(--sp-2); padding-top: var(--sp-3); }
+.rs-actions .u-go, .rs-actions .u-plain { padding: var(--sp-2) var(--sp-3); }
+
+/* A short phone (360 x 640): tighter rows, a taller panel, so the whole payout shows without scrolling. */
+@media (max-height: 720px) {
+  .gu-results-art { height: 46%; }
+  .rs-panel { max-height: 86%; padding-top: var(--sp-3); }
+  .rs-body { gap: var(--sp-2); }
+  .rs-actions { padding-top: var(--sp-2); }
 }
 
 .gu-newbest {
   justify-self: center;
-  padding: 4px 12px;
-  border: 2px solid var(--edge-deep);
-  border-radius: 999px;
+  padding: var(--sp-1) var(--sp-3);
+  border: 3px solid var(--orange-deep);
+  border-radius: var(--r-full);
   background: var(--orange);
   color: var(--ink);
-  font: 700 var(--fs-body)/1.2 Fredoka, system-ui, sans-serif;
+  font: var(--f-body);
+  font-style: normal;
   animation: gu-pop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1.2) 0.5s backwards;
-}
-
-.gu-stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-  margin: 0;
-}
-
-.gu-stats dt {
-  font: 700 var(--fs-cap)/1.2 Nunito, system-ui, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.gu-stats dd {
-  margin: 0;
-  font: 700 28px/1.1 Fredoka, system-ui, sans-serif;
-  font-variant-numeric: tabular-nums;
 }
 
 .gu-tip {
   margin: 0;
-  font: 600 var(--fs-body)/1.35 Nunito, system-ui, sans-serif;
+  font: var(--f-body);
 }
 
 /* ── Motion ─────────────────────────────────────────────────────────────────── */
@@ -883,26 +549,6 @@
   100% {
     background-position: -60% 0;
   }
-}
-
-/* Gold and coin numbers: a slow glint over the ink, then a long rest. */
-@keyframes gu-glint {
-  0%,
-  55% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: 0% 0;
-  }
-}
-
-.gu-shine {
-  background: linear-gradient(105deg, var(--ink) 40%, #b57a00 47%, #fff3b8 50%, #b57a00 53%, var(--ink) 60%) 100% 0 / 260% 100% no-repeat;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  animation: gu-glint 4.5s ease-in-out infinite;
 }
 
 .gu-pause-sheet:not(.gu-pause-sheet--build) > :nth-child(n + 2),
@@ -935,7 +581,7 @@
 
 @keyframes gu-hurt-a {
   0% {
-    background: #f26b52;
+    background: color-mix(in srgb, var(--red) 70%, white);
     border-color: var(--red);
     transform: translateX(0);
   }
@@ -960,7 +606,7 @@
 
 @keyframes gu-hurt-b {
   0% {
-    background: #f26b52;
+    background: color-mix(in srgb, var(--red) 70%, white);
     border-color: var(--red);
     transform: translateX(0);
   }
@@ -1019,59 +665,53 @@
     transition: none !important;
   }
 
-  /* the glint is paint, not motion: without it the numbers just read as ink */
-  .gu-root .gu-shine {
-    background: none;
-    -webkit-text-fill-color: currentColor;
-    color: var(--ink);
-  }
 }
 
 .gu-pick-count {
   margin: -6px 0 6px;
   padding: 4px 14px;
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--glass);
   color: var(--cream);
-  font: 700 var(--fs-body)/1.2 Nunito, system-ui, sans-serif;
+  font: var(--f-body);
 }
 
 /* Current build sheet: glanceable cards, bars, pips and chips (colours reuse the .gu-root tokens). */
 .gb-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .gu-build-body .gb-build-head { border-top: 0; margin-top: 0; padding-top: 0; }
 .gb-build-dps { display: flex; align-items: baseline; gap: 8px; }
-.gb-build-dps span { font: 700 var(--fs-body)/1 Nunito, system-ui, sans-serif; }
-.gb-build-dps strong { font: 700 44px/1 Fredoka, system-ui, sans-serif; color: var(--ink); }
-.gb-build-run p { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 4px 0 0; font: 700 var(--fs-cap)/1.3 Nunito, system-ui, sans-serif; }
-.gb-build-head h3 { font-size: var(--fs-cap); font-weight: 600; margin: 4px 0 0; }
-.gb-count { margin-left: 6px; padding: 0 8px; border-radius: 10px; background: var(--ink); color: var(--cream); font: 700 var(--fs-cap)/20px Nunito, system-ui, sans-serif; vertical-align: 2px; }
-.gb-info { margin-left: 6px; min-width: 32px; min-height: 32px; border: 0; background: none; color: var(--ink); font-size: 18px; cursor: pointer; }
-.gb-info[aria-expanded="true"] { background: rgba(59, 36, 20, 0.12); border-radius: 50%; }
+.gb-build-dps span { font: var(--f-body); }
+.gb-build-dps strong { font: var(--f-hero); color: var(--ink); }
+.gb-build-run p { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 4px 0 0; font: var(--f-cap); }
+.gb-build-head h3 { font-size: var(--t-cap); font-weight: 600; margin: 4px 0 0; }
+.gb-count { margin-left: 6px; padding: 0 8px; border-radius: var(--r-s); background: var(--ink); color: var(--cream); font: var(--f-cap); vertical-align: 2px; }
+.gb-info { margin-left: var(--sp-2); min-width: var(--touch); min-height: var(--touch); padding: 0; border: 0; background: none; color: var(--ink); font-size: var(--t-btn); cursor: pointer; vertical-align: middle; }
+.gb-info[aria-expanded="true"] { background: rgba(59, 36, 20, 0.12); border-radius: var(--r-full); }
 .gb-pips { display: inline-flex; gap: 3px; }
-.gb-pips i { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--edge-deep); box-sizing: border-box; }
+.gb-pips i { width: 10px; height: 10px; border-radius: var(--r-full); border: 2px solid var(--edge-deep); box-sizing: border-box; }
 .gb-pips i.on { background: var(--orange); border-color: var(--edge-deep); }
-.gb-bar { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 8px; margin: 4px 0; font: 700 var(--fs-cap)/1.2 Nunito, system-ui, sans-serif; }
+.gb-bar { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 8px; margin: 4px 0; font: var(--f-cap); }
 .gb-bar b { text-align: right; min-width: 38px; font-weight: 800; }
-.gb-bar-track { height: 10px; border-radius: 5px; background: rgba(59, 36, 20, 0.16); overflow: hidden; }
-.gb-bar-track i { display: block; height: 100%; border-radius: 5px; background: var(--orange); box-shadow: inset 0 0 0 1px var(--edge-deep); }
+.gb-bar-track { height: 10px; border-radius: var(--r-s); background: rgba(59, 36, 20, 0.16); overflow: hidden; }
+.gb-bar-track i { display: block; height: 100%; border-radius: var(--r-s); background: var(--orange); box-shadow: inset 0 0 0 1px var(--edge-deep); }
 .gb-build-run .gb-bar { grid-template-columns: 60px minmax(0, 1fr) auto; }
-.gb-build-card { border: 2px solid var(--edge); border-radius: 12px; background: rgba(255, 244, 224, 0.55); padding: 8px 10px; margin: 8px 0; }
+.gb-build-card { border: 2px solid var(--edge); border-radius: var(--r-s); background: rgba(255, 244, 224, 0.55); padding: 8px 10px; margin: 8px 0; }
 .gb-build-card header { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 8px; align-items: center; }
 .gb-build-card header img { width: 38px; height: 38px; object-fit: contain; }
 .gb-build-card header div { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; }
 .gb-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 !important; }
-.gb-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; border: 1.5px solid var(--edge); background: var(--cream); font: 700 var(--fs-cap)/20px Nunito, system-ui, sans-serif; color: var(--ink); }
+.gb-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--r-s); border: 1.5px solid var(--edge); background: var(--cream); font: var(--f-cap); color: var(--ink); }
 .gb-chip--fx { background: rgba(242, 140, 40, 0.22); }
 .gb-chip--link { background: var(--ink); color: var(--cream); border-color: var(--ink); }
-.gb-badge { margin: 6px 0 0 !important; padding: 3px 8px; border-radius: 8px; background: #FFD36B; border: 1.5px solid var(--edge-deep); color: var(--ink); font: 800 var(--fs-cap)/1.3 Nunito, system-ui, sans-serif !important; }
-.gb-fx { list-style: none; margin: 6px 0; padding: 0; display: grid; gap: 3px; font: 700 var(--fs-cap)/1.3 Nunito, system-ui, sans-serif; }
+.gb-badge { margin: 6px 0 0 !important; padding: 3px 8px; border-radius: var(--r-s); background: var(--gold); border: 1.5px solid var(--edge-deep); color: var(--ink); font: var(--f-cap) !important; }
+.gb-fx { list-style: none; margin: 6px 0; padding: 0; display: grid; gap: 3px; font: var(--f-cap); }
 .gb-fx li { display: flex; gap: 6px; }
 .gb-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
-.gu-build-chip { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 6px; padding: 6px; border: 2px solid var(--edge); border-radius: 10px; background: rgba(255, 244, 224, 0.55); }
+.gu-build-chip { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 6px; padding: 6px; border: 2px solid var(--edge); border-radius: var(--r-s); background: rgba(255, 244, 224, 0.55); }
 .gu-build-chip img { width: 30px; height: 30px; object-fit: contain; }
-.gu-build-chip h4 { font-size: var(--fs-body); }
+.gu-build-chip h4 { font-size: var(--t-body); }
 .gu-build-chip small { display: block; margin-top: 2px; overflow-wrap: anywhere; }
-.gb-more summary { cursor: pointer; font: 700 var(--fs-body)/2 Nunito, system-ui, sans-serif; min-height: 32px; }
+.gb-more summary { cursor: pointer; font: var(--f-body); min-height: var(--touch); }
 .gu-build-body [hidden] { display: none; }
 
 /* Tiffin choice (free mode): the level-up cards, a heading that wraps, and a short beat on the picked card. */

@@ -44,8 +44,14 @@ export const UNLOCK_NAMES: Record<UnlockFlag, string> = {
   chefsSpecial: 'Chef’s Special', towel: 'Towel', headband: 'Headband', apron: 'Apron', gloves: 'Gloves', slippers: 'Slippers',
 };
 export const titleCase = (name: string) => name.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
-/** What opens a locked flag, in story terms ("Beat the Cockroach King"). */
-export const unlockBeat = (flag: UnlockFlag) => beatLabel(flag);
+/** What opens a locked flag, in plain words: no boss names the player has not met yet. */
+const BEAT_PLAIN: Partial<Record<UnlockFlag, string>> = {
+  gear: 'Finish a daydream', training: 'Play 3 daydreams', secondReroll: 'Play 5 daydreams', recipeBook: 'Beat the boss of Kopitiam Street',
+  chefsSpecial: 'Play 10 daydreams', signature: 'Beat the boss of the next street',
+};
+export const unlockBeat = (flag: UnlockFlag) => BEAT_PLAIN[flag] ?? beatLabel(flag);
+/** The one line a closed station shows instead of its tabs. */
+export const lockLine = (flag: UnlockFlag) => `${unlockBeat(flag)} to open this.`;
 
 /** Where Kannan's level bar stands: level, bar fraction (0..1), the "Lv N · a/b XP" line and the next story unlock. */
 export function progress(xp: number) {

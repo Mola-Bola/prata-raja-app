@@ -25,7 +25,7 @@ export function Kitchen({ hub, ready, onStart, onExit }: { hub: Hub; ready: bool
   const [end, setEnd] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
-  const [setup, setSetup] = useState(true);
+  const [setup, setSetup] = useState(false);
   const [error, setError] = useState('');
   const [live, setLive] = useState(false);
   const sheet = useRef<HTMLElement>(null);
@@ -74,7 +74,7 @@ export function Kitchen({ hub, ready, onStart, onExit }: { hub: Hub; ready: bool
   return <div className="kt-root" data-testid="kitchen">
     <header className="kt-top" inert={setup}>
       <div><h1>{brandWords.words.kitchen}</h1><p>Experiment freely · progress stays untouched</p></div>
-      <button type="button" className="gu-btn" data-testid="kitchen-exit" onClick={() => { hub.controls?.stopKitchen(); onExit(); }}>Stall</button>
+      <button type="button" className="u-plain" data-testid="kitchen-exit" onClick={() => { hub.controls?.stopKitchen(); onExit(); }}>Back</button>
     </header>
     <div className="kt-metrics" inert={setup} data-testid="kitchen-stats" aria-label="Test metrics">
       <span>HP <b>{stats ? `${Math.max(0, Math.ceil(stats.hp))}/${Math.ceil(stats.maxHp)}` : '—'}</b></span>
@@ -86,9 +86,9 @@ export function Kitchen({ hub, ready, onStart, onExit }: { hub: Hub; ready: bool
     <footer className="kt-dock" inert={setup}>
       {(end || paused) && <p role="status">{end ?? 'Test paused'}</p>}
       <div className="kt-actions">
-        <button type="button" className="gu-btn" data-testid="kitchen-setup" onClick={openSetup}>Setup</button>
-        <button type="button" className="gu-btn" data-testid="kitchen-restart" disabled={!ready} onClick={start}>Restart</button>
-        <button type="button" className="gu-btn" data-testid="kitchen-pause" disabled={!running} onClick={() => { if (paused) resume(); else { hub.controls?.pause(); setPaused(true); } }}>{paused ? 'Resume' : 'Pause'}</button>
+        <button type="button" className="u-plain" data-testid="kitchen-setup" onClick={openSetup}>Setup</button>
+        <button type="button" className="u-plain" data-testid="kitchen-restart" disabled={!ready} onClick={start}>Restart</button>
+        <button type="button" className="u-plain" data-testid="kitchen-pause" disabled={!running} onClick={() => { if (paused) resume(); else { hub.controls?.pause(); setPaused(true); } }}>{paused ? 'Resume' : 'Pause'}</button>
       </div>
       <button type="button" className="kt-disclosure" aria-expanded={live} data-testid="kitchen-live" onClick={() => setLive(v => !v)}>Live tuning {live ? '▾' : '▴'}</button>
       {live && <div className="kt-knobs" data-testid="kitchen-knobs">{knobs.map(({ key, label, step }) => <label key={key}>{label}<output>{key === 'crit' ? `${Math.round(tuning[key] * 100)}%` : tuning[key].toFixed(key === 'hp' ? 0 : 2)}</output><input data-testid={`kitchen-tune-${key}`} type="range" aria-label={label} min={KITCHEN_LIMITS[key][0]} max={KITCHEN_LIMITS[key][1]} step={step} value={tuning[key]} onChange={e => tune(key, Number(e.target.value))} /></label>)}</div>}
@@ -104,12 +104,12 @@ export function Kitchen({ hub, ready, onStart, onExit }: { hub: Hub; ready: bool
         if (e.shiftKey && (document.activeElement === first || document.activeElement === sheet.current)) { e.preventDefault(); last.focus(); }
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
       }}>
-        <header><h2>Set the tawa</h2><button type="button" className="gu-btn" aria-label="Close setup" data-testid="kitchen-close" onClick={closeSetup}>×</button></header>
+        <header><h2>Set the tawa</h2><button type="button" className="u-plain u-round" aria-label="Close setup" data-testid="kitchen-close" onClick={closeSetup}><i className="ic ic-x" aria-hidden="true" /></button></header>
         <div className="kt-fields">
           <label>Chapter<select data-testid="kitchen-chapter" value={config.chapterId} onChange={e => setConfig(c => ({ ...c, chapterId: e.target.value, wave: 1 }))}>{CONTENT.chapters.map(ch => <option key={ch.id} value={ch.id}>{ch.name}</option>)}</select></label>
           <label>Wave / boss<select data-testid="kitchen-wave" value={config.wave} onChange={e => setConfig(c => ({ ...c, wave: Number(e.target.value) }))}>{chapter.waves.map((w, i) => <option key={i} value={i + 1}>Wave {i + 1}{w.boss ? ` · ${CONTENT.bosses[w.boss].name}` : ''}</option>)}</select></label>
           <label>Repeatable seed<input type="number" data-testid="kitchen-seed" min="0" max="4294967295" step="1" value={config.seed} onChange={e => setConfig(c => ({ ...c, seed: Number(e.target.value) }))} /></label>
-          <button type="button" className="gu-btn" data-testid="kitchen-new-seed" onClick={() => setConfig(c => ({ ...c, seed: seed() }))}>New seed</button>
+          <button type="button" className="u-plain" data-testid="kitchen-new-seed" onClick={() => setConfig(c => ({ ...c, seed: seed() }))}>New seed</button>
         </div>
         <label className="kt-experiment"><input type="checkbox" data-testid="kitchen-flaky" checked={config.flakyKosong === true} onChange={e => setConfig(c => ({ ...c, flakyKosong: e.target.checked }))} />Experimental: Flaky Kosong</label>
         <p className="kt-help">Kosong sheds two small pieces per hit and keeps its ricochets. Normal runs are unchanged.</p>
@@ -128,7 +128,7 @@ export function Kitchen({ hub, ready, onStart, onExit }: { hub: Hub; ready: bool
         </div>; })}
         <p className="kt-help">Only {Object.values(CONTENT.dips).filter(isLinkableDip).map(d => d.name).join(', ')} can target a roti. Other dips apply to all. Evolutions have one level.</p>
         {error && <p role="alert">{error}</p>}
-        <button type="button" className="gu-btn gu-btn--primary gu-btn--wide" data-testid="kitchen-start" disabled={!ready || !config.breads.length || !Number.isInteger(config.seed) || config.seed < 0 || config.seed > 0xffffffff} onClick={start}>{running ? 'Start fresh test' : 'Start taste test'}</button>
+        <button type="button" className="u-go u-wide" data-testid="kitchen-start" disabled={!ready || !config.breads.length || !Number.isInteger(config.seed) || config.seed < 0 || config.seed > 0xffffffff} onClick={start}>{running ? 'Start fresh test' : 'Start taste test'}</button>
         <TellButton />
       </section>
     </div>}

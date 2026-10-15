@@ -56,7 +56,7 @@ export function FeedbackNotes({ identity, secretSaved, onBusy }: { identity: Dev
       <summary>Pair this owner device</summary>
       <p className="fb-context">Enter the private owner code to confirm this device with the server.</p>
       <label className="fb-from"><span>Owner code</span><input type="password" className="fb-input ph-no-capture" data-testid="feedback-owner-code" value={code} maxLength={256} autoComplete="off" spellCheck={false} readOnly={busy} onChange={e => setCode(e.target.value)} /></label>
-      <button type="button" className="gu-btn gu-btn--wide" data-testid="feedback-owner-pair" disabled={busy || !pair || !code.trim()} onClick={() => void confirmOwner()}>Confirm owner</button>
+      <button type="button" className="u-plain u-wide" data-testid="feedback-owner-pair" disabled={busy || !pair || !code.trim()} onClick={() => void confirmOwner()}>Confirm owner</button>
     </details>}
     {loaded && !notes.length && <p className="fb-context">No notes yet. Write one to start a thread.</p>}
     {notes.map(note => <details className="fb-note" key={note.id} data-testid={`feedback-note-${note.id}`}>
@@ -84,6 +84,6 @@ function Reply({ note, pair, disabled, run, refresh }: { note: SavedNote; pair: 
   return <div className="fb-reply">
     <label className="fb-from"><span>Your reply</span><textarea className="fb-text" aria-label="Your reply" data-testid={`feedback-reply-${note.id}`} rows={3} maxLength={BODY_MAX} value={body} readOnly={disabled} onChange={e => { setBody(e.target.value); id.current = null; setResult(null); }} /></label>
     {result && <p role={result.ok ? 'status' : 'alert'} className="fb-context">{result.ok ? 'Reply sent.' : FAIL_TEXT[result.reason]}</p>}
-    <button type="button" className="gu-btn gu-btn--primary gu-btn--wide" data-testid={`feedback-reply-send-${note.id}`} disabled={disabled || !body.trim()} onClick={() => void send()}>{result && !result.ok ? 'Retry reply' : 'Send reply'}</button>
+    <button type="button" className="u-go u-wide" data-testid={`feedback-reply-send-${note.id}`} disabled={disabled || !body.trim()} onClick={() => void send()}>{result && !result.ok ? 'Retry reply' : 'Send reply'}</button>
   </div>;
 }

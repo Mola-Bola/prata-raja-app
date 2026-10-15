@@ -5,6 +5,7 @@
 // so the joystick and tap-to-walk go to the canvas.
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
+import { brandWords } from '@/brand';
 import { CONTENT } from '@/content';
 import { chapterUnlocked } from '@/meta/chapters';
 import { kannanXpOf, specPointsOf } from '@/meta/kannan';
@@ -13,13 +14,13 @@ import { MATERIALS, type SaveV2, type UnlockFlag } from '@/meta/types';
 
 import type { Hub, StationId } from '../../hub';
 import { fmt } from '../format';
-import { SettingsSheet, SignatureSheet, CalendarSheet, ChestsSheet, GearSheet, IdleSheet, PreviewSheet, RecipeSheet, TrainingSheet, type Commit } from '../stall/sheets';
+import { SettingsSheet, SignatureSheet, CalendarSheet, ChestsSheet, GearSheet, IdleSheet, RecipeSheet, TrainingSheet, type Commit } from '../stall/sheets';
 import { DipCollection } from '../stall/DipCollection';
 import { DipBench } from './workbench/DipBench';
 import { GearBench } from './workbench/GearBench';
 import { PotBench } from './workbench/PotBench';
 import { TiffinBench } from './workbench/TiffinBench';
-import { progress, titleCase, unlockBeat } from '../stall/helpers';
+import { lockLine, progress, titleCase } from '../stall/helpers';
 import type { Art } from '../stall/StallProgress';
 import { Visitor } from '../stall/Visitor';
 import { playSfx } from '../../audio/sfx';
@@ -31,13 +32,13 @@ import '../stall/Stall.css';
 import { markTipSeen, seenTips, TIPS } from './tips';
 import './HubOverlay.css';
 
-type Props = { hub: Hub; save: SaveV2; commit: Commit; art: Art; afterRun: boolean; onStart: (chapterId: string) => void; onStory: () => void; onOldStall: () => void; onKitchen: () => void; onTune?: () => void };
+type Props = { hub: Hub; save: SaveV2; commit: Commit; art: Art; afterRun: boolean; onStart: (chapterId: string) => void; onStory: () => void; onKitchen: () => void; onTune?: () => void };
 type Open = StationId | 'settings';
 
 const TITLES: Record<Open, string> = { tawa: 'Tawa', dips: 'Dip shelf', gear: 'Gear rack and forge', pantry: 'Pantry', spec: 'Spec board', orders: 'Orders', kopi: 'Kopi uncle', exit: 'Out to the street', settings: 'Settings' };
 const ICONS: Partial<Record<Open, string>> = { tawa: 'roomui/icon-tawa', dips: 'roomui/icon-katori', gear: 'roomui/icon-anvil-tawa', pantry: 'roomui/icon-pantry-sack', orders: 'roomui/icon-chalkboard', kopi: 'roomui/icon-kopi-cup', spec: 'hub/star', settings: 'hub/settings', exit: 'hub/stall-badge' };
 
-export function HubOverlay({ hub, save, commit, art, afterRun, onStart, onStory, onOldStall, onKitchen, onTune }: Props) {
+export function HubOverlay({ hub, save, commit, art, afterRun, onStart, onStory, onKitchen, onTune }: Props) {
   const [station, setStation] = useState<StationId | null>(null);
   /** A panel opened by hand (the GO pill, the cog), not by walking: it stays until closed. */
   const [held, setHeld] = useState<Open | null>(null);
@@ -58,9 +59,11 @@ export function HubOverlay({ hub, save, commit, art, afterRun, onStart, onStory,
   useEffect(() => hub.emit('hubBadges', { chests }), [hub, chests]);
   const go = () => (chapterUnlocked(save, 'hawker-night') ? setHeld('exit') : onStart(CONTENT.chapters[0].id));
   const { level, fraction } = progress(kannanXpOf(save));
+  // After the first daydream exactly one thing pulses: GO. Everything else waits quietly.
+  const next = save.runs === 1;
   // GO floats over the room; with a panel open it docks in the panel's footer so it never covers content.
   const goBtn = (
-    <button type="button" className="hb-go" data-testid="hub-go" aria-label="Go" onClick={go}>
+    <button type="button" className="hb-go" data-testid="hub-go" data-next={next || undefined} aria-label="Go" onClick={go}>
       <img src={art('roomui/go-pill')} alt="" />
     </button>
   );
@@ -82,11 +85,12 @@ export function HubOverlay({ hub, save, commit, art, afterRun, onStart, onStory,
         </button>
       </header>
       {!shown && goBtn}
+      {!shown && next && <span className="hb-next" data-testid="hub-next">Go again to earn more</span>}
       {mealLabel(save) && <span className="hb-meal" data-testid="hub-meal">{mealLabel(save)}</span>}
       <button type="button" className="u-plain hb-tell" data-testid="hub-tell" onClick={openFeedback}>Tell Kannan</button>
       {shown && (
         <Panel key={shown} id={shown} close={close} art={art} footer={goBtn}>
-          <Content id={shown} save={save} commit={commit} art={art} onStart={onStart} onStory={onStory} onOldStall={onOldStall} onKitchen={onKitchen} onTune={onTune} close={close} walkTo={(s) => { setHeld(null); hub.controls?.hubWalkTo?.(s); }} />
+          <Content id={shown} save={save} commit={commit} art={art} onStart={onStart} onStory={onStory} onKitchen={onKitchen} onTune={onTune} close={close} walkTo={(s) => { setHeld(null); hub.controls?.hubWalkTo?.(s); }} />
         </Panel>
       )}
       {visitor && <Visitor due={visitor} commit={commit} art={art} onDone={() => setVisitor(null)} />}
@@ -123,6 +127,9 @@ function Panel({ id, close, art, footer, children }: { id: Open; close: () => vo
 function Tabs({ tabs }: { tabs: { name: string; flag?: UnlockFlag; save: SaveV2; art: Art; body: ReactNode }[] }) {
   const [i, setI] = useState(0);
   const t = tabs[i];
+  const locked = (x: (typeof tabs)[number]) => !!x.flag && !x.save.unlocks[x.flag];
+  // A station with nothing open yet shows one plain line, not a row of locked tabs.
+  if (tabs.every(locked)) return <div className="sh-locked" data-testid="stall-locked"><img src={t.art('ui/lock')} alt="" /><p>{lockLine(t.flag!)}</p></div>;
   return (
     <>
       {tabs.length > 1 && (
@@ -131,7 +138,7 @@ function Tabs({ tabs }: { tabs: { name: string; flag?: UnlockFlag; save: SaveV2;
         </div>
       )}
       {t.flag && !t.save.unlocks[t.flag] ? (
-        <div className="sh-locked" data-testid="stall-locked"><img src={t.art('ui/lock')} alt="" /><p>Unlocks: {unlockBeat(t.flag)}</p></div>
+        <div className="sh-locked" data-testid="stall-locked"><img src={t.art('ui/lock')} alt="" /><p>{lockLine(t.flag)}</p></div>
       ) : t.body}
     </>
   );
@@ -156,9 +163,9 @@ function GearStation({ save, commit, art }: { save: SaveV2; commit: Commit; art:
   );
 }
 
-type ContentProps = { id: Open; save: SaveV2; commit: Commit; art: Art; onStart: (c: string) => void; onStory: () => void; onOldStall: () => void; onKitchen: () => void; onTune?: () => void; walkTo: (s: StationId) => void; close: () => void };
+type ContentProps = { id: Open; save: SaveV2; commit: Commit; art: Art; onStart: (c: string) => void; onStory: () => void; onKitchen: () => void; onTune?: () => void; walkTo: (s: StationId) => void; close: () => void };
 
-function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitchen, onTune, walkTo, close }: ContentProps) {
+function Content({ id, save, commit, art, onStart, onStory, onKitchen, onTune, walkTo, close }: ContentProps) {
   const now = new Date();
   const chapters = (
     <div data-testid="hub-chapters">
@@ -175,7 +182,7 @@ function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitche
     case 'tawa':
       return <Tabs tabs={[{ name: 'Roti', ...t, body: <SignatureSheet save={save} commit={commit} art={art} /> }, { name: 'Tiffin', flag: 'signature', ...t, body: <TiffinBench save={save} commit={commit} art={art} /> }, { name: 'Recipes', flag: 'recipeBook', ...t, body: <RecipeSheet save={save} commit={commit} art={art} /> }]} />;
     case 'dips':
-      return <Tabs tabs={[{ name: 'Katori', ...t, body: <DipBench save={save} commit={commit} art={art} /> }, { name: 'Curry pot', ...t, body: <PotBench save={save} commit={commit} art={art} /> }, { name: 'Collection', ...t, body: <DipCollection save={save} art={art} /> }]} />;
+      return <Tabs tabs={[{ name: 'Katori', ...t, body: <DipBench save={save} commit={commit} art={art} /> }, { name: 'Curry pot', ...t, body: <PotBench save={save} commit={commit} art={art} /> }, { name: 'All dips', ...t, body: <DipCollection save={save} art={art} /> }]} />;
     case 'gear':
       return <GearStation save={save} commit={commit} art={art} />;
     case 'pantry':
@@ -201,7 +208,6 @@ function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitche
       return (
         <Tabs tabs={[
           { name: 'Places', ...t, body: chapters },
-          { name: 'Special', flag: 'chefsSpecial', ...t, body: <PreviewSheet kind="special" art={art} /> },
           { name: 'Calendar', ...t, body: <CalendarSheet save={save} commit={commit} art={art} now={now} go={() => walkTo('pantry')} /> },
         ]} />
       );
@@ -213,9 +219,8 @@ function Content({ id, save, commit, art, onStart, onStory, onOldStall, onKitche
       return (
         <>
           <SettingsSheet save={save} commit={commit} />
-          <button type="button" className="u-plain" data-testid="settings-story" onClick={onStory}>Story</button>
-          <button type="button" className="u-plain" data-testid="settings-old-stall" onClick={onOldStall}>Old stall menu</button>
-          <button type="button" className="u-plain" data-testid="hub-kitchen" onClick={onKitchen}>Kitchen</button>
+          <button type="button" className="u-plain" data-testid="settings-story" onClick={onStory}>Replay the story</button>
+          <button type="button" className="u-plain" data-testid="hub-kitchen" onClick={onKitchen}>{brandWords.words.kitchen}</button>
           {onTune && <button type="button" className="u-plain" data-testid="hub-tune" onClick={onTune}>Tune</button>}
         </>
       );

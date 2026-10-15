@@ -1,165 +1,4 @@
-/* The stall hub and the payout panel (stall/*.tsx). Tokens (--cream, --ink, --edge, --orange, --safe-*) come from .gu-root in
-   ../GameUi.css. Text is ink on cream (about 13:1). */
 
-.sh-hub {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: auto;
-  /* the floor's shadow: a phone taller than 9:16 shows this below the picture, and the picture fades into it */
-  background: #3a2216;
-}
-
-/* ── The scene ──────────────────────────────────────────────────────────────── */
-
-/* The picture is drawn at its own 1080:1919 shape, full width, from the top edge (below the status bar). Every hotspot is a
-   percentage of this box, so a prop and its tap area move together on any screen. A 9:16 screen fits it exactly; a taller one
-   has room left under it, which the Start button uses. */
-.sh-scene {
-  position: absolute;
-  top: var(--safe-top);
-  left: 0;
-  width: 100%;
-  aspect-ratio: 1080 / 1919;
-}
-
-.sh-art {
-  display: block;
-  width: 100%;
-  height: 100%;
-  -webkit-user-drag: none;
-  user-select: none;
-  pointer-events: none; /* a long press must not offer to save the picture */
-  -webkit-mask-image: linear-gradient(to bottom, #000 90%, transparent);
-  mask-image: linear-gradient(to bottom, #000 90%, transparent);
-}
-
-/* A prop has two controls: .sh-prop, an invisible tap area exactly the size of the prop (at least 56 px), and .sh-label, the pill
-   under it that names it (the one a screen reader and a keyboard use). All the areas are drawn before all the pills. */
-.sh-prop {
-  position: absolute;
-  min-width: 56px;
-  min-height: 56px;
-  padding: 0;
-  border: 0;
-  border-radius: 14px;
-  background: transparent;
-  pointer-events: auto;
-  cursor: pointer;
-  touch-action: manipulation;
-  transform: translate(-50%, -50%);
-  transition: background-color 0.12s ease-out;
-}
-
-.sh-prop:active {
-  background: rgba(255, 244, 224, 0.3);
-}
-
-/* Something is waiting at this prop (coins in the jar, a gift, a chest): it glows softly. Only opacity animates, so a phone's
-   compositor does it without repainting the picture. */
-.sh-prop::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 14px;
-  background: rgba(255, 233, 170, 0.18);
-  box-shadow: 0 0 18px 6px rgba(255, 233, 170, 0.75);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.sh-prop[data-ready]::after {
-  animation: sh-glow 1.8s ease-in-out infinite;
-}
-
-.sh-label {
-  position: absolute;
-  top: var(--by);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 32px;
-  padding: 4px 10px;
-  border: 2px solid var(--edge-deep);
-  border-radius: 14px;
-  background: var(--cream);
-  color: var(--ink);
-  font: 800 var(--fs-cap)/1.1 Nunito, system-ui, sans-serif;
-  white-space: nowrap;
-  box-shadow: 0 3px 0 var(--edge-deep);
-  transition: transform 0.09s ease-out, box-shadow 0.09s ease-out;
-  pointer-events: auto;
-  cursor: pointer;
-  touch-action: manipulation;
-  transform: translateY(-50%);
-}
-
-/* The pill is 32 px tall; its hit area reaches 48. */
-.sh-label::before {
-  content: '';
-  position: absolute;
-  inset: -8px -6px;
-}
-
-.sh-label:active {
-  box-shadow: 0 1px 0 var(--edge-deep);
-  transform: translateY(calc(-50% + 2px)) scale(1.03, 0.94);
-}
-
-.sh-label--left {
-  left: 2.5%;
-}
-
-.sh-label--right {
-  right: 2.5%;
-}
-
-.sh-label--center {
-  left: var(--bx);
-  transform: translate(-50%, -50%);
-}
-
-.sh-label--center:active {
-  transform: translate(-50%, calc(-50% + 2px)) scale(1.03, 0.94);
-}
-
-.sh-label img {
-  width: 14px;
-  height: 18px;
-  object-fit: contain;
-}
-
-.sh-label[data-locked] {
-  background: #e4d6bd;
-  color: var(--muted);
-  border-style: dashed;
-}
-
-.sh-badge {
-  min-width: 20px;
-  padding: 1px 6px;
-  border: 1.5px solid var(--orange-deep);
-  border-radius: 999px;
-  background: var(--orange);
-  color: var(--ink);
-  font: 800 var(--fs-cap)/1.25 Nunito, system-ui, sans-serif;
-  font-style: normal;
-  text-align: center;
-}
-
-/* ── Top bar and Start ──────────────────────────────────────────────────────── */
-
-.sh-top {
-  position: absolute;
-  z-index: 1;
-  top: calc(var(--safe-top) + 6px);
-  left: calc(var(--safe-left) + 8px);
-  right: calc(var(--safe-right) + 8px);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 8px;
-}
 
 .sh-progress {
   display: flex;
@@ -169,7 +8,7 @@
   flex: 1;
   padding: 5px 10px 5px 6px;
   border: 2.5px solid var(--edge);
-  border-radius: 18px;
+  border-radius: var(--r-m);
   background: var(--cream);
   box-shadow: 0 3px 0 var(--edge-deep);
 }
@@ -182,7 +21,7 @@
 }
 
 .sh-progress span {
-  font: 800 var(--fs-cap)/1.2 Nunito, system-ui, sans-serif;
+  font: var(--f-cap);
 }
 
 /* the next-unlock line is context, so it is quieter than the XP count above the bar */
@@ -222,88 +61,9 @@
 .sh-level b {
   position: relative;
   padding: 1px 5px;
-  border-radius: 8px;
+  border-radius: var(--r-s);
   background: var(--cream);
-  font: 700 var(--fs-title)/1.1 Fredoka, system-ui, sans-serif;
-}
-
-.sh-coins {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 12px 5px 6px;
-  border: 2.5px solid var(--edge);
-  border-radius: 999px;
-  background: var(--cream);
-  box-shadow: 0 3px 0 var(--edge-deep);
-  font: 800 var(--fs-lead)/1 Nunito, system-ui, sans-serif;
-  font-variant-numeric: tabular-nums;
-}
-
-.sh-coins img {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-}
-
-/* The settings cog: a 48 px tap area around the rendered gear. */
-.sh-cog {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  margin: -4px -4px -4px 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: transform 0.09s ease-out;
-}
-
-.sh-cog img {
-  width: 38px;
-  height: 38px;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 0 rgba(60, 30, 10, 0.4));
-}
-
-.sh-cog:active {
-  transform: scale(0.92) rotate(20deg);
-}
-
-.sh-footer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  pointer-events: none;
-  padding: 12px calc(var(--safe-right) + 18px) calc(var(--safe-bottom) + 20px) calc(var(--safe-left) + 18px);
-}
-
-.sh-footer > .u-plain:not(.sh-start) {
-  min-height: 48px;
-  min-width: 0;
-  padding: 8px 6px;
-  font-size: var(--fs-body);
-  line-height: 1.1;
-}
-
-/* Hide immediately while the sheet fades in, keeping the footer space and focus return. */
-.sh-footer[inert] {
-  visibility: hidden;
-}
-
-.sh-start {
-  grid-column: 1 / -1;
-  grid-row: 1;
-  min-height: 64px;
-  font-size: 26px;
+  font: var(--f-title);
 }
 
 /* ── Sheets ─────────────────────────────────────────────────────────────────── */
@@ -324,40 +84,14 @@
   max-height: calc(88% - var(--safe-top));
   overflow-y: auto;
   overscroll-behavior: contain;
-  border-radius: 26px 26px 0 0;
+  border-radius: var(--r-m) var(--r-m) 0 0;
   padding: 16px calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 22px) calc(var(--safe-left) + 16px);
-  font: 600 var(--fs-body)/1.4 Nunito, system-ui, sans-serif;
+  font: var(--f-body);
   animation: sh-slide 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .gu-root .sh-sheet:focus {
   outline: none;
-}
-
-.sh-sheet-head {
-  position: sticky;
-  top: -16px;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 4px 0 10px;
-  background: var(--cream);
-}
-
-.sh-sheet-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.sh-sheet-title img {
-  flex: none;
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
 }
 
 /* Section header inside a sheet: a small icon and a title, the same everywhere. */
@@ -366,7 +100,7 @@
   align-items: center;
   gap: 8px;
   margin: 4px 0 0;
-  font: 600 var(--fs-title)/1.2 Fredoka, system-ui, sans-serif;
+  font: var(--f-title);
 }
 
 .sh-section img {
@@ -387,7 +121,7 @@
 .sh-sheet > :nth-child(n + 7) { animation-delay: 250ms; }
 
 .gu-root .sh-sheet .gu-heading {
-  font-size: 28px;
+  font-size: var(--t-hero);
   text-align: left;
 }
 
@@ -411,9 +145,9 @@
   justify-self: start;
   padding: 4px 14px 4px 6px;
   border: 2px solid var(--edge);
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--cream);
-  font: 800 var(--fs-body)/1.2 Nunito, system-ui, sans-serif;
+  font: var(--f-body);
   font-variant-numeric: tabular-nums;
 }
 
@@ -464,10 +198,10 @@
   min-height: 80px;
   padding: 8px 3px;
   border: 3px solid var(--edge);
-  border-radius: 14px;
+  border-radius: var(--r-s);
   background: var(--cream);
   color: var(--ink);
-  font: 700 var(--fs-cap)/1.2 Nunito, system-ui, sans-serif;
+  font: var(--f-cap);
   cursor: pointer;
   touch-action: manipulation;
   overflow-wrap: anywhere;
@@ -500,7 +234,7 @@
 }
 
 .sh-slots .sh-tile b {
-  font-size: var(--fs-cap);
+  font-size: var(--t-cap);
 }
 
 .sh-inventory {
@@ -513,13 +247,13 @@
   display: grid;
   gap: 8px;
   border: 2.5px solid var(--edge);
-  border-radius: 18px;
+  border-radius: var(--r-m);
   padding: 12px 14px;
   background: rgba(255, 255, 255, 0.45);
 }
 
 .sh-detail > b {
-  font: 600 var(--fs-title)/1.2 Fredoka, system-ui, sans-serif;
+  font: var(--f-title);
 }
 
 .sh-pips {
@@ -532,7 +266,7 @@
   height: 16px;
   box-sizing: border-box;
   border: 2.5px solid var(--edge-deep);
-  border-radius: 50%;
+  border-radius: var(--r-full);
 }
 
 .sh-pips i.on {
@@ -551,7 +285,7 @@
   gap: 3px;
   padding: 10px;
   border: 2.5px solid var(--edge);
-  border-radius: 12px;
+  border-radius: var(--r-s);
 }
 
 .sh-day--today {
@@ -575,7 +309,7 @@
   display: grid;
   padding: 18px;
   border: 3px solid var(--edge);
-  border-radius: 18px;
+  border-radius: var(--r-m);
   background: var(--cream);
   overflow: hidden;
 }
@@ -607,72 +341,15 @@
   height: 96px;
 }
 
-/* ── Payout on the wake-up screen ───────────────────────────────────────────── */
-
-.gu-root .sh-result-panel {
-  display: flex;
-  flex-direction: column;
-  max-height: 68%;
-  overflow: hidden;
-  pointer-events: auto;
-}
-
-.sh-result-body {
-  display: grid;
-  gap: 8px;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.sh-result-actions {
-  display: grid;
-  flex: none;
-  gap: 10px;
-  padding-top: 4px;
-}
-
-.sh-rewards {
-  display: grid;
-  gap: 8px;
-}
-
-.sh-rewards .sh-progress {
-  text-align: left;
-}
-
-/* Five numbers across: waves, kills, level, coins, stall XP. */
-.gu-root .gu-stats--five {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
-.gu-root .gu-stats--five dd {
-  font-size: 24px;
-}
-
-/* The payout builds up: each block rises in after the one above it. */
-.sh-result-body > :nth-child(n + 2) {
-  animation: gu-rise 0.35s ease-out backwards;
-}
-.sh-result-body > :nth-child(2) { animation-delay: 80ms; }
-.sh-result-body > :nth-child(3) { animation-delay: 180ms; }
-.sh-result-body > :nth-child(4) { animation-delay: 280ms; }
-.sh-result-body > :nth-child(5) { animation-delay: 380ms; }
-.sh-result-body > :nth-child(n + 6) { animation-delay: 480ms; }
-
-.gu-root .gu-stats--three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 /* A run that ended before it paid anything. */
 .sh-short {
   margin: 0;
   padding: 10px 14px;
   border: 2px dashed var(--edge);
-  border-radius: 14px;
-  font: 600 var(--fs-lead)/1.25 Fredoka, system-ui, sans-serif;
+  border-radius: var(--r-s);
+  font: var(--f-btn);
 }
 
-.sh-unlocks,
 .sh-gains {
   display: flex;
   flex-wrap: wrap;
@@ -682,13 +359,8 @@
 }
 
 .sh-gains {
-  font: 700 var(--fs-body)/1.2 Nunito, system-ui, sans-serif;
+  font: var(--f-body);
   gap: 4px 10px;
-}
-
-.sh-unlocks .gu-newbest {
-  padding: 4px 12px;
-  font-size: var(--fs-cap);
 }
 
 .sh-gain {
@@ -703,39 +375,6 @@
   object-fit: contain;
 }
 
-/* A short screen (a 9:16 phone is 640 px): the payout must fit without scrolling and the two buttons share a row. */
-@media (max-height: 720px) {
-  .gu-root .sh-result-panel {
-    padding-top: 14px;
-  }
-
-  .gu-root .sh-result-body {
-    gap: 6px;
-  }
-
-  .gu-root .sh-result-panel .gu-wake {
-    font-size: 18px;
-  }
-
-  .gu-root .sh-result-panel .gu-tip {
-    display: none;
-  }
-
-  .gu-root .gu-stats--five dd {
-    font-size: 22px;
-  }
-
-  .gu-root .sh-result-actions {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .gu-root .sh-result-actions .gu-btn {
-    min-height: 48px;
-    padding: 8px 6px;
-    font-size: 16px;
-  }
-}
-
 .sh-save-error {
   position: absolute;
   z-index: 3;
@@ -748,9 +387,9 @@
   gap: 8px;
   padding: 8px;
   border: 2.5px solid var(--edge);
-  border-radius: 18px;
+  border-radius: var(--r-m);
   background: var(--cream);
-  font: 700 var(--fs-body)/1.2 Nunito, system-ui, sans-serif;
+  font: var(--f-body);
   pointer-events: auto;
 }
 
@@ -834,10 +473,10 @@
 .sh-dip-collection progress { width: 100%; accent-color: var(--ink); }
 .sh-dip-collection .sh-detail { overflow-wrap: anywhere; }
 
-.sh-collection-entry { position: absolute; top: 43%; left: 54%; transform: translateX(-50%); width: 132px; min-height: 44px; padding: 8px; font-size: var(--fs-body); }
+.sh-collection-entry { position: absolute; top: 43%; left: 54%; transform: translateX(-50%); width: 132px; min-height: 44px; padding: 8px; font-size: var(--t-body); }
 .sh-collection-entry:active { transform: translateX(-50%) translateY(3px) scale(1.03, 0.93); }
 
-.sh-dip-receipt { gap: 2px; padding: 8px 12px; text-align: left; font-size: var(--fs-body); line-height: 1.22; }
+.sh-dip-receipt { gap: 2px; padding: 8px 12px; text-align: left; font-size: var(--t-body); line-height: 1.22; }
 .sh-dip-receipt p { margin: 0; }
 
 .sh-spec {
@@ -848,9 +487,9 @@
   box-sizing: border-box;
   padding: 4px 12px;
   border: 2px solid var(--edge);
-  border-radius: 999px;
+  border-radius: var(--r-full);
   background: var(--cream);
-  font: 700 var(--fs-cap)/1.25 Nunito, system-ui, sans-serif;
+  font: var(--f-cap);
 }
 
 .sh-spec b {
@@ -864,7 +503,7 @@
   text-align: center;
 }
 .sh-visitor-who {
-  font: 600 var(--fs-title)/1.2 Fredoka, system-ui, sans-serif;
+  font: var(--f-title);
 }
 .sh-visitor-art {
   display: grid;
@@ -873,10 +512,10 @@
   width: 104px;
   height: 104px;
   border: 3px solid var(--edge);
-  border-radius: 50%;
+  border-radius: var(--r-full);
   background: var(--orange);
   box-shadow: 0 4px 0 var(--orange-deep);
-  font-size: 60px;
+  font-size: var(--t-hero);
   line-height: 1;
   object-fit: contain;
   animation: gu-pop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1.2) 0.1s backwards;
@@ -887,18 +526,18 @@
   width: 100%;
   white-space: normal;
   text-align: center;
-  font-size: var(--fs-lead);
+  font-size: var(--t-btn);
   line-height: 1.3;
 }
 .sh-visitor-tap {
-  font: 700 var(--fs-cap)/1 Nunito, system-ui, sans-serif;
+  font: var(--f-cap);
   color: var(--muted);
 }
 .sh-visitor-perk,
 .sh-visitor-gift {
   padding: 6px 14px;
   border: 2px solid var(--edge);
-  border-radius: 999px;
+  border-radius: var(--r-full);
   font-weight: 700;
 }
 .sh-visitor-gift {
@@ -908,7 +547,7 @@
 
 .sh-section--big {
   justify-content: center;
-  font-size: var(--fs-head);
+  font-size: var(--t-hero);
 }
 
 /* A recipe or evolution: the picture beside its name and cost, the button underneath. */
@@ -936,24 +575,26 @@
 /* ── Forge bench (Forge.tsx) ─────────────────────────────────────────────────── */
 .sh-forge-entry { top: calc(43% + 54px); }
 .sh-tile[data-unique], .fg-detail[data-unique] { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold), 0 0 12px rgba(255, 211, 107, 0.6); }
-.fg-head { display: flex; align-items: center; gap: 10px; font-size: var(--fs-lead); }
+.fg-head { display: flex; align-items: center; gap: 10px; font-size: var(--t-btn); }
 .fg-head > div { display: grid; gap: 2px; }
-.fg-head span { font-size: var(--fs-body); }
+.fg-head span { font-size: var(--t-body); }
 .fg-rule { margin: 0; font-style: italic; color: var(--ink); }
-.fg-affix { display: flex; align-items: center; gap: 8px; font-size: var(--fs-body); }
+.fg-affix { display: flex; align-items: center; gap: 8px; font-size: var(--t-body); }
 .fg-affix > span { flex: 1; min-width: 0; }
 .fg-affix .u-plain { min-height: var(--touch); padding: var(--sp-1) var(--sp-3); font: var(--f-cap); }
-.fg-chip { font-style: normal; font-size: var(--fs-cap); font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 2px solid var(--edge); background: var(--cream); }
-.fg-chip--Good { background: #cfeec6; }
+.fg-chip { font-style: normal; font-size: var(--t-cap); font-weight: 700; padding: 1px 8px; border-radius: var(--r-full); border: 2px solid var(--edge); background: var(--cream); }
+.fg-chip--Good { background: color-mix(in srgb, var(--cream) 60%, var(--orange)); }
 .fg-chip--Great { background: var(--gold); }
-.fg-delta { font-size: var(--fs-body); }
+.fg-delta { font-size: var(--t-body); }
 .fg-cost { display: flex; flex-wrap: wrap; gap: 6px; }
-.fg-need { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px 2px 4px; border: 2px solid var(--edge); border-radius: 999px; background: var(--cream); font-size: var(--fs-cap); font-weight: 700; }
+.fg-need { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px 2px 4px; border: 2px solid var(--edge); border-radius: var(--r-full); background: var(--cream); font-size: var(--t-cap); font-weight: 700; }
 .fg-need img { width: 24px; height: 24px; object-fit: contain; }
 .fg-need[data-short] { color: var(--red); border-color: var(--red); }
 .fg-anvil { position: relative; display: inline-grid; }
 .fg-anvil[data-strike] { animation: fg-hammer 0.45s ease-out; }
-.fg-spark { position: absolute; inset: -6px; border-radius: 50%; background: radial-gradient(circle, #fff7c2 0 20%, var(--orange) 40%, transparent 70%); animation: fg-sizzle 0.6s ease-out forwards; pointer-events: none; }
+.fg-spark { position: absolute; inset: -6px; border-radius: var(--r-full); background: radial-gradient(circle, var(--cream) 0 20%, var(--orange) 40%, transparent 70%); animation: fg-sizzle 0.6s ease-out forwards; pointer-events: none; }
 @keyframes fg-hammer { 0% { transform: translateY(0) scale(1); } 25% { transform: translateY(5px) scale(1.12, 0.86); } 55% { transform: translateY(-3px) scale(0.96, 1.06); } 100% { transform: none; } }
 @keyframes fg-sizzle { 0% { opacity: 0.95; transform: scale(0.4); } 100% { opacity: 0; transform: scale(1.6); } }
 @media (prefers-reduced-motion: reduce) { .fg-anvil[data-strike], .fg-spark { animation: none; } .fg-spark { display: none; } }
+
+.sh-known { font: var(--f-cap); color: var(--muted); }

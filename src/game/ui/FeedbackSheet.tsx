@@ -101,7 +101,7 @@ export function AnalyticsSwitch() {
       role="switch"
       aria-checked={on}
       aria-label="Analytics"
-      className="gu-switch fb-switch"
+      className="u-chip gu-switch fb-switch"
       data-testid="ui-analytics"
       onClick={() => setAnalytics(!on)}
     >

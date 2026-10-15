@@ -81,14 +81,15 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 390, height: 844 }
       await page.getByTestId('build-back').click();
       await expect(page.getByTestId('ui-resume')).toBeVisible();
       await expect(page.getByRole('switch', { name: 'Sound' })).toBeAttached();
-      await page.getByTestId('ui-restart').click();
+      await page.getByTestId('ui-quit').click(); await page.getByTestId('ui-quit-confirm').click();
+      await page.getByTestId('ui-again').click();
       await expect(page.getByTestId('run-build')).toHaveCount(0);
       await expect.poll(() => page.evaluate(() => window.__world!.time)).toBeLessThan(2);
       await page.getByTestId('ui-pause').click(); await page.getByTestId('ui-build').click();
       await expect(page.getByTestId('build-dps')).toHaveText('0.0');
       await expect(page.getByTestId('run-build')).toContainText('No dips picked yet');
       await expect(page.getByTestId('run-build')).toContainText('No passives picked yet');
-      await page.getByTestId('build-back').click(); await page.getByTestId('ui-quit').click();
+      await page.getByTestId('build-back').click(); await page.getByTestId('ui-quit').click(); await page.getByTestId('ui-quit-confirm').click();
       await expect(page.getByTestId('results')).toBeVisible();
       await expect(page.getByTestId('run-build')).toHaveCount(0);
     });

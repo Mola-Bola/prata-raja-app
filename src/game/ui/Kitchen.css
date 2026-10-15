@@ -1,31 +1,31 @@
-.kt-root { position: absolute; inset: 0; pointer-events: none; font-size: 15px; }
+.kt-root { position: absolute; inset: 0; pointer-events: none; font-size: var(--t-body); }
 .kt-top { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: calc(var(--safe-top) + 8px) 10px 6px; background: var(--cream); border-bottom: 2px solid var(--edge); }
-.kt-top h1 { margin: 0; font: 600 22px/1 Fredoka, system-ui, sans-serif; }
-.kt-top p { margin: 4px 0 0; font-size: 15px; line-height: 1.15; }
-.kt-root .gu-btn { min-height: 44px; padding: 8px 12px; font-size: 16px; }
+.kt-top h1 { margin: 0; font: var(--f-title); }
+.kt-top p { margin: 4px 0 0; font-size: var(--t-body); line-height: 1.15; }
+.kt-root .u-plain { min-height: var(--touch); padding: var(--sp-2) var(--sp-3); font: var(--f-btn); }
 .kt-metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px 8px; margin: 6px 10px; padding: 7px 10px; border: 2px solid var(--edge); border-radius: 16px; background: var(--cream); }
-.kt-metrics span { font-size: 15px; display: flex; flex-direction: column; }
-.kt-metrics b { font-size: 16px; }
-.kt-metrics small { grid-column: 1/-1; font-size: 15px; }
+.kt-metrics span { font-size: var(--t-body); display: flex; flex-direction: column; }
+.kt-metrics b { font-size: var(--t-body); }
+.kt-metrics small { grid-column: 1/-1; font-size: var(--t-body); }
 .kt-dock { position: absolute; bottom: 0; left: 0; right: 0; display: grid; gap: 7px; padding: 8px 10px calc(var(--safe-bottom) + 10px); border-top: 2px solid var(--edge); border-radius: 20px 20px 0 0; background: var(--cream); pointer-events: auto; }
 .kt-dock p { margin: 0; text-align: center; font-weight: 800; }
 .kt-actions { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
-.kt-disclosure { min-height: 36px; border: 0; background: transparent; color: var(--ink); font: 800 15px Nunito,system-ui,sans-serif; cursor: pointer; }
+.kt-disclosure { min-height: var(--touch); border: 0; background: transparent; color: var(--ink); font: var(--f-body); cursor: pointer; }
 .kt-knobs { max-height: 23vh; overflow-y: auto; display: grid; gap: 10px; overscroll-behavior: contain; }
 .kt-knobs label { display: grid; grid-template-columns: 1fr auto; gap: 3px; font-weight: 800; }
 .kt-knobs input { grid-column: 1/-1; width: 100%; margin: 0; accent-color: var(--orange-deep); min-height: 28px; }
 .kt-setup-wrap { position: absolute; inset: 0; pointer-events: none; }
 .kt-sheet { position: absolute; bottom: 0; left: 0; right: 0; box-sizing: border-box; max-height: 70%; overflow-y: auto; overscroll-behavior: contain; pointer-events: auto; padding: 12px 12px calc(var(--safe-bottom) + 12px); border-radius: 22px 22px 0 0; gap: 12px; }
 .kt-sheet header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.kt-sheet h2 { font: 600 24px Fredoka, system-ui,sans-serif; margin: 0; }
-.kt-sheet h3 { margin: 8px 0 0; font-size: 16px; }
+.kt-sheet h2 { font: var(--f-title); margin: 0; }
+.kt-sheet h3 { margin: 8px 0 0; font-size: var(--t-body); }
 .kt-fields { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px; align-items: end; }
-.kt-root label { min-width: 0; display: grid; gap: 4px; font-size: 15px; font-weight: 800; }
-.kt-root select,.kt-fields input { width: 100%; min-width: 0; min-height: 44px; box-sizing: border-box; border: 2px solid var(--edge); border-radius: 12px; padding: 6px; background: var(--cream); color: var(--ink); font: 700 15px Nunito,system-ui,sans-serif; pointer-events: auto; }
+.kt-root label { min-width: 0; display: grid; gap: 4px; font-size: var(--t-body); font-weight: 800; }
+.kt-root select,.kt-fields input { width: 100%; min-width: 0; min-height: 44px; box-sizing: border-box; border: 2px solid var(--edge); border-radius: 12px; padding: 6px; background: var(--cream); color: var(--ink); font: var(--f-body); pointer-events: auto; }
 .kt-root select:focus-visible,.kt-root input:focus-visible { outline: 3px solid var(--orange-deep); outline-offset: 1px; }
 .kt-slot { display: grid; grid-template-columns: minmax(0,1fr) 64px; gap: 8px; }
 .kt-dip { display: grid; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--edge); }
-.kt-help { margin: 0; font-size: 15px; line-height: 1.35; }
+.kt-help { margin: 0; font-size: var(--t-body); line-height: 1.35; }
 
 .kt-tags { grid-column: 1/-1; }
 
