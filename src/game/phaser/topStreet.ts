@@ -1,13 +1,12 @@
-// Free-movement runs: one top-down street that scrolls as a single world with the stall's travel (world.dist), built from the
+// One top-down street that scrolls as a single world with the stall's travel (world.dist), built from the
 // Codex street kit: a tiled road down the middle (it spans the walkable width), shopfront strips alternating 1/2 along both edges,
 // and a few kerb props. Pure function of (dist, seed): a paused run holds still and a replayed seed shows the same street.
-// Counter mode keeps the perspective Street (street.ts).
 import * as Phaser from 'phaser';
 
 import { D } from './look';
 import type { Layout } from './layout';
 
-/** Field units the street moves per metre the stall travels (same as street.ts). */
+/** Field units the street moves per metre the stall travels (the stall's pace). */
 const U_PER_M = 10;
 
 /** Chapter -> street kit (one small table: `ids` are chapter ids, the rest of the kit's art is named after `kit`). Props are the

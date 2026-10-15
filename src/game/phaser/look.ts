@@ -9,10 +9,6 @@ export const MAX_STEPS = 4;
 /** Seconds between 'hud' publications. */
 export const HUD_PERIOD = 0.1;
 
-/** Where the street sits on screen, as shares of the height: its far end (the horizon) and the counter line, the counter's far
- *  steel edge, where enemies stand when they bite. The counter surface fills from there to the bottom of the screen. */
-export const LANE = { horizon: 0.2, counter: 0.7 };
-
 /** Phaser depths, back to front. Enemies and shots add their screen y so far ones draw first. */
 export const D = {
   bg: 0,
@@ -22,9 +18,6 @@ export const D = {
   enemy: 1000,
   enemyShot: 4000,
   fx: 7000,
-  counter: 10000,
-  slot: 10100,
-  kannan: 10200,
   shot: 11000,
   fxTop: 14000,
   number: 15000,
@@ -32,8 +25,6 @@ export const D = {
 
 // ── Colours (Okabe-Ito, colourblind safe: docs/research/game-feel.md section 2) ───────────────────────────────
 export const HAZARD = 0xd55e00;
-/** The red of the counter warning: an enemy biting Kannan (danger.ts). */
-export const DANGER = 0xe5372b;
 export const CHILL_TINT = 0x9fd4ff;
 /** Frozen by mint chutney: a pale mint body and a frosted rim. */
 export const FREEZE_TINT = 0xbdf7e4;
@@ -48,10 +39,8 @@ export const STEEL = 0xcfe6ff;
 export const ZONE_TINT = 0xc9d98c;
 export const CURRY = 0xb5533c;
 export const WHITE = 0xffffff;
-/** Teh tarik haste: the pulled-tea ribbon and its foam, the caramel trail behind a thrown bread, and the bread itself under
+/** Teh tarik haste: the caramel trail behind a thrown bread, and the bread itself under
  *  reduced motion (tint only, no trail). */
-export const CARAMEL = 0xc27a2c;
-export const FROTH = 0xfff4dc;
 export const CARAMEL_TRAIL = 0xd9953f;
 export const CARAMEL_SHOT = 0xffb36b;
 

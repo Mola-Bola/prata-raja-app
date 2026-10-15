@@ -8,11 +8,10 @@ import { FREE } from '../sim/free';
 import { spawnEnemy } from '../sim/spawn';
 import { FIELD, type Content, type GameEvent, type RunInput, type World } from '../types';
 
-const FREE_CONTENT: Content = { ...CONTENT, tune: { controlMode: 'free' } };
 const DT = 1 / 30;
 const ctxOf = (w: World): Ctx => ({ w, p: w.player, rng: makeRng(7), dt: DT, m: null });
 /** A free-mode run parked in its 1.5 s intro (no director), so only what the test places exists. */
-const world = (content: Content = FREE_CONTENT): World => createRun({ seed: 1, content });
+const world = (content: Content = CONTENT): World => createRun({ seed: 1, content });
 const run = (w: World, secs: number, input: RunInput | ((t: number) => RunInput)): GameEvent[] => {
   const evs: GameEvent[] = [];
   for (let t = 0; t < secs - 1e-9; t += DT) {
@@ -21,24 +20,17 @@ const run = (w: World, secs: number, input: RunInput | ((t: number) => RunInput)
   }
   return evs;
 };
-const still: RunInput = { targetX: null, moving: false };
+const still: RunInput = {};
 
 describe('free movement', () => {
-  it('counter mode (opt-in) never moves Kannan in y', () => {
-    const w = world({ ...CONTENT, tune: { controlMode: 'counter' } });
-    run(w, 1, { targetX: 100, moving: true, jx: 1, jy: 1 });
-    expect(w.player.y).toBe(0);
-    expect(w.player.x).toBeCloseTo(100, 5);
-  });
-
   it('the joystick walks Kannan at moveSpeed x speedMul and keeps him inside the street', () => {
     const w = world();
     const speed = w.player.stats.moveSpeed * FREE.speedMul;
     expect(w.player.y).toBe(FREE.startY);
-    run(w, 0.5, { targetX: null, moving: true, jx: 1, jy: 0 });
+    run(w, 0.5, { jx: 1, jy: 0 });
     expect(w.player.x).toBeCloseTo(speed * 0.5, 0);
     expect(w.player.moving).toBe(true);
-    run(w, 1, { targetX: null, moving: true, jx: 1, jy: -1 }); // magnitude clamps to 1
+    run(w, 1, { jx: 1, jy: -1 }); // magnitude clamps to 1
     expect(w.player.x).toBe(FIELD.kannanMaxX);
     expect(w.player.y).toBe(FIELD.freeMinY);
   });
@@ -46,12 +38,12 @@ describe('free movement', () => {
   it('a dash covers ~dashDist with i-frames, emits {t:dash}, then waits out its cooldown', () => {
     const w = world();
     const x0 = w.player.x;
-    const evs = run(w, FREE.dashTime + 0.05, (t) => ({ targetX: null, moving: false, jx: 1, jy: 0, dodge: t < DT }));
+    const evs = run(w, FREE.dashTime + 0.05, (t) => ({ jx: 1, jy: 0, dodge: t < DT }));
     expect(evs.filter((e) => e.t === 'dash')).toHaveLength(1);
     expect(w.player.x - x0).toBeGreaterThan(FREE.dashDist * 0.95);
     expect(w.player.dashCd).toBeGreaterThan(0.9);
     // pressing again inside the cooldown does nothing
-    const again = run(w, 0.3, (t) => ({ targetX: null, moving: false, dodge: t < DT }));
+    const again = run(w, 0.3, (t) => ({ dodge: t < DT }));
     expect(again.some((e) => e.t === 'dash')).toBe(false);
   });
 
@@ -66,7 +58,7 @@ describe('free movement', () => {
     expect(e.state).toBe('attack');
     expect(w.player.hp).toBeLessThan(w.player.stats.maxHp);
     const hp = w.player.hp;
-    run(w, FREE.dashTime, (t) => ({ targetX: null, moving: false, jx: 0, jy: 0.0001, dodge: t < DT }));
+    run(w, FREE.dashTime, (t) => ({ jx: 0, jy: 0.0001, dodge: t < DT }));
     expect(w.player.hp).toBeGreaterThanOrEqual(hp - 3); // at most the one discrete hit that was due before the dash landed
   });
 
@@ -75,7 +67,7 @@ describe('free movement', () => {
       const w = world();
       const p = w.player;
       w.projectiles.push(enemyShot(ctxOf(w), p.x, p.y + 90, p.x, 10, 520, 'fx/spark', false, p.y));
-      run(w, 0.4, (t) => ({ targetX: null, moving: false, dodge: dash && t < DT }));
+      run(w, 0.4, (t) => ({ dodge: dash && t < DT }));
       return w.player.hp;
     };
     expect(shotAt(false)).toBeLessThan(100);

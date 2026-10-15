@@ -39,7 +39,6 @@ export function tuneKnobs(content: Content): Knob[] {
   ks.push(knob('director.cruise', 'Director', 'stall speed, start (m/s)', CRUISE), knob('director.cruiseLate', 'Director', 'stall speed, at boss (m/s)', CRUISE_LATE), knob('director.pressure', 'Director', 'pressure ramp x', 1, false),
     knob('director.liveCap', 'Director', 'LIVE_CAP', LIVE_CAP));
   for (const c of content.chapters) ks.push(knob(`chapters.${c.id}.bossAt`, 'Director', `${c.name} bossAt (m)`, bossAtOf(c)));
-  ks.push({ id: 'mode.free', section: 'Mode', label: 'free movement (0 counter, 1 free)', def: 1, min: 0, max: 1, step: 1 });
   ks.push(knob('pres.hover', 'Look', 'prata hover height x', PRES_DEFAULTS.hover, false), knob('pres.wobble', 'Look', 'wobble amount', PRES_DEFAULTS.wobble, false),
     knob('pres.finale', 'Look', 'finale duration x', PRES_DEFAULTS.finale, false));
   return ks;
@@ -81,7 +80,6 @@ export function applyTune(base: Content, overrides: Overrides): Content {
     else if (id === 'director.cruiseLate') tune.cruiseLate = v;
     else if (id === 'director.pressure') tune.pressure = v;
     else if (id === 'director.liveCap') tune.liveCap = v;
-    else if (id === 'mode.free') tune.controlMode = v >= 0.5 ? 'free' : 'counter';
   }
   const hpAll = get('enemies.all.hp'), spAll = get('enemies.all.speed');
   if (hpAll !== undefined || spAll !== undefined)

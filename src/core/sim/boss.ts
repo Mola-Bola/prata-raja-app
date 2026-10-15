@@ -4,7 +4,7 @@
 import { speedMul } from '../status';
 import { FIELD, type BossAttack, type BossDef, type Enemy } from '../types';
 import { cdGet, clamp, emit, enemyShot, enemySpeed, hurtPlayer, type Ctx } from './ctx';
-import { FREE, isFree } from './free';
+import { FREE } from './free';
 import { spawnEnemy } from './spawn';
 
 const ST = '_st';
@@ -13,10 +13,10 @@ const COUNT = '_n';
 const SIDE = '_side';
 const REC = '_rec';
 const mark = (i: number): string => '_m' + i;
-/** Free mode: the y of each marked spot, and where Kannan stood when the tell began (volley shots fly to (mark, _py)). */
+/** The y of each marked spot, and where Kannan stood when the tell began (volley shots fly to (mark, _py)). */
 const markY = (i: number): string => '_y' + i;
 const PY = '_py';
-/** Free mode: a calm opening after the boss parks (decomp-scrolling-flow). Export so sim.ts can set it at spawn. */
+/** A calm opening after the boss parks (decomp-scrolling-flow). Export so sim.ts can set it at spawn. */
 export const bossBeat = (e: Enemy): void => { e.cooldowns[REC] = FREE.bossBeat; };
 /** Seconds of calm after any attack. */
 const RECOVER = 0.6;
@@ -63,7 +63,6 @@ function begin(c: Ctx, e: Enemy, d: BossDef, index: number): void {
   const a = d.attacks[index];
   const cd = e.cooldowns;
   const px = c.p.x;
-  const free = isFree(c);
   cd[ST] = 1;
   cd[PY] = c.p.y;
   cd._ch = 0;
@@ -92,10 +91,10 @@ function begin(c: Ctx, e: Enemy, d: BossDef, index: number): void {
   cd[COUNT] = xs.length;
   xs.forEach((x, j) => {
     cd[mark(j)] = x;
-    if (free) cd[markY(j)] = a.kind === 'rain' && j > 0 ? c.rng.range(FIELD.freeMinY, FIELD.freeMaxY) : c.p.y;
+    cd[markY(j)] = a.kind === 'rain' && j > 0 ? c.rng.range(FIELD.freeMinY, FIELD.freeMaxY) : c.p.y;
   });
   const z = tellZones(e);
-  emit(c, { t: 'bossTell', attackId: a.id, name: a.name, kind: a.kind, xs: z.xs, width: z.width, time: a.tell, ...(free ? { ys: z.xs.map((_, j) => cdGet(e, markY(j))) } : {}) });
+  emit(c, { t: 'bossTell', attackId: a.id, name: a.name, kind: a.kind, xs: z.xs, width: z.width, time: a.tell, ys: z.xs.map((_, j) => cdGet(e, markY(j))) });
 }
 
 /** Attack done: restart its timer (faster in later phases) and rest a moment. */
@@ -110,7 +109,7 @@ function execute(c: Ctx, e: Enemy, d: BossDef, a: BossAttack): void {
   const n = cdGet(e, COUNT);
   switch (a.kind) {
     case 'volley':
-      for (let j = 0; j < n; j++) c.w.projectiles.push(enemyShot(c, e.x, e.y, cdGet(e, mark(j)), a.dmg, a.projSpeed, a.projSprite, true, isFree(c) ? cdGet(e, PY) : 0));
+      for (let j = 0; j < n; j++) c.w.projectiles.push(enemyShot(c, e.x, e.y, cdGet(e, mark(j)), a.dmg, a.projSpeed, a.projSprite, true, cdGet(e, PY)));
       emit(c, { t: 'enemyShot', uid: e.uid });
       finish(e, d);
       break;
@@ -132,14 +131,14 @@ function execute(c: Ctx, e: Enemy, d: BossDef, a: BossAttack): void {
     case 'rain':
       for (let j = 0; j < n; j++) {
         const x = cdGet(e, mark(j));
-        emit(c, { t: 'splat', x });
-        if (isFree(c) ? Math.hypot(x - c.p.x, cdGet(e, markY(j)) - c.p.y) <= a.markWidth / 2 + FIELD.kannanRadius / 2 : Math.abs(x - c.p.x) <= a.markWidth / 2) hurtPlayer(c, a.dmg, 'boss');
+        emit(c, { t: 'splat', x, y: cdGet(e, markY(j)) });
+        if (Math.hypot(x - c.p.x, cdGet(e, markY(j)) - c.p.y) <= a.markWidth / 2 + FIELD.kannanRadius / 2) hurtPlayer(c, a.dmg, 'boss');
       }
       finish(e, d);
       break;
     case 'sweep': {
       const side = cdGet(e, SIDE);
-      emit(c, { t: 'splat', x: cdGet(e, mark(0)) });
+      emit(c, { t: 'splat', x: cdGet(e, mark(0)), y: c.p.y });
       if (side < 0 ? c.p.x < 0 : c.p.x >= 0) hurtPlayer(c, a.dmg, 'boss');
       finish(e, d);
       break;
@@ -179,15 +178,14 @@ export function updateBoss(c: Ctx, e: Enemy): void {
     const lane = cdGet(e, mark(0));
     e.x += clamp(lane - e.x, -CHARGE_SLIDE * c.dt, CHARGE_SLIDE * c.dt);
     e.y -= a.speed * c.dt;
-    // free mode: the body hurts whenever Kannan is in its lane as it passes over him (once per charge; a dash goes through)
-    if (isFree(c) && !cdGet(e, '_ch') && Math.abs(c.p.x - e.x) <= a.laneWidth / 2 && Math.abs(c.p.y - e.y) <= e.def.radius * 0.6 + FIELD.kannanRadius) {
+    // the body hurts whenever Kannan is in its lane as it passes over him (once per charge; a dash goes through)
+    if (!cdGet(e, '_ch') && Math.abs(c.p.x - e.x) <= a.laneWidth / 2 && Math.abs(c.p.y - e.y) <= e.def.radius * 0.6 + FIELD.kannanRadius) {
       cd._ch = 1;
       hurtPlayer(c, a.dmg, 'boss');
     }
     if (e.y <= FIELD.reachY) {
       e.y = FIELD.reachY;
       emit(c, { t: 'blast', x: lane, y: 0, radius: a.laneWidth / 2, color: null });
-      if (!isFree(c) && Math.abs(c.p.x - lane) <= a.laneWidth / 2) hurtPlayer(c, a.dmg, 'boss');
       cd[ST] = 3;
     }
   } else {

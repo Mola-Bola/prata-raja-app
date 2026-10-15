@@ -116,10 +116,10 @@ describe('chapter gates and night content', () => {
   it('boss attempt evidence is produced on spawn and survives a loss result', () => {
     const w = createRun({ seed: 1, content: CONTENT, chapterId: 'hawker-night' });
     w.phase = 'wave'; w.dist = w.chapter.bossAt! - 0.01;
-    step(w, 1 / 30, { targetX: null, moving: false });
+    step(w, 1 / 30, {});
     expect(w.wave).toBe(10); expect(w.bossAttempted).toBe(true);
     w.player.hp = 0;
-    step(w, 1 / 30, { targetX: null, moving: false });
+    step(w, 1 / 30, {});
     expect(w.result).toMatchObject({ chapterId: 'hawker-night', bossAttempted: true, won: false });
   });
   it('has ten waves, the Baron last, and all requested archetypes and links', () => {

@@ -44,11 +44,11 @@ test('title, start, drag, pick a card, pause, quit', async ({ page }) => {
   await expect(page.getByText(/Wave 1\/10/)).toBeVisible();
   await expect(page.locator('[data-testid="hub-overlay"]')).toHaveCount(0);
 
-  // Drag below the HUD band: Kannan's target follows the finger (field x, 0 at the middle of the screen).
+  // Drag below the HUD band: the joystick walks Kannan the way the finger is pulled.
   await page.mouse.move(195, 700);
   await page.mouse.down();
   await page.mouse.move(330, 700, { steps: 6 });
-  await page.waitForFunction(() => window.__world!.player.targetX > 80);
+  await page.waitForFunction(() => window.__world!.player.x > 20);
   await page.mouse.up();
   expect(await page.evaluate(() => window.__world!.player.x)).toBeGreaterThan(0);
 

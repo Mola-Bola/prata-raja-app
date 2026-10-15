@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CONTENT as BASE_CONTENT } from '../../content';
-/** These tests assume the counter control mode (free is the shipped default). */
-const CONTENT: typeof BASE_CONTENT = { ...BASE_CONTENT, tune: { controlMode: 'counter' } };
+import { CONTENT } from '../../content';
 import { autoPick } from '../autoplay';
 import { applyCard, drawOffer } from '../cards';
 import { makeRng } from '../rng';
@@ -17,6 +15,7 @@ const evolved = Object.values(CONTENT.breads).filter(b => b.evolvedFrom);
 function context(): Ctx {
   const w = createRun({ seed: 7, content: CONTENT });
   w.wave = 1;
+  w.player.y = 0; // enemies below are placed as if he stood at the foot of the street
   return { w, p: w.player, rng: makeRng(7), dt: 1 / 30, m: null };
 }
 function own(c: Ctx, id: BreadId, level = 1) {
@@ -175,7 +174,7 @@ describe('evolutions', () => {
   it('loadout pools reach initial offers, queued level-ups and rerolls', () => {
     const w = createRun({ seed: 1, content: CONTENT, mode: 'waves', loadout: { breadPool: ['naan'], dipPool: ['ghee'] } });
     w.pendingLevelUps = 2;
-    step(w, 1 / 30, { moving: false, targetX: null });
+    step(w, 1 / 30, {});
     expect(w.offer).toContainEqual({ kind: 'dip', id: 'ghee', level: 1 });
     expect(reroll(w)).toBe(true);
     expect(w.offer).toContainEqual({ kind: 'dip', id: 'ghee', level: 1 });
@@ -190,7 +189,7 @@ it('queued offers and rerolls retain the recipe pools, history and eligible evol
   w.player.breads[0].level = 5;
   w.player.dips = [{ id: 'ghee', level: 5 }];
   w.pendingLevelUps = 2;
-  step(w, 1 / 30, { targetX: null, moving: false });
+  step(w, 1 / 30, {});
   for (let i = 0; i < 3; i++) {
     expect(w.offer).toContainEqual({ kind: 'evolve', id: 'golden-ghee-chakra', level: 1 });
     expect(w.offer.filter(c => c.kind === 'bread').every(c => c.id === 'naan')).toBe(true);

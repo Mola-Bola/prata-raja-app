@@ -7,12 +7,10 @@ import { applyKitchenTuning, createKitchenRun, DEFAULT_KITCHEN_TUNING, type Kitc
 import { CONTENT } from '@/content';
 import { pres, tunedContent } from '../tuneStore';
 import { bossAtOf, isFlow } from '@/core/director';
-import { autoFind, autoInput, autoPick } from '@/core/autoplay';
-import { swapFind } from '@/core/finds';
+import { autoInput, autoPick } from '@/core/autoplay';
 import { SAVE_KEY } from '@/core/save';
 import { chooseCard, createRun, drainEvents, reroll, step } from '@/core/sim';
-import { isFreeMode } from '@/core/sim/free';
-import { FIELD, type BreadId, type GameEvent, type Loadout, type RunInput, type RunResult, type World } from '@/core/types';
+import type { BreadId, GameEvent, Loadout, RunInput, RunResult, World } from '@/core/types';
 import { computeLoadout } from '@/meta/loadout';
 import { mealDef, mealEffect } from '@/meta/meals';
 import { parseSaveV3 } from '@/meta/migrate';
@@ -24,18 +22,14 @@ import type { Hub, HudState, KitchenStats } from '../hub';
 import { Actors } from './actors';
 import { RunDamageRate } from './runDamageRate';
 import { FeedbackGate, strongerHaptic } from './combatFeedback';
-import { DangerCue } from './danger';
 import { Fx } from './fx';
-import { HurtZone } from './hurtZone';
-import { TehPour } from './tehPour';
-import { DragInput, FreeInput } from './input';
+import { FreeInput } from './input';
+import { tehCue, type TehCue } from './tehCue';
 import { FreeKannan } from './freeKannan';
 import { HURT_TRAUMA, MAGNET_U, pickupBurst, STOP } from './feel';
 import { makeLayout, Projector, type Layout } from './layout';
 import { CURRY, D, HAZARD, HUD_PERIOD, MAX_STEPS, SHAKE_SHARE, STEEL, STEP, TRAUMA_DECAY } from './look';
 import { DiscPool, ImagePool } from './pools';
-import { Stall } from './stall';
-import { Street } from './street';
 import { TopStreet } from './topStreet';
 import { Telegraphs } from './telegraph';
 
@@ -59,8 +53,8 @@ function fastForward(w: World, metres: number): void {
   }
 }
 
-function readUrl(): { seed: number | null; bot: boolean; speed: number; kitchen: boolean; chapter: string | null; at: number; god: boolean; move: string | null } {
-  if (typeof window === 'undefined') return { seed: null, bot: false, speed: 1, kitchen: false, chapter: null, at: 0, god: false, move: null };
+function readUrl(): { seed: number | null; bot: boolean; speed: number; kitchen: boolean; chapter: string | null; at: number; god: boolean } {
+  if (typeof window === 'undefined') return { seed: null, bot: false, speed: 1, kitchen: false, chapter: null, at: 0, god: false };
   const q = new URLSearchParams(window.location.search);
   const seed = q.get('seed');
   const speed = Number(q.get('speed'));
@@ -71,7 +65,6 @@ function readUrl(): { seed: number | null; bot: boolean; speed: number; kitchen:
     chapter: q.get('chapter'),
     at: Math.max(0, Number(q.get('at')) || 0),
     god: q.get('god') === '1',
-    move: q.get('move'),
     speed: Number.isFinite(speed) && speed > 0 ? Math.min(speed, 16) : 1,
   };
 }
@@ -89,20 +82,14 @@ export class RunScene extends Phaser.Scene {
   private proj = new Projector();
   private imgs!: ImagePool;
   private discs!: DiscPool;
-  private stall!: Stall;
-  private street!: Street;
   private topStreet!: TopStreet;
   private actors!: Actors;
   private fx!: Fx;
   private tele!: Telegraphs;
-  private danger!: DangerCue;
-  private pour!: TehPour;
-  private hurt!: HurtZone;
-  private drag!: DragInput;
   private joy!: FreeInput;
   private freeKannan!: FreeKannan;
-  /** The run on screen uses free movement (content.tune.controlMode 'free', or ?move=free). */
-  private free = false;
+  /** Teh tarik haste: drives the caramel trails on the breads in flight. */
+  private teh: TehCue = tehCue({ remaining: 0, elapsed: 0, scale: 1, warm: false }, 0);
   private url = readUrl();
   private reduceMotion = false;
 
@@ -137,7 +124,7 @@ export class RunScene extends Phaser.Scene {
   private dipColors: number[] = [];
   private hits = 0;
   private faults = 0;
-  private input_: RunInput = { targetX: null, moving: false };
+  private input_: RunInput = {};
 
   constructor() {
     super('RunScene');
@@ -149,16 +136,10 @@ export class RunScene extends Phaser.Scene {
     this.reduceMotion = typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     this.imgs = new ImagePool(this);
     this.discs = new DiscPool(this);
-    this.stall = new Stall(this, this.imgs);
-    this.street = new Street(this);
     this.topStreet = new TopStreet(this);
     this.fx = new Fx(this, this.imgs);
     this.actors = new Actors(this.proj, this.imgs, this.discs, this.fx, this.reduceMotion);
     this.tele = new Telegraphs(this.imgs, this.proj, (uid, out) => this.actors.locate(uid, out));
-    this.danger = new DangerCue(this, this.actors);
-    this.pour = new TehPour(this, this.fx);
-    this.hurt = new HurtZone(this);
-    this.drag = new DragInput(this, () => this.l);
     this.joy = new FreeInput(this, () => this.l);
     this.freeKannan = new FreeKannan(this);
     // Browsers only start sound from a tap: the first touch on the canvas unlocks it (the Start button's click does too).
@@ -181,10 +162,7 @@ export class RunScene extends Phaser.Scene {
       stopKitchen: () => this.stopKitchen(),
       choose: (i) => this.choose(i),
       reroll: () => this.rerollOffer(),
-      swapFind: (i) => {
-        const w = this.world;
-        if (w && !this.paused && swapFind(w, i)) this.sfx('cardPick');
-      },
+      swapFind: () => {}, // street finds are a tiffin pickup now; the hub still lists the control
       dodge: () => this.joy.dodge(),
       pause: () => this.hold(),
       resume: () => {
@@ -216,11 +194,9 @@ export class RunScene extends Phaser.Scene {
   private relayout(): void {
     this.l = makeLayout(this.scale.width, this.scale.height);
     this.proj.setLayout(this.l);
-    this.stall.setLayout(this.l);
     this.topStreet.setLayout(this.l);
     this.actors.setLayout(this.l);
     this.fx.u = this.l.u;
-    this.danger.setUnit(this.l.u);
   }
 
   // ── Controls (what the React overlay calls) ────────────────────────────────────────────────────────────────
@@ -228,10 +204,7 @@ export class RunScene extends Phaser.Scene {
   private start(seed?: number, loadout?: Loadout, chapterId?: string): void {
     const s = this.url.seed ?? seed ?? Math.floor(Math.random() * 0x100000000);
     const tuned = tunedContent();
-    // ?move=free / ?move=counter overrides the Tune knob (dev switch; nothing is saved).
-    const mode = this.url.move === 'free' || this.url.move === 'counter' ? this.url.move : tuned.tune?.controlMode;
-    const content = mode === tuned.tune?.controlMode ? tuned : { ...tuned, tune: { ...tuned.tune, controlMode: mode } };
-    const w = createRun({ seed: s, content, loadout, chapterId: this.url.chapter ?? chapterId });
+    const w = createRun({ seed: s, content: tuned, loadout, chapterId: this.url.chapter ?? chapterId });
     if (this.url.god) w.god = true;
     if (this.url.at > 0 && isFlow(w.chapter)) fastForward(w, this.url.at);
     this.showWorld(w);
@@ -283,20 +256,9 @@ export class RunScene extends Phaser.Scene {
     unlockAudio();
     this.applySettings();
     this.clearWorld();
-    this.stall.setBackground(w.chapter.background);
-    this.free = isFreeMode(w.content);
-    // Free movement on a street chapter: one top-down scrolling street (topStreet.ts); else the painted perspective street.
-    const top = this.free && isFlow(w.chapter);
-    this.proj.setTop(top);
-    this.stall.setTop(top);
     this.topStreet.setKit(w.chapter.id, w.seed);
-    this.topStreet.setVisible(top);
-    this.street.setVisible(isFlow(w.chapter) && !top);
-    this.street.setProps(w.chapter.props);
-    this.street.setFloor(w.chapter.floor);
+    this.topStreet.setVisible(true);
     this.world = w;
-    if (!this.free) this.freeKannan.hide();
-    this.actors.freeShots = this.free;
     window.__world = w;
     this.paused = false;
     this.levelUpOpen = false;
@@ -306,7 +268,6 @@ export class RunScene extends Phaser.Scene {
     this.acc = 0;
     this.hudT = HUD_PERIOD;
     this.lastGold = 0;
-    this.stall.snapshot(0);
     this.refreshDips();
   }
 
@@ -317,7 +278,6 @@ export class RunScene extends Phaser.Scene {
     if (this.world) this.publishHud(this.world, HUD_PERIOD);
     this.trauma = 0;
     this.hitStop = 0;
-    this.drag.release();
     this.joy.release();
     this.cameras.main.setScroll(0, 0);
   }
@@ -338,7 +298,6 @@ export class RunScene extends Phaser.Scene {
     const w = this.world;
     this.paused = false;
     if (w && !this.ended && w.phase !== 'won' && w.phase !== 'lost') {
-      this.drag.release();
       this.joy.release();
       this.wokeEarly = true;
       w.result = this.earlyResult(w);
@@ -383,15 +342,8 @@ export class RunScene extends Phaser.Scene {
     this.actors.clear();
     this.fx.clear();
     this.tele.clear();
-    this.danger.clear();
-    this.pour.reset();
-    this.hurt.clear();
-    this.stall.reset();
-    this.street.setVisible(false);
+    this.teh = tehCue(this.teh, 0);
     this.topStreet.setVisible(false);
-    this.proj.setTop(false);
-    this.stall.setTop(false);
-    this.drag.release();
     this.joy.release();
     this.trauma = 0;
     this.hitStop = 0;
@@ -403,7 +355,7 @@ export class RunScene extends Phaser.Scene {
     this.cameras.main.setScroll(0, 0);
   }
 
-  // ── Street gift (free mode's tiffin pickup, src/core/finds.ts) ──
+  // ── Street gift (the tiffin pickup, src/core/finds.ts) ──
 
   private gift: { body: Phaser.GameObjects.Image; ring: Phaser.GameObjects.Image; label: Phaser.GameObjects.Text } | null = null;
 
@@ -456,7 +408,6 @@ export class RunScene extends Phaser.Scene {
   private openLevelUp(w: World): void {
     this.levelUpOpen = true;
     // The cards swallow touches: a finger that was down will not report its release to the canvas.
-    this.drag.release();
     this.joy.release();
     this.hub.emit('levelUp', { offer: w.offer, rerolls: w.rerolls, level: w.player.level - w.pendingLevelUps + 1, left: w.pendingLevelUps, ...(w.pickup ? { find: true } : {}) });
   }
@@ -514,40 +465,34 @@ export class RunScene extends Phaser.Scene {
     let alpha = 1;
     if (w && !this.ended) {
       alpha = this.stepSim(w, dt);
-      if (this.url.bot) autoFind(w);
       if (w.phase === 'levelup' && !this.kitchenTuning) {
         if (this.url.bot) this.choose(autoPick(w));
         else if (!this.levelUpOpen) this.openLevelUp(w);
       }
     }
     if (w) {
-      this.street.draw(w.dist, this.proj);
       this.topStreet.draw(w.dist);
     }
-    this.stall.update(w ? w.player : null, w ? (this.wokeEarly ? 'lost' : w.phase) : null, alpha, this.uiTime, dt, this.reduceMotion);
-    const fk = this.free && w ? this.freeKannan : null;
-    this.stall.kannan.setVisible(!fk);
-    if (fk && w) fk.update(w.player, alpha, dt, l, this.proj, this.joy, this.url.god);
+    const fk = this.freeKannan;
+    if (w) fk.update(w.player, alpha, dt, l, this.proj, this.joy, this.url.god);
     // A shot leaves his raised hand and settles onto the field projection of its own lane.
-    const home = this.proj.at(fk ? fk.fieldX : this.stall.fieldX, fk ? fk.fieldY : 0);
-    this.actors.setHand((fk ? fk.handX : this.stall.handX) - home.sx, (fk ? fk.handY : this.stall.handY) - home.sy);
-    this.fx.tx = fk ? fk.chestX : this.stall.chestX;
-    this.fx.ty = fk ? fk.chestY : this.stall.chestY;
+    const home = this.proj.at(fk.fieldX, fk.fieldY);
+    this.actors.setHand(fk.handX - home.sx, fk.handY - home.sy);
+    this.fx.tx = fk.chestX;
+    this.fx.ty = fk.chestY;
     this.fx.magR = MAGNET_U * l.u;
     this.fx.kv = 210 * l.u * 1.6;
-    // Teh tarik haste: a caramel ribbon from the cup to his hand, and caramel trails on the breads in flight.
-    const live = w && !this.ended ? w : null;
-    this.actors.setHaste(this.stall.pouring);
-    this.pour.update(this.stall.cupMouth(), { x: this.stall.handX, y: this.stall.handY }, this.stall.pouring, l.u, dt, this.reduceMotion);
-    this.hurt.update(live && !fk ? live.player : null, this.stall.fieldX, this.stall.feetY, l);
+    // Teh tarik haste: caramel trails on the breads in flight.
+    const p = w?.player;
+    const haste = p?.dips.some((d) => d.id === 'teh-tarik') ? p.buffs.find((b) => b.id === 'haste')?.time ?? 0 : 0;
+    this.teh = tehCue(this.teh, haste, w?.phase === 'wave', this.reduceMotion);
+    this.actors.setHaste(this.teh.warm);
     if (w) {
       this.actors.draw(w, alpha, this.uiTime, dt);
       this.publishHud(w, dt);
     }
     this.drawPickup(w && !this.ended ? w.pickup ?? null : null);
     this.tele.draw(w ? w.time : 0, l.u);
-    if (w && !fk) this.danger.update(w, l, this.uiTime, this.reduceMotion);
-    else if (fk) this.danger.clear();
     this.fx.update(dt);
     this.shake(dt);
   }
@@ -570,11 +515,9 @@ export class RunScene extends Phaser.Scene {
       this.acc -= STEP;
       n++;
       this.actors.snapshot(w);
-      this.stall.snapshot(w.player.x);
       this.freeKannan.snapshot(w.player);
       if (this.url.bot) Object.assign(this.input_, { jx: 0, jy: 0, dodge: false }, autoInput(w));
-      else if (this.free) this.joy.read(this.input_);
-      else this.drag.read(this.input_);
+      else this.joy.read(this.input_);
       step(w, STEP, this.input_);
       this.handle(w, drainEvents(w));
       if ((w.phase !== 'wave' && w.phase !== 'intro') || this.hitStop > 0) break;
@@ -606,7 +549,7 @@ export class RunScene extends Phaser.Scene {
       wave: w.wave,
       waves: w.chapter.waves.length,
       route: isFlow(w.chapter) ? { name: w.chapter.name, dist: w.dist, bossAt: bossAtOf(w.chapter) } : null,
-      find: w.find ?? null,
+      find: null,
       hp: Math.max(0, p.hp),
       maxHp: p.stats.maxHp,
       xp: p.xp,
@@ -625,7 +568,7 @@ export class RunScene extends Phaser.Scene {
       dipSimmer: { ...w.loadout?.dipSimmer },
       signatureBread: w.loadout?.signatureBread,
       shownDps: this.damageRate.read(w.time),
-      free: this.free,
+      free: true,
       meal: mealChip(w.loadout?.mealId),
     });
   }
@@ -684,11 +627,10 @@ export class RunScene extends Phaser.Scene {
       }
       switch (ev.t) {
         case 'throw': {
-          this.stall.release();
           this.sfx('throw', ev.breadId);
           // A puff of flour where the bread leaves his hand.
           const u = this.l.u;
-          this.fx.spawn('fx/flour-puff', this.stall.handX, this.stall.handY, D.fxTop - 1, 0.3, 14 * u, 40 * u).fade(0.6, 0, 0.2);
+          this.fx.spawn('fx/flour-puff', this.freeKannan.handX, this.freeKannan.handY, D.fxTop - 1, 0.3, 14 * u, 40 * u).fade(0.6, 0, 0.2);
           break;
         }
         case 'hit':
@@ -734,7 +676,7 @@ export class RunScene extends Phaser.Scene {
           break;
         }
         case 'splat': {
-          const P = this.proj.at(ev.x, FIELD.reachY + 14);
+          const P = this.proj.at(ev.x, ev.y);
           const u = this.l.u;
           this.fx.spawn('fx/curry-splash', P.sx, P.sy, D.ground + 20, 1.2, 30 * u, 70 * u).tint(CURRY).fade(0.85, 0, 0.5).squash(0.55);
           break;
@@ -744,20 +686,20 @@ export class RunScene extends Phaser.Scene {
           break;
         case 'dodge':
           this.sfx('dodge');
-          this.fx.spawn('fx/swoosh', this.stall.chestX, this.stall.chestY, D.fxTop, 0.3, 120 * this.l.u, 160 * this.l.u).fade(0.8, 0, 0.2);
+          this.fx.spawn('fx/swoosh', this.freeKannan.chestX, this.freeKannan.chestY, D.fxTop, 0.3, 120 * this.l.u, 160 * this.l.u).fade(0.8, 0, 0.2);
           break;
         case 'heal':
           // Dhal heals a little on every kill: show the plus sign at most every 0.35 s.
           if (this.uiTime - this.healAt > 0.35) {
             this.healAt = this.uiTime;
-            this.fx.spawn('fx/heal', this.stall.chestX, this.stall.chestY - 30 * this.l.u, D.fxTop, 0.7, 36 * this.l.u, 56 * this.l.u).to(this.stall.chestX, this.stall.chestY - 90 * this.l.u).fade(1, 0, 0.4);
+            this.fx.spawn('fx/heal', this.freeKannan.chestX, this.freeKannan.chestY - 30 * this.l.u, D.fxTop, 0.7, 36 * this.l.u, 56 * this.l.u).to(this.freeKannan.chestX, this.freeKannan.chestY - 90 * this.l.u).fade(1, 0, 0.4);
           }
           break;
         case 'xp':
           this.onXp(ev);
           break;
         case 'levelUp':
-          this.fx.spawn('fx/levelup-ring', this.stall.chestX, this.stall.feetY, D.fxTop, 0.8, 50 * this.l.u, 230 * this.l.u).add().fade(0.85, 0, 0.3);
+          this.fx.spawn('fx/levelup-ring', this.freeKannan.chestX, this.freeKannan.feetY, D.fxTop, 0.8, 50 * this.l.u, 230 * this.l.u).add().fade(0.85, 0, 0.3);
           this.sfx('levelUp');
           this.buzz('medium');
           if (!this.kitchenTuning) void this.bridge?.track('level_up', {}).catch(() => {});
@@ -780,7 +722,7 @@ export class RunScene extends Phaser.Scene {
           break;
         }
         case 'bossPhase': {
-          this.stop(this.free ? STOP.boss : 0.06);
+          this.stop(STOP.boss);
           this.addTrauma(0.8);
           const v = this.actors.viewOf(this.bossUid(w));
           if (v) {
@@ -793,8 +735,8 @@ export class RunScene extends Phaser.Scene {
           this.missedGift(ev.x, ev.y);
           break;
         case 'revive':
-          this.fx.spawn('fx/levelup-ring', this.stall.chestX, this.stall.feetY, D.fxTop, 0.9, 50 * this.l.u, 260 * this.l.u).add().fade(0.85, 0, 0.3);
-          this.fx.spawn('fx/heal', this.stall.chestX, this.stall.chestY, D.fxTop, 0.9, 50 * this.l.u, 90 * this.l.u).fade(1, 0, 0.5);
+          this.fx.spawn('fx/levelup-ring', this.freeKannan.chestX, this.freeKannan.feetY, D.fxTop, 0.9, 50 * this.l.u, 260 * this.l.u).add().fade(0.85, 0, 0.3);
+          this.fx.spawn('fx/heal', this.freeKannan.chestX, this.freeKannan.chestY, D.fxTop, 0.9, 50 * this.l.u, 90 * this.l.u).fade(1, 0, 0.5);
           this.addTrauma(0.5);
           this.sfx('levelUp');
           break;
@@ -811,17 +753,8 @@ export class RunScene extends Phaser.Scene {
     // Gold earned this step flies to the counter as coins.
     if (w.gold - this.lastGold >= 1 && this.lastKill.on) {
       const gain = Math.floor(w.gold - this.lastGold);
-      const n = Math.min(3, gain);
       const u = this.l.u;
-      if (this.free) pickupBurst(this.fx, 'dips/coin', this.lastKill.x, this.lastKill.y, 5 + (gain >= 3 ? 1 : 0) + (gain >= 6 ? 2 : 0), u, this.hits++, 28 * u, 1);
-      else for (let i = 0; i < n; i++) {
-        this.fx
-          .spawn('dips/coin', this.lastKill.x, this.lastKill.y, D.fxTop, 0.6 + 0.06 * i, 22 * u, 14 * u)
-          .fade(1, 1, 0)
-          .to(this.fx.tx, this.fx.ty, 2, (i % 2 ? 1 : -1) * 36 * u)
-          .seek()
-          .delay(0.05 * i);
-      }
+      pickupBurst(this.fx, 'dips/coin', this.lastKill.x, this.lastKill.y, 5 + (gain >= 3 ? 1 : 0) + (gain >= 6 ? 2 : 0), u, this.hits++, 28 * u, 1);
       this.sfx('coin');
       this.lastKill.on = false;
     }
@@ -852,8 +785,8 @@ export class RunScene extends Phaser.Scene {
       this.fx.spawn('fx/curry-splash', sx, cy, D.fx - 1, 0.3, 22 * u * s, 56 * u * s).tint(this.dipTint()).fade(0.9, 0, 0.2).spin(ev.uid * 2.1, 0);
     }
     // Free runs: numbers only on crits and on elites / bosses (density cap); every other hit reads from its spark.
-    if (!this.free || ev.crit || (v && (v.elite || v.boss))) this.fx.number(ev.uid, sx, v ? v.topY : P.sy - 36 * u * P.s, ev.dmg, ev.crit ? 1 : ev.color ? 2 : 0, P.s);
-    if (this.free && ev.crit) this.stop(STOP.crit);
+    if (ev.crit || (v && (v.elite || v.boss))) this.fx.number(ev.uid, sx, v ? v.topY : P.sy - 36 * u * P.s, ev.dmg, ev.crit ? 1 : ev.color ? 2 : 0, P.s);
+    if (ev.crit) this.stop(STOP.crit);
     if (ev.crit) {
       this.critUid = ev.uid;
       this.fx.critMark(sx, v ? v.topY : P.sy - 36 * u * P.s, this.reduceMotion);
@@ -905,8 +838,8 @@ export class RunScene extends Phaser.Scene {
     this.lastKill.y = cy;
     this.lastKill.on = true;
     this.sfx('kill');
-    if (ev.elite && (this.free || this.critUid === ev.uid)) this.stop(STOP.elite);
     if (ev.elite) {
+      this.stop(STOP.elite);
       this.addTrauma(0.3);
       for (let i = 0; i < 3; i++) {
         this.fx
@@ -948,9 +881,9 @@ export class RunScene extends Phaser.Scene {
     this.fx.spawn('fx/smoke', P.sx, P.sy - wpx * 0.1, D.fx + 2, 0.7, wpx * 0.4, wpx * 0.95).fade(0.55, 0, 0.1);
     // The big lobbed landing (Tandoor Meteor) is a whoosh and boom; everything else a punchy bomb.
     this.sfx(ev.radius >= 120 ? 'meteor' : 'blast');
-    // A blast near Kannan is the dangerous kind: shake and a heavy buzz. His own bombs land far up the street.
+    // A blast near Kannan is the dangerous kind: shake and a heavy buzz.
     const p = w.player;
-    if (Math.abs(ev.x - p.x) < ev.radius + 110 && ev.y < ev.radius + 110) {
+    if (Math.hypot(ev.x - p.x, ev.y - p.y) < ev.radius + 110) {
       if (this.traumaGate.allow(performance.now())) this.addTrauma(0.5);
       this.buzz('heavy', 150);
     }
@@ -984,8 +917,8 @@ export class RunScene extends Phaser.Scene {
     }
   }
 
-  /** Free runs: every hit that lands is one i-frame window apart, so no gating: shake, red slap on Kannan, bread-slap sound. */
-  private onHurtFree(ev: Extract<GameEvent, { t: 'playerHit' }>): void {
+  /** Every hit that lands is one i-frame window apart, so no gating: shake, red slap on Kannan, bread-slap sound. */
+  private onPlayerHit(ev: Extract<GameEvent, { t: 'playerHit' }>): void {
     this.hits++;
     this.addTrauma(HURT_TRAUMA[ev.source === 'boss' ? 'boss' : ev.source === 'contact' ? 'contact' : 'shot']);
     this.buzz('medium', 150);
@@ -995,38 +928,12 @@ export class RunScene extends Phaser.Scene {
     this.sfx('playerHurt');
   }
 
-  private onPlayerHit(ev: Extract<GameEvent, { t: 'playerHit' }>): void {
-    if (this.free) return this.onHurtFree(ev);
-    this.buzz('light', 250);
-    if (!this.damageGate.allow(performance.now())) return;
-    if (ev.source === 'contact') this.actors.counterHit();
-    // Blasts share the camera cue, but must not consume the distinct damage indication.
-    if (this.traumaGate.allow(performance.now())) {
-      this.addTrauma(ev.source === 'contact' ? 0.45 : ev.source === 'boss' ? 0.7 : ev.source === 'explode' ? 0.6 : 0.45);
-    }
-    const u = this.l.u;
-    this.fx.spawn('fx/impact', this.stall.chestX, this.l.counter.top + 8 * u, D.fxTop, 0.22, 60 * u, 140 * u).tint(HAZARD).squash(0.35).fade(1, 0);
-    if (!this.reduceMotion) this.stall.flash();
-    this.sfx('playerHurt');
-  }
-
   private onXp(ev: Extract<GameEvent, { t: 'xp' }>): void {
     const P = this.proj.at(ev.x, ev.y);
     const u = this.l.u;
     const n = Math.max(1, Math.min(3, Math.ceil(ev.amount / 3)));
     const cy = P.sy - 14 * u * P.s;
-    if (this.free) {
-      pickupBurst(this.fx, 'dips/xp-orb', P.sx, cy, n, u, ev.amount | 0, 24 * u, 0.6);
-      return;
-    }
-    for (let i = 0; i < n; i++) {
-      this.fx
-        .spawn('dips/xp-orb', P.sx + (i - (n - 1) / 2) * 10 * u, cy, D.fxTop, 0.5 + 0.06 * i, 24 * u * Math.max(0.6, P.s), 12 * u)
-        .fade(1, 1, 0)
-        .to(this.fx.tx, this.fx.ty, 2, (i % 2 ? 1 : -1) * 28 * u)
-        .seek()
-        .delay(0.04 * i);
-    }
+    pickupBurst(this.fx, 'dips/xp-orb', P.sx, cy, n, u, ev.amount | 0, 24 * u, 0.6);
   }
 
   /** The sim ended the run (Kannan won or lost). */

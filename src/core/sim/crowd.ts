@@ -1,4 +1,4 @@
-// Free mode crowd: pests push each other apart (spatial hash, no allocation per step) and fan out around Kannan instead of
+// Crowd: pests push each other apart (spatial hash, no allocation per step) and fan out around Kannan instead of
 // queueing on one path. Positional, deterministic (array order, no rng here), and pests never displace Kannan.
 // Spec: docs/research/combat-feel.md "Crowd". Per-pest scratch in Enemy.cooldowns: _th approach angle offset (rad), _sj speed
 // factor (both drawn at spawn), _side sidestep clock (>0 active, counts down to -SIDE_REST so it cannot retrigger at once).

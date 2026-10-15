@@ -55,7 +55,7 @@ describe('Flaky Kosong Kitchen experiment', () => {
     expect(a).toEqual(b); expect(a).not.toHaveProperty('flakyKosong');
     const ordinary = createRun({ seed: 123, content: CONTENT });
     expect(ordinary).not.toHaveProperty('flakyKosong');
-    for (let i = 0; i < 500; i++) { step(a, 0.05, { targetX: null, moving: false }); step(b, 0.05, { targetX: null, moving: false }); }
+    for (let i = 0; i < 500; i++) { step(a, 0.05, {}); step(b, 0.05, {}); }
     expect(a).toEqual(b); expect(a.projectiles.some(s => s.flake || s.flakesShed)).toBe(false);
     const baseline = fixture(false); fanTargets(baseline); fly(baseline, 0.4);
     expect(baseline.w.events.filter(e => e.t === 'hit').map(e => e.dmg)).toEqual([100]);

@@ -4,7 +4,6 @@
 // At chapter.bossAt the stall slows to a stop and the boss steps out; once it dies the run is won. Creates no enemies itself: it
 // returns SpawnRequests that sim.ts turns into enemies (same rng stream, same spawn functions as waves).
 import type { Rng } from './rng';
-import { isFreeMode } from './sim/free';
 import { ENEMY_COST, spawnPick, type SpawnRequest } from './waves';
 import type { ChapterDef, Enemy, SpawnLane, World } from './types';
 
@@ -99,30 +98,26 @@ export function findDue(world: World): boolean {
 export function flowTick(world: World, dt: number, rng: Rng): FlowOut {
   const chapter = world.chapter;
   const out: SpawnRequest[] = [];
-  let pr: Pressure;
   if (world.flowBoss) {
-    if (!world.enemies.some((e) => e.boss && living(e))) return { spawns: out, won: true };
-    if (isFreeMode(world.content)) return { spawns: out, won: false }; // boss arena lock: the stall is stopped and no adds spawn while the boss lives
-    const bw = fightWave(chapter);
-    pr = { rate: bw.budget / bw.duration, mix: bw.mix, eliteChance: bw.eliteChance };
-  } else {
-    const bossAt = bossAtOf(chapter);
-    const left = bossAt - world.dist;
-    world.dist = Math.min(bossAt, world.dist + cruiseAt(world) * Math.min(1, Math.max(0.1, left / BRAKE)) * dt);
-    world.waveF = waveEquivalent(chapter, world.dist);
-    world.wave = Math.floor(world.waveF);
-    if (world.dist >= bossAt && world.pendingLevelUps === 0) {
-      world.flowBoss = true;
-      world.wave = chapter.waves.length;
-      world.waveF = world.wave;
-      world.lastSpawnX = 0;
-      return { spawns: [{ enemyId: fightWave(chapter).boss!, elite: false, x: 0, boss: true }], won: false };
-    }
-    pr = pressureAt(chapter, world.dist);
+    // boss arena lock: the stall is stopped and no adds spawn while the boss lives
+    return { spawns: out, won: !world.enemies.some((e) => e.boss && living(e)) };
   }
+  const bossAt = bossAtOf(chapter);
+  const left = bossAt - world.dist;
+  world.dist = Math.min(bossAt, world.dist + cruiseAt(world) * Math.min(1, Math.max(0.1, left / BRAKE)) * dt);
+  world.waveF = waveEquivalent(chapter, world.dist);
+  world.wave = Math.floor(world.waveF);
+  if (world.dist >= bossAt && world.pendingLevelUps === 0) {
+    world.flowBoss = true;
+    world.wave = chapter.waves.length;
+    world.waveF = world.wave;
+    world.lastSpawnX = 0;
+    return { spawns: [{ enemyId: fightWave(chapter).boss!, elite: false, x: 0, boss: true }], won: false };
+  }
+  const pr = pressureAt(chapter, world.dist);
   let heat = 0;
   for (const e of world.enemies) if (living(e) && !e.boss) heat += ENEMY_COST[e.def.kind];
-  if (heat < (world.content.tune?.liveCap ?? LIVE_CAP)) world.credit = Math.min(CREDIT_CAP, world.credit + pr.rate * (world.content.tune?.pressure ?? 1) * (world.chapter.pressure ?? 1) * (world.flowBoss ? 1 : cruiseAt(world, false) / SPEED_REF) * dt);
+  if (heat < (world.content.tune?.liveCap ?? LIVE_CAP)) world.credit = Math.min(CREDIT_CAP, world.credit + pr.rate * (world.content.tune?.pressure ?? 1) * (world.chapter.pressure ?? 1) * (cruiseAt(world, false) / SPEED_REF) * dt);
   for (;;) {
     const fits = Object.keys(pr.mix).filter((id) => pr.mix[id] > 0 && ENEMY_COST[world.content.enemies[id].kind] <= world.credit).sort();
     if (fits.length === 0) break;

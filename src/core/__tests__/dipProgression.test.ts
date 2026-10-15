@@ -124,7 +124,7 @@ describe('earned simmer', () => {
     snapshot['fish-curry'] = 20;
     expect(w.loadout?.dipSimmer?.['fish-curry']).toBe(2);
     w.phase = 'wave'; w.wave = 2; w.dipUseXp = { 'fish-curry': 7 }; w.player.hp = 0;
-    step(w, .01, { targetX: null, moving: false });
+    step(w, .01, {});
     expect(w.result?.dipUseXp).toEqual({ 'fish-curry': 7 });
   });
 
