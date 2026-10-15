@@ -23,7 +23,7 @@ Old tests, e2e specs, old CSS and UI, the wiki, BACKLOG/HANDOFF/INBOX history, t
 
 ## Decisions the owner needs to make (hard stops)
 1. **Project name and repo** (e.g. a new GitHub repo; the old one stays live).
-2. **Backend:** reuse the existing Supabase project with a new, separate save table (needs a DB migration, a hard stop) or create a new Supabase project (spend/setup). Recommendation: new save table in the same project, so the login and owner list keep working.
+2. **Backend (decided by the owner, 15 Oct):** NO new Supabase project. The new repo uses the existing Prata Raja Supabase project (same auth, owner list, feedback, analytics) with one new, separate save table for the new game; the live 0.4.x game keeps its own tables untouched. The table is a DB migration: the lead applies it only after the owner says go.
 3. **Web URL:** a new path or subdomain for the new game while the old one stays up.
 
 ## Order of work (after the owner picks the material and the Kannan)
