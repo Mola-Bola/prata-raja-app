@@ -42,5 +42,19 @@ Headline, metres, loot reveal one item at a time (coins, XP bar, chest opens her
 - Every screen: header (title + ×), body, footer with one primary action. Max two levels deep.
 - Numbers over adjectives. Every effect has a number; every change shows before → after.
 
+## Engine (researched 15 Oct: docs/research/engines-for-agents.md)
+Stay on Phaser 4 + TS sim. The mess comes from two UI layers with no single system, not the engine. Switch trigger: Android becomes primary AND measured frame time/input latency fails on a mid-range phone in the WebView; try Capacitor first. A Godot port is ~150-300 agent-hours plus a freeze.
+
+## Operating model v2 (researched 15 Oct: docs/research/agentic-gamedev.md, coherence-methods.md)
+Evidence: no source shows agent-only polish loops converging; coherent agent-built games fixed the look first as code (kit + gallery), gated on geometry/token assertions (not screenshots or green checks), used a separate evaluator, and had a human on a real phone.
+1. Reference set, owner-approved once then frozen: this spec, the picked mockup (docs/superpowers/v2-looks.html), and a `/kit` gallery route showing every primitive and state.
+2. One spec per screen (docs/screens/<screen>.md): purpose, one primary action, elements, states, 5-10 checkable criteria.
+3. Vertical slice first, to final quality: hub -> Kitchen -> run HUD -> gift choice -> results. No other screen until it passes.
+4. One builder per screen (single owner of its files); the lead writes briefs with exact tokens and deltas, never adjectives.
+5. Gates per screen: spec -> greybox -> freeze -> skin (kit only) -> evaluator pass -> owner play on phone.
+6. Automatic checks before ship: tsc, kit lint (fails on hex, raw px, off-grid spacing, non-kit components), Playwright geometry assertions at 3 phone sizes (no overlap, inside safe area, >=44 px targets, no clipped text), fixed scene matrix (hub, Kitchen, gift, HUD with statuses, results, stacked modals).
+7. Evaluator: fresh-context agent, never the builder, plays the build and grades against the spec with a default-FAIL checklist; Clarity can veto.
+8. Polish only from a numbered defect list; stop when it is empty or two passes add nothing. No restyles while building features.
+9. Owner: approves the reference set once, plays each signed-off screen, sends notes; the lead turns notes into spec edits or defect ids.
 ## Process (to stop the drift)
 1. Owner picks a look from the mockup (A or B). 2. Build `/v2` route beside the current game, reusing the sim; one builder per screen against this spec, lead reviews every screen against the mockup before merging. 3. Owner plays `/v2`; when it beats the old game, swap and delete the old UI.
