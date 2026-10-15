@@ -1,6 +1,32 @@
 # Inbox (monitor output)
 
-last run: 2026-10-15 00:50 AEDT (window: since 2026-10-15 00:48 AEDT)
+last run: 2026-10-15 12:47 AEDT (window: since 2026-10-15 00:50 AEDT)
+
+## 2026-10-15 12:47 AEDT (window 00:50 to 12:47)
+
+Counts: 7 sessions (0.4.48: 2, 0.4.49: 5 by app_open), 5 run_start (0.4.48: 4, 0.4.49: 1), 4 run_end (0.4.48: 3, 0.4.49: 1), 3 boss_spawn, 0 $exception, 0 app_error. 6 release_shipped (no app_version property).
+
+New notes: none. The digest's 9 open notes are all already in INBOX. Status changes: none.
+
+Errors: none. No crash, no save loss, no cannot-start signal.
+
+Runs:
+- 0.4.48, 01:33: wave 1, lost after 9s (abandoned under 30s).
+- 0.4.48, 01:40: wave 10 lost after 336s, boss spawned at 01:38.
+- 0.4.48, 01:48: wave 10 lost after 301s, boss spawned at 01:47 (boss fight deaths, not kills).
+- 0.4.48, 02:22: run_start with no run_end (quit or unfinished).
+- 0.4.49, 10:25: wave 10 WON after 386s, boss spawned at 10:28.
+
+Pacing signals: one run abandoned at 9s, the rest reach wave 10 in 300 to 390s. Kill events are not in the taxonomy, so kill gaps are unmeasured.
+
+Replay links:
+- 01a13ad4-bcf1-7244-b583-c7b6d98fffc2 (0.4.48, 9s quit at wave 1, then two boss losses)
+- 01a13aff-5e56-7bc0-81db-96463bae50a9 (0.4.48, run started 02:22, no end)
+- 01a13cba-d9fa-744e-b16e-c603d207ec23 (0.4.49, first win at wave 10, 386s)
+
+Suggested slices:
+- 6bc229d2 spawns after boss death: boss-finish slice. Boss losses in 0.4.48 hint the boss fight is still hard, so check with the replays above.
+- release_shipped has no app_version (6 of 6 in this window): add app_version to the release emitter.
 
 ## 2026-10-15 00:50 AEDT (window 00:48 to 00:50, quiet)
 
