@@ -58,6 +58,8 @@ export type HubEvents = {
   hubStation: { id: StationId | null };
   /** Counts to show as badges on the hub's signs (unopened chests: Pantry and Gear). */
   hubBadges: { chests: number };
+  /** Onboarding (src/meta/onboarding.ts): the locked stations with their reason, and the one station that pulses (null: none). */
+  hubGuide: { locked: Partial<Record<StationId, string>>; next: StationId | null };
   kitchenStart: { seed: number; tuning: KitchenTuning; flakyKosong?: boolean };
   kitchenStats: KitchenStats;
   kitchenEnd: { reason: 'won' | 'lost' | 'stopped'; stats: KitchenStats };

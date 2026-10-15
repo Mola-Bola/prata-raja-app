@@ -10,6 +10,7 @@ import { CONTENT } from '@/content';
 import { chapterUnlocked } from '@/meta/chapters';
 import { kannanXpOf, specPointsOf } from '@/meta/kannan';
 import { dueMilestone } from '@/meta/milestones';
+import { nextStep, stationState } from '@/meta/onboarding';
 import { MATERIALS, type SaveV2, type UnlockFlag } from '@/meta/types';
 
 import type { Hub, StationId } from '../../hub';
@@ -57,10 +58,18 @@ export function HubOverlay({ hub, save, commit, art, afterRun, onStart, onStory,
   };
   const chests = save.pendingChests.length;
   useEffect(() => hub.emit('hubBadges', { chests }), [hub, chests]);
+  // Onboarding: locked stations (dimmed in the scene, a reason line in their panel) and the one station that pulses.
+  const guide = nextStep(save);
+  const locked = Object.fromEntries((Object.keys(TITLES) as Open[]).flatMap((id) => {
+    const state = id === 'settings' ? 'open' : stationState(save, id);
+    return state === 'open' ? [] : [[id, state.locked]];
+  })) as Partial<Record<StationId, string>>;
+  const lockKey = JSON.stringify(locked), nextId = guide?.station ?? null;
+  useEffect(() => hub.emit('hubGuide', { locked: JSON.parse(lockKey) as typeof locked, next: nextId }), [hub, lockKey, nextId]);
   const go = () => (chapterUnlocked(save, 'hawker-night') ? setHeld('exit') : onStart(CONTENT.chapters[0].id));
   const { level, fraction } = progress(kannanXpOf(save));
-  // After the first daydream exactly one thing pulses: GO. Everything else waits quietly.
-  const next = save.runs === 1;
+  // Exactly one thing pulses: the station nextStep names (GO when that is the street). Everything else waits quietly.
+  const next = guide?.station === 'exit';
   // GO floats over the room; with a panel open it docks in the panel's footer so it never covers content.
   const goBtn = (
     <button type="button" className="hb-go" data-testid="hub-go" data-next={next || undefined} aria-label="Go" onClick={go}>
@@ -85,11 +94,11 @@ export function HubOverlay({ hub, save, commit, art, afterRun, onStart, onStory,
         </button>
       </header>
       {!shown && goBtn}
-      {!shown && next && <span className="hb-next" data-testid="hub-next">Go again to earn more</span>}
+      {!shown && guide && <span className="hb-next" data-testid="hub-next">{guide.line}</span>}
       {mealLabel(save) && <span className="hb-meal" data-testid="hub-meal">{mealLabel(save)}</span>}
       <button type="button" className="u-plain hb-tell" data-testid="hub-tell" onClick={openFeedback}>Tell Kannan</button>
       {shown && (
-        <Panel key={shown} id={shown} close={close} art={art} footer={goBtn}>
+        <Panel key={shown} id={shown} close={close} art={art} footer={goBtn} locked={shown !== 'settings' && locked[shown] ? locked[shown] : undefined}>
           <Content id={shown} save={save} commit={commit} art={art} onStart={onStart} onStory={onStory} onKitchen={onKitchen} onTune={onTune} close={close} walkTo={(s) => { setHeld(null); hub.controls?.hubWalkTo?.(s); }} />
         </Panel>
       )}
@@ -98,17 +107,17 @@ export function HubOverlay({ hub, save, commit, art, afterRun, onStart, onStory,
   );
 }
 
-function Panel({ id, close, art, footer, children }: { id: Open; close: () => void; art: Art; footer: ReactNode; children: ReactNode }) {
+function Panel({ id, close, art, footer, locked, children }: { id: Open; close: () => void; art: Art; footer: ReactNode; locked?: string; children: ReactNode }) {
   const icon = ICONS[id];
   // The first time this station's panel opens, a one-line tip at the top; remembered in UI prefs (tips.ts), not the save.
   const [tip, setTip] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
     void seenTips().then((seen) => {
-      if (live && TIPS[id] && !seen.has(id)) { setTip(TIPS[id]); markTipSeen(id); }
+      if (live && !locked && TIPS[id] && !seen.has(id)) { setTip(TIPS[id]); markTipSeen(id); }
     });
     return () => { live = false; };
-  }, [id]);
+  }, [id, locked]);
   return (
     <section className="gu-sheet hb-sheet u-sheet-in" role="dialog" aria-label={TITLES[id]} data-testid="hub-panel" data-station={id} onKeyDown={(e) => e.key === 'Escape' && close()}>
       <header className="hb-sheet-head">
@@ -117,19 +126,20 @@ function Panel({ id, close, art, footer, children }: { id: Open; close: () => vo
         <button type="button" className="u-plain u-round" data-testid="hub-close" aria-label="Close panel" onClick={close}><i className="ic ic-x" aria-hidden="true" /></button>
       </header>
       {tip && <p className="hb-tip" data-testid="hub-tip">{tip}</p>}
-      {children}
+      {locked ? <div className="sh-locked" data-testid="stall-locked"><img src={art('ui/lock')} alt="" /><p>{locked}</p></div> : children}
       <footer className="hb-sheet-foot">{footer}</footer>
     </section>
   );
 }
 
 /** A station's panel is one view, or a row of tabs (one more level, never more). */
-function Tabs({ tabs }: { tabs: { name: string; flag?: UnlockFlag; save: SaveV2; art: Art; body: ReactNode }[] }) {
+function Tabs({ tabs: all }: { tabs: { name: string; flag?: UnlockFlag; /** Hidden until the player has played this many runs. */ runs?: number; save: SaveV2; art: Art; body: ReactNode }[] }) {
   const [i, setI] = useState(0);
-  const t = tabs[i];
-  const locked = (x: (typeof tabs)[number]) => !!x.flag && !x.save.unlocks[x.flag];
-  // A station with nothing open yet shows one plain line, not a row of locked tabs.
-  if (tabs.every(locked)) return <div className="sh-locked" data-testid="stall-locked"><img src={t.art('ui/lock')} alt="" /><p>{lockLine(t.flag!)}</p></div>;
+  // A tab the player has not met (a closed flag, too few runs) is not shown at all.
+  const tabs = all.filter((x) => (x.runs ?? 0) <= x.save.runs && !(x.flag && !x.save.unlocks[x.flag]));
+  const t = tabs[i] ?? tabs[0];
+  // A station with nothing open yet shows one plain line.
+  if (!t) return <div className="sh-locked" data-testid="stall-locked"><img src={all[0].art('ui/lock')} alt="" /><p>{all[0].flag ? lockLine(all[0].flag) : ''}</p></div>;
   return (
     <>
       {tabs.length > 1 && (
@@ -137,9 +147,7 @@ function Tabs({ tabs }: { tabs: { name: string; flag?: UnlockFlag; save: SaveV2;
           {tabs.map((x, n) => <button key={x.name} type="button" role="tab" aria-selected={n === i} className="u-chip" data-testid={`hub-tab-${x.name.toLowerCase().replace(/\W+/g, '-')}`} onClick={() => setI(n)}>{x.name}</button>)}
         </div>
       )}
-      {t.flag && !t.save.unlocks[t.flag] ? (
-        <div className="sh-locked" data-testid="stall-locked"><img src={t.art('ui/lock')} alt="" /><p>{lockLine(t.flag)}</p></div>
-      ) : t.body}
+      {t.body}
     </>
   );
 }
@@ -182,7 +190,7 @@ function Content({ id, save, commit, art, onStart, onStory, onKitchen, onTune, w
     case 'tawa':
       return <Tabs tabs={[{ name: 'Roti', ...t, body: <SignatureSheet save={save} commit={commit} art={art} /> }, { name: 'Tiffin', flag: 'signature', ...t, body: <TiffinBench save={save} commit={commit} art={art} /> }, { name: 'Recipes', flag: 'recipeBook', ...t, body: <RecipeSheet save={save} commit={commit} art={art} /> }]} />;
     case 'dips':
-      return <Tabs tabs={[{ name: 'Katori', ...t, body: <DipBench save={save} commit={commit} art={art} /> }, { name: 'Curry pot', ...t, body: <PotBench save={save} commit={commit} art={art} /> }, { name: 'All dips', ...t, body: <DipCollection save={save} art={art} /> }]} />;
+      return <Tabs tabs={[{ name: 'Katori', ...t, body: <DipBench save={save} commit={commit} art={art} /> }, { name: 'Curry pot', runs: 3, ...t, body: <PotBench save={save} commit={commit} art={art} /> }, { name: 'All dips', runs: 3, ...t, body: <DipCollection save={save} art={art} /> }]} />;
     case 'gear':
       return <GearStation save={save} commit={commit} art={art} />;
     case 'pantry':
@@ -194,7 +202,7 @@ function Content({ id, save, commit, art, onStart, onStory, onKitchen, onTune, w
             </div>
           ) },
           { name: 'Chests', ...t, body: <ChestsSheet save={save} commit={commit} art={art} /> },
-          { name: 'Tip jar', ...t, body: <IdleSheet save={save} commit={commit} art={art} now={now} /> },
+          { name: 'Tip jar', runs: 3, ...t, body: <IdleSheet save={save} commit={commit} art={art} now={now} /> },
         ]} />
       );
     case 'spec':
@@ -208,7 +216,7 @@ function Content({ id, save, commit, art, onStart, onStory, onKitchen, onTune, w
       return (
         <Tabs tabs={[
           { name: 'Places', ...t, body: chapters },
-          { name: 'Calendar', ...t, body: <CalendarSheet save={save} commit={commit} art={art} now={now} go={() => walkTo('pantry')} /> },
+          { name: 'Calendar', runs: 3, ...t, body: <CalendarSheet save={save} commit={commit} art={art} now={now} go={() => walkTo('pantry')} /> },
         ]} />
       );
     case 'kopi':
