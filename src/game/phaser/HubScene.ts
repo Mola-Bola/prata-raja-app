@@ -31,7 +31,7 @@ const WARM_INK = brand.semantic.light.onWarnContainer;
 const EXIT_GREEN = hex(brand.light.primary);
 const SIGN_H = 28; // sign pill height, design units (text is 15 px at 390 wide)
 const LIFT = 1.04; // the near station's art grows by this
-type Sign = { tag: Phaser.GameObjects.Container; pill: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text; icon?: Phaser.GameObjects.Image; verb: Phaser.GameObjects.Container; w: number; hot: boolean | null; badge: Phaser.GameObjects.Container };
+type Sign = { tag: Phaser.GameObjects.Container; pill: Phaser.GameObjects.Graphics; text: Phaser.GameObjects.Text; icon?: Phaser.GameObjects.Image; verb: Phaser.GameObjects.Container; w: number; hot: boolean | null; badge: Phaser.GameObjects.Container; /** Locked: a padlock and the reason, small, under the pill. */ lock: Phaser.GameObjects.Container; lockText: Phaser.GameObjects.Text; locked: boolean; baseY: number };
 const reducedMotion = (): boolean => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const frame = (name: string): { key: string; frame: string } => ({ key: FRAME_ATLAS[name], frame: name });
 
@@ -53,6 +53,8 @@ export class HubScene extends Phaser.Scene {
   private near: StationId | null = null; // the one station whose sign is lit (closest within NEAR)
   private bubble?: { tag: Phaser.GameObjects.Container; until: number };
   private barked = false;
+  private lockedBy: Partial<Record<StationId, string>> = {}; // onboarding: stations still closed, with their reason
+  private pulseId: StationId | null = null; // onboarding: the one station that pulses
   private chests = 0; // unopened chests: a badge on the Pantry and Gear signs
   private shadows: { img: Phaser.GameObjects.Image; x: number; y: number; w: number }[] = [];
   private joyBase!: Phaser.GameObjects.Image;
@@ -78,6 +80,7 @@ export class HubScene extends Phaser.Scene {
   create(): void {
     this.hub = this.registry.get('hub') as Hub;
     this.hub.on('hubBadges', ({ chests }) => { this.chests = chests; });
+    this.hub.on('hubGuide', ({ locked, next }) => { this.lockedBy = locked; this.pulseId = next; });
     this.reduceMotion = reducedMotion();
     this.cameras.main.setBackgroundColor(0xd8c5a6);
     this.build();
@@ -226,8 +229,12 @@ export class HubScene extends Phaser.Scene {
     const verb = this.add.container(0, -SIGN_H - 12, [vpill, vtext]).setVisible(false);
     const bt = this.add.text(0, 0, '!', { fontFamily: 'Fredoka, system-ui, sans-serif', fontSize: '13px', fontStyle: '700', color: '#FFFFFF' }).setOrigin(0.5).setResolution(2);
     const badge = this.add.container(0, 0, [this.add.graphics().fillStyle(hex(brand.semantic.light.coral), 1).fillCircle(0, 0, 10).lineStyle(2, hex(LABEL_INK), 1).strokeCircle(0, 0, 10), bt]).setVisible(false);
-    const tag = this.add.container(0, 0, [pill, ...(icon ? [icon] : []), text, verb, badge]).setDepth(9500);
-    return { tag, pill, text, icon, verb, w: 0, hot: null, badge };
+    // The lock note: a small padlock and the reason ("After run 2") on a dark chip under the sign. Hidden while open.
+    const lockText = this.add.text(0, 0, '', { fontFamily: 'Nunito, system-ui, sans-serif', fontSize: '12px', fontStyle: '800', color: LABEL_INK }).setOrigin(0, 0.5).setResolution(2);
+    const lockBg = this.add.graphics();
+    const lock = this.add.container(0, 0, [lockBg, lockText]).setVisible(false);
+    const tag = this.add.container(0, 0, [pill, ...(icon ? [icon] : []), text, verb, badge, lock]).setDepth(9500);
+    return { tag, pill, text, icon, verb, w: 0, hot: null, badge, lock, lockText, locked: false, baseY: 0 };
   }
 
   private makeBubble(msg: string): Phaser.GameObjects.Container {
@@ -255,6 +262,26 @@ export class HubScene extends Phaser.Scene {
     sg.badge.setPosition(w / 2 - 2, -SIGN_H + 2);
   }
 
+  /** The lock note under a locked sign (padlock + reason), or hidden when the station is open. */
+  private drawLock(id: StationId): void {
+    const sg = this.signs.get(id)!;
+    const reason = this.lockedBy[id];
+    const was = sg.lock.getData('reason') as string | undefined;
+    sg.locked = !!reason;
+    sg.lock.setVisible(!!reason);
+    if (!reason || was === reason) return;
+    sg.lock.setData('reason', reason);
+    sg.lockText.setText(reason);
+    const w = 22 + sg.lockText.width + 8, h = 18;
+    const bg = sg.lock.list[0] as Phaser.GameObjects.Graphics;
+    bg.clear().fillStyle(LABEL_PILL, 0.8).fillRoundedRect(-w / 2, 0, w, h, h / 2);
+    // Padlock: a body and a shackle.
+    const lx = -w / 2 + 9;
+    bg.fillStyle(hex(LABEL_INK), 1).fillRoundedRect(lx - 4, 7, 8, 7, 1.5).lineStyle(1.5, hex(LABEL_INK), 1).beginPath().arc(lx, 7, 3, Math.PI, 0, false).strokePath();
+    sg.lockText.setPosition(-w / 2 + 18, h / 2 + 0.5);
+    sg.lock.setPosition(0, 4);
+  }
+
   private relayout(): void {
     const { width: W, height: H } = this.scale;
     this.s = W / ROOM_W;
@@ -272,7 +299,8 @@ export class HubScene extends Phaser.Scene {
       const h = (prop.w * prop.img.frame.realHeight) / prop.img.frame.realWidth;
       sg.hot = null; // the font may have loaded since: measure again
       this.drawSign(st.id, st.id === this.near);
-      sg.tag.setPosition(prop.x * this.s, (prop.y - h * 0.82 - 4) * this.sy).setScale(this.s);
+      sg.baseY = (prop.y - h * 0.82 - 4) * this.sy;
+      sg.tag.setPosition(prop.x * this.s, sg.baseY).setScale(this.s);
     }
     if (this.uncle && this.bubble) this.bubble.tag.setPosition(this.uncle.x * this.s, (this.uncle.y - 66) * this.sy).setScale(this.s);
     for (const sh of this.shadows) sh.img.setPosition(sh.x * this.s, sh.y * this.sy).setScale((sh.w * this.s) / 64, (sh.w * 0.22 * this.s) / 64);
@@ -424,7 +452,7 @@ export class HubScene extends Phaser.Scene {
   private updateBark(): void {
     const b = this.bubble;
     if (!b || !this.uncle) return;
-    if (!this.barked && Math.hypot(this.uncle.x - this.pos.x, this.uncle.y - this.pos.y) < 90) {
+    if (!this.barked && !this.lockedBy.kopi && Math.hypot(this.uncle.x - this.pos.x, this.uncle.y - this.pos.y) < 90) {
       this.barked = true;
       b.until = this.clock + 2;
       b.tag.setVisible(true);
@@ -434,24 +462,33 @@ export class HubScene extends Phaser.Scene {
 
   private animateProps(): void {
     for (const [sid, ring] of this.rings) {
-      const on = sid === this.near;
+      this.drawLock(sid);
+      const sg = this.signs.get(sid)!;
+      const closed = sg.locked;
+      const on = sid === this.near && !closed;
+      // The one onboarding pulse: a warm sign and halo that breathe (and the sign bobs); reduced motion holds them static.
+      const pulse = sid === this.pulseId && !closed;
+      const wave = this.reduceMotion ? 1 : 0.5 + 0.5 * Math.sin(this.clock * 4);
       ring.setVisible(on);
       if (on) ring.setAlpha(this.reduceMotion ? 0.9 : 0.7 + 0.3 * Math.sin(this.clock * 4));
-      const sg = this.signs.get(sid)!;
-      this.drawSign(sid, on);
+      this.drawSign(sid, on || pulse);
       sg.verb.setVisible(on);
-      const badged = (sid === 'pantry' || sid === 'gear') && this.chests > 0;
+      sg.tag.setAlpha(closed ? 0.7 : 1);
+      sg.tag.y = sg.baseY - (pulse && !this.reduceMotion ? Math.abs(Math.sin(this.clock * 4)) * 5 * this.s : 0);
+      const badged = (sid === 'pantry' || sid === 'gear') && this.chests > 0 && !closed;
       sg.badge.setVisible(badged);
       if (badged) (sg.badge.list[1] as Phaser.GameObjects.Text).setText(String(this.chests));
-      // The lit station lifts a little (a 4% grow, eased); reduced motion only glows.
+      // The lit station lifts a little (a 4% grow, eased); reduced motion only glows. A closed one is dimmed.
       const prop = PROPS.find((q) => q.station === sid)!;
       const art = this.propArt.get(prop)!.img, halo = this.halos.get(sid)!;
+      if (closed) art.setTint(0x8a8078).setAlpha(0.75); else art.clearTint().setAlpha(1);
       const want = on && !this.reduceMotion ? LIFT : 1;
       const k = this.lift.get(sid)! + (want - this.lift.get(sid)!) * 0.25;
       this.lift.set(sid, k);
       const base = (prop.w * this.s) / art.frame.realWidth;
       art.setScale(base * k);
-      halo.setVisible(on).setAlpha(on ? 0.9 : 0).setScale(base * 1.08 * k);
+      const glow = on ? 0.9 : pulse ? 0.45 + 0.4 * wave : 0;
+      halo.setVisible(glow > 0).setAlpha(glow).setScale(base * 1.08 * k);
     }
     this.updateBark();
     if (this.fan && !this.reduceMotion) this.fan.setAngle(this.clock * 40);

@@ -41,6 +41,7 @@ import './GameUi.css';
 import { beaten, loadBest, type BestRun } from './bestRun';
 import { Rewards, RewardDetails, nextLine, type Payout } from './stall/Rewards';
 import { HubOverlay } from './hub/HubOverlay';
+import { nextStep } from '@/meta/onboarding';
 
 type UiBridge = Pick<Bridge, 'haptic' | 'save' | 'load'>;
 type Screen = 'title' | 'hub' | 'run' | 'results' | 'story' | 'kitchen';
@@ -575,12 +576,16 @@ function Results({ ended, best, onAgain, onStall }: { ended: Ended; best: BestRu
   const { paid } = ended.payout.rewards;
   const hero = useCountUp(r.dist ?? r.wave);
   const chapter = CONTENT.chapters.find((c) => c.id === (r.chapterId ?? best?.chapterId))?.name;
+  // The first three runs are never a loss screen: a gentle line, the same pay, and the guide's one next step (no unmet names).
+  const early = ended.before.runs < 3;
+  const line = early && !r.won ? (paid ? `Tough crowd! You kept ${fmt(ended.payout.rewards.gold)} tips.` : 'A quick one!') : ended.line;
+  const next = (early && nextStep(ended.payout.save)?.line) || nextLine(ended.before, ended.payout, paid);
   return (
     <div className="gu-results" data-testid="results">
       <img className="gu-results-art" src={art('scene/wake')} alt="" />
       <section className="gu-panel rs-panel">
         <div className="rs-body">
-          <h2 className="rs-line">{ended.line}</h2>
+          <h2 className="rs-line">{line}</h2>
           <p className="rs-hero" data-testid="results-metres">
             <b>{fmt(hero)}</b>
             <span>{r.dist !== undefined ? 'metres' : 'waves'}{chapter ? ` · ${chapter}` : ''}</span>
@@ -590,10 +595,10 @@ function Results({ ended, best, onAgain, onStall }: { ended: Ended; best: BestRu
             <Rewards before={ended.before} payout={ended.payout} art={art} />
           ) : (
             <p className="sh-short" role="status" data-testid="results-short">
-              Too short a daydream. Go a little further for tips.
+              {early ? 'Go a little further for tips.' : 'Too short a daydream. Go a little further for tips.'}
             </p>
           )}
-          <p className="rs-next" data-testid="results-next">{nextLine(ended.before, ended.payout, paid)}</p>
+          <p className="rs-next" data-testid="results-next">{next}</p>
           <details className="rs-more" data-testid="results-details">
             <summary className="u-link">Details</summary>
             <dl className="rs-stats">
@@ -601,7 +606,7 @@ function Results({ ended, best, onAgain, onStall }: { ended: Ended; best: BestRu
               <div><dt>Run level</dt><dd>{r.level}</dd></div>
             </dl>
             {paid && <RewardDetails payout={ended.payout} art={art} />}
-            <p className="gu-tip"><b>Tip:</b> {ended.tip}</p>
+            {!early && <p className="gu-tip"><b>Tip:</b> {ended.tip}</p>}
           </details>
         </div>
         <div className="rs-actions">

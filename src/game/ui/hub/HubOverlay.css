@@ -51,8 +51,8 @@
 
 /* The one next step after the first daydream: GO glows, and a line says why. Nothing else on the hub animates. */
 .hb-go[data-next] { animation: hb-pulse 1.4s ease-in-out infinite; }
-.hb-next { position: absolute; z-index: 3; right: calc(var(--safe-right) + var(--sp-3) + 148px + var(--sp-2)); bottom: calc(var(--safe-bottom) + 14px + 22px); padding: var(--sp-1) var(--sp-3); border-radius: var(--r-full); background: var(--glass); color: var(--cream); font: var(--f-cap); pointer-events: none; }
+.hb-next { position: absolute; z-index: 3; right: calc(var(--safe-right) + var(--sp-3) + 148px + var(--sp-2)); bottom: calc(var(--safe-bottom) + 14px + 22px); max-width: calc(100% - 148px - var(--sp-3) * 3 - var(--safe-right) - var(--safe-left)); text-align: center; padding: var(--sp-1) var(--sp-3); border-radius: var(--r-md, 14px); background: var(--glass); color: var(--cream); font: var(--f-cap); pointer-events: none; }
 /* A glow, not a scale: the button's box stays put, so taps and automated clicks never chase it. */
 @keyframes hb-pulse { 0%, 100% { filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45)); } 50% { filter: drop-shadow(0 0 14px var(--gold)) drop-shadow(0 0 4px var(--gold)); } }
 
-@media (prefers-reduced-motion: reduce) { .hb-go { transition: none; } .hb-go[data-next] { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .hb-go { transition: none; } .hb-go[data-next] { animation: none; filter: drop-shadow(0 0 12px var(--gold)) drop-shadow(0 0 3px var(--gold)); } }

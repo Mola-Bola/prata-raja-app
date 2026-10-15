@@ -23,10 +23,10 @@ export function markTipSeen(id: string): void {
 }
 
 export const TIPS: Record<string, string> = {
-  tawa: 'Pick the rotis you take on a run, and cook up new recipes.',
+  tawa: 'Pick the roti you take on a run.',
   dips: 'Fill katori bowls with dips. Each dip changes how your rotis hit.',
   gear: 'Wear gear for stats, or forge new pieces from materials.',
-  pantry: 'Your ingredients, chests and the tip jar live here.',
+  pantry: 'Your ingredients and chests live here.',
   spec: 'Spend spec points on perks that make every run stronger.',
   orders: 'Choose where the next run goes.',
   kopi: 'Have a kopi before the run for a small boost.',

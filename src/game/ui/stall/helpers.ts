@@ -59,7 +59,8 @@ export function progress(xp: number) {
   const next = nextUnlock(xp);
   return {
     ...bar, xpLabel: `Kannan Lv ${bar.level} · ${bar.into}/${bar.span} XP`,
-    label: next ? `Next: ${UNLOCK_NAMES[next.flags[0]]} · ${unlockBeat(next.flags[0])}` : 'Stall growing strong',
+    // No names: the player has not met what the next level opens.
+    label: next ? `Next: something new at Lv ${next.level}` : 'Stall growing strong',
   };
 }
 

@@ -43,9 +43,9 @@ describe('stall display helpers', () => {
   });
 
   it('uses the XP threshold of the current level', () => {
-    expect(progress(0)).toMatchObject({ level: 1, fraction: 0, xpLabel: 'Kannan Lv 1 · 0/150 XP', label: expect.stringMatching(/^Next: Gear · /) });
+    expect(progress(0)).toMatchObject({ level: 1, fraction: 0, xpLabel: 'Kannan Lv 1 · 0/150 XP', label: 'Next: something new at Lv 2' });
     expect(progress(75).fraction).toBe(0.5);
-    expect(progress(150)).toMatchObject({ level: 2, fraction: 0, label: expect.stringMatching(/^Next: Training · /) });
+    expect(progress(150)).toMatchObject({ level: 2, fraction: 0, label: 'Next: something new at Lv 3' });
     expect(progress(250).fraction).toBe(0.5);
     expect(progress(3900)).toMatchObject({ level: 10, label: 'Stall growing strong' });
     expect(progress(9999).level).toBeGreaterThan(10);
@@ -54,7 +54,7 @@ describe('stall display helpers', () => {
   it('names the next unlock and the XP still needed at every level threshold', () => {
     for (const row of UNLOCK_TABLE) {
       const xp = LEVEL_THRESHOLDS[row.level - 1];
-      expect(progress(xp - 1).label).toBe(`Next: ${UNLOCK_NAMES[row.flags[0]]} · ${unlockBeat(row.flags[0])}`);
+      expect(progress(xp - 1).label).toBe(`Next: something new at Lv ${row.level}`);
     }
   });
 
