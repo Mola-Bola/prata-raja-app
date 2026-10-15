@@ -358,8 +358,3 @@
   }
 }
 
-/* The street find toast moves up out of the thumbs' way in free mode. */
-.gu-hud--free .gu-find {
-  top: calc(var(--safe-top) + 190px);
-  bottom: auto;
-}

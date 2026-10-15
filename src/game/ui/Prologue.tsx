@@ -30,10 +30,10 @@ export function Prologue({ onDone }: { onDone: () => void }) {
         aria-label={panel === PROLOGUE.length - 1 ? 'Finish story' : 'Next panel'}
         onClick={() => panel === PROLOGUE.length - 1 ? done() : setPanel(panel + 1)}>
         <img key={panel} className="gu-story-art" src={ASSET_URLS[page.sprite]} alt="" draggable={false} />
-        <span className="gu-story-caption gu-chip" data-testid="story-caption" aria-live="polite">{page.caption}</span>
-        <span className="gu-story-hint gu-chip">{panel + 1} / {PROLOGUE.length} · Tap to {panel === PROLOGUE.length - 1 ? 'finish' : 'continue'}</span>
+        <span className="gu-story-caption gu-pill" data-testid="story-caption" aria-live="polite">{page.caption}</span>
+        <span className="gu-story-hint gu-pill">{panel + 1} / {PROLOGUE.length} · Tap to {panel === PROLOGUE.length - 1 ? 'finish' : 'continue'}</span>
       </button>
-      <button type="button" className="gu-btn gu-story-skip" data-testid="story-skip" onClick={done}>Skip</button>
+      <button type="button" className="u-plain gu-story-skip" data-testid="story-skip" onClick={done}>Skip</button>
     </section>
   );
 }

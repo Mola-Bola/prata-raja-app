@@ -14,6 +14,7 @@ test.beforeEach(async ({ page }) => {
 
 test('root kitchen shortcut preserves the query when launching the game', async ({ page }) => {
   await page.goto('/?kitchen=1');
+  await tid(page, 'kitchen-setup').click();
   await expect(tid(page, 'kitchen-sheet')).toBeVisible();
   await expect(page).toHaveURL(/\/play\?kitchen=1/);
 });
@@ -22,6 +23,7 @@ test('URL kitchen selects real builds, live knobs and repeatable boss without wr
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.goto('/play?kitchen=1');
+  await tid(page, 'kitchen-setup').click();
   await expect(tid(page, 'kitchen-sheet')).toBeVisible();
   const before = await stored(page);
   await tid(page, 'kitchen-bread-0').selectOption('golden-ghee-chakra');
@@ -68,7 +70,7 @@ test('stall kitchen keeps an existing save unchanged through loss, win, restart 
   await tid(page, 'ui-start').click();
   await tid(page, 'story-skip').click();
   await tid(page, 'ui-pause').click();
-  await tid(page, 'ui-quit').click();
+  await tid(page, 'ui-quit').click(); await tid(page, 'ui-quit-confirm').click();
   await tid(page, 'ui-stall').click();
   await expect(tid(page, 'hub-overlay')).toBeVisible();
   const before = await stored(page);
@@ -92,7 +94,7 @@ test('stall kitchen keeps an existing save unchanged through loss, win, restart 
   await tid(page, 'hub-go').click();
   await expect(tid(page, 'ui-pause')).toBeVisible();
   await tid(page, 'ui-pause').click();
-  await tid(page, 'ui-quit').click();
+  await tid(page, 'ui-quit').click(); await tid(page, 'ui-quit-confirm').click();
   await expect(tid(page, 'results')).toBeVisible();
   await expect.poll(async () => JSON.parse((await stored(page))!).runs).toBe(JSON.parse(before!).runs + 1);
 });

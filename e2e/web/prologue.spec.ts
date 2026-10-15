@@ -42,7 +42,7 @@ test('Skip persists immediately; settings replay returns to stall without starti
   await expect(page.getByTestId('ui-pause')).toBeVisible();
   await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key)!).prologueSeen, KEY)).toBe(true);
   await page.getByTestId('ui-pause').click();
-  await page.getByTestId('ui-quit').click();
+  await page.getByTestId('ui-quit').click(); await page.getByTestId('ui-quit-confirm').click();
   await page.getByTestId('ui-stall').click();
   const before = await page.evaluate(key => localStorage.getItem(key), KEY);
   await page.getByTestId('hub-settings').click();

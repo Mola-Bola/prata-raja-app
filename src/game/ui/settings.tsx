@@ -9,7 +9,7 @@ export const toggleSetting = (key: SettingKey) => (save: SaveV2): SaveV2 => ({ .
 
 export function Switch({ label, on, onClick }: { label: string; on: boolean; onClick: () => void }) {
   return (
-    <button type="button" role="switch" aria-checked={on} aria-label={label} className="gu-switch" onClick={onClick}>
+    <button type="button" role="switch" aria-checked={on} aria-label={label} className="u-chip gu-switch" onClick={onClick}>
       <span>{label}</span>
       <b>{on ? 'On' : 'Off'}</b>
     </button>

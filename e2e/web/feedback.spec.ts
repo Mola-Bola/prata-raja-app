@@ -42,7 +42,7 @@ test('a note from the pause sheet: chips, clear, a failed send keeps the text, R
   test.setTimeout(150_000);
   const sent = await mockFeedback(page, 1);
   await startRunAndPause(page);
-
+  await tid(page, 'ui-settings').click();
   await tid(page, 'ui-tell').click();
   await expect(tid(page, 'feedback-sheet')).toBeVisible();
   // It says what travels with the note, and cannot send nothing.
@@ -94,7 +94,7 @@ test('the same sheet opens from the results screen, and the name comes back', as
   const sent = await mockFeedback(page);
   await page.addInitScript((k) => localStorage.setItem(k, JSON.stringify({ v: 1, id: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d', from: 'Dad', analytics: true })), DEVICE_KEY);
   await startRunAndPause(page);
-  await tid(page, 'ui-quit').click(); // wakes Kannan early: the results screen
+  await tid(page, 'ui-quit').click(); await tid(page, 'ui-quit-confirm').click(); // wakes Kannan early: the results screen
   await expect(tid(page, 'ui-again')).toBeVisible();
 
   await tid(page, 'ui-tell').click();

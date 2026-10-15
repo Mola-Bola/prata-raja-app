@@ -106,7 +106,7 @@ for (const wave of [1, 2]) {
     await page.waitForFunction(() => (window.__world?.dipUseXp?.['mint-chutney'] ?? 0) > 0 && (window.__world?.dipUseXp?.['condensed-milk'] ?? 0) > 0, undefined, { timeout: 30_000 });
     await tid(page, 'ui-pause').click();
     const earned = await page.evaluate(() => ({ ...window.__world!.dipUseXp }));
-    await tid(page, 'ui-quit').click();
+    await tid(page, 'ui-quit').click(); await tid(page, 'ui-quit-confirm').click();
     await expect(tid(page, 'results')).toBeVisible();
     expect(await page.evaluate(() => window.__world!.result!.dipUseXp)).toEqual(earned);
     if (wave === 2) {

@@ -1,7 +1,7 @@
 # Game UI system (r8-uisys)
 
-Status: built and applied to hub panels, spec, meal, workbench, free-run HUD, Tell Kannan sheet and the old-stall sheets (class names only). **Not yet migrated: `GameUi.tsx` / `GameUi.css`** (title, pause, results, counter HUD, level-up), `RunBuild.tsx`, `FeedbackNotes` internals.
-Last change: 15 Oct. Spec: [ui audit](../reviews/ui-audit-2026-10-15.md) section 4. Research used: [mobile-ui-flow](../research/mobile-ui-flow.md) (44 px targets, one primary per screen, sheet motion), [readability-refs](../research/readability-refs.md) (thumb zone, 13 px floor on busy art). Skipped on purpose: haptic and sound rules (separate system).
+Status: built and applied everywhere in the game overlay: hub panels, spec, meal, workbench, free-run HUD, Tell Kannan sheet, and (r8-flow) `GameUi.css` (title, pause, results, level-up, tiffin choice), `Kitchen`, `Tune`, `Prologue`, `FeedbackNotes`, `Stall.css` leftovers, `RunBuild` (CSS info glyph, no emoji). Old `.gu-btn`/`.gu-chip`/`--fs-*` are gone; `.gu-pill` is the cream caption pill, `.rs-*` the results panel.
+Last change: 15 Oct (r8-flow). Spec: [ui audit](../reviews/ui-audit-2026-10-15.md) section 4. Research used: [mobile-ui-flow](../research/mobile-ui-flow.md) (44 px targets, one primary per screen, sheet motion), [readability-refs](../research/readability-refs.md) (thumb zone, 13 px floor on busy art). Skipped on purpose: haptic and sound rules (separate system).
 
 ## Files
 - `src/ui/brand.ts` `game` block: the overlay colours (cream, ink, muted, orange, red, red-text, edge, gold, glass).

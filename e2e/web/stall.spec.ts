@@ -230,7 +230,7 @@ test('a run pays once; the stall and every sheet work; a training step shows up 
   expect(before2.gold).toBe(gold);
   await page.waitForFunction(() => window.__world!.wave >= 2, null, { timeout: 120_000 });
   await tid(page, 'ui-pause').click();
-  await tid(page, 'ui-quit').click();
+  await tid(page, 'ui-quit').click(); await tid(page, 'ui-quit-confirm').click();
   await expect(tid(page, 'ui-again')).toBeVisible();
   const early = await page.evaluate(() => window.__world!.result!);
   expect(early.won).toBe(false);
@@ -345,7 +345,7 @@ test('the game loop sleeps whenever no run is live, wakes for a run, and still t
   await tid(page, 'ui-pause').click(); // held, but a run is still live: the loop stays awake behind the pause sheet
   await page.waitForTimeout(400);
   expect(await running()).toBe(true);
-  await tid(page, 'ui-quit').click();
+  await tid(page, 'ui-quit').click(); await tid(page, 'ui-quit-confirm').click();
   await expect(tid(page, 'ui-again')).toBeVisible();
   await expect.poll(running).toBe(false);
   await tid(page, 'ui-again').click(); // Daydream again wakes it
@@ -354,7 +354,7 @@ test('the game loop sleeps whenever no run is live, wakes for a run, and still t
   await page.waitForFunction(() => window.__world!.time > 1);
   // Leaving the game from sleep: the engine's teardown happens on its next step, so GameRoot wakes the loop to let it run.
   await tid(page, 'ui-pause').click();
-  await tid(page, 'ui-quit').click();
+  await tid(page, 'ui-quit').click(); await tid(page, 'ui-quit-confirm').click();
   await expect.poll(running).toBe(false);
   await page.evaluate(() => {
     (window as unknown as { __kept: unknown }).__kept = window.__game;

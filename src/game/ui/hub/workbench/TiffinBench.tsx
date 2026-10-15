@@ -7,7 +7,7 @@ import { runPools } from '@/meta/recipes';
 import { chooseSignature } from '@/meta/signature';
 import type { SaveV2, SaveV3 } from '@/meta/types';
 import { playSfx } from '../../../audio/sfx';
-import { unlockBeat } from '../../stall/helpers';
+import { lockLine } from '../../stall/helpers';
 import type { Commit } from '../../stall/sheets';
 import type { Art } from '../../stall/StallProgress';
 import { useDnD, useUndo } from './drag';
@@ -52,12 +52,12 @@ export function TiffinBench({ save, commit, art }: { save: SaveV2; commit: Commi
     return ok;
   };
   const dnd = useDnD<Drag>(drop);
-  if (!save.unlocks.signature) return <p>Unlocks: {unlockBeat('signature')}.</p>;
+  if (!save.unlocks.signature) return <p>{lockLine('signature')}</p>;
   return (
     <div className="wb" data-testid="tiffin-bench">
-      <p>Slot 1 is the roti you start with. Slots 2 and 3 are packed for later: a run starts with one roti for now.</p>
+      <p>Pick the roti you start each daydream with.</p>
       <div className="wb-tiffin">
-        {slots.map((b, i) => {
+        {slots.slice(0, 1).map((b, i) => {
           const src = b && i > 0 ? dnd.source({ bread: b, from: i }, art(CONTENT.breads[b].sprite)) : null;
           return (
             <div key={i} className="wb-slot" {...dnd.target(`tiff-${i}`)} data-testid={`tiffin-${i}`} data-bread={b ?? undefined} data-shake={shake === `tiff-${i}` || undefined}>
@@ -75,7 +75,7 @@ export function TiffinBench({ save, commit, art }: { save: SaveV2; commit: Commi
           return (
             <button type="button" key={id} className="sh-tile" data-testid={`tiffin-pick-${id}`} style={src.style} onPointerDown={src.onPointerDown}
               data-lifted={dnd.dragging?.bread === id && dnd.dragging.from === undefined || undefined}
-              onClick={() => drop({ bread: id }, `tiff-${Math.max(1, slots.indexOf(null))}`)}>
+              onClick={() => drop({ bread: id }, 'tiff-0')}>
               <img className="sh-item-art" src={art(CONTENT.breads[id].sprite)} alt="" draggable={false} />
               <b>{name(id)}</b>
             </button>

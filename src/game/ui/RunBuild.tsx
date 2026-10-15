@@ -45,20 +45,20 @@ export function effectText(fx: HitEffect, dotPct = 0): string {
   }
 }
 
-type Fx = { icon: string; text: string };
+type Fx = { text: string };
 /** Short icon rows for a dip effect (the sentence form, effectText, stays for tests and tooltips). */
 export function effectRows(fx: HitEffect, dotPct = 0): Fx[] {
   switch (fx.type) {
-    case 'burn': return [{ icon: '🔥', text: `Burn ${number(fx.dps * (1 + dotPct))}/s · ${number(fx.time)}s` }];
-    case 'sugar': return [{ icon: '🍯', text: `Sticky ${pct(fx.slowPct)} slow · ${number(fx.slowTime)}s` }, { icon: '🍬', text: `${number(fx.dpsPerStack * (1 + dotPct))}/s per stack · stun @${fx.crashAt} · ${number(fx.crashStun)}s` }];
-    case 'chill': return [{ icon: '❄', text: `Chill ${pct(fx.slowPerStack)} · ${number(fx.time)}s` }, { icon: '🧊', text: `Freeze @${fx.freezeAt} · ${number(fx.freezeTime)}s` }];
-    case 'chain': return [{ icon: '⚡', text: `${fx.jumps} jumps · ${number(fx.dmg)} dmg` }, { icon: '↔', text: `Range ${number(fx.range)}` }];
-    case 'tender': return [{ icon: '💥', text: `${number(fx.knockback)} shove` }, { icon: '🎯', text: `Foes take ${signedPct(fx.dmgTakenPct)} · ${number(fx.time)}s` }];
-    case 'stackDmg': return [{ icon: '📈', text: `${signedPct(fx.pctPerStack)}/stack · max ${fx.maxStacks} · ${number(fx.time)}s` }, { icon: '✨', text: `${signedPct(fx.critAtMax)} crit at max` }];
-    case 'deathBlast': return [{ icon: '💣', text: `Death blast ${number(fx.dmg)} dmg · r${number(fx.radius)}` }];
-    case 'haste': return [{ icon: '⏩', text: `Every ${fx.everyHits} hits: ${signedPct(fx.throwSpeedPct)} speed · ${number(fx.time)}s` }];
-    case 'spin': return [{ icon: '🌀', text: `${signedPct(fx.projSpeedPct)} shot speed · +${number(fx.critDmgPct)} crit × · ${number(fx.time)}s` }];
-    case 'healOnKill': return [{ icon: '💚', text: `Heal ${number(fx.hp)} HP per kill` }];
+    case 'burn': return [{ text: `Burn ${number(fx.dps * (1 + dotPct))}/s · ${number(fx.time)}s` }];
+    case 'sugar': return [{ text: `Sticky ${pct(fx.slowPct)} slow · ${number(fx.slowTime)}s` }, { text: `${number(fx.dpsPerStack * (1 + dotPct))}/s per stack · stun @${fx.crashAt} · ${number(fx.crashStun)}s` }];
+    case 'chill': return [{ text: `Chill ${pct(fx.slowPerStack)} · ${number(fx.time)}s` }, { text: `Freeze @${fx.freezeAt} · ${number(fx.freezeTime)}s` }];
+    case 'chain': return [{ text: `${fx.jumps} jumps · ${number(fx.dmg)} dmg` }, { text: `Range ${number(fx.range)}` }];
+    case 'tender': return [{ text: `${number(fx.knockback)} shove` }, { text: `Foes take ${signedPct(fx.dmgTakenPct)} · ${number(fx.time)}s` }];
+    case 'stackDmg': return [{ text: `${signedPct(fx.pctPerStack)}/stack · max ${fx.maxStacks} · ${number(fx.time)}s` }, { text: `${signedPct(fx.critAtMax)} crit at max` }];
+    case 'deathBlast': return [{ text: `Death blast ${number(fx.dmg)} dmg · r${number(fx.radius)}` }];
+    case 'haste': return [{ text: `Every ${fx.everyHits} hits: ${signedPct(fx.throwSpeedPct)} speed · ${number(fx.time)}s` }];
+    case 'spin': return [{ text: `${signedPct(fx.projSpeedPct)} shot speed · +${number(fx.critDmgPct)} crit × · ${number(fx.time)}s` }];
+    case 'healOnKill': return [{ text: `Heal ${number(fx.hp)} HP per kill` }];
   }
 }
 
@@ -70,12 +70,12 @@ const Bar = ({ label, value, max, text }: { label: string; value: number; max: n
     <span className="gb-bar-label">{label}</span><span className="gb-bar-track"><i style={{ width: `${Math.max(3, Math.min(1, value / (max || 1)) * 100)}%` }} /></span><b>{text}</b>
   </div>;
 
-/** Section title with a collapsed-by-default ⓘ explanation. */
+/** Section title with a collapsed-by-default info explanation. */
 function Head({ id, title, count, note }: { id: string; title: string; count?: number; note?: ReactNode }) {
   const [open, setOpen] = useState(false); const nid = useId();
   return <>
     <h3 id={id}>{title}{count !== undefined && <span className="gb-count">{count}</span>}
-      {note && <button type="button" className="gb-info" aria-expanded={open} aria-controls={nid} aria-label={`About ${title}`} onClick={() => setOpen(o => !o)}>ⓘ</button>}</h3>
+      {note && <button type="button" className="gb-info" aria-expanded={open} aria-controls={nid} aria-label={`About ${title}`} onClick={() => setOpen(o => !o)}><i className="ic ic-info" aria-hidden="true" /></button>}</h3>
     {note && <p id={nid} className="gu-build-note" hidden={!open}>{note}</p>}
   </>;
 }
@@ -111,7 +111,7 @@ export function RunBuild({ hud }: { hud: HudState }) {
         {hud.route
           ? <Bar label="Distance" value={hud.route.dist} max={hud.route.bossAt} text={`${Math.round(hud.route.dist)} m / ${hud.route.bossAt} m`} />
           : <Bar label="Wave" value={hud.wave} max={hud.waves} text={`${hud.wave} / ${hud.waves}`} />}
-        <p><span>⏱ {mins}:{String(secs).padStart(2, '0')}</span><span>Kannan Lv {hud.level}</span><span>Paused</span></p>
+        <p><span>{mins}:{String(secs).padStart(2, '0')}</span><span>Run level {hud.level}</span><span>Paused</span></p>
       </div>
       <Head id="build-rate-info" title="How DPS is counted" note="Hit + damage-over-time numbers in the last 5 simulation seconds, including overkill. Before 5s, divided by elapsed run time. Pause stops this clock; 5s without damage gives zero. Resets each run." />
     </section>
@@ -121,19 +121,19 @@ export function RunBuild({ hud }: { hud: HudState }) {
         const view = cardView({ kind: 'bread', id: b.id, level: b.level });
         const m = rotiMetrics(def, st, stats, mods);
         const traits: Fx[] = [];
-        if (def.motion === 'wave') traits.push({ icon: '↔', text: `Width ${number(st.width * (1 + stats.sizePct) * (1 + 0.25 * stats.extraProjectiles))}` });
-        if (st.pierce) traits.push({ icon: '➤', text: `${st.pierce} pierces` });
-        if (st.hops) traits.push({ icon: '↩', text: `${st.hops} hops` }, { icon: '📉', text: `${pct(st.hopFalloff)} loss/hop` });
-        else { const at = def.levels.findIndex(l => l.hops > 0); if (at > b.level - 1) traits.push({ icon: '↩', text: `ricochet at L${at + 1}` }); }
-        if (st.fragments) traits.push({ icon: '✺', text: `${st.fragments} frags · ${number(st.fragmentDmg)}` });
-        if (st.blast) traits.push({ icon: '💥', text: `Blast ${number(st.blast * (1 + stats.sizePct))}` });
-        if (st.zoneTime) traits.push({ icon: '🔥', text: `Zone ${number(st.zoneDps * (1 + stats.dotPct))}/s · ${number(st.zoneTime)}s` });
-        if (st.stun) traits.push({ icon: '💫', text: `${number(st.stun)}s stun` });
-        if (st.knockback) traits.push({ icon: '↠', text: `${number(st.knockback)} shove` });
-        if (st.armourPierce) traits.push({ icon: '🛡', text: `${pct(st.armourPierce)} bypass` });
-        if (st.healOnHit) traits.push({ icon: '💚', text: `${number(st.healOnHit)} HP/hit` });
-        if (st.pull) traits.push({ icon: '🧲', text: `${number(st.pull)} pull` });
-        if (st.critEvery) traits.push({ icon: '✨', text: `Every ${st.critEvery}th crits` });
+        if (def.motion === 'wave') traits.push({ text: `Width ${number(st.width * (1 + stats.sizePct) * (1 + 0.25 * stats.extraProjectiles))}` });
+        if (st.pierce) traits.push({ text: `${st.pierce} pierces` });
+        if (st.hops) traits.push({ text: `${st.hops} hops` }, { text: `${pct(st.hopFalloff)} loss/hop` });
+        else { const at = def.levels.findIndex(l => l.hops > 0); if (at > b.level - 1) traits.push({ text: `ricochet at L${at + 1}` }); }
+        if (st.fragments) traits.push({ text: `${st.fragments} frags · ${number(st.fragmentDmg)}` });
+        if (st.blast) traits.push({ text: `Blast ${number(st.blast * (1 + stats.sizePct))}` });
+        if (st.zoneTime) traits.push({ text: `Zone ${number(st.zoneDps * (1 + stats.dotPct))}/s · ${number(st.zoneTime)}s` });
+        if (st.stun) traits.push({ text: `${number(st.stun)}s stun` });
+        if (st.knockback) traits.push({ text: `${number(st.knockback)} shove` });
+        if (st.armourPierce) traits.push({ text: `${pct(st.armourPierce)} bypass` });
+        if (st.healOnHit) traits.push({ text: `${number(st.healOnHit)} HP/hit` });
+        if (st.pull) traits.push({ text: `${number(st.pull)} pull` });
+        if (st.critEvery) traits.push({ text: `Every ${st.critEvery}th crits` });
         const signature = (def.evolvedFrom?.bread ?? def.id) === hud.signatureBread;
         return <article className="gb-build-card" key={b.id} data-testid={`build-bread-${b.id}`}>
           <header><img src={ASSET_URLS[view.sprite]} alt="" /><div><h4>{def.name} <span className="gb-sr">L{b.level}</span></h4><Pips level={b.level} max={def.levels.length} /></div></header>
@@ -142,7 +142,7 @@ export function RunBuild({ hud }: { hud: HudState }) {
           <Bar label="Speed" value={m.rate} max={peak.rate} text={`${number(m.rate)}/s`} />
           <Bar label="Range" value={m.range} max={peak.range} text={`${Math.round(m.range)}`} />
           <Bar label={def.motion === 'orbit' ? 'Orbs' : 'Shots'} value={m.shots} max={peak.shots} text={number(m.shots)} />
-          {(traits.length > 0 || st.zoneEffect) && <p className="gb-chips" aria-label="Traits">{traits.map(t => <span key={t.text} className="gb-chip gb-chip--fx"><span aria-hidden>{t.icon}</span>{t.text}</span>)}{st.zoneEffect && effectRows(st.zoneEffect, stats.dotPct).map(t => <span key={t.text} className="gb-chip gb-chip--fx"><span aria-hidden>{t.icon}</span>{t.text}</span>)}</p>}
+          {(traits.length > 0 || st.zoneEffect) && <p className="gb-chips" aria-label="Traits">{traits.map(t => <span key={t.text} className="gb-chip gb-chip--fx">{t.text}</span>)}{st.zoneEffect && effectRows(st.zoneEffect, stats.dotPct).map(t => <span key={t.text} className="gb-chip gb-chip--fx">{t.text}</span>)}</p>}
           {signature && <p className="gb-badge" title={signatureIdentity(hud.signatureBread!)}>★ Signature · {signatureIdentity(hud.signatureBread!)}</p>}
         </article>;
       })}
@@ -160,7 +160,7 @@ export function RunBuild({ hud }: { hud: HudState }) {
           <p className="gb-chips">{d.linkedBread
             ? <><span className="gb-chip gb-chip--link"><span aria-hidden>🔗</span><span className="gb-sr">Linked to </span>→ {CONTENT.breads[d.linkedBread].name}</span><span className="gb-chip">{bonus}</span></>
             : <span className="gb-chip">{view.scope}</span>}</p>
-          <ul className="gb-fx">{effectRows(fx, stats.dotPct).map(r => <li key={r.text}><span aria-hidden>{r.icon}</span>{r.text}</li>)}</ul>
+          <ul className="gb-fx">{effectRows(fx, stats.dotPct).map(r => <li key={r.text}>{r.text}</li>)}</ul>
           {link && <Bar label="Simmer" value={hud.dipSimmer?.[d.id] ?? 1} max={def.levels.length} text={`L${hud.dipSimmer?.[d.id] ?? 1}`} />}
         </article>;
       })}
